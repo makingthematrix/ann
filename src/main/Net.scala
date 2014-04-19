@@ -3,8 +3,9 @@ package main
 import scala.collection.mutable
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import Utils._
 
-class Net(val defSlope: Double = 20.0,val defHardTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet {
+class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet {
   private val neurons = mutable.ListBuffer[Neuron]()
   private val ins = mutable.ListBuffer[Neuron]()
   private val outs = mutable.ListBuffer[Neuron]()
@@ -21,9 +22,8 @@ class Net(val defSlope: Double = 20.0,val defHardTreshold: Double = 0.5, val def
   override def ids = neurons.map( _.id )
   override def find(id: Long) = neurons.find( _.id == id )
   
-  def addNeuron(): Neuron = addNeuron(defSlope, defHardTreshold)
-  def addNeuron(slope: Double, hardTreshold: Double): Neuron = {
-    val n = Neuron(slope,hardTreshold)
+  def addNeuron(slope: Double =defSlope, treshold: Double =defTreshold): Neuron = {
+    val n = Neuron(treshold,slope)
     neurons += n
     n
   }
@@ -34,9 +34,9 @@ class Net(val defSlope: Double = 20.0,val defHardTreshold: Double = 0.5, val def
   def connect(id1: Long, id2: Long): Boolean = connect(id1, id2, defWeight)
   def connect(id1: Long, id2: Long, weight: Double): Boolean = {
     val n1 = neurons.find(_.id == id1)
-    if(n1 == None) throw new IllegalArgumentException("Unable to find a neuron with id " + id1)
+    assert(n1 == None, s"Unable to find a neuron with id $id1")
     val n2 = neurons.find(_.id == id2)
-    if(n2 == None) throw new IllegalArgumentException("Unable to find a neuron with id " + id2)
+    assert(n2 == None, s"Unable to find a neuron with id $id2")
     connect(n1.get, n2.get, weight)
   }
   def connect(n1: Neuron, n2: Neuron): Boolean = connect(n1, n2, defWeight)
@@ -45,7 +45,7 @@ class Net(val defSlope: Double = 20.0,val defHardTreshold: Double = 0.5, val def
   def setInputLayer(inputIds: Seq[Long]) = {
     val in = inputIds.map( id => neurons.find( _.id == id) match {
       case Some(n) => n
-      case None => throw new IllegalArgumentException("Unable to find a neuron with id " + id)
+      case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")
     }).sortWith((n1,n2) => n1.id < n2.id)
     clearInputLayer
     ins ++= in
@@ -63,7 +63,7 @@ class Net(val defSlope: Double = 20.0,val defHardTreshold: Double = 0.5, val def
   def setOutputLayer(outputIds: Seq[Long]) = {
     val out = outputIds.map( id => neurons.find( _.id == id) match {
       case Some(n) => n
-      case None => throw new IllegalArgumentException("Unable to find a neuron with id " + id)
+      case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")
     }).sortWith((n1,n2) => n1.id < n2.id)
     clearOutputLayer
     outs ++= out
@@ -113,13 +113,13 @@ object Net {
     net
   }
   
-  def apply(slope: Double, hardTreshold: Double, weight: Double, neuronNumber: Int) = {
-    val net = new Net(slope, hardTreshold)
+  def apply(slope: Double, treshold: Double, weight: Double, neuronNumber: Int) = {
+    val net = new Net(slope, treshold)
     for(i <- 1 to neuronNumber) net.addNeuron()
     net
   }
   
-  def apply(slope: Double, hardTreshold: Double, weight: Double) = new Net(slope, hardTreshold, weight)
+  def apply(slope: Double, treshold: Double, weight: Double) = new Net(slope, treshold, weight)
   
   implicit def toString(seq: Seq[Double]): String = {
     val sb = StringBuilder.newBuilder

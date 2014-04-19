@@ -3,10 +3,14 @@ package main
 import scala.collection.mutable
 
 case class Synapse(val destination: Neuron,var weight: Double){
-  def send(signal: Double) = destination += signal * weight
+  def send(signal: Double) = {
+    val t = signal * weight
+    println(s"sending signal $signal through synapse with weight $weight to neuron ${destination.id} -> $t")
+    destination += t
+  }
 }
 
-class Neuron(val id: Long, val slope: Double = 20.0,val hardTreshold: Double = 0.5){
+class Neuron(val id: Long, val treshold: Double = 0.5, val slope: Double = 20.0){
   protected val synapses = mutable.ListBuffer[Synapse]()
   protected var buffer = 0.0
   
@@ -20,17 +24,23 @@ class Neuron(val id: Long, val slope: Double = 20.0,val hardTreshold: Double = 0
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
   
-  def tick() = if(buffer >= hardTreshold) run()
+  def tick() = {
+    println(s"--- $id tick with buffer $buffer and treshold $treshold")
+    if(buffer > treshold) run()
+    println(s"n$id, after tick: buffer = $buffer")
+  }
    
   protected def run(){
     val output = this.output
+    println(s"output $output")
     synapses foreach { _.send(output) } 
+    afterTickTriggers.values.foreach( _(this) )
     buffer = 0.0
   }  
   
   def +=(signal: Double) = {
     buffer += signal
-    if(htpEvent != null && buffer >= hardTreshold) htpEvent(this)
+    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
   }
   
   def connect(destination:Neuron, weight: Double) = findSynapse(destination) match {
@@ -58,15 +68,23 @@ class Neuron(val id: Long, val slope: Double = 20.0,val hardTreshold: Double = 0
   def isNegative = !synapses.exists( _.weight > 0.0 )
   def isMixed = synapses.exists( _.weight < 0.0 ) && synapses.exists( _.weight > 0.0 )
 
-  private var htpEvent:(Neuron)=>Unit = null
-
-  def setHardTresholdPassedEvent(f: (Neuron) => Unit){
-    htpEvent = f
+  private val afterTickTriggers = mutable.Map[String,(Neuron)=>Unit]()
+  def addAfterTickTrigger(id: String, f: (Neuron) => Unit) = afterTickTriggers.contains(id) match {
+    case false => afterTickTriggers.put(id, f)
+    case true => throw new IllegalArgumentException(s"There was already registered a trigger with id $id")
   } 
+  def isAfterTickTrigger(id: String) = afterTickTriggers.contains(id)
+  def removeAfterTickTrigger(id: String) = afterTickTriggers.remove(id)
+  def clearAfterTickTriggers() = afterTickTriggers.clear
   
-  def clearHardTresholdPassedEvent(){
-    htpEvent = null
-  }
+  private val tresholdPassedTriggers = mutable.Map[String,(Neuron)=>Unit]()
+  def addTresholdPassedTrigger(id: String, f: (Neuron) => Unit) = tresholdPassedTriggers.contains(id) match {
+    case false => tresholdPassedTriggers.put(id, f)
+    case true => throw new IllegalArgumentException("There was already registered a trigger with id " + id)
+  } 
+  def isTresholdPassedTrigger(id: String) = tresholdPassedTriggers.contains(id)
+  def removeTresholdPassedTrigger(id: String) = tresholdPassedTriggers.remove(id)
+  def clearTresholdPassedTriggers() = tresholdPassedTriggers.clear
 }
 
 object Neuron{
@@ -80,8 +98,8 @@ object Neuron{
     n
   }
   
-  def apply(slope: Double, hardTreshold: Double) = {
-    val n = new Neuron(serialId, slope, hardTreshold)
+  def apply(treshold: Double, slope: Double) = {
+    val n = new Neuron(serialId, treshold, slope)
     serialId += 1
     n
   }

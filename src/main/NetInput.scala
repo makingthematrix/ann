@@ -1,13 +1,13 @@
 package main
 
 import scala.collection.mutable
+import Utils._
 
-class NetInput(val net: Net) {
+class NetInput(val name: String, val net: Net) {
   private val inputQueue = mutable.Queue[Seq[Double]]()
   
   def add(input: Seq[Double]) = {
-    if(input.length != net.inputSize)
-      throw new IllegalArgumentException(s"The input vector has to be exactly ${net.inputSize} numbers long.")
+    assert(input.length != net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long.")
     inputQueue += input
   }
   def addEmptyInput = add(generateEmptyInput)
@@ -32,4 +32,23 @@ class NetInput(val net: Net) {
   }
 
   def generateEmptyInput:Seq[Double] = for(i <- 1 to net.inputSize) yield 0.0
+  
+  private val signRegister = mutable.Map[Char,Double]()
+  
+  def regSign(sign: Char,input: Double) = signRegister += (sign -> input)
+  def +=(input: String) = input.split(",").toSeq.map( 
+    _.toCharArray().toSeq.map( c => 
+      if(signRegister.contains(c)) signRegister(c) 
+      else throw new IllegalArgumentException(s"No input registered with sign $c")
+  )).foreach( add(_) )
+  
+}
+
+object NetInput {
+  def apply(name: String, net: Net) = {
+    val ni = new NetInput(name, net)
+    ni.regSign('0',0.0)
+    ni.regSign('1', 1.0)
+    ni
+  }
 }

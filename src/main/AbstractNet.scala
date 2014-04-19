@@ -7,6 +7,8 @@ trait AbstractNet {
   protected def middleLayer: Seq[Neuron]
   protected def outputLayer: Seq[Neuron] 
   
+  private var iterationCounter = 0L
+  
   def setInput(in: Seq[Double]) = {
     val ins = inputLayer
     if(ins.size != in.size)
@@ -20,10 +22,14 @@ trait AbstractNet {
   def tick() = {
     // this is a synchronous tick of all neurons - first the input layer, then the middle, then the output layer
     // not really what we want to achieve here ;)
-
+	iterationCounter += 1
+    println(s"--- tick nr $iterationCounter ---")
     inputLayer.foreach( _.tick() )
     middleLayer.foreach( _.tick() )
+    outputLayer.foreach( _.tick() )
   }
+  
+  def iteration = iterationCounter
   
   def size = inputLayer.size + middleLayer.size + outputLayer.size
   def inputSize = inputLayer.size
