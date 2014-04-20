@@ -1,12 +1,13 @@
 package main
 
 final class DummyNeuron(override val id: Long, override val treshold: Double = 0.0) extends Neuron(id,treshold) {
-  override def output = buffer
+  override def calculateOutput = buffer
   
   override def tick() = {
     println(s"--- $id tick")
     if(buffer > treshold) run()
     buffer = 0.0 // buffer is cleared no matter if it was processed or not
+    afterTickTriggers.values.foreach( _(this) )
   }
 }
 

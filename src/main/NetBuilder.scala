@@ -131,8 +131,8 @@ class NetBuilder {
   def chainMiddle():NetBuilder = chainMiddle(generateName(NetBuilder.MIDDLE_LAYER))
   def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateName(NetBuilder.MIDDLE_LAYER), weight)
   def chainMiddle(weight: Double, treshold: Double):NetBuilder = chainMiddle(generateName(NetBuilder.MIDDLE_LAYER), weight, treshold)
-  def chainMiddle(weight: Double, treshold: Double, sl: Double):NetBuilder = 
-    chainMiddle(generateName(NetBuilder.MIDDLE_LAYER), weight, treshold, sl)
+  def chainMiddle(weight: Double, treshold: Double, slope: Double):NetBuilder = 
+    chainMiddle(generateName(NetBuilder.MIDDLE_LAYER), weight, treshold, slope)
   
   def chainOutput(name: String, weight: Double =defWeight, treshold: Double =0.0):NetBuilder = {
     val n1 = current
@@ -160,6 +160,11 @@ class NetBuilder {
   def loop(w1: Double, treshold: Double, w2: Double):NetBuilder = loop(generateName(NetBuilder.MIDDLE_LAYER), w1, treshold, w2)
   def loop(w1: Double, w2: Double):NetBuilder = loop(generateName(NetBuilder.MIDDLE_LAYER), w1, defTreshold, w2)
   
+  def self(weight: Double =defWeight):NetBuilder = {
+    current.connect(current, weight)
+    this
+  }
+  
   def build:Net = {
     val net = Net(defSlope, defTreshold, defWeight)
     neurons.foreach(tuple => net.addNeuron(tuple._2))
@@ -170,7 +175,11 @@ class NetBuilder {
   
   def build(netInputName: String, netOutputName: String):(NetInput,Net,NetOutput) = {
     val net = build
-    (NetInput(netInputName, net), net, NetOutput(netOutputName, net))
+    val in = NetInput(netInputName, net)
+    neuronNames.foreach( tuple => if(in.ids.contains(tuple._2)) in.regAlias(tuple._1, tuple._2))
+    val out = NetOutput(netOutputName, net)
+    neuronNames.foreach( tuple => if(out.ids.contains(tuple._2)) out.regAlias(tuple._1, tuple._2))
+    (in, net, out)
   }
 }
 

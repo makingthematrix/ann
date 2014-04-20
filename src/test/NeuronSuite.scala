@@ -31,7 +31,8 @@ class NeuronSuite extends JUnitSuite {
   def shouldGetOutput(){
     val n = Neuron(TRESHOLD, SLOPE)
     n += (TRESHOLD + 0.1)
-    assertTrue(n.output > 0.0)
+    n.tick()
+    assertTrue(n.lastOutput > 0.0)
   }
   
   @Test

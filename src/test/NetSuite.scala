@@ -49,13 +49,13 @@ class NetSuite extends JUnitSuite {
     assertEquals(1, net.outputSize)
     
     val out = net.find(net.outputIds(0)).get
-    assertEquals(0.0,out.output,0.01)
+    assertEquals(0.0,out.lastOutput,0.01)
     
     net.setInput(Seq(TRESHOLD + 0.1))
 
     var outputRegistered = false
-    out.addAfterTickTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.output > 0.01)
+    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+      assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
     
@@ -68,13 +68,13 @@ class NetSuite extends JUnitSuite {
     val net = IMONet(1,1,1)
     
     val out = net.find(net.outputIds(0)).get
-    assertEquals(0.0,out.output,0.01)
+    assertEquals(0.0,out.lastOutput,0.01)
     
     net.setInput(Seq(TRESHOLD + 0.1))
 
     var outputRegistered = false
-    out.addAfterTickTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.output > 0.01)
+    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+      assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
     
@@ -96,11 +96,11 @@ class NetSuite extends JUnitSuite {
     net.setInput(Seq(TRESHOLD + 0.1))
     
     val out = net.find(net.outputIds(0)).get
-    assertEquals(0.0,out.output,0.01)
+    assertEquals(0.0,out.lastOutput,0.01)
     
     var outputRegistered = false
-    out.addAfterTickTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.output > 0.01)
+    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+      assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
 
@@ -121,13 +121,13 @@ class NetSuite extends JUnitSuite {
     assertEquals(1, net.outputSize)
     
     val out = net.find(net.outputIds(0)).get
-    assertEquals(0.0,out.output,0.01)
+    assertEquals(0.0,out.lastOutput,0.01)
     
     net.setInput(Seq(TRESHOLD + 0.1))
     
     var outputRegistered = false
-    out.addAfterTickTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.output > 0.01)
+    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+      assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
     
@@ -158,8 +158,8 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     
     var outputRegistered = false
-    out.addTrigger(outId, (n:Neuron) => {
-      println( n.id + " => " + n.output )
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
+      println( n.id + " => " + n.lastOutput )
       outputRegistered = true
     })
     
@@ -182,8 +182,8 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     
     var outputRegistered = false
-    out.addTrigger(outId, (n:Neuron) => {
-      println( n.id + " => " + n.output )
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
+      println( n.id + " => " + n.lastOutput )
       outputRegistered = true
     })
     
@@ -195,8 +195,8 @@ class NetSuite extends JUnitSuite {
   private def assertOutputAfter(in: NetInput, net: Net, out: NetOutput, iterations: Int) = {
     val outId = out.ids(0)
     
-    @volatile var outputRegistered = false
-    out.addTrigger(outId, (n:Neuron) => {
+    var outputRegistered = false
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
       println(s"fired!, outId=$outId, net tick=${net.iteration}")
       outputRegistered = true
     })
@@ -208,9 +208,9 @@ class NetSuite extends JUnitSuite {
   }
   
   @Test
-  def shouldSendOutputWith2IterDelay(){
+  def shouldSendOutputWith2IterDelay_usingInputSynapse(){
     val builder = NetBuilder()
-    builder.addInput().chainMiddle(0.6,0.25).loop(0.7,0.25,1.0).chainOutput(0.8,0.75)
+    builder.addInput().chainMiddle(0.55,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75)
     val (in, net, out) = builder.build("in1","out1")
     in += "1,0,0"
       
@@ -218,12 +218,95 @@ class NetSuite extends JUnitSuite {
   }
   
   @Test
-  def shouldSendOutputWith3IterDelay(){
+  def shouldSendOutputWith2IterDelay_usingSlopeAndSelf(){
     val builder = NetBuilder()
-    builder.addInput().chainMiddle(0.55,0.25).loop(0.7,0.25,1.0).chainOutput(0.6,0.5)
+    builder.addInput().chainMiddle(0.7,0.5,5.0).self(1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,0,0"
+      
+    assertOutputAfter(in, net, out, 2)
+  }
+  
+  @Test
+  def shouldSendOutputWith3IterDelay_usingInputSynapse(){
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75)
     val (in, net, out) = builder.build("in1","out1")
     in += "1,0,0"
       
     assertOutputAfter(in, net, out, 3)
   }
+  
+  @Test
+  def shouldSendOutputWith3IterDelay_usingSlopeAndSelf(){
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.55,0.5,8.0).self(1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,0,0"
+      
+    assertOutputAfter(in, net, out, 3)
+  }
+  
+  @Test
+  def shouldSendOutputWith2Signals_usingTreshold(){
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput(1.0,0.9)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,1,0"
+      
+    assertOutputAfter(in, net, out, 3)
+  }
+  
+  @Test
+  def shouldCreateOscillator(){
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(1.0).loop(1.0,0.5,-1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,1,1,1,1,1"
+      
+    val outId = out.ids(0)
+    val sb = StringBuilder.newBuilder
+    var outputRegistered = false
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
+      sb.append('1')
+      outputRegistered = true
+    })
+    out.addAfterTickTrigger(outId, (n:Neuron) => {
+      if(!outputRegistered) sb.append('0')
+      outputRegistered = false
+    })
+    
+    in.tick(6)
+    
+    val str = sb.toString
+    println(str)
+    assertEquals("101010",str)
+  }
+  
+  @Test
+  def shouldCreateOscillator2(){
+    val builder = NetBuilder()
+    builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)
+    builder.use("in1").chainMiddle("mi2",1.0).chainOutput("out2",1.0,0.75)
+    builder.use("osc").connect("mi2",-1.0)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,1,1,1,1,1"
+      
+    val out1 = builder.findByName("out1")
+    val out2 = builder.findByName("out2")
+    val sb = StringBuilder.newBuilder
+    out.addAfterFireTrigger(out1, (n:Neuron) => {
+      sb.append('1'); 
+    })
+    out.addAfterFireTrigger(out2, (n:Neuron) => {
+      sb.append('0')
+    })
+    
+    in.tick(6)
+    
+    val str = sb.toString
+    println(str)
+    assertEquals("101010",str)
+  }
+  
 }

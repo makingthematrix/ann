@@ -17,7 +17,7 @@ trait AbstractNet {
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   
-  def output = outputLayer.map( _.output )
+  def output = outputLayer.map( _.lastOutput )
   
   def tick() = {
     // this is a synchronous tick of all neurons - first the input layer, then the middle, then the output layer

@@ -13,10 +13,12 @@ case class Synapse(val destination: Neuron,var weight: Double){
 class Neuron(val id: Long, val treshold: Double = 0.5, val slope: Double = 20.0){
   protected val synapses = mutable.ListBuffer[Synapse]()
   protected var buffer = 0.0
+  protected var output = 0.0
   
   def input = buffer // only for debugging purposes
+  def lastOutput = output // only for debugging purposes
   
-  def output = buffer match {
+  protected def calculateOutput = buffer match {
     case x if x <= 0.0 => 0.0
     case x if x >= 1.0 => 1.0
     case x => 1.0/(1.0+Math.exp(-slope*(x-0.5)));
@@ -27,15 +29,16 @@ class Neuron(val id: Long, val treshold: Double = 0.5, val slope: Double = 20.0)
   def tick() = {
     println(s"--- $id tick with buffer $buffer and treshold $treshold")
     if(buffer > treshold) run()
-    println(s"n$id, after tick: buffer = $buffer")
+    //println(s"n$id, after tick: buffer = $buffer")
+    afterTickTriggers.values.foreach( _(this) )
   }
    
   protected def run(){
-    val output = this.output
+    output = calculateOutput
+    buffer = 0.0
     println(s"output $output")
     synapses foreach { _.send(output) } 
-    afterTickTriggers.values.foreach( _(this) )
-    buffer = 0.0
+    afterFireTriggers.values.foreach( _(this) )
   }  
   
   def +=(signal: Double) = {
@@ -68,23 +71,38 @@ class Neuron(val id: Long, val treshold: Double = 0.5, val slope: Double = 20.0)
   def isNegative = !synapses.exists( _.weight > 0.0 )
   def isMixed = synapses.exists( _.weight < 0.0 ) && synapses.exists( _.weight > 0.0 )
 
-  private val afterTickTriggers = mutable.Map[String,(Neuron)=>Unit]()
-  def addAfterTickTrigger(id: String, f: (Neuron) => Unit) = afterTickTriggers.contains(id) match {
-    case false => afterTickTriggers.put(id, f)
-    case true => throw new IllegalArgumentException(s"There was already registered a trigger with id $id")
+  protected val afterFireTriggers = mutable.Map[String,(Neuron)=>Any]()
+  def addAfterFireTrigger(id: String, f: (Neuron) => Any) = afterFireTriggers.contains(id) match {
+    case false => afterFireTriggers.put(id, f)
+    case true => throw new IllegalArgumentException(s"There was already registered an after fire trigger with id $id")
   } 
-  def isAfterTickTrigger(id: String) = afterTickTriggers.contains(id)
+  def isAfterFireTrigger(id: String) = afterFireTriggers.contains(id)
+  def removeAfterFireTrigger(id: String) = afterFireTriggers.remove(id)
+  def clearAfterFireTriggers() = afterFireTriggers.clear
+
+  protected val afterTickTriggers = mutable.Map[String,(Neuron)=>Any]()
+  def addAfterTickTrigger(id: String, f: (Neuron) => Any) = afterTickTriggers.contains(id) match {
+    case false => afterTickTriggers.put(id, f)
+    case true => throw new IllegalArgumentException(s"There was already registered a after tick trigger with id $id")
+  } 
+  def isTickFireTrigger(id: String) = afterTickTriggers.contains(id)
   def removeAfterTickTrigger(id: String) = afterTickTriggers.remove(id)
   def clearAfterTickTriggers() = afterTickTriggers.clear
   
-  private val tresholdPassedTriggers = mutable.Map[String,(Neuron)=>Unit]()
-  def addTresholdPassedTrigger(id: String, f: (Neuron) => Unit) = tresholdPassedTriggers.contains(id) match {
+  protected val tresholdPassedTriggers = mutable.Map[String,(Neuron)=>Any]()
+  def addTresholdPassedTrigger(id: String, f: (Neuron) => Any) = tresholdPassedTriggers.contains(id) match {
     case false => tresholdPassedTriggers.put(id, f)
     case true => throw new IllegalArgumentException("There was already registered a trigger with id " + id)
   } 
   def isTresholdPassedTrigger(id: String) = tresholdPassedTriggers.contains(id)
   def removeTresholdPassedTrigger(id: String) = tresholdPassedTriggers.remove(id)
   def clearTresholdPassedTriggers() = tresholdPassedTriggers.clear
+  
+  def clearAllTriggers() = {
+    clearAfterFireTriggers()
+    clearAfterTickTriggers()
+    clearTresholdPassedTriggers()
+  }
 }
 
 object Neuron{

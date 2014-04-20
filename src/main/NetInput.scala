@@ -4,7 +4,22 @@ import scala.collection.mutable
 import Utils._
 
 class NetInput(val name: String, val net: Net) {
+  def ids = net.inputIds
+  def size = net.inputSize
+  
   private val inputQueue = mutable.Queue[Seq[Double]]()
+  
+  private val aliases = mutable.Map[String,Neuron]()
+  def regAlias(alias: String, id: Long) = aliases.put(alias, find(id))
+  
+  def find(id: Long) = net.inputIds.contains(id) match {
+    case true => net.find(id).get
+    case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
+  }
+  def find(alias: String) = aliases.contains(alias) match {
+    case true => aliases(alias)
+    case false => throw new IllegalArgumentException(s"There is no output neuron with alias $alias")
+  }
   
   def add(input: Seq[Double]) = {
     assert(input.length != net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long.")
@@ -16,7 +31,7 @@ class NetInput(val name: String, val net: Net) {
   def +=(t: (Double,Double)) = add(Seq(t._1,t._2))
   def +=(t: (Double,Double,Double)) = add(Seq(t._1,t._2,t._3))
 
-  def size = inputQueue.length
+  def inputQueueLength = inputQueue.length
 
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n){
