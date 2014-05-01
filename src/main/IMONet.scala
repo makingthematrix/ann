@@ -7,7 +7,7 @@ class IMONet(val ins: Seq[DummyNeuron],val mids: Seq[Neuron],val outs: Seq[Dummy
   override protected def middleLayer = mids
   override protected def outputLayer = outs
   
-  def weight(id1: Long, id2: Long):Option[Double] = {
+  def weight(id1: String, id2: String):Option[Double] = {
     val (n1,n2) = find(id1,id2)
     n1.findSynapse(n2) match {
       case Some(s) => Some(s.weight)
@@ -15,7 +15,7 @@ class IMONet(val ins: Seq[DummyNeuron],val mids: Seq[Neuron],val outs: Seq[Dummy
     }
   }
   
-  def connect(id1: Long, id2: Long, weight: Double, updateIfExist:Boolean = true){
+  def connect(id1: String, id2: String, weight: Double, updateIfExist:Boolean = true){
     val (n1,n2) = find(id1,id2)
     n1.findSynapse(n2) match {
       case Some(s) if updateIfExist => s.weight = weight
@@ -24,7 +24,7 @@ class IMONet(val ins: Seq[DummyNeuron],val mids: Seq[Neuron],val outs: Seq[Dummy
     }
   }
   
-  def disconnect(id1: Long, id2: Long, throwIfDisconnectedAlready:Boolean = false){
+  def disconnect(id1: String, id2: String, throwIfDisconnectedAlready:Boolean = false){
     val (n1,n2) = find(id1,id2)
     n1.findSynapse(n2) match {
       case Some(s) => n1.disconnect(n2) 
@@ -39,6 +39,7 @@ object IMONet {
   private var defTreshold = 0.5
   private var defWeight = 1.0
   
+  private var serialId = 1L;
   
   def apply(inSize: Int, midSize: Int, outSize: Int) = {
     val ins = for(i <- 1 to inSize) yield DummyNeuron()

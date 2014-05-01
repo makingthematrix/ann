@@ -41,7 +41,7 @@ trait AbstractNet {
   def middleIds = middleLayer.map( _.id )
   def outputIds = outputLayer.map( _.id )
   
-  def find(id: Long):Option[Neuron] = {
+  def find(id: String):Option[Neuron] = {
     val inFind = inputLayer.find( _.id == id )
     if(inFind.isDefined) return inFind
     val midFind = middleLayer.find( _.id == id )
@@ -49,7 +49,7 @@ trait AbstractNet {
     outputLayer.find( _.id == id )
   }
   
-  protected def find(id1: Long, id2: Long):(Neuron,Neuron) = {
+  protected def find(id1: String, id2: String):(Neuron,Neuron) = {
     val n1 = find(id1)
     if(n1.isEmpty) throw new IllegalArgumentException("There is no neuron with id " + id1)
     val n2 = find(id2)
@@ -57,5 +57,5 @@ trait AbstractNet {
     (n1.get,n2.get)
   }
   
-  def contains(id: Long) = find(id).isDefined
+  def contains(id: String) = find(id).isDefined
 }

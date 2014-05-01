@@ -2,6 +2,11 @@ package main
 
 import scala.collection.mutable
 
+object NeuronType extends Enumeration {
+  type NeuronType = Value
+  val STANDARD, DUMMY, DELAY = Value
+}
+
 class NetBuilder {
   var defSlope = NetBuilder.SLOPE
   var defTreshold = NetBuilder.TRESHOLD
@@ -9,15 +14,17 @@ class NetBuilder {
   var defInputName = "in"
   var defMiddleName = "mid"
   var defOutputName = "out"
+  var inputNeuronType = NeuronType.DUMMY
+  var middleNeuronType = NeuronType.STANDARD
+  var outputNeuronType = NeuronType.DUMMY
   
-  private val neurons = mutable.Map[Long,Neuron]()
-  private val neuronNames = mutable.Map[String,Long]() 
-  private val ins = mutable.Set[Long]()
-  private val mids = mutable.Set[Long]()
-  private val outs = mutable.Set[Long]()
+  private val neurons = mutable.Map[String,Neuron]()
+  private val ins = mutable.Set[String]()
+  private val mids = mutable.Set[String]()
+  private val outs = mutable.Set[String]()
   
-  private var currentNeuronId:Option[Long] = None
-  private var nextFreeId = 1L
+  private var currentNeuronId:Option[String] = None
+  private var nextFreeId = 0L
   
   private def nextId() = {
     val t = nextFreeId
@@ -32,27 +39,35 @@ class NetBuilder {
       case NetBuilder.OUTPUT_LAYER => defOutputName
     }
     
-    while(neuronNames.contains(prefix + nextFreeId)) nextId()
-    prefix + nextFreeId
+    prefix + nextId()
   }
 
-  private def add(name: String, n: Neuron) = {
+  private def newNeuron(neuronType: NeuronType.Value, id: String, treshold: Double =defTreshold, slope: Double =defSlope) = neuronType match {
+    case NeuronType.DUMMY => DummyNeuron(id, treshold)
+    case NeuronType.STANDARD => Neuron(id, treshold, slope)
+    case NeuronType.DELAY => DelayNeuron(id, treshold, slope)
+  }
+  
+  private def newInput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) 
+    = newNeuron(inputNeuronType, id, treshold, slope)
+  private def newMiddle(id: String, treshold: Double =defTreshold, slope: Double =defSlope)
+    = newNeuron(middleNeuronType, id, treshold, slope)
+  private def newOutput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) 
+    = newNeuron(outputNeuronType, id, treshold, slope)
+  
+  private def add(n: Neuron) = {
     neurons.put(n.id, n)
-    neuronNames.put(name, n.id)
     currentNeuronId = Some(n.id)
     n
   }
   
-  private def get(name: String) = neurons(neuronNames(name))
+  private def get(name: String) = neurons(name)
  
   def isCurrentNeuronIdSet = currentNeuronId == None
   
   def clearCurrentNeuronId = currentNeuronId = None
   
-  def findByName(name: String) = neuronNames.get(name) match {
-    case Some(id) => neurons(id)
-    case None => throw new IllegalArgumentException(s"There is no neuron with the name alias $name")
-  }
+  def findByName(name: String) = neurons(name)
   
   def current = currentNeuronId match {
     case Some(id) => neurons(id)
@@ -60,26 +75,14 @@ class NetBuilder {
   }
   
   def currentName = currentNeuronId match {
-    case Some(id) => neuronNames.find(tuple => tuple._2 == id) match {
-      case Some((name, id)) => Some(name)
-      case None => throw new IllegalArgumentException(s"Unable to find the name of the current neuron, even though its id is $id")
+    case Some(id) => neurons.contains(id) match {
+      case true => id
+      case false => throw new IllegalArgumentException(s"Unable to find the name of the current neuron, even though its id is $id")
     }
     case None => throw new IllegalArgumentException("There is no current neuron id set")
   }
   
-  def ids = neurons.keySet
-  def names = neuronNames.keySet
-  def namesToIds = neuronNames.clone
-  
-  private def layerNames(layer: mutable.Set[Long]) = layer.map( id => neuronNames.find( tuple => tuple._2 == id) match {
-    case Some((name, id)) => name
-    case None => throw new IllegalArgumentException(s"Unable to find the name for the neuron with id $id")
-  })
-  
-  def inputNames = layerNames(ins)
-  def middleNames = layerNames(mids)
-  def outputNames = layerNames(outs)
-  
+  def names = neurons.keySet
   def size = neurons.size
   
   def inSize = ins.size
@@ -98,7 +101,7 @@ class NetBuilder {
 
   def addInput(name: String, treshold: Double =0.0):NetBuilder = {
     println(s"adding input neuron with name $name and treshold $treshold")
-    val n = add(name, DummyNeuron(-nextId(), treshold))
+    val n = add(newInput(name, treshold))
     ins += n.id
     this
   }
@@ -106,7 +109,7 @@ class NetBuilder {
   
   def addMiddle(name: String, treshold: Double =defTreshold, slope: Double = defSlope):NetBuilder = {
     println(s"adding middle neuron with name $name, treshold $treshold and slope $slope")
-    val n = add(name, new Neuron(nextId(), treshold, slope))
+    val n = add(newMiddle(name, treshold, slope))
     mids += n.id
     this
   }
@@ -114,7 +117,7 @@ class NetBuilder {
   
   def addOutput(name: String, treshold: Double =0.0):NetBuilder = {
     println(s"adding output neuron with name $name and treshold $treshold")
-    val n = add(name, DummyNeuron(-nextId(), treshold))
+    val n = add(newOutput(name, treshold))
     outs += n.id
     this
   }
@@ -160,6 +163,13 @@ class NetBuilder {
   def loop(w1: Double, treshold: Double, w2: Double):NetBuilder = loop(generateName(NetBuilder.MIDDLE_LAYER), w1, treshold, w2)
   def loop(w1: Double, w2: Double):NetBuilder = loop(generateName(NetBuilder.MIDDLE_LAYER), w1, defTreshold, w2)
   
+  def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
+  def oscillator() = loop(1.0, 0.5, -1.0)
+  
+  def chainOscillator(name: String, weight: Double, treshold: Double) = chainMiddle(name, weight, treshold).oscillator(name+"_osc")
+  def chainOscillator(name: String, weight: Double) = chainMiddle(name, weight).oscillator(name+"_osc")
+  def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
+  
   def self(weight: Double =defWeight):NetBuilder = {
     current.connect(current, weight)
     this
@@ -176,9 +186,7 @@ class NetBuilder {
   def build(netInputName: String, netOutputName: String):(NetInput,Net,NetOutput) = {
     val net = build
     val in = NetInput(netInputName, net)
-    neuronNames.foreach( tuple => if(in.ids.contains(tuple._2)) in.regAlias(tuple._1, tuple._2))
     val out = NetOutput(netOutputName, net)
-    neuronNames.foreach( tuple => if(out.ids.contains(tuple._2)) out.regAlias(tuple._1, tuple._2))
     (in, net, out)
   }
 }

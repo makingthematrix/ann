@@ -20,7 +20,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   }
   
   override def ids = neurons.map( _.id )
-  override def find(id: Long) = neurons.find( _.id == id )
+  override def find(id: String) = neurons.find( _.id == id )
   
   def addNeuron(slope: Double =defSlope, treshold: Double =defTreshold): Neuron = {
     val n = Neuron(treshold,slope)
@@ -31,8 +31,8 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   
   override def size = neurons.size
   
-  def connect(id1: Long, id2: Long): Boolean = connect(id1, id2, defWeight)
-  def connect(id1: Long, id2: Long, weight: Double): Boolean = {
+  def connect(id1: String, id2: String): Boolean = connect(id1, id2, defWeight)
+  def connect(id1: String, id2: String, weight: Double): Boolean = {
     val n1 = neurons.find(_.id == id1)
     assert(n1 == None, s"Unable to find a neuron with id $id1")
     val n2 = neurons.find(_.id == id2)
@@ -42,7 +42,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   def connect(n1: Neuron, n2: Neuron): Boolean = connect(n1, n2, defWeight)
   def connect(n1: Neuron, n2: Neuron, weight: Double): Boolean = n1.connect(n2, weight)
   
-  def setInputLayer(inputIds: Seq[Long]) = {
+  def setInputLayer(inputIds: Seq[String]) = {
     val in = inputIds.map( id => neurons.find( _.id == id) match {
       case Some(n) => n
       case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")
@@ -60,7 +60,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   
   override def inputSize = ins.size
  
-  def setOutputLayer(outputIds: Seq[Long]) = {
+  def setOutputLayer(outputIds: Seq[String]) = {
     val out = outputIds.map( id => neurons.find( _.id == id) match {
       case Some(n) => n
       case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")

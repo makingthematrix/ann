@@ -1,6 +1,6 @@
 package main
 
-final class DummyNeuron(override val id: Long, override val treshold: Double = 0.0) extends Neuron(id,treshold) {
+final class DummyNeuron(id: String, treshold: Double = 0.0) extends Neuron(id,treshold) {
   override def calculateOutput = buffer
   
   override def tick() = {
@@ -12,10 +12,11 @@ final class DummyNeuron(override val id: Long, override val treshold: Double = 0
 }
 
 object DummyNeuron {
-  def apply(id: Long, treshold: Double =0.0) = id match {
-    case x if x <= 0L => new DummyNeuron(x, treshold)
+  def apply(id: Long, treshold: Double) = id match {
+    case x if x <= 0L => new DummyNeuron("dummy_"+x, treshold)
     case x => throw new IllegalArgumentException("Only non-positive ids are allowed for dummy neurons")
   }
-  def apply(treshold: Double) = new DummyNeuron(0L, treshold)
-  def apply() = new DummyNeuron(0L)
+  def apply(id: String, treshold: Double) = new DummyNeuron(id, treshold)
+  //def apply(treshold: Double) = new DummyNeuron("dummy_0", treshold)
+  def apply() = new DummyNeuron("dummy_0",0.0)
 }

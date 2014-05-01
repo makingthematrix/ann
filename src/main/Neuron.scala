@@ -10,7 +10,7 @@ case class Synapse(val destination: Neuron,var weight: Double){
   }
 }
 
-class Neuron(val id: Long, val treshold: Double = 0.5, val slope: Double = 20.0){
+class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.0){
   protected val synapses = mutable.ListBuffer[Synapse]()
   protected var buffer = 0.0
   protected var output = 0.0
@@ -111,15 +111,22 @@ object Neuron{
   def getSerialId = serialId
 
   def apply() = {
-    val n = new Neuron(serialId)
+    val n = new Neuron("neuron_"+serialId)
     serialId += 1
     n
   }
   
   def apply(treshold: Double, slope: Double) = {
-    val n = new Neuron(serialId, treshold, slope)
+    val n = new Neuron("neuron_"+serialId, treshold, slope)
     serialId += 1
     n
   }
   
+  def apply(id: Long, treshold: Double, slope: Double) = {
+    val n = new Neuron("neuron_"+id, treshold, slope)
+    if(serialId <= id) serialId = id + 1
+    n
+  }
+  
+  def apply(id: String, treshold: Double, slope: Double) = new Neuron(id, treshold, slope)
 }

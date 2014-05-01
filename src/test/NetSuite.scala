@@ -284,6 +284,58 @@ class NetSuite extends JUnitSuite {
   }
   
   @Test
+  def shouldCreateOscillatorWithMethod1(){
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(1.0).oscillator().chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,1,1,1,1,1"
+      
+    val outId = out.ids(0)
+    val sb = StringBuilder.newBuilder
+    var outputRegistered = false
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
+      sb.append('1')
+      outputRegistered = true
+    })
+    out.addAfterTickTrigger(outId, (n:Neuron) => {
+      if(!outputRegistered) sb.append('0')
+      outputRegistered = false
+    })
+    
+    in.tick(6)
+    
+    val str = sb.toString
+    println(str)
+    assertEquals("101010",str)
+  }
+  
+  @Test
+  def shouldCreateOscillatorWithMethod2(){
+    val builder = NetBuilder()
+    builder.addInput().chainOscillator(1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    in += "1,1,1,1,1,1"
+      
+    val outId = out.ids(0)
+    val sb = StringBuilder.newBuilder
+    var outputRegistered = false
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
+      sb.append('1')
+      outputRegistered = true
+    })
+    out.addAfterTickTrigger(outId, (n:Neuron) => {
+      if(!outputRegistered) sb.append('0')
+      outputRegistered = false
+    })
+    
+    in.tick(6)
+    
+    val str = sb.toString
+    println(str)
+    assertEquals("101010",str)
+  }
+  
+  @Test
   def shouldCreateOscillator2(){
     val builder = NetBuilder()
     builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)

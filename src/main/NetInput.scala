@@ -9,16 +9,9 @@ class NetInput(val name: String, val net: Net) {
   
   private val inputQueue = mutable.Queue[Seq[Double]]()
   
-  private val aliases = mutable.Map[String,Neuron]()
-  def regAlias(alias: String, id: Long) = aliases.put(alias, find(id))
-  
-  def find(id: Long) = net.inputIds.contains(id) match {
+  def find(id: String) = net.inputIds.contains(id) match {
     case true => net.find(id).get
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
-  }
-  def find(alias: String) = aliases.contains(alias) match {
-    case true => aliases(alias)
-    case false => throw new IllegalArgumentException(s"There is no output neuron with alias $alias")
   }
   
   def add(input: Seq[Double]) = {
