@@ -260,7 +260,7 @@ class NetSuite extends JUnitSuite {
   @Test
   def shouldCreateOscillator(){
     val builder = NetBuilder()
-    builder.addInput().chainMiddle(1.0).loop(1.0,0.5,-1.0).chainOutput(1.0,0.75)
+    builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)
     val (in, net, out) = builder.build("in1","out1")
     in += "1,1,1,1,1,1"
       
@@ -269,10 +269,14 @@ class NetSuite extends JUnitSuite {
     var outputRegistered = false
     out.addAfterFireTrigger(outId, (n:Neuron) => {
       sb.append('1')
+      println("SIGNAL!")
       outputRegistered = true
     })
     out.addAfterTickTrigger(outId, (n:Neuron) => {
-      if(!outputRegistered) sb.append('0')
+      if(!outputRegistered){ 
+        sb.append('0')
+        println("NO SIGNAL...")
+      }
       outputRegistered = false
     })
     
@@ -344,8 +348,8 @@ class NetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in1","out1")
     in += "1,1,1,1,1,1"
       
-    val out1 = builder.findByName("out1")
-    val out2 = builder.findByName("out2")
+    val out1 = builder.get("out1")
+    val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
     out.addAfterFireTrigger(out1, (n:Neuron) => {
       sb.append('1'); 

@@ -1,6 +1,7 @@
 package main
 
 import scala.collection.mutable
+import Utils._
 
 case class Synapse(val destination: Neuron,var weight: Double){
   def send(signal: Double) = {
@@ -10,13 +11,23 @@ case class Synapse(val destination: Neuron,var weight: Double){
   }
 }
 
-class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.0){
+class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.0, val forgetting: Double = 0.0){
   protected val synapses = mutable.ListBuffer[Synapse]()
   protected var buffer = 0.0
   protected var output = 0.0
   
   def input = buffer // only for debugging purposes
   def lastOutput = output // only for debugging purposes
+  
+  def rewire(n1: Neuron, n2: Neuron) = synapses.filter( _.destination == n1 ).foreach( s => {
+    synapses -= s
+    synapses += Synapse(n2, s.weight)
+  })
+  
+  def silence(){
+    buffer = 0.0
+    output = 0.0
+  }
   
   protected def calculateOutput = buffer match {
     case x if x <= 0.0 => 0.0
@@ -26,23 +37,32 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
   
+  protected def tickForgetting(){
+    buffer = Math.max(buffer - forgetting, 0.0) // might be changed into the S function later on
+  }
+  
+  def getSynapses = synapses.toList
+  
   def tick() = {
     println(s"--- $id tick with buffer $buffer and treshold $treshold")
+
     if(buffer > treshold) run()
-    //println(s"n$id, after tick: buffer = $buffer")
+    else if(buffer > 0.0) tickForgetting()
+    
+    println(s"$id, after tick: buffer = $buffer")
     afterTickTriggers.values.foreach( _(this) )
   }
    
   protected def run(){
     output = calculateOutput
     buffer = 0.0
-    println(s"output $output")
+    //println(s"output $output")
     synapses foreach { _.send(output) } 
     afterFireTriggers.values.foreach( _(this) )
   }  
   
   def +=(signal: Double) = {
-    buffer += signal
+    buffer = minmax(-1.0, buffer+signal, 1.0)
     if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
   }
   
@@ -110,23 +130,33 @@ object Neuron{
   
   def getSerialId = serialId
 
-  def apply() = {
+  def apply():Neuron = {
     val n = new Neuron("neuron_"+serialId)
     serialId += 1
     n
   }
   
-  def apply(treshold: Double, slope: Double) = {
+  def apply(treshold: Double, slope: Double):Neuron = {
     val n = new Neuron("neuron_"+serialId, treshold, slope)
     serialId += 1
     n
   }
   
-  def apply(id: Long, treshold: Double, slope: Double) = {
+  def apply(id: Long, treshold: Double, slope: Double):Neuron = {
     val n = new Neuron("neuron_"+id, treshold, slope)
     if(serialId <= id) serialId = id + 1
     n
   }
   
-  def apply(id: String, treshold: Double, slope: Double) = new Neuron(id, treshold, slope)
+  def apply(id: String, treshold: Double, slope: Double):Neuron = new Neuron(id, treshold, slope)
+  
+  def apply(id: String, treshold: Double, slope: Double, forgetting: Double):Neuron = new Neuron(id, treshold, slope, forgetting)
+  
+  def apply(name: String, n: Neuron):Neuron = {
+    val newN = new Neuron(name, n.treshold, n.slope, n.forgetting)
+    n.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    newN
+  }
+  
+  def apply(n: Neuron):Neuron = apply(n.id, n)
 }

@@ -15,7 +15,7 @@ class NeuronSuite extends JUnitSuite {
     val n = Neuron(TRESHOLD, SLOPE)
     assertEquals(SLOPE,n.slope,0.01)
     assertEquals(TRESHOLD,n.treshold,0.01)
-    assertEquals(i,n.id)
+    assertEquals("neuron_"+i,n.id)
   }
   
   @Test

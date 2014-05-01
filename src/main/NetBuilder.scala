@@ -61,13 +61,11 @@ class NetBuilder {
     n
   }
   
-  private def get(name: String) = neurons(name)
- 
   def isCurrentNeuronIdSet = currentNeuronId == None
   
   def clearCurrentNeuronId = currentNeuronId = None
   
-  def findByName(name: String) = neurons(name)
+  def get(name: String) = neurons(name)
   
   def current = currentNeuronId match {
     case Some(id) => neurons(id)
@@ -90,12 +88,12 @@ class NetBuilder {
   def outSize = outs.size
   
   def use(name: String) = {
-    currentNeuronId = Some(findByName(name).id)
+    currentNeuronId = Some(get(name).id)
     this
   }
   
   def connect(name: String, weight: Double =defWeight):NetBuilder = {
-    current.connect(findByName(name), weight)
+    current.connect(get(name), weight)
     this
   }
 
@@ -169,6 +167,15 @@ class NetBuilder {
   def chainOscillator(name: String, weight: Double, treshold: Double) = chainMiddle(name, weight, treshold).oscillator(name+"_osc")
   def chainOscillator(name: String, weight: Double) = chainMiddle(name, weight).oscillator(name+"_osc")
   def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
+  
+  def setForgetting(forgetting: Double) = {
+    val oldN = current
+    val newN = new Neuron(oldN.id, oldN.treshold, oldN.slope, forgetting)
+    oldN.getSynapses.foreach( s => newN.connect(s.destination,s.weight) )
+    neurons.values.foreach( _.rewire(oldN, newN) )
+    neurons -= oldN.id
+    neurons += (newN.id -> newN )
+  }
   
   def self(weight: Double =defWeight):NetBuilder = {
     current.connect(current, weight)

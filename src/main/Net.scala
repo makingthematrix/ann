@@ -51,6 +51,8 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     ins ++= in
   }
   
+  def silence() = neurons.foreach( _.silence() )
+  
   def addToInputLayer(n: Neuron){
     neurons += n
     ins += n
