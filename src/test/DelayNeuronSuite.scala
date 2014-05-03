@@ -32,6 +32,7 @@ class DelayNeuronSuite extends JUnitSuite{
     val n = DelayNeuron(TRESHOLD, SLOPE)
     n += (TRESHOLD + 0.1)
     n.tick()
+    n.tick()
     assertTrue(n.lastOutput > 0.0)
   }
   

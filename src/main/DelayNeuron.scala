@@ -50,6 +50,9 @@ object DelayNeuron{
   
   def apply(id: String, treshold: Double, slope: Double):DelayNeuron = new DelayNeuron(id, treshold, slope)
   
+  def apply(id: String, treshold: Double, slope: Double, forgetting: Double):DelayNeuron = new DelayNeuron(id, treshold, slope, forgetting)
+  
+  
   def apply(name: String, n: DelayNeuron):DelayNeuron = {
     val newN = new DelayNeuron(name, n.treshold, n.slope, n.forgetting)
     n.synapses.foreach( s => newN.connect(s.destination,s.weight) )

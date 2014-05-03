@@ -3,7 +3,7 @@ package main
 import scala.collection.mutable
 import Utils._
 
-class NetInput(val name: String, val net: Net) {
+class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   def ids = net.inputIds
   def size = net.inputSize
   
@@ -16,8 +16,11 @@ class NetInput(val name: String, val net: Net) {
   
   def add(input: Seq[Double]) = {
     assert(input.length != net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long.")
-    inputQueue += input
+    val inputBuffer = mutable.ListBuffer[Double]()
+    for(counter <- 1 to resolution) inputBuffer ++= input
+    inputQueue += inputBuffer.toSeq
   }
+  
   def addEmptyInput = add(generateEmptyInput)
   def +=(input: Seq[Double]) = add(input)
   def +=(d: Double) = add(Seq(d))
@@ -53,8 +56,8 @@ class NetInput(val name: String, val net: Net) {
 }
 
 object NetInput {
-  def apply(name: String, net: Net) = {
-    val ni = new NetInput(name, net)
+  def apply(name: String, net: Net, resolution: Int = 1) = {
+    val ni = new NetInput(name, net, resolution)
     ni.regSign('0',0.0)
     ni.regSign('1', 1.0)
     ni

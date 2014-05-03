@@ -17,6 +17,7 @@ class NetBuilder {
   var inputNeuronType = NeuronType.DUMMY
   var middleNeuronType = NeuronType.STANDARD
   var outputNeuronType = NeuronType.DUMMY
+  var defForgetting = 0.0
   
   private val neurons = mutable.Map[String,Neuron]()
   private val ins = mutable.Set[String]()
@@ -42,10 +43,10 @@ class NetBuilder {
     prefix + nextId()
   }
 
-  private def newNeuron(neuronType: NeuronType.Value, id: String, treshold: Double =defTreshold, slope: Double =defSlope) = neuronType match {
+  private def newNeuron(neuronType: NeuronType.Value, id: String, treshold: Double =defTreshold, slope: Double =defSlope, forgetting: Double = defForgetting) = neuronType match {
     case NeuronType.DUMMY => DummyNeuron(id, treshold)
-    case NeuronType.STANDARD => Neuron(id, treshold, slope)
-    case NeuronType.DELAY => DelayNeuron(id, treshold, slope)
+    case NeuronType.STANDARD => Neuron(id, treshold, slope, forgetting)
+    case NeuronType.DELAY => DelayNeuron(id, treshold, slope, forgetting)
   }
   
   private def newInput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) 
@@ -190,9 +191,9 @@ class NetBuilder {
     net
   }
   
-  def build(netInputName: String, netOutputName: String):(NetInput,Net,NetOutput) = {
+  def build(netInputName: String, netOutputName: String, resolution: Int = 1):(NetInput,Net,NetOutput) = {
     val net = build
-    val in = NetInput(netInputName, net)
+    val in = NetInput(netInputName, net, resolution)
     val out = NetOutput(netOutputName, net)
     (in, net, out)
   }

@@ -365,4 +365,104 @@ class NetSuite extends JUnitSuite {
     assertEquals("101010",str)
   }
   
+    
+  private def dotNet() = { // ;)
+    val builder = NetBuilder()
+    // dots
+    builder.addInput("in1").chainMiddle("mi1",0.501,0.5).loop("loop",1.0,0.5,1.0).chainMiddle("mi2",1.0,0.75).chainOutput("out1",1.0,0.75)
+    builder.use("mi2").connect("mi1", -1.0)
+    builder.use("mi2").connect("loop", -1.0)
+    
+    val (in, net, out) = builder.build("in","out")
+    val out1 = builder.get("out1")
+    val sb = StringBuilder.newBuilder
+    out.addAfterFireTrigger(out1, (n:Neuron) => {
+      println("KROPA!")
+      sb.append('.'); 
+    })
+    (in, sb)    
+  }
+  
+  @Test
+  def shouldDotThenNothing1(){
+    val (in, sb) = dotNet
+    
+    in += "1,0,0,0,0,0"
+    in.tick(6)
+    assertEquals(".",sb.toString)
+  }
+  
+  @Test
+  def shouldDotThenNothing2(){
+    val (in, sb) = dotNet
+    
+    in += "0,0,1,0,0,0"
+    in.tick(6)
+    assertEquals(".",sb.toString)
+  }
+  
+  @Test
+  def shouldDotThenNothing3(){
+    val (in, sb) = dotNet
+    
+    in += "0,0,1"
+    in.tick(3)
+    assertEquals("",sb.toString)
+  }  
+   
+  private def lineNet() = {
+    val builder = NetBuilder()
+    // lines
+    builder.addInput("in1").chainMiddle("mi1",0.4,0.65,5.0).loop("loop",1.0,0.5,1.0).chainMiddle("mi2",1.0,0.9).chainOutput("out1",1.0)
+    builder.use("mi1").setForgetting(0.1)
+    builder.use("mi2").connect("mi1", -1.0)
+    builder.use("mi2").connect("loop", -1.0)
+    
+    val (in, net, out) = builder.build("in","out")
+    val out1 = builder.get("out1")
+    val sb = StringBuilder.newBuilder
+    out.addAfterFireTrigger(out1, (n:Neuron) => {
+      println("KRECHA!")
+      sb.append('-'); 
+    })
+    
+    (in, sb)
+  }
+
+  @Test
+  def shouldLineThenNothing1(){
+    val (in, sb) = lineNet
+    
+    in += "1,1,0,0,0,0"
+    in.tick(6)
+    assertEquals("-",sb.toString)
+  }
+  
+  @Test
+  def shouldLineThenNothing2(){
+    val (in, sb) = lineNet
+    
+    in += "0,0,1,1,0,0"
+    in.tick(6)
+    assertEquals("-",sb.toString)
+  }
+    
+  @Test
+  def shouldLineThenNothing3(){
+    val (in, sb) = lineNet
+    
+    in += "0,1,0,0"
+    in.tick(4)
+    assertEquals("",sb.toString)
+  }
+  
+  @Test
+  def shouldLineThenNothing4(){
+    val (in, sb) = lineNet
+    
+    in += "1,0,0,1,0,0"
+    in.tick(6)
+    assertEquals("",sb.toString)
+  }  
+ 
 }
