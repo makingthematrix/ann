@@ -209,4 +209,6 @@ object NetBuilder {
   val OUTPUT_LAYER = "out"
   
   def apply() = new NetBuilder()
+  
+  
 }

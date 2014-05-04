@@ -10,6 +10,8 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   private val ins = mutable.ListBuffer[Neuron]()
   private val outs = mutable.ListBuffer[Neuron]()
   
+  def getNeurons = neurons.toList
+  
   override protected def inputLayer: Seq[Neuron] = ins.toSeq
   override protected def outputLayer: Seq[Neuron] = outs.toSeq
   override protected def middleLayer: Seq[Neuron] = {

@@ -152,7 +152,6 @@ class DelayNetSuite extends JUnitSuite {
   private def dotLineNet2() = {
     val builder = NetBuilder()
     builder.middleNeuronType = NeuronType.DELAY
-    
     builder.addInput("in1")
     // dots
     builder.use("in1").chainMiddle("mi11",0.501,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainOutput("out1",1.0)
@@ -180,6 +179,15 @@ class DelayNetSuite extends JUnitSuite {
     })
     
     (in, sb)
+  }
+  
+  @Test
+  def shouldDotThenNothing12(){
+    val (in, sb) = dotLineNet2
+    
+    in += "1,0,0"
+    println(in.tickUntilCalm())
+    assertEquals(".",sb.toString)
   }
   
   @Test

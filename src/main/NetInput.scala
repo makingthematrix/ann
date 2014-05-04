@@ -14,10 +14,10 @@ class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
   
-  def add(input: Seq[Double]) = {
+  def add(input: Seq[Double]) = for(counter <- 1 to resolution) {
     assert(input.length != net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long.")
     val inputBuffer = mutable.ListBuffer[Double]()
-    for(counter <- 1 to resolution) inputBuffer ++= input
+    inputBuffer ++= input
     inputQueue += inputBuffer.toSeq
   }
   
@@ -30,10 +30,28 @@ class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   def inputQueueLength = inputQueue.length
 
   def tick():Unit = tick(1)
-  def tick(n: Int):Unit = for(i <- 1 to n){
+  def tick(n: Int):Unit = for(i <- 1 to n * resolution){
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.setInput(input)
     net.tick()
+  }
+  
+  def tickUntilCalm(timeout: Int = 100) = {
+    var neuronFired = false
+    net.getNeurons.foreach(_.addAfterFireTrigger("tickUntilCalm", (_:Neuron) => neuronFired = true))
+    
+    var calmTick = 0
+    var counter = 0
+    while(calmTick < 3 && counter < timeout){
+      neuronFired = false
+      tick()
+      if(neuronFired) calmTick = 0
+      else calmTick += 1
+      counter += 1
+    }
+    
+    net.getNeurons.foreach(_.removeAfterFireTrigger("tickUntilCalm"))
+    counter
   }
 
   def tickEmptyInput():Unit = tickEmptyInput(1)
