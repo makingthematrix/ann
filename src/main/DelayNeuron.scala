@@ -8,6 +8,7 @@ extends Neuron(id, treshold, slope, forgetting) {
   override def tick() = {
     println(s"--- $id tick with buffer $lastTickBuffer and treshold $treshold")
     if(lastTickBuffer > treshold) run()
+    else output = 0.0
     
     if(buffer > 0.0) tickForgetting()
 
@@ -22,6 +23,12 @@ extends Neuron(id, treshold, slope, forgetting) {
     case x if x <= 0.0 => 0.0
     case x if x >= 1.0 => 1.0
     case x => 1.0/(1.0+Math.exp(-slope*(x-0.5)));
+  }
+  
+  override def copy(_id: String =id, _treshold: Double =treshold, _slope: Double =slope, _forgetting: Double =forgetting) = {
+    val newN = new DelayNeuron(_id, _treshold, _slope, _forgetting)
+    this.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    newN
   }
 }
 

@@ -27,6 +27,7 @@ trait AbstractNet {
     inputLayer.foreach( _.tick() )
     middleLayer.foreach( _.tick() )
     outputLayer.foreach( _.tick() )
+    afterTickTriggers.values.foreach( _(this) )
   }
   
   def iteration = iterationCounter
@@ -58,4 +59,35 @@ trait AbstractNet {
   }
   
   def contains(id: String) = find(id).isDefined
+  
+  protected val afterTickTriggers = mutable.Map[String,(AbstractNet)=>Any]()
+  def addAfterTickTrigger(id: String, f: (AbstractNet) => Any):Unit = afterTickTriggers.contains(id) match {
+    case false => afterTickTriggers.put(id, f)
+    case true => throw new IllegalArgumentException(s"There was already registered an after tick trigger with id $id")
+  } 
+  def addAfterTickTrigger(f: (AbstractNet) => Any):Unit = addAfterTickTrigger("anon"+afterTickTriggers.size,f)
+  def isAfterTickTrigger(id: String) = afterTickTriggers.contains(id)
+  def removeAfterTickTrigger(id: String) = afterTickTriggers.remove(id)
+  def clearAfterTickTriggers() = afterTickTriggers.clear
+
+  def countSynapses = 
+    inputLayer.flatMap( _.getSynapses ).length +
+    middleLayer.flatMap( _.getSynapses ).length +
+    outputLayer.flatMap( _.getSynapses ).length
+    
+  def outputSum = 
+    inputLayer.map( _.lastOutput ).sum +
+    middleLayer.map( _.lastOutput ).sum +
+    outputLayer.map( _.lastOutput ).sum
+    
+  def weightSum = 
+    inputLayer.map( _.weightSum ).sum +
+    middleLayer.map( _.weightSum ).sum +
+    outputLayer.map( _.weightSum ).sum  
+ 
+  def absWeightSum = 
+    inputLayer.map( _.absWeightSum ).sum +
+    middleLayer.map( _.absWeightSum ).sum +
+    outputLayer.map( _.absWeightSum ).sum  
+ 
 }

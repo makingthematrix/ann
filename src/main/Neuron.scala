@@ -47,7 +47,10 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
     println(s"--- $id tick with buffer $buffer and treshold $treshold")
 
     if(buffer > treshold) run()
-    else if(buffer > 0.0) tickForgetting()
+    else if(buffer > 0.0){ 
+      tickForgetting()
+      output = 0.0
+    }
     
     println(s"$id, after tick: buffer = $buffer")
     afterTickTriggers.values.foreach( _(this) )
@@ -79,6 +82,7 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
   def findSynapse(destination: Neuron) = synapses.find(_.destination.id == destination.id)
   
   def weightSum = synapses.map(_.weight).sum
+  def absWeightSum = synapses.map( s => math.abs(s.weight) ).sum
 
   def averageWeight = weightSum / synapses.size
 
@@ -122,6 +126,12 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
     clearAfterFireTriggers()
     clearAfterTickTriggers()
     clearTresholdPassedTriggers()
+  }
+  
+  def copy(_id: String =id, _treshold: Double =treshold, _slope: Double =slope, _forgetting: Double =forgetting) = {
+    val newN = new Neuron(_id, _treshold, _slope, _forgetting)
+    this.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    newN
   }
 }
 

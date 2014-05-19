@@ -107,8 +107,9 @@ class NetBuilder {
   def addInput():NetBuilder = addInput(generateName(NetBuilder.INPUT_LAYER))
   
   def addMiddle(name: String, treshold: Double =defTreshold, slope: Double = defSlope):NetBuilder = {
-    println(s"adding middle neuron with name $name, treshold $treshold and slope $slope")
+    println(s"adding middle neuron with name $name, treshold $treshold and slope $slope and the type is $middleNeuronType")
     val n = add(newMiddle(name, treshold, slope))
+    println(s"the new neuron's id is ${n.id} and its type is ${n.getClass().getName()}")
     mids += n.id
     this
   }
@@ -123,6 +124,7 @@ class NetBuilder {
   def addOutput():NetBuilder = addOutput(generateName(NetBuilder.OUTPUT_LAYER))
   
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, slope: Double =defSlope):NetBuilder = {
+    println(s"chainMiddle for $name with the middle neuron type being $middleNeuronType")
     val n1 = current
     if(outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron in the middle layer only to input or other middle neurons")
@@ -148,11 +150,11 @@ class NetBuilder {
   def chainOutput(weight: Double):NetBuilder = chainOutput(generateName(NetBuilder.OUTPUT_LAYER), weight)
   def chainOutput(weight: Double, treshold: Double):NetBuilder = chainOutput(generateName(NetBuilder.OUTPUT_LAYER), weight, treshold)
   
-  def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight):NetBuilder = {
+  def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current
     if(!mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
-    chainMiddle(name, w1, treshold)
+    chainMiddle(name, w1, treshold, slope)
     current.connect(n1, w2)
     currentNeuronId = Some(n1.id)
     this
@@ -171,8 +173,7 @@ class NetBuilder {
   
   def setForgetting(forgetting: Double) = {
     val oldN = current
-    val newN = new Neuron(oldN.id, oldN.treshold, oldN.slope, forgetting)
-    oldN.getSynapses.foreach( s => newN.connect(s.destination,s.weight) )
+    val newN = oldN.copy(oldN.id, oldN.treshold, oldN.slope, forgetting)
     neurons.values.foreach( _.rewire(oldN, newN) )
     neurons -= oldN.id
     neurons += (newN.id -> newN )
