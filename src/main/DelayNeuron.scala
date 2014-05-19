@@ -8,11 +8,12 @@ extends Neuron(id, treshold, slope, forgetting) {
   override def tick() = {
     println(s"--- $id tick with buffer $lastTickBuffer and treshold $treshold")
     if(lastTickBuffer > treshold) run()
-    else output = 0.0
+    else {
+      output = 0.0
+    }
     
-    if(buffer > 0.0) tickForgetting()
-
     lastTickBuffer = buffer
+    if(buffer > 0.0) tickForgetting()
  
     afterTickTriggers.values.foreach( _(this) )
   }
