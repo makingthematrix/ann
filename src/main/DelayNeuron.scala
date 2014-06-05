@@ -6,7 +6,7 @@ class DelayNeuron(id: String, treshold: Double = 0.5, slope: Double = 20.0, forg
 extends Neuron(id, treshold, slope, forgetting) {
   protected var lastTickBuffer = 0.0
   override def tick() = {
-    println(s"--- $id tick with buffer $lastTickBuffer and treshold $treshold")
+    LOG += s"--- $id tick with buffer $lastTickBuffer and treshold $treshold"
     if(lastTickBuffer > treshold) run()
     else {
       output = 0.0

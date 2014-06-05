@@ -6,12 +6,14 @@ import Utils._
 case class Synapse(val destination: Neuron,var weight: Double){
   def send(signal: Double) = {
     val t = signal * weight
-    println(s"sending signal $signal through synapse with weight $weight to neuron ${destination.id} -> $t")
+    LOG.log(s"sending signal $signal through synapse with weight $weight to neuron ${destination.id} -> $t", destination)
     destination += t
   }
 }
 
 class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.0, val forgetting: Double = 0.0){
+  implicit val self = this 
+  
   protected val synapses = mutable.ListBuffer[Synapse]()
   protected var buffer = 0.0
   protected var output = 0.0
@@ -44,7 +46,7 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
   def getSynapses = synapses.toList
   
   def tick() = {
-    println(s"--- $id tick with buffer $buffer and treshold $treshold")
+    LOG += s"--- $id tick with buffer $buffer and treshold $treshold"
 
     if(buffer > treshold) run()
     else if(buffer > 0.0){ 
@@ -52,7 +54,7 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
       output = 0.0
     }
     
-    println(s"$id, after tick: buffer = $buffer")
+    LOG +=  s"$id, after tick: buffer = $buffer"
     afterTickTriggers.values.foreach( _(this) )
   }
    
