@@ -36,9 +36,9 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   def connect(id1: String, id2: String): Boolean = connect(id1, id2, defWeight)
   def connect(id1: String, id2: String, weight: Double): Boolean = {
     val n1 = neurons.find(_.id == id1)
-    assert(n1 == None, s"Unable to find a neuron with id $id1")
+    assert(n1 != None, s"Unable to find a neuron with id $id1")
     val n2 = neurons.find(_.id == id2)
-    assert(n2 == None, s"Unable to find a neuron with id $id2")
+    assert(n2 != None, s"Unable to find a neuron with id $id2")
     connect(n1.get, n2.get, weight)
   }
   def connect(n1: Neuron, n2: Neuron): Boolean = connect(n1, n2, defWeight)

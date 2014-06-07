@@ -61,7 +61,7 @@ class DelayNetSuite extends JUnitSuite {
     builder.addInput("in1")
     // dots
     builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainOutput("out1",1.0)
-    //builder.use("mi11").setForgetting(0.2)
+    builder.use("mi11").setForgetting(0.2)
     builder.use("out1").connect("mi11", -0.49)
     builder.use("out1").connect("mi12", -1.0)
      // lines
@@ -70,13 +70,8 @@ class DelayNetSuite extends JUnitSuite {
     builder.use("mi22").connect("mi21", -0.35)
     
     // if line then not dot
-    //builder.use("mi21").connect("slowDown",-1.0)
-     //builder.use("mi21").connect("mi12",-1.0)
-     //builder.use("mi21").connect("out1",-1.0)
-   // builder.use("loop2").connect("loop1",-0.3)
-   //builder.use("out2").connect("slowDown",-1.0)
-   //builder.use("out2").connect("mi12",-1.0)
-   //builder.use("out2").connect("out1",-1.0)
+    builder.use("mi21").connect("mi12",-1.0)
+    builder.use("mi21").connect("loop1",-1.0)
     
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
@@ -102,6 +97,15 @@ class DelayNetSuite extends JUnitSuite {
 	assertEquals(".",sb.toString)
   }
   
+  @Test
+  def shouldDotThenLine(){
+	val (in, sb) = dotLineNet    
+	in += "1,0,0,1,1,0"
+	in.tickUntilCalm()
+	assertEquals(".-",sb.toString)
+  }
+    
+  /*
   @Test
   def shouldDotNotLine2(){
 	val (in, sb) = dotLineNet    
@@ -143,14 +147,6 @@ class DelayNetSuite extends JUnitSuite {
   }
   
   @Test
-  def shouldDotThenLine(){
-	val (in, sb) = dotLineNet    
-	in += "1,0,0,1,1,0"
-	in.tickUntilCalm()
-	assertEquals(".-",sb.toString)
-  }
-  
-  @Test
   def shouldDotThenLineThenDot(){
 	val (in, sb) = dotLineNet    
 	in += "1,0,0"
@@ -163,7 +159,7 @@ class DelayNetSuite extends JUnitSuite {
 	val interval3 = in.tickUntilCalm()
 	assertEquals(".-.",sb.toString)
 	println(s"intervals: $interval1, $interval2, $interval3")
-  }
+  }*/
   
 
 }

@@ -14,10 +14,14 @@ class NetBuilder {
   var defInputName = "in"
   var defMiddleName = "mid"
   var defOutputName = "out"
+  var defForgetting = NetBuilder.FORGETTING
+
   var inputNeuronType = NeuronType.DUMMY
   var middleNeuronType = NeuronType.STANDARD
   var outputNeuronType = NeuronType.DUMMY
-  var defForgetting = 0.0
+  var resolution = 1
+  
+  var throwOnError = true
   
   private val neurons = mutable.Map[String,Neuron]()
   private val ins = mutable.Set[String]()
@@ -68,6 +72,8 @@ class NetBuilder {
   
   def get(name: String) = neurons(name)
   
+  def contains(name: String) = neurons.contains(name)
+  
   def current = currentNeuronId match {
     case Some(id) => neurons(id)
     case None => throw new IllegalArgumentException("There is no current neuron id set")
@@ -99,25 +105,30 @@ class NetBuilder {
   }
 
   def addInput(name: String, treshold: Double =0.0):NetBuilder = {
-    LOG.log(s"adding input neuron with name $name and treshold $treshold")
-    val n = add(newInput(name, treshold))
+    val n = if(contains(name)){
+      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+    } else add(newInput(name, treshold)) 
+            
     ins += n.id
     this
   }
   def addInput():NetBuilder = addInput(generateName(NetBuilder.INPUT_LAYER))
   
   def addMiddle(name: String, treshold: Double =defTreshold, slope: Double = defSlope):NetBuilder = {
-    LOG.log(s"adding middle neuron with name $name, treshold $treshold and slope $slope and the type is $middleNeuronType")
-    val n = add(newMiddle(name, treshold, slope))
-    LOG.log(s"the new neuron's id is ${n.id} and its type is ${n.getClass().getName()}")
+    val n = if(contains(name)){
+      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+    } else add(newMiddle(name, treshold, slope))
+            
     mids += n.id
     this
   }
   def addMiddle():NetBuilder = addMiddle(generateName(NetBuilder.MIDDLE_LAYER))
   
   def addOutput(name: String, treshold: Double =0.0):NetBuilder = {
-    LOG.log(s"adding output neuron with name $name and treshold $treshold")
-    val n = add(newOutput(name, treshold))
+    val n = if(contains(name)){ 
+      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+    } else add(newOutput(name, treshold))
+            
     outs += n.id
     this
   }
@@ -126,8 +137,8 @@ class NetBuilder {
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, slope: Double =defSlope):NetBuilder = {
     LOG.log(s"chainMiddle for $name with the middle neuron type being $middleNeuronType")
     val n1 = current
-    if(outs.contains(n1.id))
-      throw new IllegalArgumentException("You can chain a new neuron in the middle layer only to input or other middle neurons")
+    if(throwOnError && outs.contains(n1.id))
+      throw new IllegalArgumentException("You can chain a new neuron in the middle layer only from input or other middle neurons")
     addMiddle(name, treshold, slope)
     n1.connect(neurons(currentNeuronId.get), weight)
     this
@@ -140,7 +151,7 @@ class NetBuilder {
   
   def chainOutput(name: String, weight: Double =defWeight, treshold: Double =0.0):NetBuilder = {
     val n1 = current
-    if(outs.contains(n1.id))
+    if(throwOnError && outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron in the output layer only to input or middle neurons")
     addOutput(name, treshold)
     n1.connect(neurons(currentNeuronId.get), weight)
@@ -152,7 +163,7 @@ class NetBuilder {
   
   def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current
-    if(!mids.contains(n1.id))
+    if(throwOnError && !mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
     chainMiddle(name, w1, treshold, slope)
     current.connect(n1, w2)
@@ -192,7 +203,7 @@ class NetBuilder {
     net
   }
   
-  def build(netInputName: String, netOutputName: String, resolution: Int = 1):(NetInput,Net,NetOutput) = {
+  def build(netInputName: String, netOutputName: String):(NetInput,Net,NetOutput) = {
     val net = build
     val in = NetInput(netInputName, net, resolution)
     val out = NetOutput(netOutputName, net)
@@ -204,10 +215,20 @@ object NetBuilder {
   val SLOPE = 20.0
   val TRESHOLD = 0.5
   val WEIGHT = 1.0
+  val FORGETTING = 0.0
+  val RESOLUTION = 1
   
   val INPUT_LAYER = "in"
   val MIDDLE_LAYER = "mid"
   val OUTPUT_LAYER = "out"
   
-  def apply() = new NetBuilder()
+  def apply():NetBuilder = new NetBuilder()
+  def apply(middleNeuronType: NeuronType.Value, slope: Double = SLOPE, forgetting: Double = FORGETTING, resolution: Int = RESOLUTION):NetBuilder = {
+    val builder = new NetBuilder
+    builder.middleNeuronType = middleNeuronType
+    builder.defSlope = slope
+    builder.defForgetting = forgetting
+    builder.resolution = resolution
+    builder
+  }
 }

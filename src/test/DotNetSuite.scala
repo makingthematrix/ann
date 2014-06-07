@@ -46,10 +46,7 @@ class DotNetSuite extends JUnitSuite {
   }
   
   private def dotNetRes4_standard() = {
-    val builder = NetBuilder()
-    builder.middleNeuronType = NeuronType.DELAY
-    builder.defSlope = 5.0
-    builder.defForgetting = 0.1
+    val builder = NetBuilder(NeuronType.DELAY, 5.0, 0.1, 4)
     
     builder.addInput("in1")
     // dots
@@ -57,7 +54,7 @@ class DotNetSuite extends JUnitSuite {
     builder.use("out1").connect("mi11", -0.49)
     builder.use("out1").connect("mi12", -1.0)
     
-    val (in, net, out) = builder.build("in","out", 4)
+    val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
     out.addAfterFireTrigger(out1, (n:Neuron) => {
@@ -69,10 +66,7 @@ class DotNetSuite extends JUnitSuite {
   }
   
   private def dotNetRes4() = {
-    val builder = NetBuilder()
-    builder.middleNeuronType = NeuronType.DELAY
-    builder.defSlope = 5.0
-    builder.defForgetting = 0.1
+    val builder = NetBuilder(NeuronType.DELAY, 5.0, 0.1, 4)
     
     builder.addInput("in1")
     // dots
@@ -81,7 +75,7 @@ class DotNetSuite extends JUnitSuite {
     builder.use("out1").connect("mi11", -0.49)
     builder.use("out1").connect("mi12", -1.0)
     
-    val (in, net, out) = builder.build("in","out", 4)
+    val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     
     val sb = StringBuilder.newBuilder
