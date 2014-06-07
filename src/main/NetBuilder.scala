@@ -99,7 +99,7 @@ class NetBuilder {
   }
 
   def addInput(name: String, treshold: Double =0.0):NetBuilder = {
-    println(s"adding input neuron with name $name and treshold $treshold")
+    LOG.log(s"adding input neuron with name $name and treshold $treshold")
     val n = add(newInput(name, treshold))
     ins += n.id
     this
@@ -107,16 +107,16 @@ class NetBuilder {
   def addInput():NetBuilder = addInput(generateName(NetBuilder.INPUT_LAYER))
   
   def addMiddle(name: String, treshold: Double =defTreshold, slope: Double = defSlope):NetBuilder = {
-    println(s"adding middle neuron with name $name, treshold $treshold and slope $slope and the type is $middleNeuronType")
+    LOG.log(s"adding middle neuron with name $name, treshold $treshold and slope $slope and the type is $middleNeuronType")
     val n = add(newMiddle(name, treshold, slope))
-    println(s"the new neuron's id is ${n.id} and its type is ${n.getClass().getName()}")
+    LOG.log(s"the new neuron's id is ${n.id} and its type is ${n.getClass().getName()}")
     mids += n.id
     this
   }
   def addMiddle():NetBuilder = addMiddle(generateName(NetBuilder.MIDDLE_LAYER))
   
   def addOutput(name: String, treshold: Double =0.0):NetBuilder = {
-    println(s"adding output neuron with name $name and treshold $treshold")
+    LOG.log(s"adding output neuron with name $name and treshold $treshold")
     val n = add(newOutput(name, treshold))
     outs += n.id
     this
@@ -124,7 +124,7 @@ class NetBuilder {
   def addOutput():NetBuilder = addOutput(generateName(NetBuilder.OUTPUT_LAYER))
   
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, slope: Double =defSlope):NetBuilder = {
-    println(s"chainMiddle for $name with the middle neuron type being $middleNeuronType")
+    LOG.log(s"chainMiddle for $name with the middle neuron type being $middleNeuronType")
     val n1 = current
     if(outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron in the middle layer only to input or other middle neurons")
@@ -210,6 +210,4 @@ object NetBuilder {
   val OUTPUT_LAYER = "out"
   
   def apply() = new NetBuilder()
-  
-  
 }

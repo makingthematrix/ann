@@ -5,9 +5,10 @@ import scala.collection.mutable
 object LOG {
   private val _allowedIds = mutable.Set[String]()
   
-  private def log(str: String):Unit = println(str)
+  def log(str: String):Unit = println(str)
   
   def allow(id: String):Unit = _allowedIds += id
+  def allow(ids: String*):Unit = ids.foreach( allow(_) )
   def allow(implicit n: Neuron):Unit = allow(n.id)
   
   def allowedIds = _allowedIds.toSet

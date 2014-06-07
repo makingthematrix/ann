@@ -27,13 +27,33 @@ class LineNetSuite extends JUnitSuite {
     (in, sb)
   }
   
-  private def lineNetRes4() = {
+  private def lineNetRes4_standard() = {
     val builder = NetBuilder()
     builder.middleNeuronType = NeuronType.DELAY
     builder.defSlope = 5.0
     builder.defForgetting = 0.1
     // lines
     builder.addInput("in1").chainMiddle("mi21",0.18,0.5).loop("loop2",0.95,0.5,1.0).chainMiddle("mi22",1.0,0.6).chainOutput("out2",1.0)
+    builder.use("mi22").connect("mi21", -0.35)
+    
+    val (in, net, out) = builder.build("in","out",4)
+    val out2 = builder.get("out2")
+    val sb = StringBuilder.newBuilder
+    out.addAfterFireTrigger(out2, (n:Neuron) => {
+      println("KRECHA!")
+      sb.append('-'); 
+    })
+    
+    (in, sb)
+  }
+  
+  private def lineNetRes4() = {
+    val builder = NetBuilder()
+    builder.middleNeuronType = NeuronType.DELAY
+    builder.defSlope = 5.0
+    builder.defForgetting = 0.1
+    // lines
+    builder.addInput("in1").chainMiddle("mi21",0.19,0.5).chainMiddle("mi22",1.0,0.5).chainOutput("out2",1.0)
     builder.use("mi22").connect("mi21", -0.35)
     
     val (in, net, out) = builder.build("in","out",4)

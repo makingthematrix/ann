@@ -6,7 +6,7 @@ import Utils._
 case class Synapse(val destination: Neuron,var weight: Double){
   def send(signal: Double) = {
     val t = signal * weight
-    LOG.log(s"sending signal $signal through synapse with weight $weight to neuron ${destination.id} -> $t", destination)
+    LOG.log( s"sending signal $signal through synapse with weight $weight to neuron ${destination.id} -> $t", destination)
     destination += t
   }
 }
@@ -39,9 +39,10 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
   
-  protected def tickForgetting(){
-    buffer = Math.max(buffer - forgetting, 0.0) // might be changed into the S function later on
-  }
+  protected def tickForgetting() = 
+    if(buffer > 0.0) buffer = Math.max(buffer - forgetting, 0.0)
+    else if(buffer < 0.0) buffer = Math.min(buffer + forgetting, 0.0)
+     // might be changed into the S function later on
   
   def getSynapses = synapses.toList
   

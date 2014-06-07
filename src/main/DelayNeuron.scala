@@ -7,13 +7,10 @@ extends Neuron(id, treshold, slope, forgetting) {
   protected var lastTickBuffer = 0.0
   override def tick() = {
     LOG += s"--- $id tick with buffer $lastTickBuffer and treshold $treshold"
-    if(lastTickBuffer > treshold) run()
-    else {
-      output = 0.0
-    }
+    if(lastTickBuffer > treshold) run() else output = 0.0
     
     lastTickBuffer = buffer
-    if(buffer > 0.0) tickForgetting()
+    tickForgetting()
  
     afterTickTriggers.values.foreach( _(this) )
   }
