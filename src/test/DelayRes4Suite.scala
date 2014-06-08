@@ -13,38 +13,18 @@ class DelayRes4Suite extends JUnitSuite {
   implicit class DotLineNetBuilder(builder: NetBuilder){
     
     def dotLine(startingPoint: String, mp: String, dotEnd: String, lineEnd: String) = { 
-      // startingPoint must exist, ending points may or may not exist
-      // mp: middle prefix, a prefix for all inner neurons so they won't get confused with any others
-      
       //assertions
       assert(builder.middleNeuronType == NeuronType.DELAY, s"The middle neuron type must be DELAY and is ${builder.middleNeuronType}")
       assert(builder.resolution == 4, s"The net resolution must be 4 and is ${builder.resolution}")
-      
-      builder.throwOnError = false
-      
       //dot chain
-      builder.use(startingPoint)
-             .chainMiddle(s"${mp}11",0.28,0.5)
-             .loop(s"${mp}_loop1",1.0,0.5,1.0)
-             .chainMiddle(s"${mp}12",1.0,0.9)
-             .chainMiddle(dotEnd,1.0)
+      builder.use(startingPoint).chainMiddle(s"${mp}11",0.28,0.5).loop(s"${mp}_loop1",1.0,0.5,1.0).chainMiddle(dotEnd,1.0,0.9)
+      builder.use(s"${mp}_loop1").setPriority(-1)
       builder.use(s"${mp}11").setForgetting(0.2)
-      builder.use(s"${mp}12").setForgetting(0.2)
-      builder.use(s"${mp}12").connect(s"${mp}11", -0.49)
-      builder.use(s"${mp}12").connect(s"${mp}_loop1", -1.0)
+      builder.use(dotEnd).setForgetting(0.2).setPriority(1000).connect(s"${mp}11", -0.49).connect(s"${mp}_loop1", -1.0)
       // line chain
-      builder.use(startingPoint)
-             .chainMiddle(s"${mp}21",0.19,0.5)
-             .chainMiddle(s"${mp}22",1.0,0.5)
-             .chainMiddle(lineEnd,1.0)
-      builder.use(s"${mp}22").connect(s"${mp}21", -0.35)
+      builder.use(startingPoint).chainMiddle(s"${mp}21",0.19,0.5).chainMiddle(lineEnd,1.0,0.5).setPriority(1001).connect(s"${mp}21", -0.35)
       // if line then not dot
-      builder.use(s"${mp}21").connect(s"${mp}11", -1.0)
-      builder.use(s"${mp}21").connect(s"${mp}_loop1", -1.0)
-      
-      builder.throwOnError = true
-      
-      builder
+      builder.use(s"${mp}21").connect(s"${mp}11", -1.0).connect(s"${mp}_loop1", -1.0)
     }
  
   }
