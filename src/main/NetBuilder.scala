@@ -53,12 +53,23 @@ class NetBuilder {
     case NeuronType.DELAY => DelayNeuron(id, treshold, slope, forgetting)
   }
   
-  private def newInput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) 
-    = newNeuron(inputNeuronType, id, treshold, slope)
-  private def newMiddle(id: String, treshold: Double =defTreshold, slope: Double =defSlope)
-    = newNeuron(middleNeuronType, id, treshold, slope)
-  private def newOutput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) 
-    = newNeuron(outputNeuronType, id, treshold, slope)
+  private def newInput(id: String, treshold: Double =defTreshold, slope: Double =defSlope, forgetting: Double = defForgetting) = {
+    val n = newNeuron(inputNeuronType, id, treshold, slope)
+    n.priority = ins.size
+    n
+  }
+  
+  private def newMiddle(id: String, treshold: Double =defTreshold, slope: Double =defSlope) = {
+    val n = newNeuron(middleNeuronType, id, treshold, slope)
+    n.priority = mids.size
+    n
+  }
+  
+  private def newOutput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) = {
+    val n = newNeuron(outputNeuronType, id, treshold, slope)
+    n.priority = outs.size
+    n
+  }
   
   private def add(n: Neuron) = {
     neurons.put(n.id, n)
@@ -95,6 +106,7 @@ class NetBuilder {
   def outSize = outs.size
   
   def use(name: String) = {
+    println(s"using $name")
     currentNeuronId = Some(get(name).id)
     this
   }
@@ -135,8 +147,8 @@ class NetBuilder {
   def addOutput():NetBuilder = addOutput(generateName(NetBuilder.OUTPUT_LAYER))
   
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, slope: Double =defSlope):NetBuilder = {
-    LOG.log(s"chainMiddle for $name with the middle neuron type being $middleNeuronType")
     val n1 = current
+    println(s"chaining from ${n1.id} to $name")
     if(throwOnError && outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron in the middle layer only from input or other middle neurons")
     addMiddle(name, treshold, slope)
@@ -183,12 +195,15 @@ class NetBuilder {
   def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
   
   def setForgetting(forgetting: Double) = {
-    val oldN = current
-    val newN = oldN.copy(oldN.id, oldN.treshold, oldN.slope, forgetting)
-    neurons.values.foreach( _.rewire(oldN, newN) )
-    neurons -= oldN.id
-    neurons += (newN.id -> newN )
+    current.forgetting = forgetting
+    this
   }
+  
+  def setPriority(priority: Int) = {
+    current.priority = priority
+    this
+  }
+  def priority = current.priority
   
   def self(weight: Double =defWeight):NetBuilder = {
     current.connect(current, weight)

@@ -15,7 +15,7 @@ class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   }
   
   def add(input: Seq[Double]) = for(counter <- 1 to resolution) {
-    assert(input.length != net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long.")
+    assert(input.length == net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long and is ${input.length}.")
     val inputBuffer = mutable.ListBuffer[Double]()
     inputBuffer ++= input
     inputQueue += inputBuffer.toSeq

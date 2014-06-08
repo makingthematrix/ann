@@ -18,7 +18,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     val inputIds = ins.map( _.id ).toSet
     val outputIds = outs.map( _.id ).toSet
     neurons.filterNot( n => inputIds.contains(n.id) || outputIds.contains(n.id))
-           .sortWith((n1,n2) => n1.id < n2.id)
+           .sortWith((n1,n2) => n1.priority < n2.priority)
   }
   
   override def ids = neurons.map( _.id )
@@ -29,7 +29,10 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     neurons += n
     n
   }
-  def addNeuron(neuron: Neuron) = neurons += neuron
+  def addNeuron(neuron: Neuron) = {
+    println("adding neuron " + neuron.id)
+    neurons += neuron
+  }
   
   override def size = neurons.size
   
@@ -44,15 +47,6 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
   def connect(n1: Neuron, n2: Neuron): Boolean = connect(n1, n2, defWeight)
   def connect(n1: Neuron, n2: Neuron, weight: Double): Boolean = n1.connect(n2, weight)
   
-  def setInputLayer(inputIds: Seq[String]) = {
-    val in = inputIds.map( id => neurons.find( _.id == id) match {
-      case Some(n) => n
-      case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")
-    }).sortWith((n1,n2) => n1.id < n2.id)
-    clearInputLayer
-    ins ++= in
-  }
-  
   def silence() = neurons.foreach( _.silence() )
   
   def addToInputLayer(n: Neuron){
@@ -60,18 +54,21 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     ins += n
   }
   
+  private def setLayer(ids: Seq[String], layer: mutable.ListBuffer[Neuron]) = {
+    layer.clear
+    if(!ids.isEmpty) layer ++= ids.map( id => neurons.find( _.id == id) match {
+      case Some(n) => n
+      case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")
+    }).sortWith((n1,n2) => n1.priority < n2.priority)
+  } 
+  
+  def setInputLayer(inputIds: Seq[String]) = setLayer(inputIds, ins)
+  
   def clearInputLayer = ins.clear
   
   override def inputSize = ins.size
  
-  def setOutputLayer(outputIds: Seq[String]) = {
-    val out = outputIds.map( id => neurons.find( _.id == id) match {
-      case Some(n) => n
-      case None => throw new IllegalArgumentException(s"Unable to find a neuron with id $id")
-    }).sortWith((n1,n2) => n1.id < n2.id)
-    clearOutputLayer
-    outs ++= out
-  }
+  def setOutputLayer(outputIds: Seq[String]) = setLayer(outputIds, outs)
   
   def clearOutputLayer = outs.clear
   

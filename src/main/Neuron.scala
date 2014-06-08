@@ -3,15 +3,15 @@ package main
 import scala.collection.mutable
 import Utils._
 
-case class Synapse(val destination: Neuron,var weight: Double){
+case class Synapse(val source: Neuron, val destination: Neuron,var weight: Double){
   def send(signal: Double) = {
     val t = signal * weight
-    LOG.log( s"sending signal $signal through synapse with weight $weight to neuron ${destination.id} -> $t", destination)
+    LOG.log( s"sending signal $signal through synapse with weight $weight from ${source.id} to ${destination.id} -> $t", destination)
     destination += t
   }
 }
 
-class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.0, val forgetting: Double = 0.0){
+class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0, var forgetting: Double =0.0, var priority: Int =0){
   implicit val self = this 
   
   protected val synapses = mutable.ListBuffer[Synapse]()
@@ -23,7 +23,7 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
   
   def rewire(n1: Neuron, n2: Neuron) = synapses.filter( _.destination == n1 ).foreach( s => {
     synapses -= s
-    synapses += Synapse(n2, s.weight)
+    synapses += Synapse(this, n2, s.weight)
   })
   
   def silence(){
@@ -74,7 +74,7 @@ class Neuron(val id: String, val treshold: Double = 0.5, val slope: Double = 20.
   
   def connect(destination:Neuron, weight: Double) = findSynapse(destination) match {
     case Some(s) => false
-    case None => synapses += Synapse(destination, weight); true
+    case None => synapses += Synapse(this, destination, weight); true
   }
   
   def disconnect(destination: Neuron) = findSynapse(destination) match {

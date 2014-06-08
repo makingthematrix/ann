@@ -11,6 +11,7 @@ class DelayRes4Suite extends JUnitSuite {
   
   // i'm still not sure if it's a good idea to use implicit classes for it...
   implicit class DotLineNetBuilder(builder: NetBuilder){
+    
     def dotLine(startingPoint: String, mp: String, dotEnd: String, lineEnd: String) = { 
       // startingPoint must exist, ending points may or may not exist
       // mp: middle prefix, a prefix for all inner neurons so they won't get confused with any others
@@ -26,17 +27,16 @@ class DelayRes4Suite extends JUnitSuite {
              .chainMiddle(s"${mp}11",0.28,0.5)
              .loop(s"${mp}_loop1",1.0,0.5,1.0)
              .chainMiddle(s"${mp}12",1.0,0.9)
-             .chainOutput(dotEnd,1.0)
+             .chainMiddle(dotEnd,1.0)
       builder.use(s"${mp}11").setForgetting(0.2)
       builder.use(s"${mp}12").setForgetting(0.2)
       builder.use(s"${mp}12").connect(s"${mp}11", -0.49)
       builder.use(s"${mp}12").connect(s"${mp}_loop1", -1.0)
-      builder.use(dotEnd).connect(s"${mp}12", -1.0)
       // line chain
       builder.use(startingPoint)
              .chainMiddle(s"${mp}21",0.19,0.5)
              .chainMiddle(s"${mp}22",1.0,0.5)
-             .chainOutput(lineEnd,1.0)
+             .chainMiddle(lineEnd,1.0)
       builder.use(s"${mp}22").connect(s"${mp}21", -0.35)
       // if line then not dot
       builder.use(s"${mp}21").connect(s"${mp}11", -1.0)
@@ -46,23 +46,27 @@ class DelayRes4Suite extends JUnitSuite {
       
       builder
     }
+ 
   }
   
+  val out1Name = "out1"
+  val out2Name = "out2"
+      
   private lazy val netRes4 = {
     val builder = NetBuilder(NeuronType.DELAY, 5.0, 0.1, 4)
 
     builder.addInput("in1")
-   
-    builder.dotLine("in1","mi","out1","out2")
+      
+    builder.dotLine("in1","mi",out1Name,out2Name)
     
     val (in, net, out) = builder.build("in","out")
-    val out1 = builder.get("out1")
+    val out1 = builder.get(out1Name)
     val sb = StringBuilder.newBuilder
     out.addAfterFireTrigger(out1, (n:Neuron) => {
       println("KROPA!")
       sb.append('.'); 
     })
-    val out2 = builder.get("out2")
+    val out2 = builder.get(out2Name)
     out.addAfterFireTrigger(out2, (n:Neuron) => {
       println("KRECHA!")
       sb.append('-'); 
@@ -136,10 +140,11 @@ class DelayRes4Suite extends JUnitSuite {
   @Test
   def shouldDot2NotLineRes4(){
     val (in, sb, _) = netRes4
-    
+    LOG.allow(out1Name,"mi11")
     in += "1,0,0,1,0,0"
     in.tickUntilCalm()
     assertEquals("..",sb.toString)
+    LOG.clearAllowedIds()
   }
   
     @Test

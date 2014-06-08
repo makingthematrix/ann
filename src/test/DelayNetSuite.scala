@@ -61,11 +61,13 @@ class DelayNetSuite extends JUnitSuite {
     builder.addInput("in1")
     // dots
     builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainOutput("out1",1.0)
+    builder.use("loop1").setPriority(-1)
     builder.use("mi11").setForgetting(0.2)
     builder.use("out1").connect("mi11", -0.49)
     builder.use("out1").connect("mi12", -1.0)
      // lines
     builder.use("in1").chainMiddle("mi21",0.4,0.5).loop("loop2",1.0,0.5,1.0).chainMiddle("mi22",1.0,0.65).chainOutput("out2",1.0)
+    builder.use("loop2").setPriority(-1)
     builder.use("mi21").setForgetting(0.05)
     builder.use("mi22").connect("mi21", -0.35)
     
