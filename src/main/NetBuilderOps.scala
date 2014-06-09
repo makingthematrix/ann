@@ -1,6 +1,6 @@
 package main
 
-import Utils.assert
+import main.utils.Utils.assert
 
 class NetBuilderOps(builder: NetBuilder) {
   def dotLine(startingPoint: String, dotEnd: String, lineEnd: String, mp: String = "mi") = { 

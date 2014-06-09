@@ -1,4 +1,4 @@
-package main
+package main.utils
 
 object Utils {
   def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)

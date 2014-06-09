@@ -1,7 +1,8 @@
 package main
 
 import scala.collection.mutable
-import Utils._
+import main.logger.LOG
+import main.utils.Utils._
 
 case class Synapse(val source: Neuron, val destination: Neuron,var weight: Double){
   def send(signal: Double) = {

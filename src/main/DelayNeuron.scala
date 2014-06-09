@@ -1,6 +1,7 @@
 package main
 
-import Utils._
+import main.utils.Utils._
+import main.logger.LOG
 
 class DelayNeuron(id: String, treshold: Double = 0.5, slope: Double = 20.0, forgetting: Double = 0.0) 
 extends Neuron(id, treshold, slope, forgetting) {

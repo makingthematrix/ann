@@ -5,6 +5,7 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.{Test, Before}
 import org.junit.Assert._
 import main._
+import main.logger.LOG
 
 class LineNetSuite extends JUnitSuite {
   private def lineNet() = {

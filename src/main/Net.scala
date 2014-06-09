@@ -3,7 +3,7 @@ package main
 import scala.collection.mutable
 import scala.concurrent._
 import ExecutionContext.Implicits.global
-import Utils._
+import main.utils.Utils._
 
 class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet {
   private val neurons = mutable.ListBuffer[Neuron]()

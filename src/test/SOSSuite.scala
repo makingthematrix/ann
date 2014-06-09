@@ -1,11 +1,10 @@
 package test
 
 import org.scalatest.junit.JUnitSuite
-
 import org.junit.{Test, Before}
 import org.junit.Assert._
 import main._
-import Utils._
+import main.logger.LOG
 
 class SOSSuite extends JUnitSuite {
   
@@ -36,11 +35,15 @@ class SOSSuite extends JUnitSuite {
     (in, sb, net)
   }
   
+  
+  val s = "1,0,0,1,0,0,1,0,0"
+  val o = "1,1,0,1,1,0,1,1,0"
+      
   @Test
   def shouldReturnS() = {
     val (in, sb, _) = sosNet
     LOG.allow("dot","S")
-    in += "1,0,0,1,0,0,1,0,0"
+    in += s
     val interval = in.tickUntilCalm()
     assertEquals("S",sb.toString)
     println(s"interval: $interval")
@@ -51,7 +54,7 @@ class SOSSuite extends JUnitSuite {
   def shouldReturnO() = {
     val (in, sb, _) = sosNet
     LOG.allow("line","O")
-    in += "1,1,0,1,1,0,1,1,0"
+    in += o
     val interval = in.tickUntilCalm()
     assertEquals("O",sb.toString)
     println(s"interval: $interval")
@@ -61,10 +64,9 @@ class SOSSuite extends JUnitSuite {
   @Test
   def shouldReturnSOS() = {
     val (in, sb, _) = sosNet
- 
-    val s = "1,0,0,1,0,0,1,0,0"
-    val o = "1,1,0,1,1,0,1,1,0"
-    in += s"$s,$o,$s"
+    in += s
+    in += o
+    in += s
     val interval = in.tickUntilCalm()
     assertEquals("SOS",sb.toString)
     println(s"interval: $interval")

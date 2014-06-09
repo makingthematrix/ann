@@ -347,16 +347,10 @@ class NetSuite extends JUnitSuite {
     builder.use("osc").connect("mi2",-1.0)
     val (in, net, out) = builder.build("in1","out1")
     in += "1,1,1,1,1,1"
-      
-    val out1 = builder.get("out1")
-    val out2 = builder.get("out2")
+
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
-      sb.append('1'); 
-    })
-    out.addAfterFireTrigger(out2, (n:Neuron) => {
-      sb.append('0')
-    })
+    out.addAfterFireTrigger(builder.get("out1"), (_:Neuron) => sb.append('1') )
+    out.addAfterFireTrigger(builder.get("out2"), (_:Neuron) => sb.append('0') )
     
     in.tick(6)
     
@@ -376,9 +370,9 @@ class NetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:Neuron)=>{
       println("KROPA!")
-      sb.append('.'); 
+      sb.append('.')
     })
     (in, sb)    
   }

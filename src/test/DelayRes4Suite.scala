@@ -5,7 +5,7 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.{Test, Before}
 import org.junit.Assert._
 import main._
-import Utils._
+import main.logger.LOG
 
 class DelayRes4Suite extends JUnitSuite {
   

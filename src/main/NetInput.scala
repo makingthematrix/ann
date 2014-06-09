@@ -1,7 +1,7 @@
 package main
 
 import scala.collection.mutable
-import Utils._
+import main.utils.Utils._
 
 class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   def ids = net.inputIds
