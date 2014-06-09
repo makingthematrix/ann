@@ -9,7 +9,7 @@ trait AbstractNet {
   
   private var iterationCounter = 0L
   
-  def setInput(in: Seq[Double]) = {
+  def setInput(in: Seq[Double]){
     val ins = inputLayer
     if(ins.size != in.size)
       throw new IllegalArgumentException(s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
@@ -19,7 +19,7 @@ trait AbstractNet {
   
   def output = outputLayer.map( _.lastOutput )
   
-  def tick() = {
+  def tick(){
     // this is a synchronous tick of all neurons - first the input layer, then the middle, then the output layer
     // not really what we want to achieve here ;)
 	iterationCounter += 1

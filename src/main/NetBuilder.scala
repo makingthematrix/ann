@@ -246,4 +246,6 @@ object NetBuilder {
     builder.resolution = resolution
     builder
   }
+  
+  implicit def toNetBuilderOps(builder: NetBuilder) = new NetBuilderOps(builder) 
 }

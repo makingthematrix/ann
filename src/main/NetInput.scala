@@ -55,7 +55,7 @@ class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   }
 
   def tickEmptyInput():Unit = tickEmptyInput(1)
-  def tickEmptyInput(n: Int):Unit = for(i <- 1 to n){
+  def tickEmptyInput(n: Int):Unit = for(i <- 1 to n * resolution){
     net.setInput(generateEmptyInput)
     net.tick()
   }

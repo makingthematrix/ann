@@ -6,7 +6,7 @@ import Utils._
 case class Synapse(val source: Neuron, val destination: Neuron,var weight: Double){
   def send(signal: Double) = {
     val t = signal * weight
-    LOG.log( s"sending signal $signal through synapse with weight $weight from ${source.id} to ${destination.id} -> $t", destination)
+    LOG.log( s"sending signal $signal through synapse with weight $weight from ${source.id} to ${destination.id} -> $t", source)
     destination += t
   }
 }
@@ -31,11 +31,7 @@ class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0,
     output = 0.0
   }
   
-  protected def calculateOutput = buffer match {
-    case x if x <= 0.0 => 0.0
-    case x if x >= 1.0 => 1.0
-    case x => 1.0/(1.0+Math.exp(-slope*(x-0.5)));
-  }
+  protected def calculateOutput = minmax(buffer, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(buffer-0.5))) )
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
   
@@ -139,25 +135,25 @@ class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0,
 }
 
 object Neuron{
-  private var serialId = 1L
+  private var _serialId = 1L
   
-  def getSerialId = serialId
+  def serialId = _serialId
 
   def apply():Neuron = {
-    val n = new Neuron("neuron_"+serialId)
-    serialId += 1
+    val n = new Neuron("neuron_"+_serialId)
+    _serialId += 1
     n
   }
   
   def apply(treshold: Double, slope: Double):Neuron = {
-    val n = new Neuron("neuron_"+serialId, treshold, slope)
-    serialId += 1
+    val n = new Neuron("neuron_"+_serialId, treshold, slope)
+    _serialId += 1
     n
   }
   
   def apply(id: Long, treshold: Double, slope: Double):Neuron = {
     val n = new Neuron("neuron_"+id, treshold, slope)
-    if(serialId <= id) serialId = id + 1
+    if(_serialId <= id) _serialId = id + 1
     n
   }
   

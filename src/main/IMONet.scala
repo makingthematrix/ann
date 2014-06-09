@@ -39,8 +39,6 @@ object IMONet {
   private var defTreshold = 0.5
   private var defWeight = 1.0
   
-  private var serialId = 1L;
-  
   def apply(inSize: Int, midSize: Int, outSize: Int) = {
     val ins = for(i <- 1 to inSize) yield DummyNeuron()
     val mids = for(i <- 1 to midSize) yield Neuron(defTreshold, defSlope)

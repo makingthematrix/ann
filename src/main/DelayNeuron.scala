@@ -17,11 +17,7 @@ extends Neuron(id, treshold, slope, forgetting) {
   
   def getLastTickBuffer = lastTickBuffer // debugging purposes only
   
-  override protected def calculateOutput = lastTickBuffer match {
-    case x if x <= 0.0 => 0.0
-    case x if x >= 1.0 => 1.0
-    case x => 1.0/(1.0+Math.exp(-slope*(x-0.5)));
-  }
+  override protected def calculateOutput = minmax(lastTickBuffer, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(lastTickBuffer-0.5))) )
   
   override def copy(_id: String =id, _treshold: Double =treshold, _slope: Double =slope, _forgetting: Double =forgetting) = {
     val newN = new DelayNeuron(_id, _treshold, _slope, _forgetting)

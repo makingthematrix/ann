@@ -8,45 +8,66 @@ import main._
 import Utils._
 
 class SOSSuite extends JUnitSuite {
-  // i'm still not sure if it's a good idea to use implicit classes for it...
-  implicit class DotLineNetBuilder(builder: NetBuilder){
-    def dotLine(startingPoint: String, mp: String, dotEnd: String, lineEnd: String) = { 
-      //assertions
-      assert(builder.middleNeuronType == NeuronType.DELAY, s"The middle neuron type must be DELAY and is ${builder.middleNeuronType}")
-      assert(builder.resolution == 4, s"The net resolution must be 4 and is ${builder.resolution}")
-      //dot chain
-      builder.use(startingPoint).chainMiddle(s"${mp}11",0.28,0.5).loop(s"${mp}_loop1",1.0,0.5,1.0).chainMiddle(dotEnd,1.0,0.9)
-      builder.use(s"${mp}_loop1").setPriority(-1)
-      builder.use(s"${mp}11").setForgetting(0.2)
-      builder.use(dotEnd).setForgetting(0.2).setPriority(1000).connect(s"${mp}11", -0.49).connect(s"${mp}_loop1", -1.0)
-      // line chain
-      builder.use(startingPoint).chainMiddle(s"${mp}21",0.19,0.5).chainMiddle(lineEnd,1.0,0.5).setPriority(1001).connect(s"${mp}21", -0.35)
-      // if line then not dot
-      builder.use(s"${mp}21").connect(s"${mp}11", -1.0).connect(s"${mp}_loop1", -1.0)
-    }
-  }
   
   private lazy val sosNet = {
     val builder = NetBuilder(NeuronType.DELAY, 5.0, 0.1, 4)
 
     builder.addInput("in1")
    
-    builder.dotLine("in1","mi","out1","out2")
+    builder.dotLine("in1", "dot", "line")
+    
+    builder.use("dot").chainMiddle("S",0.5,0.9).setForgetting(0.01)
+    builder.use("line").chainMiddle("O",0.9,0.9).setForgetting(0.01)
     
     val (in, net, out) = builder.build("in","out")
-    val out1 = builder.get("out1")
+    out.addAfterFireTrigger(builder.get("dot"), (_:Neuron) => println("KROPA!") )
+    out.addAfterFireTrigger(builder.get("line"), (_:Neuron) => println("KRECHA!") )
+
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
-      println("KROPA!")
-      sb.append('.'); 
+    out.addAfterFireTrigger(builder.get("S"), (n:Neuron) => {
+      println("S!")
+      sb.append('S'); 
     })
-    val out2 = builder.get("out2")
-    out.addAfterFireTrigger(out2, (n:Neuron) => {
-      println("KRECHA!")
-      sb.append('-'); 
+    out.addAfterFireTrigger(builder.get("O"), (n:Neuron) => {
+      println("O!")
+      sb.append('O'); 
     })
     
     (in, sb, net)
   }
   
+  @Test
+  def shouldReturnS() = {
+    val (in, sb, _) = sosNet
+    LOG.allow("dot","S")
+    in += "1,0,0,1,0,0,1,0,0"
+    val interval = in.tickUntilCalm()
+    assertEquals("S",sb.toString)
+    println(s"interval: $interval")
+    LOG.clearAllowedIds()
+  }
+  
+  @Test
+  def shouldReturnO() = {
+    val (in, sb, _) = sosNet
+    LOG.allow("line","O")
+    in += "1,1,0,1,1,0,1,1,0"
+    val interval = in.tickUntilCalm()
+    assertEquals("O",sb.toString)
+    println(s"interval: $interval")
+    LOG.clearAllowedIds()
+  }
+  
+  @Test
+  def shouldReturnSOS() = {
+    val (in, sb, _) = sosNet
+ 
+    val s = "1,0,0,1,0,0,1,0,0"
+    val o = "1,1,0,1,1,0,1,1,0"
+    in += s"$s,$o,$s"
+    val interval = in.tickUntilCalm()
+    assertEquals("SOS",sb.toString)
+    println(s"interval: $interval")
+
+  }
 }

@@ -18,3 +18,5 @@ dist
 *.class
 /bin
 .target/*
+*.diff
+*.log

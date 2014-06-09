@@ -11,7 +11,7 @@ class NeuronSuite extends JUnitSuite {
   
   @Test
   def shouldCreateNeuron(){
-    val i = Neuron.getSerialId
+    val i = Neuron.serialId
     val n = Neuron(TRESHOLD, SLOPE)
     assertEquals(SLOPE,n.slope,0.01)
     assertEquals(TRESHOLD,n.treshold,0.01)
