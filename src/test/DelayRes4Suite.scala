@@ -11,8 +11,7 @@ class DelayRes4Suite extends JUnitSuite {
   
   val out1Name = "mi12"
   val out2Name = "out2"
-      
-    
+       
   // i'm still not sure if it's a good idea to use implicit classes for it...
   implicit class DotLineNetBuilder(builder: NetBuilder){
     
@@ -44,12 +43,12 @@ class DelayRes4Suite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val sb = StringBuilder.newBuilder
     val out1 = builder.get(out1Name)
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
       println("KROPA!")
       sb.append('.'); 
     })
     val out2 = builder.get(out2Name)
-    out.addAfterFireTrigger(out2, (n:Neuron) => {
+    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
       println("KRECHA!")
       sb.append('-'); 
     })

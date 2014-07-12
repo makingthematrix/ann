@@ -10,7 +10,7 @@ class DelayNetSuite extends JUnitSuite {
     val outId = out.ids(0)
     
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
       println(s"fired!, outId=$outId, net tick=${net.iteration}")
       outputRegistered = true
     })
@@ -79,11 +79,11 @@ class DelayNetSuite extends JUnitSuite {
     val out1 = builder.get("out1")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
       println("KROPA!")
       sb.append('.'); 
     })
-    out.addAfterFireTrigger(out2, (n:Neuron) => {
+    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
       println("KRECHA!")
       sb.append('-')
     })

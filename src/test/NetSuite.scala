@@ -54,7 +54,7 @@ class NetSuite extends JUnitSuite {
     net.setInput(Seq(TRESHOLD + 0.1))
 
     var outputRegistered = false
-    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+    out.addAfterFireTrigger("out1trigger", (n:NeuronLike) => {
       assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
@@ -73,7 +73,7 @@ class NetSuite extends JUnitSuite {
     net.setInput(Seq(TRESHOLD + 0.1))
 
     var outputRegistered = false
-    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+    out.addAfterFireTrigger("out1trigger", (n:NeuronLike) => {
       assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
@@ -99,7 +99,7 @@ class NetSuite extends JUnitSuite {
     assertEquals(0.0,out.lastOutput,0.01)
     
     var outputRegistered = false
-    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
+    out.addAfterFireTrigger("out1trigger", (n:NeuronLike) => {
       assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
@@ -158,8 +158,8 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
-      println( n.id + " => " + n.lastOutput )
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
+      println( n.getId + " => " + n.lastOutput )
       outputRegistered = true
     })
     
@@ -182,8 +182,8 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
-      println( n.id + " => " + n.lastOutput )
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
+      println( n.getId + " => " + n.lastOutput )
       outputRegistered = true
     })
     
@@ -196,7 +196,7 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
       println(s"fired!, outId=$outId, net tick=${net.iteration}")
       outputRegistered = true
     })
@@ -267,12 +267,12 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     val sb = StringBuilder.newBuilder
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
       sb.append('1')
       println("SIGNAL!")
       outputRegistered = true
     })
-    out.addAfterTickTrigger(outId, (n:Neuron) => {
+    out.addAfterTickTrigger(outId, (n:NeuronLike) => {
       if(!outputRegistered){ 
         sb.append('0')
         println("NO SIGNAL...")
@@ -297,11 +297,11 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     val sb = StringBuilder.newBuilder
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
       sb.append('1')
       outputRegistered = true
     })
-    out.addAfterTickTrigger(outId, (n:Neuron) => {
+    out.addAfterTickTrigger(outId, (n:NeuronLike) => {
       if(!outputRegistered) sb.append('0')
       outputRegistered = false
     })
@@ -323,11 +323,11 @@ class NetSuite extends JUnitSuite {
     val outId = out.ids(0)
     val sb = StringBuilder.newBuilder
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
+    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
       sb.append('1')
       outputRegistered = true
     })
-    out.addAfterTickTrigger(outId, (n:Neuron) => {
+    out.addAfterTickTrigger(outId, (n:NeuronLike) => {
       if(!outputRegistered) sb.append('0')
       outputRegistered = false
     })
@@ -349,8 +349,8 @@ class NetSuite extends JUnitSuite {
     in += "1,1,1,1,1,1"
 
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(builder.get("out1"), (_:Neuron) => sb.append('1') )
-    out.addAfterFireTrigger(builder.get("out2"), (_:Neuron) => sb.append('0') )
+    out.addAfterFireTrigger(builder.get("out1"), (_:NeuronLike) => sb.append('1') )
+    out.addAfterFireTrigger(builder.get("out2"), (_:NeuronLike) => sb.append('0') )
     
     in.tick(6)
     
@@ -370,7 +370,7 @@ class NetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron)=>{
+    out.addAfterFireTrigger(out1, (n:NeuronLike)=>{
       println("KROPA!")
       sb.append('.')
     })
@@ -415,7 +415,7 @@ class NetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
       println("KRECHA!")
       sb.append('-'); 
     })

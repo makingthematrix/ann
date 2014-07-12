@@ -20,7 +20,7 @@ class DotNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
       println("KROPA!")
       sb.append('.'); 
     })
@@ -58,7 +58,7 @@ class DotNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
       println("KROPA!")
       sb.append('.'); 
     })
@@ -80,7 +80,7 @@ class DotNetSuite extends JUnitSuite {
     val out1 = builder.get("out1")
     
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
       println(s"KROPA! after ${net.iteration}")
       sb.append('.'); 
     })

@@ -18,11 +18,11 @@ extends Neuron(id, treshold, slope, forgetting) {
   
   def getLastTickBuffer = lastTickBuffer // debugging purposes only
   
-  override protected def calculateOutput = minmax(lastTickBuffer, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(lastTickBuffer-0.5))) )
+  override protected def calculateOutput = minMaxClosed(lastTickBuffer, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(lastTickBuffer-0.5))) )
   
   override def copy(_id: String =id, _treshold: Double =treshold, _slope: Double =slope, _forgetting: Double =forgetting) = {
     val newN = new DelayNeuron(_id, _treshold, _slope, _forgetting)
-    this.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    synapses.foreach( s => newN.connect(s.destination,s.weight) )
     newN
   }
 }
@@ -55,9 +55,9 @@ object DelayNeuron{
   def apply(id: String, treshold: Double, slope: Double, forgetting: Double):DelayNeuron = new DelayNeuron(id, treshold, slope, forgetting)
   
   
-  def apply(name: String, n: DelayNeuron):DelayNeuron = {
+  def apply(name: String, n: Neuron):DelayNeuron = {
     val newN = new DelayNeuron(name, n.treshold, n.slope, n.forgetting)
-    n.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    n.getSynapses.foreach( s => newN.connect(s.destination,s.weight) )
     newN
   }
   

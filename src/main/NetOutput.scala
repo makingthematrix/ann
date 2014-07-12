@@ -11,13 +11,13 @@ class NetOutput(val name: String, val net: Net) {
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
  
-  def addAfterFireTrigger(id: String, f:(Neuron) => Any):Unit = find(id).addAfterFireTrigger(name+"_output_"+id, f)
-  def addAfterFireTrigger(neuron: Neuron, f:(Neuron) => Any):Unit = neuron.addAfterFireTrigger(name+"_output_"+neuron.id, f)
+  def addAfterFireTrigger(id: String, f:(NeuronLike) => Any):Unit = find(id).addAfterFireTrigger(name+"_output_"+id, f)
+  def addAfterFireTrigger(neuron: Neuron, f:(NeuronLike) => Any):Unit = neuron.addAfterFireTrigger(name+"_output_"+neuron.id, f)
   
-  def addAfterTickTrigger(id: String, f:(Neuron) => Any):Unit = find(id).addAfterTickTrigger(name+"_output_"+id, f)
-  def addAfterTickTrigger(neuron: Neuron, f:(Neuron) => Any):Unit = neuron.addAfterTickTrigger(name+"_output_"+neuron.id, f)
+  def addAfterTickTrigger(id: String, f:(NeuronLike) => Any):Unit = find(id).addAfterTickTrigger(name+"_output_"+id, f)
+  def addAfterTickTrigger(neuron: Neuron, f:(NeuronLike) => Any):Unit = neuron.addAfterTickTrigger(name+"_output_"+neuron.id, f)
   
-  def addInfo(id: String, info: String) = addAfterFireTrigger(id, (_: Neuron) => println( info ) )
+  def addInfo(id: String, info: String) = addAfterFireTrigger(id, (_: NeuronLike) => println( info ) )
 }
 
 object NetOutput {

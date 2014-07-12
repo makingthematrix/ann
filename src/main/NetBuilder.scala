@@ -247,5 +247,5 @@ object NetBuilder {
     builder
   }
   
-  implicit def toNetBuilderOps(builder: NetBuilder) = new NetBuilderOps(builder) 
+  //implicit def toNetBuilderOps(builder: NetBuilder) = new NetBuilderOps(builder) 
 }

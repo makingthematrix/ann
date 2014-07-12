@@ -26,4 +26,9 @@ class NetBuilderOps(builder: NetBuilder) {
            .use(s"${mp}21").connect(s"${mp}11", -1.0)
                            .connect(s"${mp}_loop1", -1.0)
   }
+  
+}
+
+object NetBuilderOps{
+  implicit def fromNetBuilder(builder: NetBuilder) = new NetBuilderOps(builder) 
 }

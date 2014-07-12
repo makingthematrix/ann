@@ -4,7 +4,7 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
-
+ 
 class FileLogOutput(val fileName: String) extends LogOutput {
   private var writer:Option[BufferedWriter] = None
   

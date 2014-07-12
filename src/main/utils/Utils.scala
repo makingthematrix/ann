@@ -10,11 +10,17 @@ object Utils {
   *  because it somehow rounds values >0.92 to 1.0 which is needed by the dotLineNet.
   *  Otherwise the signals are not strong enough.
   */
-  def minmax(x: Double, min: Double, max: Double, d: => Double) = x match {
+  def minMaxClosed(x: Double, min: Double, max: Double, d: => Double) = x match {
     case _ if x <= min => min
     case _ if x >= max => max
     case _ => d
-  }  
+  }
+  
+  def minMaxOpen(x: Double, min: Double, max: Double, d: => Double) = x match {
+    case _ if x < min => min
+    case _ if x > max => max
+    case _ => d
+  }
 
 }
 

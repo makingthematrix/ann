@@ -15,7 +15,7 @@ final class DummyNeuron(id: String, treshold: Double = 0.0) extends Neuron(id,tr
   
   override def copy(_id: String =id, _treshold: Double =treshold, _slope: Double =slope, _forgetting: Double =forgetting) = {
     val newN = new DummyNeuron(_id, _treshold)
-    this.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    synapses.foreach( s => newN.connect(s.destination,s.weight) )
     newN
   }
 }
