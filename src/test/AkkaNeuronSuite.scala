@@ -7,11 +7,12 @@ import akka.actor._
 import main._
 
 case object AskForId
-case class SendConnect(n1Ref: ActorRef, n2Id: String, n2Ref: ActorRef, weight: Double)
-case class SendFindSynapse(n1Ref: ActorRef, n2Id: String)
+case class OrderConnect(n1Ref: ActorRef, n2Id: String, n2Ref: ActorRef, weight: Double)
+case class AskForSynapse(n1Ref: ActorRef, n2Id: String)
 case class SendSignal(s: Double)
-case object SendInit
-case object SendGetLastOutput
+case object OrderInit
+case class AskLastOutput(ref: ActorRef)
+case class AskForInput(ref: ActorRef)
 
 class AkkaNeuronSuite extends JUnitSuite {
   val id1 = "n1"
@@ -45,18 +46,18 @@ class AkkaNeuronSuite extends JUnitSuite {
     
     val ta = system.actorOf(Props(new Actor {
       def receive = {
-        case SendConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(n2Id, n2Ref, weight)
         case Success => success = true
-        case SendFindSynapse(n1Ref, n2Id) => n1Ref ! FindSynapse(n2Id)
+        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(n2Id, n2Ref, weight)
+        case AskForSynapse(n1Ref, n2Id) => n1Ref ! FindSynapse(n2Id)
         case MsgSynapse(so) => synapseOption = so
       }
     }))
     
-    ta ! SendConnect(n1, id2, n2, 1.0)
+    ta ! OrderConnect(n1, id2, n2, 1.0)
     Thread.sleep(1000L)
     assertTrue(success)
     
-    ta ! SendFindSynapse(n1, id2)
+    ta ! AskForSynapse(n1, id2)
     Thread.sleep(1000L)
     assertTrue(synapseOption != None)
     val s = synapseOption.get
@@ -70,24 +71,65 @@ class AkkaNeuronSuite extends JUnitSuite {
     
     val ta = system.actorOf(Props(new Actor {
       def receive = {
-        case SendInit => n1 ! Init
+        case OrderInit => n1 ! Init
         case Success => success = true
         case SendSignal(s) => n1 ! Signal(s)
-        case SendGetLastOutput => n1 ! GetLastOutput
+        case AskLastOutput(n) => n ! GetLastOutput
         case Msg(output, _) => lastOutput = output
       }
     }))
     
-    ta ! SendInit
+    ta ! OrderInit
     Thread.sleep(500L)
     assertTrue(success)
     
     ta ! SendSignal(1.0)
     Thread.sleep(500L)
     
-    ta ! SendGetLastOutput
+    ta ! AskLastOutput(n1)
     Thread.sleep(500L)
     
     assertTrue(lastOutput > 0.0)
+  }
+  
+  @Test
+  def shouldSendSignal(){
+    var success = false
+    val id2 = "n2"
+    val n2 = system.actorOf(Props(new AkkaNeuron(id2)))
+    var signal = -1.0
+    
+    val ta = system.actorOf(Props(new Actor {
+      def receive = {
+        case OrderInit => n1 ! Init
+        case Success => success = true
+        case SendSignal(s) => n1 ! Signal(s)
+        case AskLastOutput(n) => n ! GetLastOutput
+        case Msg(output, _) => signal = output
+        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(n2Id, n2Ref, weight)
+        case AskForInput(n) => n ! GetInput
+      }
+    }))
+    
+    ta ! OrderConnect(n1, id2, n2, 1.0)
+    Thread.sleep(500L)
+    assertTrue(success)
+    success = false
+    
+    ta ! OrderInit
+    Thread.sleep(500L)
+    assertTrue(success)
+    
+    ta ! AskForInput(n1)
+    Thread.sleep(500L)
+    assertEquals(0.0, signal, 0.01)
+    signal = -1.0
+    
+    ta ! SendSignal(1.0)
+    Thread.sleep(500L)
+    
+    ta ! AskForInput(n2)
+    Thread.sleep(500L)
+    assertTrue(signal > 0.0)
   }
 }

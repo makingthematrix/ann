@@ -59,7 +59,7 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
     output = calculateOutput
     buffer = 0.0
     //println(s"output $output")
-    synapses foreach { _.destinationRef ! output } 
+    synapses foreach { _.destinationRef ! Signal(output) } 
     afterFireTriggers.values.foreach( _(this) )
   }
   
