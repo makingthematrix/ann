@@ -15,12 +15,12 @@ case object HushNow // become silent
 case class Connect(destinationId: String, destinationRef: ActorRef, weight: Double)
 case class Disconnect(destinationId: String)
 case class FindSynapse(destinationId: String)
-case class MsgSynapse(synapseOpt: Option[Synapse])
-case class UpdateSynapse(destinationId: String, synapse: Synapse)
+case class MsgSynapse(synapseOpt: Option[AkkaSynapse])
+case class UpdateSynapse(destinationId: String, synapse: AkkaSynapse)
 case object GetSynapses
-case class MsgSynapses(synapses: List[Synapse])
-case class Success(id: String)
-case class Failure(id: String, error: String)
+case class MsgSynapses(synapses: List[AkkaSynapse])
+case object Success
+case class Failure(error: String)
 
 class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double, var priority: Int)
 extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
@@ -64,8 +64,8 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
   }
   
   def connect(destinationId:String, destinationRef: ActorRef, weight: Double) = findSynapse(destinationId) match {
-    case Some(s) => false
-    case None => synapses += new AkkaSynapse(destinationId, destinationRef, weight); true
+    case Some(s) => sender ! Failure(s"a synapse to $destinationId already exists")
+    case None => synapses += new AkkaSynapse(destinationId, destinationRef, weight); sender ! Success
   }
   override def connect(destination: NeuronLike, weight: Double) = 
     throw new IllegalArgumentException("Use connect(String, ActorRef, Double)")
@@ -84,15 +84,16 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
   protected val synapses = mutable.ListBuffer[AkkaSynapse]()
   
   protected def init(){
-    addTresholdPassedTrigger("fire", (_: NeuronLike) => that.run())
+    addTresholdPassedTrigger("run", (_: NeuronLike) => that.run())
+    sender ! Success
   }
   
   def receive = { 
     case Init => init()
     case Signal(s) => this += s
     case GetId => sender ! Msg(0.0, id)
-    case GetInput => sender ! Msg(input.toDouble, "")
-    case GetLastOutput => sender ! Msg(lastOutput.toDouble, "")
+    case GetInput => sender ! Msg(input.toDouble, id)
+    case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
     case HushNow => silence()
     case Connect(destinationId, destinationRef, weight) => connect(destinationId, destinationRef, weight)
     case Disconnect(destinationId) => disconnect(destinationId)
