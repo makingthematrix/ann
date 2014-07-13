@@ -22,8 +22,9 @@ case class MsgSynapses(synapses: List[Synapse])
 case class Success(id: String)
 case class Failure(id: String, error: String)
 
-class AkkaNeuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0, var forgetting: Double =0.0, var priority: Int =0)
+class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double, var priority: Int)
 extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
+  def this(id: String) = this(id,0.5,20.0,0.0,0)
   def that = this
   
   protected var buffer = 0.0
