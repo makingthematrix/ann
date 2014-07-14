@@ -25,6 +25,7 @@ case class Failure(error: String)
 class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double, var priority: Int)
 extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
   def this(id: String) = this(id,0.5,20.0,0.0,0)
+  def this(id: String, treshold: Double) = this(id, treshold, 20.0, 0.0, 0)
   def that = this
   
   protected var buffer = 0.0

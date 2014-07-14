@@ -2,7 +2,7 @@ package main
 
 import scala.collection.Seq
 
-class IMONet(val ins: Seq[DummyNeuron],val mids: Seq[Neuron],val outs: Seq[DummyNeuron]) extends AbstractNet {
+class IMONet(val ins: Seq[DummyNeuron],val mids: Seq[Neuron],val outs: Seq[DummyNeuron]) extends AbstractNet[Neuron] {
   override protected def inputLayer = ins
   override protected def middleLayer = mids
   override protected def outputLayer = outs

@@ -2,10 +2,10 @@ package main
 
 import scala.collection.mutable
 
-trait AbstractNet {
-  protected def inputLayer: Seq[Neuron] 
-  protected def middleLayer: Seq[Neuron]
-  protected def outputLayer: Seq[Neuron] 
+trait AbstractNet[N <: NeuronLike] {
+  protected def inputLayer: Seq[N] 
+  protected def middleLayer: Seq[N]
+  protected def outputLayer: Seq[N] 
   
   private var iterationCounter = 0L
   
@@ -38,19 +38,19 @@ trait AbstractNet {
   def outputSize = outputLayer.size
   
   def ids = inputIds ++ middleIds ++ outputIds
-  def inputIds = inputLayer.map( _.id )
-  def middleIds = middleLayer.map( _.id )
-  def outputIds = outputLayer.map( _.id )
+  def inputIds = inputLayer.map( _.getId )
+  def middleIds = middleLayer.map( _.getId )
+  def outputIds = outputLayer.map( _.getId )
   
-  def find(id: String):Option[Neuron] = {
-    val inFind = inputLayer.find( _.id == id )
+  def find(id: String):Option[N] = {
+    val inFind = inputLayer.find( _.getId == id )
     if(inFind.isDefined) return inFind
-    val midFind = middleLayer.find( _.id == id )
+    val midFind = middleLayer.find( _.getId == id )
     if(midFind.isDefined) return midFind
-    outputLayer.find( _.id == id )
+    outputLayer.find( _.getId == id )
   }
   
-  protected def find(id1: String, id2: String):(Neuron,Neuron) = {
+  protected def find(id1: String, id2: String):(N,N) = {
     val n1 = find(id1)
     if(n1.isEmpty) throw new IllegalArgumentException("There is no neuron with id " + id1)
     val n2 = find(id2)
@@ -60,12 +60,12 @@ trait AbstractNet {
   
   def contains(id: String) = find(id).isDefined
   
-  protected val afterTickTriggers = mutable.Map[String,(AbstractNet)=>Any]()
-  def addAfterTickTrigger(id: String, f: (AbstractNet) => Any):Unit = afterTickTriggers.contains(id) match {
+  protected val afterTickTriggers = mutable.Map[String,(AbstractNet[N])=>Any]()
+  def addAfterTickTrigger(id: String, f: (AbstractNet[N]) => Any):Unit = afterTickTriggers.contains(id) match {
     case false => afterTickTriggers.put(id, f)
     case true => throw new IllegalArgumentException(s"There was already registered an after tick trigger with id $id")
   } 
-  def addAfterTickTrigger(f: (AbstractNet) => Any):Unit = addAfterTickTrigger("anon"+afterTickTriggers.size,f)
+  def addAfterTickTrigger(f: (AbstractNet[N]) => Any):Unit = addAfterTickTrigger("anon"+afterTickTriggers.size,f)
   def isAfterTickTrigger(id: String) = afterTickTriggers.contains(id)
   def removeAfterTickTrigger(id: String) = afterTickTriggers.remove(id)
   def clearAfterTickTriggers() = afterTickTriggers.clear

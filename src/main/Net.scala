@@ -5,7 +5,7 @@ import scala.concurrent._
 import ExecutionContext.Implicits.global
 import main.utils.Utils._
 
-class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet {
+class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet[Neuron] {
   private val neurons = mutable.ListBuffer[Neuron]()
   private val ins = mutable.ListBuffer[Neuron]()
   private val outs = mutable.ListBuffer[Neuron]()

@@ -132,4 +132,47 @@ class AkkaNeuronSuite extends JUnitSuite {
     Thread.sleep(500L)
     assertTrue(signal > 0.0)
   }
+  
+    @Test
+  def shouldRespectTreshold(){
+    val TRESHOLD = 0.5
+    var success = false
+    val id2 = "n2"
+    val n2 = system.actorOf(Props(new AkkaNeuron(id2, TRESHOLD)))
+    var signal = -1.0
+  
+    
+    val ta = system.actorOf(Props(new Actor {
+      def receive = {
+        case OrderInit => n1 ! Init
+        case Success => success = true
+        case SendSignal(s) => n1 ! Signal(s)
+        case AskLastOutput(n) => n ! GetLastOutput
+        case Msg(output, _) => signal = output
+        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(n2Id, n2Ref, weight)
+        case AskForInput(n) => n ! GetInput
+      }
+    }))
+    
+    ta ! OrderConnect(n1, id2, n2, 1.0)
+    Thread.sleep(500L)
+    assertTrue(success)
+    success = false
+    
+    ta ! OrderInit
+    Thread.sleep(500L)
+    assertTrue(success)
+    
+    ta ! AskForInput(n1)
+    Thread.sleep(500L)
+    assertEquals(0.0, signal, 0.01)
+    signal = -1.0
+    
+    ta ! SendSignal(TRESHOLD - 0.1)
+    Thread.sleep(500L)
+    
+    ta ! AskForInput(n2)
+    Thread.sleep(500L)
+    assertEquals(0.0, signal, 0.01)
+  }
 }
