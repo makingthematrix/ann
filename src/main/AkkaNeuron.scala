@@ -22,6 +22,28 @@ case class MsgSynapses(synapses: List[AkkaSynapse])
 case object Success
 case class Failure(error: String)
 
+class AkkaRef(val id: String, val ref: ActorRef) extends NeuronLike {
+  def getId = id
+  
+  def input = Double.NaN // dummy
+  def lastOutput = Double.NaN // dummy
+  def silence() = ref ! HushNow
+  
+  protected def calculateOutput = Double.NaN // dummy 
+  def getSynapses: List[Synapse] = Nil // dummy
+  
+  def tick(){} // dummy
+  protected def run(){} // dummy
+  
+  def +=(signal: Double) = ref ! Signal(signal) // dummy
+  
+  def connect(destination:NeuronLike, weight: Double) = 
+    throw new IllegalArgumentException("Use connect(String, ActorRef, Double)")
+  def disconnect(destination: NeuronLike) = ref ! Disconnect(destination.getId)
+  
+  def findSynapse(destination: NeuronLike) = None // dummy
+} 
+
 class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double, var priority: Int)
 extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
   def this(id: String) = this(id,0.5,20.0,0.0,0)
@@ -103,4 +125,15 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
     case GetSynapses => sender ! MsgSynapses(getSynapses)
   }
   
+}
+
+object AkkaRef {
+  val system = ActorSystem("AkkaNeuronSystem")
+  
+  def apply(id: String):AkkaRef = apply(id, system)
+  
+  def apply(id: String, system: ActorSystem):AkkaRef = {
+    val ref = system.actorOf(Props(new AkkaNeuron(id)), name=id)
+    new AkkaRef(id, ref)
+  }
 }

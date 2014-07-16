@@ -15,8 +15,8 @@ case class AskLastOutput(ref: ActorRef)
 case class AskForInput(ref: ActorRef)
 
 class AkkaNeuronSuite extends JUnitSuite {
-  val id1 = "n1"
   val system = ActorSystem("AkkaNeuronSystem")
+  val id1 = "n1"
   val n1 = system.actorOf(Props(new AkkaNeuron(id1)))
       
   @Test

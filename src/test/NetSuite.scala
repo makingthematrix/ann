@@ -64,25 +64,6 @@ class NetSuite extends JUnitSuite {
   }
   
   @Test
-  def shouldSendSignalIMONet(){
-    val net = IMONet(1,1,1)
-    
-    val out = net.find(net.outputIds(0)).get
-    assertEquals(0.0,out.lastOutput,0.01)
-    
-    net.setInput(Seq(TRESHOLD + 0.1))
-
-    var outputRegistered = false
-    out.addAfterFireTrigger("out1trigger", (n:NeuronLike) => {
-      assertTrue(n.lastOutput > 0.01)
-      outputRegistered = true
-    })
-    
-    net.tick()
-    assertTrue(outputRegistered)
-  }
-  
-  @Test
   def shouldBuildNet(){
     val builder = NetBuilder()
     builder.defSlope = SLOPE

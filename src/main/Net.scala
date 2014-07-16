@@ -79,30 +79,16 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     outs += n
   }
 
-  private val tickWaiting = mutable.Queue[Neuron]()
-  private var constantTick: Future[Unit] = null
-  @volatile var constantTickWorks = false
-
-  def addToWaiting(neuron: Neuron) = tickWaiting += neuron
-
-  private def tickConstantly() = /*async */ future {
-    while(constantTickWorks){
-      if(tickWaiting.nonEmpty) tickWaiting.dequeue.tick()
-      /* await */ Thread.sleep(100L)
-    }
+  def tick(){
+    // this is a synchronous tick of all neurons - first the input layer, then the middle, then the output layer
+    // not really what we want to achieve here ;)
+	iterationCounter += 1
+    println(s"--- tick nr $iterationCounter ---")
+    inputLayer.foreach( _.tick() )
+    middleLayer.foreach( _.tick() )
+    outputLayer.foreach( _.tick() )
+    afterTickTriggers.values.foreach( _(this) )
   }
-  
-  def start() = if(!constantTickWorks){
-    constantTickWorks = true
-    constantTick = tickConstantly()
-  }
-
-  def stop() = if(constantTickWorks){
-    constantTickWorks = false
-    constantTick = null
-  }  
-  
-  def isWorking = constantTickWorks
 }
 
 object Net {

@@ -7,7 +7,7 @@ trait AbstractNet[N <: NeuronLike] {
   protected def middleLayer: Seq[N]
   protected def outputLayer: Seq[N] 
   
-  private var iterationCounter = 0L
+  protected var iterationCounter = 0L
   
   def setInput(in: Seq[Double]){
     val ins = inputLayer
@@ -18,17 +18,6 @@ trait AbstractNet[N <: NeuronLike] {
   }
   
   def output = outputLayer.map( _.lastOutput )
-  
-  def tick(){
-    // this is a synchronous tick of all neurons - first the input layer, then the middle, then the output layer
-    // not really what we want to achieve here ;)
-	iterationCounter += 1
-    println(s"--- tick nr $iterationCounter ---")
-    inputLayer.foreach( _.tick() )
-    middleLayer.foreach( _.tick() )
-    outputLayer.foreach( _.tick() )
-    afterTickTriggers.values.foreach( _(this) )
-  }
   
   def iteration = iterationCounter
   
