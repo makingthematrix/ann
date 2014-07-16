@@ -10,15 +10,8 @@ trait NeuronLike {
   protected def calculateOutput: Double 
   def getSynapses: List[Synapse] 
   
-  def tick():Unit
-  protected def run()
-  
   def +=(signal: Double):Unit
   
-  def connect(destination:NeuronLike, weight: Double):Boolean
-  def disconnect(destination: NeuronLike):Unit
-  
-  def findSynapse(destination: NeuronLike):Option[Synapse]
   def weightSum = getSynapses.map(_.weight).sum
   def absWeightSum = getSynapses.map( s => math.abs(s.weight) ).sum
 
