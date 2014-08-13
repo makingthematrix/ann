@@ -16,7 +16,7 @@ case object GetId
 case object GetInput
 case object GetLastOutput
 case object HushNow // become silent
-case class Connect(destinationId: String, destinationRef: ActorRef, weight: Double)
+case class Connect(destinationRef: AkkaRef, weight: Double)
 case class Disconnect(destinationId: String)
 case class FindSynapse(destinationId: String)
 case class MsgSynapse(synapseOpt: Option[AkkaSynapse])
@@ -67,9 +67,9 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
     afterFireTriggers.values.foreach( _(this) )
   }
   
-  def connect(destinationId:String, destinationRef: ActorRef, weight: Double):Unit = findSynapse(destinationId) match {
-    case Some(s) => sender ! Failure(s"a synapse to $destinationId already exists")
-    case None => synapses += new AkkaSynapse(destinationId, destinationRef, weight); sender ! Success
+  def connect(destinationRef: AkkaRef, weight: Double):Unit = findSynapse(destinationRef.id) match {
+    case Some(s) => sender ! Failure(s"a synapse to ${destinationRef.id} already exists")
+    case None => synapses += new AkkaSynapse(destinationRef, weight); sender ! Success
   }
   def connect(destination: NeuronLike, weight: Double):Unit = 
     throw new IllegalArgumentException("Use connect(String, ActorRef, Double)")
@@ -80,7 +80,7 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
   }
   def disconnect(destination: NeuronLike):Unit = disconnect(destination.getId)
   
-  def findSynapse(destinationId: String):Option[AkkaSynapse] = synapses.find(_.destinationId == destinationId)
+  def findSynapse(destinationId: String):Option[AkkaSynapse] = synapses.find(_.destinationRef.id == destinationId)
   def findSynapse(destination: NeuronLike):Option[AkkaSynapse] = findSynapse(destination.getId)
   
   override def getSynapses = synapses.toList
@@ -99,7 +99,7 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
     case GetInput => sender ! Msg(input.toDouble, id)
     case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
     case HushNow => silence()
-    case Connect(destinationId, destinationRef, weight) => connect(destinationId, destinationRef, weight)
+    case Connect(destinationRef, weight) => connect(destinationRef, weight)
     case Disconnect(destinationId) => disconnect(destinationId)
     case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId)) 
     // case UpdateSynapse

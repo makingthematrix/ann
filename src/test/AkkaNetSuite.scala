@@ -18,16 +18,18 @@ class AkkaNetSuite extends JUnitSuite {
     
   @Test
   def shouldCreateNet(){
-    val net = system.actorOf(Props(new AkkaNet("net1")),name="net1")
+    val net = AkkaNet("net1")
 
     val f = net ? GetId
     val msg = Await.result(f, timeout.duration).asInstanceOf[Msg]
     assertEquals("net1",msg.str)
+    
+    net ! Shutdown
   }
   
   @Test
   def shouldAddNeurons(){
-    val net = system.actorOf(Props(new AkkaNet("net1")),name="net1")
+    val net = AkkaNet("net1")
 
     val n1 = AkkaRef("id1", system)
     val n2 = AkkaRef("id2", system)
@@ -42,5 +44,31 @@ class AkkaNetSuite extends JUnitSuite {
     assertEquals(2, neurons.size)
     assertTrue(neurons.map{ _.id }.contains(n1.id))
     assertTrue(neurons.map{ _.id }.contains(n2.id))
+    
+    net ! Shutdown
+  }
+  
+  @Test
+  def shouldConnectNeurons(){
+    val net = AkkaNet("net1")
+    
+    net ! CreateNeuron("id1")
+    net ! CreateNeuron("id2")
+    Thread.sleep(500L)
+    
+    val f1 = net ? GetNeurons
+    val msg1 = Await.result(f1, timeout.duration).asInstanceOf[MsgNeurons]
+    val neurons = msg1.neurons
+    assertEquals(2, neurons.size)
+    
+    net ! ConnectNeurons("id1", "id2", 1.0)
+    Thread.sleep(500L)
+    
+    val n1 = neurons.find( _.id == "id1").get
+    val f2 = n1 ? FindSynapse("id2")
+    val msg2 = Await.result(f2, timeout.duration).asInstanceOf[MsgSynapse]
+    assertFalse(msg2.synapseOpt == None)
+    
+    net ! Shutdown
   }
 }
