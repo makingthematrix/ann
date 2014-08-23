@@ -1,16 +1,17 @@
-package test
+package test.sync
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
 import main._
+import main.sync._
 
 class DelayNetSuite extends JUnitSuite {
   private def assertOutputAfter(in: NetInput, net: Net, out: NetOutput, iterations: Int) = {
-    val outId = out.ids(0)
+    val outId:String = out.ids(0)
     
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:NeuronLike) => {
+    out.addAfterFireTrigger(outId, (n:Neuron) => {
       println(s"fired!, outId=$outId, net tick=${net.iteration}")
       outputRegistered = true
     })
@@ -79,11 +80,11 @@ class DelayNetSuite extends JUnitSuite {
     val out1 = builder.get("out1")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out1, (n:Neuron) => {
       println("KROPA!")
       sb.append('.'); 
     })
-    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out2, (n:Neuron) => {
       println("KRECHA!")
       sb.append('-')
     })

@@ -1,7 +1,7 @@
-package main
+package main.sync
 
 import main.utils.Utils._
-import main.logger.LOG
+import main.logger._
 
 class DelayNeuron(id: String, treshold: Double = 0.5, slope: Double = 20.0, forgetting: Double = 0.0) 
 extends Neuron(id, treshold, slope, forgetting) {
@@ -27,7 +27,7 @@ extends Neuron(id, treshold, slope, forgetting) {
   }
 }
 
-object DelayNeuron{
+object DelayNeuron {
   private var serialId = 1L
   
   def getSerialId = serialId

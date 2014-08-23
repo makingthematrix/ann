@@ -1,9 +1,9 @@
-package test
+package test.sync
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
-import main._
+import main.sync._
 import main.logger.LOG
 import main.NetBuilderOps._
 
@@ -20,15 +20,15 @@ class SOSSuite extends JUnitSuite {
     builder.use("line").chainMiddle("O",0.9,0.9).setForgetting(0.01)
     
     val (in, net, out) = builder.build("in","out")
-    out.addAfterFireTrigger(builder.get("dot"), (_:NeuronLike) => println("KROPA!") )
-    out.addAfterFireTrigger(builder.get("line"), (_:NeuronLike) => println("KRECHA!") )
+    out.addAfterFireTrigger(builder.get("dot"), (_:Neuron) => println("KROPA!") )
+    out.addAfterFireTrigger(builder.get("line"), (_:Neuron) => println("KRECHA!") )
 
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(builder.get("S"), (n:NeuronLike) => {
+    out.addAfterFireTrigger(builder.get("S"), (_:Neuron) => {
       println("S!")
       sb.append('S'); 
     })
-    out.addAfterFireTrigger(builder.get("O"), (n:NeuronLike) => {
+    out.addAfterFireTrigger(builder.get("O"), (_:Neuron) => {
       println("O!")
       sb.append('O'); 
     })

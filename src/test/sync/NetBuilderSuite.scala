@@ -1,9 +1,9 @@
-package test
+package test.sync
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
-import main._
+import main.sync._
 
 class NetBuilderSuite extends JUnitSuite {
   private def buildNet() = {
@@ -20,11 +20,11 @@ class NetBuilderSuite extends JUnitSuite {
   def shouldUseDelayNeurons(){
     val net = buildNet
     net.getNeurons.foreach( n => n.id match{
-      case "in1" => assertEquals(s"${n.id} main.DummyNeuron",n.id + " " + n.getClass().getName())
-      case "mi21" => assertEquals(s"${n.id} main.DelayNeuron",n.id + " " + n.getClass().getName())
-      case "loop2" => assertEquals(s"${n.id} main.DelayNeuron",n.id + " " + n.getClass().getName())
-      case "mi22" => assertEquals(s"${n.id} main.DelayNeuron",n.id + " " + n.getClass().getName())
-      case "out2" => assertEquals(s"${n.id} main.DummyNeuron",n.id + " " + n.getClass().getName())
+      case "in1" => assertEquals(s"${n.id} main.sync.DummyNeuron",n.id + " " + n.getClass().getName())
+      case "mi21" => assertEquals(s"${n.id} main.sync.DelayNeuron",n.id + " " + n.getClass().getName())
+      case "loop2" => assertEquals(s"${n.id} main.sync.DelayNeuron",n.id + " " + n.getClass().getName())
+      case "mi22" => assertEquals(s"${n.id} main.sync.DelayNeuron",n.id + " " + n.getClass().getName())
+      case "out2" => assertEquals(s"${n.id} main.sync.DummyNeuron",n.id + " " + n.getClass().getName())
     })
     
     net.getNeurons.foreach( n => {

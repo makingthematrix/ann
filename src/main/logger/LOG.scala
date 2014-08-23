@@ -1,7 +1,7 @@
 package main.logger
 
 import scala.collection.mutable
-import main.NeuronLike
+import main.sync.Neuron
 
 object LogLevel extends Enumeration {
   type LogLevel = Value
@@ -33,14 +33,14 @@ object LOG {
   
   def allow(id: String):Unit = _allowedIds += id
   def allow(ids: String*):Unit = ids.foreach( allow(_) )
-  def allow(implicit n: NeuronLike):Unit = allow(n.getId)
+  def allow[N <: Neuron](implicit n: N):Unit = allow(n.id)
   
   def allowedIds = _allowedIds.toSet
   def clearAllowedIds() = _allowedIds.clear()
   def removeAllowedId(id: String) = _allowedIds -= id
   
-  def +=(str: String)(implicit n: NeuronLike) = log(str, n)
-  def log(str: String, n: NeuronLike):Unit = if(_allowedIds.contains(n.getId)) log(str)
+  def +=(str: String)(implicit n: Neuron) = log(str, n)
+  def log(str: String, n: Neuron):Unit = if(_allowedIds.contains(n.getId)) log(str)
   
     /*
 	public synchronized boolean removeOut(LogOutput out) {

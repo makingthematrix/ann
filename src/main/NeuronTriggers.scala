@@ -2,9 +2,9 @@ package main
 
 import scala.collection.mutable
 
-trait NeuronTriggers [N <: NeuronLike]{
+trait NeuronTriggers[N] {
   protected val afterFireTriggers = mutable.Map[String,(N)=>Any]()
-  def addAfterFireTrigger(id: String, f: (N) => Any) = afterFireTriggers.contains(id) match {
+  def addAfterFireTrigger(id: String, f: N => Any) = afterFireTriggers.contains(id) match {
     case false => afterFireTriggers.put(id, f)
     case true => throw new IllegalArgumentException(s"There was already registered an after fire trigger with id $id")
   } 
@@ -13,7 +13,7 @@ trait NeuronTriggers [N <: NeuronLike]{
   def clearAfterFireTriggers() = afterFireTriggers.clear
 
   protected val afterTickTriggers = mutable.Map[String,(N)=>Any]()
-  def addAfterTickTrigger(id: String, f: (N) => Any) = afterTickTriggers.contains(id) match {
+  def addAfterTickTrigger(id: String, f: N => Any) = afterTickTriggers.contains(id) match {
     case false => afterTickTriggers.put(id, f)
     case true => throw new IllegalArgumentException(s"There was already registered a after tick trigger with id $id")
   } 

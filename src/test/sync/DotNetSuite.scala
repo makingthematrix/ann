@@ -1,9 +1,9 @@
-package test
+package test.sync
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
-import main._
+import main.sync._
 import main.logger.LOG
 
 class DotNetSuite extends JUnitSuite {
@@ -20,7 +20,7 @@ class DotNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out1, (_:Neuron) => {
       println("KROPA!")
       sb.append('.'); 
     })
@@ -58,7 +58,7 @@ class DotNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out1 = builder.get("out1")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out1, (_:Neuron) => {
       println("KROPA!")
       sb.append('.'); 
     })
@@ -80,7 +80,7 @@ class DotNetSuite extends JUnitSuite {
     val out1 = builder.get("out1")
     
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out1, (_:Neuron) => {
       println(s"KROPA! after ${net.iteration}")
       sb.append('.'); 
     })

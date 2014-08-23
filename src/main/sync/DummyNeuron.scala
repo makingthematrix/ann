@@ -1,6 +1,7 @@
-package main
+package main.sync
 
 import main.logger.LOG
+
 
 final class DummyNeuron(id: String, treshold: Double = 0.0) extends Neuron(id,treshold) {
   override def calculateOutput = buffer

@@ -1,8 +1,8 @@
-package main
+package main.sync
 
 import scala.collection.mutable
 
-trait AbstractNet[N <: NeuronLike] {
+trait AbstractNet[N <: Neuron] {
   protected def inputLayer: Seq[N] 
   protected def middleLayer: Seq[N]
   protected def outputLayer: Seq[N] 
@@ -11,8 +11,7 @@ trait AbstractNet[N <: NeuronLike] {
   
   def setInput(in: Seq[Double]){
     val ins = inputLayer
-    if(ins.size != in.size)
-      throw new IllegalArgumentException(s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
+    assert(ins.size == in.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
     
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }

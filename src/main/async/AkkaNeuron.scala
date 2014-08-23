@@ -1,4 +1,4 @@
-package main
+package main.async
 
 import akka.actor._
 import scala.collection.mutable
@@ -8,6 +8,9 @@ import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent._
 import scala.concurrent.duration._
+import main.NeuronTriggers
+
+case class AkkaSynapse(val dest: NeuronRef,val weight: Double)
 
 case class Signal(s: Double)
 case object Init
@@ -16,7 +19,7 @@ case object GetId
 case object GetInput
 case object GetLastOutput
 case object HushNow // become silent
-case class Connect(destinationRef: AkkaRef, weight: Double)
+case class Connect(destinationRef: NeuronRef, weight: Double)
 case class Disconnect(destinationId: String)
 case class FindSynapse(destinationId: String)
 case class MsgSynapse(synapseOpt: Option[AkkaSynapse])
@@ -25,22 +28,25 @@ case object GetSynapses
 case class MsgSynapses(synapses: List[AkkaSynapse])
 case object Success
 case class Failure(error: String)
+case object NeuronShutdown
+case class NeuronShutdownDone(id: String)
+case class AddAfterFireTrigger(id: String, f: (AkkaNeuron) => Any)
 
-class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double, var priority: Int)
-extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
-  def this(id: String) = this(id,0.5,20.0,0.0,0)
-  def this(id: String, treshold: Double) = this(id, treshold, 20.0, 0.0, 0)
+class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
+extends Actor with NeuronTriggers[AkkaNeuron] {
+  protected val synapses = mutable.ListBuffer[AkkaSynapse]()
+  
+  def this(id: String) = this(id,0.5,20.0,0.0)
+  def this(id: String, treshold: Double) = this(id, treshold, 20.0, 0.0)
   def that = this
   
   protected var buffer = 0.0
   protected var output = 0.0
   
-  override def getId = id
+  def input = buffer // only for debugging purposes
+  def lastOutput = output // only for debugging purposes
   
-  override def input = buffer // only for debugging purposes
-  override def lastOutput = output // only for debugging purposes
-  
-  override def silence(){
+  def silence(){
     buffer = 0.0
     output = 0.0
   }
@@ -63,33 +69,35 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
     output = calculateOutput
     buffer = 0.0
     //println(s"output $output")
-    synapses foreach { _.destinationRef ! Signal(output) } 
+    synapses.foreach( _.dest ! Signal(output))
     afterFireTriggers.values.foreach( _(this) )
   }
   
-  def connect(destinationRef: AkkaRef, weight: Double):Unit = findSynapse(destinationRef.id) match {
+  def connect(destination: AkkaNeuron, weight: Double) =
+    throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
+  
+  protected def connect(destinationRef: NeuronRef, weight: Double):Unit = findSynapse(destinationRef.id) match {
     case Some(s) => sender ! Failure(s"a synapse to ${destinationRef.id} already exists")
     case None => synapses += new AkkaSynapse(destinationRef, weight); sender ! Success
   }
-  def connect(destination: NeuronLike, weight: Double):Unit = 
-    throw new IllegalArgumentException("Use connect(String, ActorRef, Double)")
   
-  def disconnect(destinationId: String):Unit = findSynapse(destinationId) match {
+  protected def disconnect(destinationId: String):Unit = findSynapse(destinationId) match {
     case Some(s) => synapses -= s
     case None =>
   }
-  def disconnect(destination: NeuronLike):Unit = disconnect(destination.getId)
+  protected def disconnect(destination: AkkaNeuron):Unit = disconnect(destination.id)
   
-  def findSynapse(destinationId: String):Option[AkkaSynapse] = synapses.find(_.destinationRef.id == destinationId)
-  def findSynapse(destination: NeuronLike):Option[AkkaSynapse] = findSynapse(destination.getId)
-  
-  override def getSynapses = synapses.toList
-  
-  protected val synapses = mutable.ListBuffer[AkkaSynapse]()
-  
+  def findSynapse(destinationId: String):Option[AkkaSynapse] = synapses.find(_.dest.id == destinationId)
+  def findSynapse(destination: AkkaNeuron):Option[AkkaSynapse] = findSynapse(destination.id)
+
   protected def init(){
-    addTresholdPassedTrigger("run", (_: NeuronLike) => that.run())
+    addTresholdPassedTrigger("run", (_: AkkaNeuron) => that.run())
     sender ! Success
+  }
+  
+  private def shutdown(){
+    sender ! NeuronShutdownDone(id)
+    context.stop(self)
   }
   
   def receive = { 
@@ -103,35 +111,9 @@ extends Actor with NeuronLike with NeuronTriggers[AkkaNeuron] {
     case Disconnect(destinationId) => disconnect(destinationId)
     case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId)) 
     // case UpdateSynapse
-    case GetSynapses => sender ! MsgSynapses(getSynapses)
+    case GetSynapses => sender ! MsgSynapses(synapses.toList)
+    case NeuronShutdown => shutdown()
+    case AddAfterFireTrigger(id, f) => addAfterFireTrigger(id, f)
   }
-}
 
-class AkkaRef(val id: String, val ref: ActorRef) extends NeuronLike {
-  implicit var timeout = Timeout(5 seconds)
-  
-  override def getId = id
-  
-  override def input = Await.result(ref ? GetInput, timeout.duration).asInstanceOf[Msg].d
-  override def lastOutput = Await.result(ref ? GetLastOutput, timeout.duration).asInstanceOf[Msg].d
-  override def silence() = ref ! HushNow
-  
-  override protected def calculateOutput = Double.NaN // we don't do that here 
-  override def getSynapses: List[Synapse] = Await.result(ref ? GetSynapses, timeout.duration).asInstanceOf[MsgSynapses].synapses
-  
-  def +=(signal: Double) = ref ! Signal(signal) 
-  
-  def !(any: Any) = ref ! any
-  def ?(any: Any) = ref ? any
-} 
-
-object AkkaRef {
-  val system = ActorSystem("AkkaNeuronSystem")
-  
-  def apply(id: String):AkkaRef = apply(id, system)
-  
-  def apply(id: String, system: ActorSystem):AkkaRef = {
-    val ref = system.actorOf(Props(new AkkaNeuron(id)), name=id)
-    new AkkaRef(id, ref)
-  }
 }

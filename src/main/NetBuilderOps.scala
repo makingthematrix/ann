@@ -1,6 +1,8 @@
 package main
 
 import main.utils.Utils.assert
+import main.sync.NeuronType
+import main.sync.NetBuilder
 
 class NetBuilderOps(builder: NetBuilder) {
   def dotLine(startingPoint: String, dotEnd: String, lineEnd: String, mp: String = "mi") = { 

@@ -1,12 +1,13 @@
-package main
+package main.sync
 
 import scala.collection.mutable
 import main.logger.LOG
 import main.utils.Utils._
+import main.NeuronTriggers
 
 class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0, var forgetting: Double =0.0, var priority: Int =0) 
-extends NeuronLike with NeuronTriggers[Neuron]{
-  implicit val self = this 
+extends NeuronTriggers[Neuron] {
+  implicit val self:Neuron = this 
   
   def getId = id
   
@@ -64,23 +65,38 @@ extends NeuronLike with NeuronTriggers[Neuron]{
     if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
   }
   
-  def connect(destination:NeuronLike, weight: Double) = findSynapse(destination) match {
+  def connect(destination:Neuron, weight: Double): Boolean = findSynapse(destination) match {
     case Some(s) => false
     case None => synapses += new Synapse(this, destination, weight); true
   }
   
-  def disconnect(destination: NeuronLike) = findSynapse(destination) match {
+  def disconnect(destination: Neuron) = findSynapse(destination) match {
     case Some(s) => synapses -= s
     case None =>
   }
   
-  def findSynapse(destination: NeuronLike) = synapses.find(_.destination.getId == destination.getId)
+  def findSynapse(destination: Neuron) = synapses.find(_.destination.getId == destination.getId)
   
   def copy(_id: String =id, _treshold: Double =treshold, _slope: Double =slope, _forgetting: Double =forgetting) = {
     val newN = new Neuron(_id, _treshold, _slope, _forgetting)
-    this.synapses.foreach( s => newN.connect(s.destination,s.weight) )
+    synapses.foreach( s => newN.connect(s.destination,s.weight) )
     newN
   }
+  
+  def weightSum = synapses.map(_.weight).sum
+  def absWeightSum = synapses.map( s => math.abs(s.weight) ).sum
+
+  def averageWeight = weightSum / synapses.size
+
+  def normalize = {
+    val ws = weightSum
+    getSynapses.foreach( _.weight /= ws )
+  }
+
+  def isPositive = !synapses.exists( _.weight < 0.0 )
+  def isNegative = !synapses.exists( _.weight > 0.0 )
+  def isMixed = synapses.exists( _.weight < 0.0 ) && synapses.exists( _.weight > 0.0 )
+  
 }
 
 object Neuron{

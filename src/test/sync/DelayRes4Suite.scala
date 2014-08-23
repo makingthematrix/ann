@@ -1,11 +1,14 @@
-package test
+package test.sync
 
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
 import main._
 import main.logger.LOG
+import main.sync.Neuron
+import main.sync.NeuronType
+import main.sync.NetBuilder
 
 class DelayRes4Suite extends JUnitSuite {
   
@@ -43,12 +46,12 @@ class DelayRes4Suite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val sb = StringBuilder.newBuilder
     val out1 = builder.get(out1Name)
-    out.addAfterFireTrigger(out1, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out1, (_:Neuron) => {
       println("KROPA!")
       sb.append('.'); 
     })
     val out2 = builder.get(out2Name)
-    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out2, (_:Neuron) => {
       println("KRECHA!")
       sb.append('-'); 
     })

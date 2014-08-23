@@ -1,10 +1,11 @@
-package test
+package test.async
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
 import akka.actor._
 import main._
+import main.async._
 
 case object AskForId
 case class OrderConnect(n1Ref: ActorRef, n2Id: String, n2Ref: ActorRef, weight: Double)
@@ -47,7 +48,7 @@ class AkkaNeuronSuite extends JUnitSuite {
     val ta = system.actorOf(Props(new Actor {
       def receive = {
         case Success => success = true
-        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(new AkkaRef(n2Id, n2Ref), weight)
+        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(new NeuronRef(n2Id, n2Ref), weight)
         case AskForSynapse(n1Ref, n2Id) => n1Ref ! FindSynapse(n2Id)
         case MsgSynapse(so) => synapseOption = so
       }
@@ -61,7 +62,7 @@ class AkkaNeuronSuite extends JUnitSuite {
     Thread.sleep(1000L)
     assertTrue(synapseOption != None)
     val s = synapseOption.get
-    assertEquals(id2, s.destinationRef.id)
+    assertEquals(id2, s.dest.id)
   }
   
   @Test
@@ -106,7 +107,7 @@ class AkkaNeuronSuite extends JUnitSuite {
         case SendSignal(s) => n1 ! Signal(s)
         case AskLastOutput(n) => n ! GetLastOutput
         case Msg(output, _) => signal = output
-        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(new AkkaRef(n2Id, n2Ref), weight)
+        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(new NeuronRef(n2Id, n2Ref), weight)
         case AskForInput(n) => n ! GetInput
       }
     }))
@@ -149,7 +150,7 @@ class AkkaNeuronSuite extends JUnitSuite {
         case SendSignal(s) => n1 ! Signal(s)
         case AskLastOutput(n) => n ! GetLastOutput
         case Msg(output, _) => signal = output
-        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(new AkkaRef(n2Id, n2Ref), weight)
+        case OrderConnect(n1Ref, n2Id, n2Ref, weight) => n1Ref ! Connect(new NeuronRef(n2Id, n2Ref), weight)
         case AskForInput(n) => n ! GetInput
       }
     }))

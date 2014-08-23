@@ -1,7 +1,6 @@
-package main
+package main.sync
 
 import scala.collection.mutable
-import main.utils.Utils._
 
 class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   def ids = net.inputIds
@@ -14,11 +13,13 @@ class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
   
-  def add(input: Seq[Double]) = for(counter <- 1 to resolution) {
-    assert(input.length == net.inputSize, s"The input vector has to be exactly ${net.inputSize} numbers long and is ${input.length}.")
-    val inputBuffer = mutable.ListBuffer[Double]()
-    inputBuffer ++= input
-    inputQueue += inputBuffer.toSeq
+  def add(input: Seq[Double]) = {
+	assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
+    for(counter <- 1 to resolution) {
+      val inputBuffer = mutable.ListBuffer[Double]()
+      inputBuffer ++= input
+      inputQueue += inputBuffer.toSeq
+    }
   }
   
   def addEmptyInput = add(generateEmptyInput)

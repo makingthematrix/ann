@@ -1,9 +1,9 @@
-package test
+package test.sync
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
-import main.DelayNeuron
+import main.sync.DelayNeuron
 
 class DelayNeuronSuite extends JUnitSuite{
   val SLOPE = 20.0

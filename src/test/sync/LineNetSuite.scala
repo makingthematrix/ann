@@ -1,10 +1,10 @@
-package test
+package test.sync
 
 
 import org.scalatest.junit.JUnitSuite
-import org.junit.{Test, Before}
+import org.junit.Test
 import org.junit.Assert._
-import main._
+import main.sync._
 import main.logger.LOG
 
 class LineNetSuite extends JUnitSuite {
@@ -20,7 +20,7 @@ class LineNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out2, (_:Neuron) => {
       println("KRECHA!")
       sb.append('-'); 
     })
@@ -37,7 +37,7 @@ class LineNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out2, (_:Neuron) => {
       println("KRECHA!")
       sb.append('-'); 
     })
@@ -54,7 +54,7 @@ class LineNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out2, (n:NeuronLike) => {
+    out.addAfterFireTrigger(out2, (_:Neuron) => {
       println("KRECHA!")
       sb.append('-'); 
     })

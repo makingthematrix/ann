@@ -1,4 +1,4 @@
-package main
+package main.sync
 
 import scala.collection.mutable
 
@@ -54,19 +54,19 @@ class NetBuilder {
   }
   
   private def newInput(id: String, treshold: Double =defTreshold, slope: Double =defSlope, forgetting: Double = defForgetting) = {
-    val n = newNeuron(inputNeuronType, id, treshold, slope)
+    val n = newNeuron(inputNeuronType, id, treshold, slope, forgetting)
     n.priority = ins.size
     n
   }
   
-  private def newMiddle(id: String, treshold: Double =defTreshold, slope: Double =defSlope) = {
-    val n = newNeuron(middleNeuronType, id, treshold, slope)
+  private def newMiddle(id: String, treshold: Double =defTreshold, slope: Double =defSlope, forgetting: Double = defForgetting) = {
+    val n = newNeuron(middleNeuronType, id, treshold, slope, forgetting)
     n.priority = mids.size
     n
   }
   
-  private def newOutput(id: String, treshold: Double =defTreshold, slope: Double =defSlope) = {
-    val n = newNeuron(outputNeuronType, id, treshold, slope)
+  private def newOutput(id: String, treshold: Double =defTreshold, slope: Double =defSlope, forgetting: Double = defForgetting) = {
+    val n = newNeuron(outputNeuronType, id, treshold, slope, forgetting)
     n.priority = outs.size
     n
   }

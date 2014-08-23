@@ -1,8 +1,7 @@
-package main
+package main.sync
 
 import scala.collection.mutable
 import scala.concurrent._
-import ExecutionContext.Implicits.global
 import main.utils.Utils._
 
 class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet[Neuron] {
@@ -21,7 +20,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
            .sortWith((n1,n2) => n1.priority < n2.priority)
   }
   
-  override def ids = neurons.map( _.id )
+  override def ids = neurons.map( _.getId )
   override def find(id: String) = neurons.find( _.id == id )
   
   def addNeuron(slope: Double =defSlope, treshold: Double =defTreshold): Neuron = {
