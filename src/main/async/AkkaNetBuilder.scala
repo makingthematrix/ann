@@ -2,6 +2,7 @@ package main.async
 
 import scala.collection.mutable
 import akka.actor.ActorSystem
+import main.logger.LOG._
 
 class AkkaNetBuilder(val system: ActorSystem) {
   var defSlope = AkkaNetBuilder.SLOPE
@@ -77,6 +78,7 @@ class AkkaNetBuilder(val system: ActorSystem) {
   private def add(name: String, layer: mutable.Set[String], 
                   treshold: Double = defTreshold, slope:Double = defSlope, 
                   forgetting: Double = defForgetting):AkkaNetBuilder = {
+    debug(this, s"add $name")
     val n = if(contains(name)){
       if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
     } else add(newNeuron(name, treshold, slope, forgetting)) 
@@ -157,5 +159,8 @@ object AkkaNetBuilder {
   val system = ActorSystem("AkkaNeuronSystem")
   def apply():AkkaNetBuilder = apply(system)
   
-  def apply(system: ActorSystem):AkkaNetBuilder = new AkkaNetBuilder(system)
+  def apply(system: ActorSystem):AkkaNetBuilder = {
+    println("a new akka net builder created")
+    new AkkaNetBuilder(system)
+  }
 }

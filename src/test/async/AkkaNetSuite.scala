@@ -115,7 +115,6 @@ class AkkaNetSuite extends JUnitSuite {
     builder.defTreshold = TRESHOLD
     builder.defWeight = WEIGHT
     builder.addInput("in1")
-           .chainMiddle("m1")
            .chainOutput("out1")
     val net = builder.build
     assertEquals(1, net.inputSize)

@@ -2,6 +2,9 @@ package main.logger
 
 import scala.collection.mutable
 import main.sync.Neuron
+import java.util.Calendar
+import java.io.StringWriter
+import java.io.PrintWriter
 
 object LogLevel extends Enumeration {
   type LogLevel = Value
@@ -13,23 +16,41 @@ object LOG {
   val outs = new mutable.ListBuffer[LogOutput]()
   var logDate = true
   var showLogLevel = false
+  var trackAll = true
+  
+  private val trackedClasses = mutable.Set[String]()
+  
+  def track(c: Class[_]) = {
+    trackedClasses += c.getName
+    trackAll = false
+  }
+  
+  def stopTracking(c: Class[_]) = trackedClasses -= c.getName
+  
+  def isTracking(className: String):Boolean = trackedClasses.contains(className)
+  def isTracking(c: Class[_]):Boolean = trackedClasses.contains(c.getName)
+  
+  def resetTracked() = {
+    trackedClasses.clear
+    trackAll = true
+  }
 
   def resetOuts() = this.synchronized {
     outs.foreach( _.close )
     outs.clear
     outs += new SystemLogOutput()
   }
+  
+  def findOut(id: String) = this.synchronized {
+    outs.find( _.id == id )
+  }
 
-  def addOut[T <: LogOutput](out: T) = this.synchronized {
-    outs.find( _.id == out.id ) match {
-      case Some(o) => o
-      case None => outs += out; out
-    }
+  def addOut(out: LogOutput) = findOut(out.id) match {
+    case Some(o) => o
+    case None => outs += out; out
   }
   
   private val _allowedIds = mutable.Set[String]()
-  
-  def log(str: String):Unit = println(str)
   
   def allow(id: String):Unit = _allowedIds += id
   def allow(ids: String*):Unit = ids.foreach( allow(_) )
@@ -40,224 +61,112 @@ object LOG {
   def removeAllowedId(id: String) = _allowedIds -= id
   
   def +=(str: String)(implicit n: Neuron) = log(str, n)
-  def log(str: String, n: Neuron):Unit = if(_allowedIds.contains(n.getId)) log(str)
+  def log(str: String, n: Neuron):Unit = if(_allowedIds.contains(n.getId)) log(str, logLevel)
   
-    /*
-	public synchronized boolean removeOut(LogOutput out) {
-		out.close();
-		boolean result = false; 
-		for(Iterator<LogOutput> it = outs.iterator(); it.hasNext();){
-			LogOutput o = it.next();
-			if(o.getId().equals(out)){
-				it.remove();
-				result = true;
-			}
-		}
-		return result;
-	}
+  def removeOut(out: LogOutput) = findOut(out.id) match{
+    case None => false;
+    case Some(o) => o.close(); outs -= o; true
+  }
 
-	public Collection<LogOutput> getOuts() {
-		return outs;
-	}
+  def addLogToHTML(id: String) = addOut(new HTMLLogOutput(id))
 
-	public HTMLLogOutput addLogToHTML(String id) {
-		HTMLLogOutput out = new HTMLLogOutput(id);
-		return addOut(out);
-	}
-
-	public FileLogOutput addLogToFile(String fileName) {
-		if (fileName == null || fileName.isEmpty()) {
-			return null;
-		}
-		FileLogOutput stream = new FileLogOutput(fileName);
-		return addOut(stream);
-	}
+  def addLogToFile(fileName: String) = addOut(new FileLogOutput(fileName))
 	
-	private LogLevel logLevel = LogLevel.DEBUG;
-	private final Collection<LogOutput> outs = new ArrayList<LogOutput>();
-	private boolean logDate = true;
-	private boolean showLogLevel = false;
-
-	public boolean isShowLogLevel() {
-		return showLogLevel;
-	}
-
-	public void setShowLogLevel(boolean showLogLevel) {
-		this.showLogLevel = showLogLevel;
-	}
-
-	public boolean isLogDate() {
-		return logDate;
-	}
-
-	public void setLogDate(boolean logDate) {
-		this.logDate = logDate;
-	}
-
-	private synchronized void log(String str, LogLevel logLevel) {
-		if (logLevel.ordinal() > this.logLevel.ordinal()) {
-			return;
-		}
-
-		if (logDate) {
-			str = str(Calendar.getInstance()) + ">" + str;
-		}
-
-		if (showLogLevel) {
-			str = logLevel.name() + ">" + str;
-		}
-
-		for (LogOutput out : getOuts()) {
-			out.println(str);
-		}
-	}
-
-	public static void log(boolean expr, String str, LogLevel logLevel) {
-		if (expr) {
-			instance().log(str, logLevel);
-		}
-	}
-
-	public static void log(Object source, String str, LogLevel logLevel) {
-		if (instance().isTrackAll() || instance().isTracked(source) || instance().isTracked(source.getClass())) {
-			instance().log(source.getClass().getName() + "->" + str, logLevel);
-		}
-	}
-
-	public static String stackToString(Throwable t) {
-		final Writer result = new StringWriter();
-		final PrintWriter printWriter = new PrintWriter(result);
-		t.printStackTrace(printWriter);
-		return result.toString();
-	}
-
-	public void exception(Throwable t){
-		log("Throwable object caught of type " + t.getClass().getName());
-		log("message: " + t.getMessage());
-		log("cause: " + t.getCause());
-		log(stackToString(t));
-	}
-	
-	public static void error(Throwable t) {
-		error("Throwable object caught of type " + t.getClass().getName());
-		error("message: " + t.getMessage());
-		error("cause: " + t.getCause());
-		error(stackToString(t));
-	}
-
-	public static void exception(String str) {
-		instance().log(str, LogLevel.ERROR);
-		throw new IllegalArgumentException(str);
-	}
-	
-	public static void error(String str) {
-		if (LogLevel.ERROR.ordinal() <= instance().logLevel.ordinal())
-			instance().log(str, LogLevel.ERROR);
-	}
-
-	public static void debug(String str) {
-		if (LogLevel.DEBUG.ordinal() <= instance().logLevel.ordinal())
-			instance().log(str, LogLevel.DEBUG);
-	}
-
-	public static void info(String str) {
-		if (LogLevel.INFO.ordinal() <= instance().logLevel.ordinal())
-			instance().log(str, LogLevel.INFO);
-	}
-
-	public static void comment(String str) {
-		if (LogLevel.COMMENT.ordinal() <= instance().logLevel.ordinal())
-			instance().log(str, LogLevel.COMMENT);
-	}
-
-	public static void exception(boolean expr, String str) {
-		log(expr, str, LogLevel.ERROR);
-		if(expr) throw new IllegalArgumentException(str);
-	}
-	
-	public static void error(boolean expr, String str) {
-		if (LogLevel.ERROR.ordinal() <= instance().logLevel.ordinal())
-			log(expr, str, LogLevel.ERROR);
-	}
-
-	public static void debug(boolean expr, String str) {
-		if (LogLevel.DEBUG.ordinal() <= instance().logLevel.ordinal())
-			log(expr, str, LogLevel.DEBUG);
-	}
-
-	public static void info(boolean expr, String str) {
-		if (LogLevel.INFO.ordinal() <= instance().logLevel.ordinal())
-			log(expr, str, LogLevel.INFO);
-	}
-
-	public static void comment(boolean expr, String str) {
-		if (LogLevel.COMMENT.ordinal() <= instance().logLevel.ordinal())
-			log(expr, str, LogLevel.COMMENT);
-	}
-
-	public static void exception(Object source, String str) {
-		log(source, str, LogLevel.ERROR);
-		throw new IllegalArgumentException(str);
-	}
-	
-	public static void error(Object source, String str) {
-		if (LogLevel.ERROR.ordinal() <= instance().logLevel.ordinal())
-			log(source, str, LogLevel.ERROR);
-	}
-
-	public static void debug(Object source, String str) {
-		if (LogLevel.DEBUG.ordinal() <= instance().logLevel.ordinal())
-			log(source, str, LogLevel.DEBUG);
-	}
-
-	public static void info(Object source, String str) {
-		if (LogLevel.INFO.ordinal() <= instance().logLevel.ordinal())
-			log(source, str, LogLevel.INFO);
-	}
-
-	public static void comment(Object source, String str) {
-		if (LogLevel.COMMENT.ordinal() <= instance().logLevel.ordinal())
-			log(source, str, LogLevel.COMMENT);
-	}
-
-	public void log(String str) {
-		log(str, logLevel);
-	}
-
-	public void log(boolean expr, String str) {
-		log(expr, str, logLevel);
-	}
-
-	public void log(Object source, String str) {
-		log(source, str, logLevel);
-	}
-
-	private long lastMeasure = System.currentTimeMillis();
-
-	public static long timer(String tag) {
-		long t = System.currentTimeMillis();
-		long result = t - instance().lastMeasure;
-		instance().log(tag + " took " + result + "ms.");
-		instance().lastMeasure = t;
-		return result;
-	}
-
-	public static long timer(Object source, String tag) {
-		return timer(source.getClass().getName() + "->" + tag);
-	}
-
-	public static void resetTimer() {
-		instance().lastMeasure = System.currentTimeMillis();
-	}
-
-	public static final String str(Calendar cal){
-		return new StringBuilder()
+  def log(str: String, logLevel: LogLevel.Value):Unit = this.synchronized {
+    if(logLevel > this.logLevel) return
+    val sb = StringBuilder.newBuilder
+    if(showLogLevel) sb ++= logLevel.toString() + '>'
+    if(logDate) sb ++= toString(Calendar.getInstance) + '>'
+    sb ++= str
+    outs.foreach{ _.println(sb.toString) }
+  }
+  
+  private def toString(cal: Calendar) = 
+	  StringBuilder.newBuilder
 		.append(cal.get(Calendar.YEAR)).append('-')
 		.append(cal.get(Calendar.MONTH)+1).append('-')
 		.append(cal.get(Calendar.DAY_OF_MONTH)).append('_')
 		.append(cal.get(Calendar.HOUR_OF_DAY)).append(':')
 		.append(cal.get(Calendar.MINUTE)).append(':')
 		.append(cal.get(Calendar.SECOND)).append('.')
-		.append(cal.get(Calendar.MILLISECOND)).toString();
-	}*/
+		.append(cal.get(Calendar.MILLISECOND)).toString
+	
+  def log(expr: => Boolean, str: String, logLevel: LogLevel.Value):Unit = if(expr) log(str, logLevel)
+	
+  def log(source: Any, str: String, logLevel: LogLevel.Value):Unit = 
+    if(trackAll || isTracking(source.getClass))
+	  log(source.getClass.getName + "->" + str, logLevel)
+	
+
+  def stackToString(t: Throwable) = {
+	val result = new StringWriter()
+	t.printStackTrace(new PrintWriter(result))
+	result.toString
+  }
+
+  def exception(t: Throwable): Unit = {
+	log("Throwable object caught of type " + t.getClass().getName(), LogLevel.ERROR)
+	log("message: " + t.getMessage, LogLevel.ERROR)
+	log("cause: " + t.getCause, LogLevel.ERROR)
+	log(stackToString(t), LogLevel.ERROR)
+	throw new IllegalArgumentException(t.getMessage)
+  }
+	
+  def error(t: Throwable): Unit = {
+	error("Throwable object caught of type " + t.getClass().getName())
+	error("message: " + t.getMessage())
+	error("cause: " + t.getCause())
+	error(stackToString(t))
+  }
+
+  def exception(str: String): Unit = {
+	log(str, LogLevel.ERROR)
+	throw new IllegalArgumentException(str)
+  }
+	
+  def error(str: String): Unit = if (LogLevel.ERROR <= logLevel) log(str, LogLevel.ERROR)
+  def debug(str: String): Unit = if (LogLevel.ERROR <= logLevel) log(str, LogLevel.DEBUG)
+  def info(str: String): Unit = if (LogLevel.ERROR <= logLevel) log(str, LogLevel.INFO)
+  def comment(str: String): Unit = if (LogLevel.ERROR <= logLevel) log(str, LogLevel.COMMENT)
+
+  def exception(expr: => Boolean, str: String): Unit = {
+	log(expr, str, LogLevel.ERROR)
+	if(expr) throw new IllegalArgumentException(str)
+  }
+	
+  def error(expr: => Boolean, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(expr, str, LogLevel.ERROR)
+  def debug(expr: => Boolean, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(expr, str, LogLevel.DEBUG)
+  def info(expr: => Boolean, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(expr, str, LogLevel.INFO)
+  def comment(expr: => Boolean, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(expr, str, LogLevel.COMMENT)
+
+  def exception(source: Any, str: String): Unit = {
+	log(source, str, LogLevel.ERROR)
+	throw new IllegalArgumentException(str)
+  }
+	
+  def error(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR)
+  def debug(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG)
+  def info(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.INFO)
+  def comment(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.COMMENT)
+
+  def log(str: String): Unit = log(str, logLevel)
+  def log(expr: => Boolean, str: String): Unit = log(expr, str, logLevel)
+  def log(source: Any, str: String): Unit = log(source, str, logLevel)
+	
+  private var lastMeasure = System.currentTimeMillis
+
+  def timer(tag: String): Long = {
+	val t = System.currentTimeMillis()
+	val result = t - lastMeasure
+	log(tag + " took " + result + "ms.")
+	lastMeasure = t
+	result
+  }
+
+  def timer(source: Any, tag: String): Long = timer(source.getClass.getName + "->" + tag)
+
+  def resetTimer(){
+	lastMeasure = System.currentTimeMillis()
+  }
+	
 }
