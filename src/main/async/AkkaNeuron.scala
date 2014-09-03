@@ -12,9 +12,11 @@ import main.NeuronTriggers
 
 case class AkkaSynapse(val dest: NeuronRef,val weight: Double)
 
+class Answer
+
 case class Signal(s: Double)
 case object Init
-case class Msg(d: Double, str: String)
+case class Msg(d: Double, str: String) extends Answer
 case object GetId
 case object GetInput
 case object GetLastOutput
@@ -25,9 +27,9 @@ case class FindSynapse(destinationId: String)
 case class MsgSynapse(synapseOpt: Option[AkkaSynapse])
 case class UpdateSynapse(destinationId: String, synapse: AkkaSynapse)
 case object GetSynapses
-case class MsgSynapses(synapses: List[AkkaSynapse])
-case object Success
-case class Failure(error: String)
+case class MsgSynapses(synapses: List[AkkaSynapse]) extends Answer
+case object Success extends Answer
+case class Failure(error: String) extends Answer
 case object NeuronShutdown
 case class NeuronShutdownDone(id: String)
 case class AddAfterFireTrigger(id: String, f: (AkkaNeuron) => Any)

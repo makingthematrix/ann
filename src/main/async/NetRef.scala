@@ -32,7 +32,7 @@ object NetRef {
   }
   
   def apply(id: String, defSlope: Double, defTreshold: Double, defWeight: Double, system: ActorSystem) = {
-    val ref = system.actorOf(Props(new AkkaNet(id, defSlope, defTreshold, defWeight)), name = id)
+    val ref = system.actorOf(Props(new AkkaNet(id, defSlope, defTreshold, defWeight)))
     new NetRef(id, ref)
   }
 }

@@ -7,6 +7,8 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import main.sync.AbstractNet
 
+import main.logger.LOG._
+
 case object GetNeurons
 case class MsgNeurons(neurons: List[NeuronRef])
 case class AddNeuron(nref: NeuronRef)
@@ -56,18 +58,32 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     }
   }
   
-  private def init() = neurons.foreach( _.ref ! Init )
+  private def init() = {
+    debug(this, s"init for $id")
+    neurons.foreach( _.ref ! Init )
+  }
+  
+  private def addNeuron(nref: NeuronRef){
+    debug(this,s"adding neuron to $id: ${nref.id}")
+    neurons += nref
+  }
+  
+  private def createNeuron(id: String){
+	debug(this,s"creating neuron for ${this.id}: $id")
+    neurons += NeuronRef(id, defTreshold, defSlope, defForgetting, NeuronRef.system)
+  }
   
   def receive: Receive = {
     case Init => init()
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
-    case AddNeuron(nref) => neurons += nref
-    case CreateNeuron(id) => neurons += NeuronRef(id, defTreshold, defSlope, defForgetting, NeuronRef.system)
+    case AddNeuron(nref) => addNeuron(nref)
+    case CreateNeuron(id) => createNeuron(id)
     case ConnectNeurons(id1, id2, weight) => connectNeurons(id1, id2, weight)
     case Success => answer(sender, Success)
     case failure: Failure => answer(sender, failure) 
     case Shutdown => {
+      debug(s"shutdown for $id")
       context.become(shutdowning)
       neurons.foreach(_ ! NeuronShutdown)
     }
@@ -81,23 +97,27 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
+    debug(this,s"signal received in $id: " + in.mkString(", "))
     ins.zip(in).foreach( tuple => tuple._1 ! Signal(tuple._2) )
   }
   
   private def getNeuron(id: String) = sender ! neurons.find( _.id == id)
   
   private def setInputLayer(ids: Seq[String]){
+    debug(this,s"input layer set in $id: " + ids.mkString(", "))
     ins.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )
   }
   
   private def setOutputLayer(ids: Seq[String]){
+    debug(this,s"output layer set in $id: " + ids.mkString(", "))
     outs.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( outs += _ )
   }
   
   private def connectNeurons(id1: String, id2: String, weight: Double =defWeight) = findRef(id1, id2) match {
     case (Some(ref1),Some(ref2)) => {
+      debug(this,s"connectNeurons($id1,$id2,$weight in $id)")
       awaitingAnswers += ref1.ref -> sender
       ref1 ! Connect(ref2, weight)
     }
@@ -110,6 +130,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   private def findRef(id1: String, id2: String):(Option[NeuronRef],Option[NeuronRef]) = (findRef(id1), findRef(id2))
   
   def setInput(in: Seq[Double]){
+    debug(this,s"setInput, signal received in $id: " + in.mkString(", "))
     val ins = inputLayer
     assert(ins.size == in.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
     
@@ -129,6 +150,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   def outputIds = outputLayer.map( _.id )
   
   def find(id: String):Option[NeuronRef] = {
+    debug(this,s"finding neuron $id in ${this.id}")
     val inFind = inputLayer.find( _.id == id )
     if(inFind.isDefined) return inFind
     val midFind = middleLayer.find( _.id == id )

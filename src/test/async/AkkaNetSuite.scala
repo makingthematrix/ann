@@ -30,6 +30,8 @@ class AkkaNetSuite extends JUnitSuite {
   def shouldAddNeurons(){
     val net = NetRef("net1")
 
+    net ! Init
+    
     val n1 = NeuronRef("id1", system)
     val n2 = NeuronRef("id2", system)
 
@@ -50,6 +52,8 @@ class AkkaNetSuite extends JUnitSuite {
   @Test
   def shouldConnectNeurons(){
     val net = NetRef("net1")
+    
+    net ! Init
     
     net ! CreateNeuron("id1")
     net ! CreateNeuron("id2")
@@ -74,11 +78,18 @@ class AkkaNetSuite extends JUnitSuite {
   @Test
   def shouldSendSignal(){
     val net = NetRef("net1")
+    
+    net ! Init
+    Thread.sleep(500L)
+    
     net ! CreateNeuron("id1")
     net ! CreateNeuron("id2")
     Thread.sleep(500L)
-    net ! ConnectNeurons("id1", "id2", 1.0)
-    Thread.sleep(500L)
+    val cn = net ? ConnectNeurons("id1", "id2", 1.0)
+    Await.result(cn, timeout.duration).asInstanceOf[Answer] match {
+      case Failure(str) => fail(str)
+      case Success =>
+    }
     
     net ! SetInputLayer(Seq("id1"))
     net ! SetOutputLayer(Seq("id2"))
@@ -101,7 +112,9 @@ class AkkaNetSuite extends JUnitSuite {
     net ! SignalSeq(Seq(1.0)) // there is no 'tick' in AkkaNet. sending a signal triggers the calculations.
     Thread.sleep(500L)
     
-    assertTrue(outputRegistered)  
+    assertTrue(outputRegistered)
+    
+    net ! Shutdown
   }
   
   @Test
@@ -135,6 +148,8 @@ class AkkaNetSuite extends JUnitSuite {
     net ! SignalSeq(Seq(1.0)) // there is no 'tick' in AkkaNet. sending a signal triggers the calculations.
     Thread.sleep(500L)
     
-    assertTrue(outputRegistered)  
+    assertTrue(outputRegistered)
+    
+    net ! Shutdown
   }
 }
