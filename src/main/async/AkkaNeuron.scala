@@ -3,6 +3,7 @@ package main.async
 import akka.actor._
 import scala.collection.mutable
 import main.logger.LOG
+import main.logger.LOG._
 import main.utils.Utils._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -63,6 +64,7 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
      // might be changed into the S function later on
   
   def +=(signal: Double) = {
+    debug(this,s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
     if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
   }
@@ -93,6 +95,7 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
   def findSynapse(destination: AkkaNeuron):Option[AkkaSynapse] = findSynapse(destination.id)
 
   protected def init(){
+    debug(this, s"init for $id with threshold $treshold and slope $slope")
     addTresholdPassedTrigger("run", (_: AkkaNeuron) => that.run())
     sender ! Success
   }

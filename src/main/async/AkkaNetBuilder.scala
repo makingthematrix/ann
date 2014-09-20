@@ -78,7 +78,7 @@ class AkkaNetBuilder(val system: ActorSystem) {
   private def add(name: String, layer: mutable.Set[String], 
                   treshold: Double = defTreshold, slope:Double = defSlope, 
                   forgetting: Double = defForgetting):AkkaNetBuilder = {
-    debug(this, s"add $name")
+    debug(this, s"adding $name with treshold $treshold, slope $slope and forgetting $forgetting")
     val n = if(contains(name)){
       if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
     } else add(newNeuron(name, treshold, slope, forgetting)) 
@@ -91,7 +91,7 @@ class AkkaNetBuilder(val system: ActorSystem) {
                     weight: Double =defWeight, treshold: Double =defTreshold, 
                     slope: Double =defSlope, forgetting: Double = defForgetting):AkkaNetBuilder = {
     val n1 = current
-    println(s"chaining from ${n1.id} to $name")
+    debug(this, s"chaining from ${n1.id} to $name with treshold $treshold and slope $slope")
     if(throwOnError && outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron only from input or middle neurons")
     add(name, layer, treshold, slope, forgetting)
@@ -123,25 +123,35 @@ class AkkaNetBuilder(val system: ActorSystem) {
                 slope: Double = defSlope, forgetting: Double = defForgetting):AkkaNetBuilder = 
     add(name, outs, treshold, slope, forgetting)
   def addOutput():AkkaNetBuilder = addInput(generateName(AkkaNetBuilder.OUTPUT_LAYER))
-  def chainOutput(name: String, weight: Double =defWeight, treshold: Double =0.0, 
+  def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defTreshold, 
                   slope: Double =defSlope, forgetting: Double =defForgetting):AkkaNetBuilder = 
-    chain(name, outs, treshold, slope, forgetting)
+    chain(name, outs, weight, treshold, slope, forgetting)
   def chainOutput():AkkaNetBuilder = chainOutput(generateName(AkkaNetBuilder.OUTPUT_LAYER))
   def chainOutput(weight: Double):AkkaNetBuilder = chainOutput(generateName(AkkaNetBuilder.OUTPUT_LAYER), weight)
   def chainOutput(weight: Double, treshold: Double):AkkaNetBuilder = 
     chainOutput(generateName(AkkaNetBuilder.OUTPUT_LAYER), weight, treshold)
+    
   def build:NetRef = {
+    debug(this,s"build()")
     val net = NetRef(defNetName, defSlope, defTreshold, defWeight, system)
+    debug(this,"netref created")
     neurons.foreach(tuple => net ! AddNeuron(tuple._2))
+    debug(this, "neurons add request sent")
     net ! SetInputLayer(ins.toSeq)
+    debug(this, "input layer set request sent")
     net ! SetOutputLayer(outs.toSeq)
+    debug(this, "output layer set request sent")
     net
   }
   
   def build(netInputName: String, netOutputName: String):(AkkaNetInput,NetRef,AkkaNetOutput) = {
+    debug(this,s"build($netInputName,$netOutputName)")
     val net = build
+    debug(this, "net built")
     val in = AkkaNetInput(netInputName, net, resolution)
+    debug(this, "net input built")
     val out = AkkaNetOutput(netOutputName, net)
+    debug(this, "net output built")
     (in, net, out)
   }
 }
@@ -160,7 +170,7 @@ object AkkaNetBuilder {
   def apply():AkkaNetBuilder = apply(system)
   
   def apply(system: ActorSystem):AkkaNetBuilder = {
-    println("a new akka net builder created")
+    debug("a new akka net builder created")
     new AkkaNetBuilder(system)
   }
 }

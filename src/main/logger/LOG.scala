@@ -71,18 +71,21 @@ object LOG {
   def addLogToHTML(id: String) = addOut(new HTMLLogOutput(id))
 
   def addLogToFile(fileName: String) = addOut(new FileLogOutput(fileName))
+  
+  def addLogToStdout(id: String) = addOut(new StdoutLogOutput())
 	
   def log(str: String, logLevel: LogLevel.Value):Unit = this.synchronized {
     if(logLevel > this.logLevel) return
     val sb = StringBuilder.newBuilder
     if(showLogLevel) sb ++= logLevel.toString() + '>'
-    if(logDate) sb ++= toString(Calendar.getInstance) + '>'
+    if(logDate) sb ++= dateTag + '>'
     sb ++= str
     outs.foreach{ _.println(sb.toString) }
   }
   
-  private def toString(cal: Calendar) = 
-	  StringBuilder.newBuilder
+  private def dateTag = {
+    val cal = Calendar.getInstance
+	StringBuilder.newBuilder
 		.append(cal.get(Calendar.YEAR)).append('-')
 		.append(cal.get(Calendar.MONTH)+1).append('-')
 		.append(cal.get(Calendar.DAY_OF_MONTH)).append('_')
@@ -90,6 +93,7 @@ object LOG {
 		.append(cal.get(Calendar.MINUTE)).append(':')
 		.append(cal.get(Calendar.SECOND)).append('.')
 		.append(cal.get(Calendar.MILLISECOND)).toString
+  }
 	
   def log(expr: => Boolean, str: String, logLevel: LogLevel.Value):Unit = if(expr) log(str, logLevel)
 	

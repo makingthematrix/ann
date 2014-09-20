@@ -98,7 +98,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
     debug(this,s"signal received in $id: " + in.mkString(", "))
-    ins.zip(in).foreach( tuple => tuple._1 ! Signal(tuple._2) )
+    ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   
   private def getNeuron(id: String) = sender ! neurons.find( _.id == id)

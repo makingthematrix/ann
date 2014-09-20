@@ -9,6 +9,8 @@ import akka.actor.Props
 import akka.actor.actorRef2Scala
 import akka.pattern.ask
 
+import main.logger.LOG._
+
 class NeuronRef(val id: String, val ref: ActorRef) {
   implicit var timeout = Timeout(5 seconds)
   
@@ -48,6 +50,7 @@ object NeuronRef {
   }
   
   def apply(id: String, treshold: Double, slope: Double, forgetting: Double, system: ActorSystem):NeuronRef = {
+    debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
     val ref = system.actorOf(Props(new AkkaNeuron(id, treshold, slope, forgetting)), name=id)
     new NeuronRef(id, ref)
   }

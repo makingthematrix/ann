@@ -10,6 +10,9 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 import main.async._
 
+import main.logger.LOG
+import main.logger.LOG._
+
 class AkkaNetSuite extends JUnitSuite {
   val system = ActorSystem("AkkaNeuronSystem")
     
@@ -119,6 +122,7 @@ class AkkaNetSuite extends JUnitSuite {
   
   @Test
   def shouldBuildNet(){
+    LOG.addLogToStdout("shouldBuildNet")
     val SLOPE = 20.0
     val TRESHOLD = 0.5
     val WEIGHT = 1.0
@@ -144,7 +148,7 @@ class AkkaNetSuite extends JUnitSuite {
       assertTrue(n.lastOutput > 0.01)
       outputRegistered = true
     })
-
+    
     net ! SignalSeq(Seq(1.0)) // there is no 'tick' in AkkaNet. sending a signal triggers the calculations.
     Thread.sleep(500L)
     
