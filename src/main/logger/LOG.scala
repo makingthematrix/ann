@@ -72,7 +72,7 @@ object LOG {
 
   def addLogToFile(fileName: String) = addOut(new FileLogOutput(fileName))
   
-  def addLogToStdout(id: String) = addOut(new StdoutLogOutput())
+  def addLogToStdout() = addOut(new StdoutLogOutput())
 	
   def log(str: String, logLevel: LogLevel.Value):Unit = this.synchronized {
     if(logLevel > this.logLevel) return

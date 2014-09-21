@@ -8,7 +8,7 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.actor.actorRef2Scala
 import akka.pattern.ask
-
+import Context.system
 import main.logger.LOG._
 
 class NeuronRef(val id: String, val ref: ActorRef) {
@@ -20,9 +20,9 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   def silence() = ref ! HushNow
   
-  def connect(dest: NeuronRef, weight: Double) = 
+  def connect(dest: NeuronRef, weight: Double):Boolean = 
     Await.result(ref ? Connect(dest, weight), timeout.duration) match {
-      case Success => true
+      case Success(id) => true
       case Failure(str) => println(s"NeuronRef.connect failure: $str"); false 
     }
   
@@ -35,21 +35,20 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   def +=(signal: Double) = ref ! Signal(signal) 
   
-  def !(any: Any) = ref ! any
+  def !(any: Any) = {
+    debug(this,s"$id, received: ${any.toString}")
+    ref ! any
+  }
   def ?(any: Any) = ref ? any
 } 
 
 object NeuronRef {
-  val system = ActorSystem("AkkaNeuronSystem")
-  
-  def apply(id: String):NeuronRef = apply(id, system)
-  
-  def apply(id: String, system: ActorSystem):NeuronRef = {
+  def apply(id: String):NeuronRef = {
     val ref = system.actorOf(Props(new AkkaNeuron(id)), name=id)
     new NeuronRef(id, ref)
   }
   
-  def apply(id: String, treshold: Double, slope: Double, forgetting: Double, system: ActorSystem):NeuronRef = {
+  def apply(id: String, treshold: Double, slope: Double, forgetting: Double):NeuronRef = {
     debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
     val ref = system.actorOf(Props(new AkkaNeuron(id, treshold, slope, forgetting)), name=id)
     new NeuronRef(id, ref)

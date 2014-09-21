@@ -3,8 +3,13 @@ package main.async
 import scala.collection.mutable
 import akka.actor.ActorSystem
 import main.logger.LOG._
+import scala.concurrent.Await
+import akka.util.Timeout
+import scala.concurrent.duration._
 
-class AkkaNetBuilder(val system: ActorSystem) {
+class AkkaNetBuilder {
+  implicit val timeout = Timeout(5 seconds)
+  
   var defSlope = AkkaNetBuilder.SLOPE
   var defTreshold = AkkaNetBuilder.TRESHOLD
   var defWeight = AkkaNetBuilder.WEIGHT
@@ -18,6 +23,7 @@ class AkkaNetBuilder(val system: ActorSystem) {
   var throwOnError = true
   
   protected val neurons = mutable.Map[String,NeuronRef]()
+  protected lazy val net = NetRef(defNetName, defSlope, defTreshold, defWeight)
   
   protected val ins = mutable.Set[String]()
   protected val mids = mutable.Set[String]()
@@ -43,8 +49,11 @@ class AkkaNetBuilder(val system: ActorSystem) {
   }
   
   protected def newNeuron(id: String, treshold: Double =defTreshold, 
-                        slope: Double =defSlope, forgetting: Double = defForgetting) = 
-    NeuronRef(id, treshold, slope, forgetting, system)
+                        slope: Double =defSlope, forgetting: Double = defForgetting):NeuronRef = {
+    val answer = net ? CreateNeuron(id, treshold, slope, forgetting)
+    Await.result(answer, timeout.duration).asInstanceOf[NeuronRef]
+  } 
+    //NeuronRef(id, treshold, slope, forgetting)
   protected def newInput(id: String, treshold: Double =defTreshold, 
                         slope: Double =defSlope, forgetting: Double = defForgetting) = newNeuron(id, treshold, slope, forgetting)
   protected def newMiddle(id: String, treshold: Double =defTreshold, 
@@ -131,12 +140,30 @@ class AkkaNetBuilder(val system: ActorSystem) {
   def chainOutput(weight: Double, treshold: Double):AkkaNetBuilder = 
     chainOutput(generateName(AkkaNetBuilder.OUTPUT_LAYER), weight, treshold)
     
+  def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):AkkaNetBuilder = {
+    val n1 = current
+    if(throwOnError && !mids.contains(n1.id))
+      throw new IllegalArgumentException("You can loop only in the middle layer")
+    chainMiddle(name, w1, treshold, slope)
+    current.connect(n1, w2)
+    currentNeuronId = Some(n1.id)
+    this
+  }
+    
+  def loop():AkkaNetBuilder = loop(generateName(AkkaNetBuilder.MIDDLE_LAYER))
+  def loop(w1: Double, treshold: Double, w2: Double):AkkaNetBuilder = loop(generateName(AkkaNetBuilder.MIDDLE_LAYER), w1, treshold, w2)
+  def loop(w1: Double, w2: Double):AkkaNetBuilder = loop(generateName(AkkaNetBuilder.MIDDLE_LAYER), w1, defTreshold, w2)
+  
+  def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
+  def oscillator() = loop(1.0, 0.5, -1.0)
+  
+  def chainOscillator(name: String, weight: Double, treshold: Double) = chainMiddle(name, weight, treshold).oscillator(name+"_osc")
+  def chainOscillator(name: String, weight: Double) = chainMiddle(name, weight).oscillator(name+"_osc")
+  def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
+  
+  
   def build:NetRef = {
     debug(this,s"build()")
-    val net = NetRef(defNetName, defSlope, defTreshold, defWeight, system)
-    debug(this,"netref created")
-    neurons.foreach(tuple => net ! AddNeuron(tuple._2))
-    debug(this, "neurons add request sent")
     net ! SetInputLayer(ins.toSeq)
     debug(this, "input layer set request sent")
     net ! SetOutputLayer(outs.toSeq)
@@ -146,8 +173,6 @@ class AkkaNetBuilder(val system: ActorSystem) {
   
   def build(netInputName: String, netOutputName: String):(AkkaNetInput,NetRef,AkkaNetOutput) = {
     debug(this,s"build($netInputName,$netOutputName)")
-    val net = build
-    debug(this, "net built")
     val in = AkkaNetInput(netInputName, net, resolution)
     debug(this, "net input built")
     val out = AkkaNetOutput(netOutputName, net)
@@ -166,11 +191,8 @@ object AkkaNetBuilder {
   val MIDDLE_LAYER = "mid"
   val OUTPUT_LAYER = "out"
     
-  val system = ActorSystem("AkkaNeuronSystem")
-  def apply():AkkaNetBuilder = apply(system)
-  
-  def apply(system: ActorSystem):AkkaNetBuilder = {
+  def apply():AkkaNetBuilder = {
     debug("a new akka net builder created")
-    new AkkaNetBuilder(system)
+    new AkkaNetBuilder()
   }
 }

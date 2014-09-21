@@ -1,11 +1,12 @@
 package main.async
 
 class AkkaNetOutput(val name: String, val net: NetRef) {
+  def getId(index: Int):String = ids(index)
   lazy val ids = net.outputIds
   lazy val size = net.outputSize
   
   def find(id: String) = net.outputIds.contains(id) match {
-    case true => net.find(id).get
+    case true => net.find(id).neuronOpt.get
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
  

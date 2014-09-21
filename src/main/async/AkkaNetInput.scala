@@ -9,7 +9,7 @@ class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
   private val inputQueue = mutable.Queue[Seq[Double]]()
   
   def find(id: String) = ids.contains(id) match {
-    case true => net.find(id).get
+    case true => net.find(id).neuronOpt.get
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
     
@@ -37,8 +37,14 @@ class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
     _.toCharArray().toSeq.map( c => 
       if(signRegister.contains(c)) signRegister(c) 
       else throw new IllegalArgumentException(s"No input registered with sign $c")
-  )).foreach( add(_) )
+  )).foreach( add )
 
+  def tick():Unit = tick(1)
+  def tick(n: Int):Unit = for(i <- 1 to n * resolution){
+    val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
+    net ! SignalSeq(input)
+    Thread.sleep(50L)
+  }
 }
 
 object AkkaNetInput {
