@@ -2,6 +2,9 @@ package main.async
 
 import scala.collection.mutable
 
+import Messages._
+import main.logger.LOG._
+
 class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
@@ -41,6 +44,7 @@ class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
 
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n * resolution){
+    debug(this,s"iteration $i")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net ! SignalSeq(input)
     Thread.sleep(50L)

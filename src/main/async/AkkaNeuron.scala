@@ -10,32 +10,11 @@ import akka.util.Timeout
 import scala.concurrent._
 import scala.concurrent.duration._
 import main.NeuronTriggers
+import Messages._
 
 import ExecutionContext.Implicits.global
 
 case class AkkaSynapse(val dest: NeuronRef,val weight: Double)
-
-class Answer
-
-case class Signal(s: Double)
-case class Init(id: String)
-case class Msg(d: Double, str: String) extends Answer
-case object GetId
-case object GetInput
-case object GetLastOutput
-case object HushNow // become silent
-case class Connect(destinationRef: NeuronRef, weight: Double)
-case class Disconnect(destinationId: String)
-case class FindSynapse(destinationId: String)
-case class MsgSynapse(synapseOpt: Option[AkkaSynapse]) extends Answer
-case class UpdateSynapse(destinationId: String, synapse: AkkaSynapse)
-case object GetSynapses
-case class MsgSynapses(synapses: List[AkkaSynapse]) extends Answer
-case class Success(id: String) extends Answer
-case class Failure(error: String) extends Answer
-case object NeuronShutdown
-case class NeuronShutdownDone(id: String) extends Answer
-case class AddAfterFireTrigger(id: String, f: (AkkaNeuron) => Any)
 
 class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
 extends Actor with NeuronTriggers[AkkaNeuron] {

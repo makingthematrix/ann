@@ -7,6 +7,8 @@ import akka.actor._
 import main._
 import main.async._
 
+import Messages._
+
 case object AskForId
 case class OrderConnect(n1Ref: ActorRef, n2Id: String, n2Ref: ActorRef, weight: Double)
 case class AskForSynapse(n1Ref: ActorRef, n2Id: String)

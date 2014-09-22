@@ -8,28 +8,24 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.actor.actorRef2Scala
 import akka.pattern.ask
-import Context.system
+import Context._
 import main.logger.LOG._
+import main.utils.Utils.await
+import Messages._
 
 class NeuronRef(val id: String, val ref: ActorRef) {
-  implicit var timeout = Timeout(5 seconds)
-  
-  def input = Await.result(ref ? GetInput, timeout.duration).asInstanceOf[Msg].d
-  
-  def lastOutput = Await.result(ref ? GetLastOutput, timeout.duration).asInstanceOf[Msg].d
+  def input = await[Msg](ref, GetInput).d
+  def lastOutput = await[Msg](ref, GetLastOutput).d
+  def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   
   def silence() = ref ! HushNow
   
-  def connect(dest: NeuronRef, weight: Double):Boolean = 
-    Await.result(ref ? Connect(dest, weight), timeout.duration) match {
-      case Success(id) => true
-      case Failure(str) => println(s"NeuronRef.connect failure: $str"); false 
-    }
+  def connect(dest: NeuronRef, weight: Double) = await[Answer](ref, Connect(dest, weight)) match {
+    case Success(id) => true
+    case Failure(str) => println(s"NeuronRef.connect failure: $str"); false 
+  }
   
   protected def calculateOutput = Double.NaN // we don't do that here 
-  
-  def getSynapses: List[AkkaSynapse] = 
-    Await.result(ref ? GetSynapses, timeout.duration).asInstanceOf[MsgSynapses].synapses
   
   def addAfterFireTrigger(name: String, f:(AkkaNeuron) => Any) = ref ! AddAfterFireTrigger(name, f)
   
@@ -39,6 +35,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     debug(this,s"$id, received: ${any.toString}")
     ref ! any
   }
+  
   def ?(any: Any) = ref ? any
 } 
 

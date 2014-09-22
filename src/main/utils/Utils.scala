@@ -1,5 +1,12 @@
 package main.utils
 
+import scala.concurrent.Await
+import main.async.Context.timeout
+import akka.actor.ActorRef
+import akka.pattern.ask
+import main.async.NetRef
+import main.async.NeuronRef
+
 object Utils {
   def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)
   def assert(condition: => Boolean, str: String) = if(!condition) fail(str)
@@ -22,5 +29,8 @@ object Utils {
     case _ => d
   }
 
+  def await[T](ref: ActorRef, msg: Any): T = Await.result(ref ? msg, timeout.duration).asInstanceOf[T]
+  def await[T](net: NetRef, msg: Any): T = await[T](net.ref, msg)
+  def await[T](neuron: NeuronRef, msg: Any): T = await[T](neuron.ref, msg)
 }
 

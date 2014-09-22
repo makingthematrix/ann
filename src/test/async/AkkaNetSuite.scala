@@ -12,20 +12,16 @@ import main.async._
 
 import main.logger.LOG
 import main.logger.LOG._
+import Messages._
+import Context._
+import main.utils.Utils.await
 
-class AkkaNetSuite extends JUnitSuite {
-  implicit val timeout = Timeout(5 seconds)
-  val SLOPE = 20.0
-  val TRESHOLD = 0.5
-  val FORGETTING = 0.0
-  val WEIGHT = 1.0
-    
+class AkkaNetSuite extends JUnitSuite {    
   @Test
   def shouldCreateNet(){
     val net = NetRef("net1")
 
-    val f = net ? GetId
-    val msg = Await.result(f, timeout.duration).asInstanceOf[Msg]
+    val msg = await[Msg](net.ref, GetId)
     assertEquals("net1",msg.str)
     
     net ! Shutdown
@@ -41,8 +37,7 @@ class AkkaNetSuite extends JUnitSuite {
     
     Thread.sleep(50L)
     
-    val f = net ? GetNeurons
-    val msg = Await.result(f, timeout.duration).asInstanceOf[MsgNeurons]
+    val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons
     assertEquals(2, neurons.size)
     assertTrue(neurons.map{ _.id }.contains(n1.id))
@@ -61,8 +56,7 @@ class AkkaNetSuite extends JUnitSuite {
     
     Thread.sleep(50L)
     
-    val f1 = net ? GetNeurons
-    val msg1 = Await.result(f1, timeout.duration).asInstanceOf[MsgNeurons]
+    val msg1 = await[MsgNeurons](net, GetNeurons)
     val neurons = msg1.neurons
     assertEquals(2, neurons.size)
     
@@ -70,8 +64,7 @@ class AkkaNetSuite extends JUnitSuite {
     Thread.sleep(50L)
     
     val n1 = neurons.find( _.id == "id1").get
-    val f2 = n1 ? FindSynapse("id2")
-    val msg2 = Await.result(f2, timeout.duration).asInstanceOf[MsgSynapse]
+    val msg2 = await[MsgSynapse](n1, FindSynapse("id2"))
     assertFalse(msg2.synapseOpt == None)
      
     net ! Shutdown
@@ -89,13 +82,9 @@ class AkkaNetSuite extends JUnitSuite {
  
     Thread.sleep(50L)
     
-    debug("3")
-    net ! Init("")
-    Thread.sleep(50L)
-    
     debug("4")
-    val cn = net ? ConnectNeurons("id1", "id2", 1.0)
-    Await.result(cn, timeout.duration).asInstanceOf[Answer] match {
+    
+    net.connectNeurons("id1", "id2", WEIGHT) match {
       case Failure(str) => fail(str)
       case Success(id) => assertEquals("net1_connectNeurons(id1,id2)",id)
     }
@@ -106,8 +95,7 @@ class AkkaNetSuite extends JUnitSuite {
     
     debug("6")
     
-    val f1 = net ? GetNeuron("id2")
-    val msg1 = Await.result(f1, timeout.duration).asInstanceOf[MsgNeuron]
+    val msg1 = await[MsgNeuron](net, GetNeuron("id2"))
     assertFalse(msg1.neuronOpt == None)
     val out = msg1.neuronOpt.get
     assertEquals("id2",out.id)
@@ -167,14 +155,8 @@ class AkkaNetSuite extends JUnitSuite {
   def shouldBuildNetWithLoop(){
     LOG.addLogToStdout()
     
-    val SLOPE = 20.0
-    val TRESHOLD = 0.5
-    val WEIGHT = 1.0
-    
     val builder = AkkaNetBuilder()
-    builder.defSlope = SLOPE
-    builder.defTreshold = TRESHOLD
-    builder.defWeight = WEIGHT
+    builder.defTreshold = 0.5
     
     debug("1")
     builder.addInput()
@@ -210,14 +192,52 @@ class AkkaNetSuite extends JUnitSuite {
     net ! Shutdown
     debug("12")
   }
+
+  @Test
+  def shouldUseInputAndOutput1(){
+    LOG.addLogToStdout()
+    debug("1")
+    val builder = AkkaNetBuilder()
+    debug("2")
+    builder.defTreshold = TRESHOLD
+    builder.addInput().chainMiddle().loop().chainOutput()
+    debug("3")
+    val net = builder.build
+    debug("4")
+    val in = AkkaNetInput("in1", net)
+    debug("5")
+    in += TRESHOLD + 0.1
+    debug("6")
+    val out = AkkaNetOutput("out1", net)
+    debug("7")
+    
+    net ! Init
+    Thread.sleep(50L)
+    debug("8")
+    
+    var outputRegistered = false
+    out.addAfterFireTrigger(out.getId(0), (n:AkkaNeuron) => {
+      println( n.id + " => " + n.lastOutput )
+      outputRegistered = true
+    })
+    
+    in.tick(3)
+    debug("9")
+    Thread.sleep(500L)
+    assertTrue(outputRegistered)
+    debug("10")
+    
+    net ! Shutdown
+    debug("11")
+  }
   
   @Test
-  def shouldUseInputAndOutput(){
+  def shouldUseInputAndOutput2(){
     LOG.addLogToStdout()
     
     val builder = AkkaNetBuilder()
-    builder.addInput().chainMiddle().loop().chainOutput()
     builder.defTreshold = TRESHOLD
+    builder.addInput().chainMiddle().loop().chainOutput()
     
     val net = builder.build
     
@@ -235,9 +255,12 @@ class AkkaNetSuite extends JUnitSuite {
     
     var outputRegistered = false
     out.addAfterFireTrigger(outId, (n:AkkaNeuron) => {
-      println( n.id + " => " + n.lastOutput )
+      debug( n.id + " => " + n.lastOutput )
       outputRegistered = true
     })
+
+    net ! Init
+    Thread.sleep(50L)
     
     in.tick(3)
     Thread.sleep(500L)

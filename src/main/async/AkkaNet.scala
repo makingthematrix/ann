@@ -8,24 +8,9 @@ import scala.concurrent.duration._
 import main.sync.AbstractNet
 
 import main.logger.LOG._
+import Messages._
 
 import Context.system
-
-case object GetNeurons
-case class MsgNeurons(neurons: List[NeuronRef]) extends Answer
-case class MsgNeuron(neuronOpt: Option[NeuronRef]) extends Answer
-case class CreateNeuron(id: String, treshold: Double, slope: Double, forgetting: Double)
-case class ConnectNeurons(id1: String, id2: String, weight: Double)
-case object Shutdown
-case class NetShutdownDone(id: String) extends Answer
-case object GetInputLayer
-case class SetInputLayer(ids: Seq[String])
-case object GetMiddleLayer
-case object GetOutputLayer
-case class SetOutputLayer(ids: Seq[String])
-case class GetNeuron(id: String)
-case class SignalSeq(input: Seq[Double])
-
 
 class AkkaNet(val id: String, val defSlope: Double = 20.0, 
               val defTreshold: Double = 0.5, val defWeight: Double = 1.0,
@@ -71,14 +56,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     neurons += neuronRef
     sender ! neuronRef
   }
-  /*
-  private val awaitingAnswers = mutable.Map[ActorRef,ActorRef]()
-  
-  private def answer(ref: ActorRef, msg: Any) = awaitingAnswers.remove(ref) match {
-    case Some(otherRef) => otherRef ! msg
-    case None => 
-  }
-  */
+
   def receive: Receive = {
     case Init => init()
     case GetId => sender ! Msg(0.0, id)
