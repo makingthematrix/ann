@@ -151,7 +151,7 @@ class NetSuite extends JUnitSuite {
   }
   
   @Test
-  def shouldUserNetInputAbbreviations(){
+  def shouldUseNetInputAbbreviations(){
     val builder = NetBuilder()
     builder.addInput().chainMiddle().loop().chainOutput()
     

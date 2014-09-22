@@ -34,22 +34,59 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     case None => 
   }
   
+  private var caller: Option[ActorRef] = None
+  
   def shutdowning: Receive = {
-    case NeuronShutdownDone(id: String) => {
+    case NeuronShutdownDone(id) => {
       remove(id)
       if(neurons.isEmpty){
-        sender ! NetShutdownDone(id) 
+        if(caller != None) caller.get ! NetShutdownDone(id) 
+        caller = None
         context.stop(self)
       }
     }
   }
   
+  private val waitingForInit = mutable.Set[String]()
+  
+  def initializing: Receive = {
+    case Success(initId) if initId.startsWith("init_") => {
+      debug(this,"initializing, " + initId)
+      val id = initId.substring(5)
+      waitingForInit.remove(id)
+      if(waitingForInit.isEmpty){
+        if(caller != None) caller.get ! Success("netinit_"+this.id)
+        caller = None
+        context.unbecome
+      }
+    }
+    case Success(str) => error(this,"this Success message shouldn't be here: " + str)
+    case Failure(initId) if initId.startsWith("init_") => {
+      error(this, initId) 
+      val id = initId.substring(5)
+      if(caller != None) caller.get ! Success("netinit_"+this.id)
+      caller = None
+      context.unbecome
+    }
+    case Failure(str) => error(this,"this Failure message shouldn't be here: " + str)
+  }
+  
   private def init() = {
     debug(this, s"init for $id")
+    waitingForInit ++= neurons.map( _.id )
+    caller = Some(sender)
+    context.become(initializing)
     neurons.foreach( _ ! Init(id) )
   }
   
-  private def createNeuron(id: String, treshold: Double = defTreshold, slope: Double = defSlope, forgetting: Double = defForgetting){
+  private def shutdown() = {
+    debug(s"shutdown for $id")
+    caller = Some(sender)
+    context.become(shutdowning)
+    neurons.foreach(_ ! NeuronShutdown)
+  }
+  
+  private def createNeuron(id: String, treshold: Double, slope: Double, forgetting: Double){
 	debug(this,s"creating neuron for ${this.id}: $id")
 	val ref = context.actorOf(Props(new AkkaNeuron(id, treshold, slope, forgetting)), name=id)
     val neuronRef = new NeuronRef(id, ref)
@@ -63,11 +100,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, treshold, slope, forgetting) => createNeuron(id, treshold, slope, forgetting)
     case ConnectNeurons(id1, id2, weight) => connectNeurons(id1, id2, weight) 
-    case Shutdown => {
-      debug(s"shutdown for $id")
-      context.become(shutdowning)
-      neurons.foreach(_ ! NeuronShutdown)
-    }
+    case Shutdown => shutdown()
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
     case SetInputLayer(ids) => setInputLayer(ids)
     case GetMiddleLayer => sender ! MsgNeurons(middleLayer.toList)
@@ -83,31 +116,21 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   
-  private def getNeuron(id: String) = {
-    debug(this, s"getNeuron $id")
-    val neuronOpt = neurons.find( _.id == id)
-    neuronOpt match {
-      case Some(n) => debug(this, s"found ${n.id}")
-      case None => debug(this, "not found")
-    }
-    sender ! MsgNeuron(neuronOpt)
-    
-    debug(this,s"sent back to ${sender.toString}")
-  }
-  
   private def setInputLayer(ids: Seq[String]){
     debug(this,s"input layer set in $id: " + ids.mkString(", "))
     ins.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )
+    sender ! Success("setInputLayer_"+id)
   }
   
   private def setOutputLayer(ids: Seq[String]){
     debug(this,s"output layer set in $id: " + ids.mkString(", "))
     outs.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( outs += _ )
+    sender ! Success("setOutputLayer_"+id)
   }
   
-  private def connectNeurons(id1: String, id2: String, weight: Double =defWeight) = findRef(id1, id2) match {
+  private def connectNeurons(id1: String, id2: String, weight: Double) = findRef(id1, id2) match {
     case (Some(ref1),Some(ref2)) => {
       debug(this,s"connectNeurons($id1,$id2,$weight in $id)")
       ref1.connect(ref2, weight) match {
@@ -122,6 +145,8 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   
   private def findRef(id: String):Option[NeuronRef] = neurons.find(_.id == id)
   private def findRef(id1: String, id2: String):(Option[NeuronRef],Option[NeuronRef]) = (findRef(id1), findRef(id2))
+  
+  private def getNeuron(id: String) = sender ! MsgNeuron(findRef(id))
   
   def setInput(in: Seq[Double]){
     debug(this,s"setInput, signal received in $id: " + in.mkString(", "))

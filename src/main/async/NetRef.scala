@@ -36,6 +36,14 @@ class NetRef(val id: String, val ref: ActorRef) {
     await[NeuronRef](ref, CreateNeuron(id, treshold, slope, forgetting))
  
   def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
+  
+  def init() = await[Answer](ref, Init) match {
+    case Success(netId) if(netId == "netinit_"+id) => debug(this,"initialization succeeded " + netId); true
+    case Failure(msg) => error(this, msg); false
+  }
+  
+  def setInputLayer(seq: Seq[String]) = await[Answer](ref, SetInputLayer(seq))
+  def setOutputLayer(seq: Seq[String]) = await[Answer](ref, SetOutputLayer(seq))
 }
 
 object NetRef {

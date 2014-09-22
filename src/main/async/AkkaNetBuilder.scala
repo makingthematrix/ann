@@ -155,15 +155,16 @@ class AkkaNetBuilder {
   
   def build:NetRef = {
     debug(this,s"build()")
-    net ! SetInputLayer(ins.toSeq)
+    net.setInputLayer(ins.toSeq)
     debug(this, "input layer set request sent")
-    net ! SetOutputLayer(outs.toSeq)
+    net.setOutputLayer(outs.toSeq)
     debug(this, "output layer set request sent")
     net
   }
   
   def build(netInputName: String, netOutputName: String):(AkkaNetInput,NetRef,AkkaNetOutput) = {
     debug(this,s"build($netInputName,$netOutputName)")
+    build
     val in = AkkaNetInput(netInputName, net, resolution)
     debug(this, "net input built")
     val out = AkkaNetOutput(netOutputName, net)

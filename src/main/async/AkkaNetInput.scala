@@ -52,5 +52,10 @@ class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
 }
 
 object AkkaNetInput {
-  def apply(name: String, net: NetRef, resolution: Int = 1) = new AkkaNetInput(name, net: NetRef, resolution)
+  def apply(name: String, net: NetRef, resolution: Int = 1) = {
+    val ani = new AkkaNetInput(name, net: NetRef, resolution)
+    ani.regSign('0',0.0)
+    ani.regSign('1', 1.0)
+    ani
+  }
 }

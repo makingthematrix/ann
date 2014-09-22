@@ -232,6 +232,19 @@ class AkkaNetSuite extends JUnitSuite {
   }
   
   @Test
+  def shouldInitializeTheNet(){
+    LOG.addLogToStdout()
+    val builder = AkkaNetBuilder()
+    builder.addInput().chainMiddle().loop().chainOutput()
+    
+    val net = builder.build
+    
+    debug("--------------------------------")
+    assertTrue(net.init())
+    debug("--------------------------------")
+  }
+  
+  @Test
   def shouldUseInputAndOutput2(){
     LOG.addLogToStdout()
     
@@ -251,6 +264,38 @@ class AkkaNetSuite extends JUnitSuite {
     in += TRESHOLD + 0.1
     
     val out = AkkaNetOutput("out1", net)
+    val outId = out.getId(0)
+    
+    var outputRegistered = false
+    out.addAfterFireTrigger(outId, (n:AkkaNeuron) => {
+      debug( n.id + " => " + n.lastOutput )
+      outputRegistered = true
+    })
+
+    net ! Init
+    Thread.sleep(50L)
+    
+    in.tick(3)
+    Thread.sleep(500L)
+    assertTrue(outputRegistered)
+    
+    net ! Shutdown
+  }
+  
+  @Test
+  def shouldUseNetInputAbbreviations(){
+    LOG.addLogToStdout()
+    
+    val builder = AkkaNetBuilder()
+    builder.defTreshold = TRESHOLD
+    builder.addInput().chainMiddle().loop().chainOutput()
+    
+    val (in, net, out) = builder.build("in","out")
+    
+    in.regSign('a',TRESHOLD + 0.1)
+    // 0 and 1 should be registered already as "0" and "1" respectively
+    in += "a,0,0,a,0,0,a"
+    
     val outId = out.getId(0)
     
     var outputRegistered = false

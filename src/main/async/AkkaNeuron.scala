@@ -96,7 +96,7 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
       debug("tresholdPassedTrigger run")
       that.run() 
     })
-    answer(Success("init_"+id))
+    answer(Success("init_"+this.id))
   }
   
   private def shutdown(){
