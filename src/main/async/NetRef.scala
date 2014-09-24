@@ -17,6 +17,10 @@ import Messages._
 import main.utils.Utils.await
 
 class NetRef(val id: String, val ref: ActorRef) {
+  private var _iteration = 0L
+  
+  def iteration = _iteration
+  
   def !(any: Any) = {
     debug(this, "received: " + any.toString)
     ref ! any
@@ -44,6 +48,11 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def setInputLayer(seq: Seq[String]) = await[Answer](ref, SetInputLayer(seq))
   def setOutputLayer(seq: Seq[String]) = await[Answer](ref, SetOutputLayer(seq))
+  
+  def signal(seq: Seq[Double]) = {
+    ref ! SignalSeq(seq)
+    _iteration += 1
+  }
 }
 
 object NetRef {
@@ -52,7 +61,7 @@ object NetRef {
   def apply(id: String):NetRef = apply(id, Context.SLOPE, Context.TRESHOLD, Context.WEIGHT)
   
   def apply(id: String, defSlope: Double, defTreshold: Double, defWeight: Double):NetRef = {
-    val ref = system.actorOf(Props(new AkkaNet(id, defSlope, defTreshold, defWeight)))
+    val ref = system.actorOf(Props(new Net(id, defSlope, defTreshold, defWeight)))
     val netRef = new NetRef(id, ref)
     netRefOpt = Some(netRef)
     netRef

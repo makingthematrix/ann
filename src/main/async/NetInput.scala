@@ -2,14 +2,20 @@ package main.async
 
 import scala.collection.mutable
 
+import scala.concurrent.duration._
 import Messages._
 import main.logger.LOG._
 
-class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
+class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, val tickInterval: Long = 50L) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   
   private val inputQueue = mutable.Queue[Seq[Double]]()
+  
+  private var _iteration = 0
+  
+  def iteration = _iteration / resolution
+  def iterationRemainder = _iteration % resolution
   
   def find(id: String) = ids.contains(id) match {
     case true => net.find(id).neuronOpt.get
@@ -43,17 +49,18 @@ class AkkaNetInput(val name: String, val net: NetRef, val resolution: Int = 1) {
   )).foreach( add )
 
   def tick():Unit = tick(1)
-  def tick(n: Int):Unit = for(i <- 1 to n * resolution){
-    debug(this,s"iteration $i")
+  def tick(n: Int):Unit = for(i <- 1 to n * resolution) yield {
+    debug(NetInput.this, s"iteration $i")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
-    net ! SignalSeq(input)
-    Thread.sleep(50L)
+    net.signal(input)
+    Thread.sleep(tickInterval)
+    _iteration = _iteration + 1
   }
 }
 
-object AkkaNetInput {
+object NetInput {
   def apply(name: String, net: NetRef, resolution: Int = 1) = {
-    val ani = new AkkaNetInput(name, net: NetRef, resolution)
+    val ani = new NetInput(name, net: NetRef, resolution)
     ani.regSign('0',0.0)
     ani.regSign('1', 1.0)
     ani

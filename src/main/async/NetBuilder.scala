@@ -10,7 +10,7 @@ import Messages._
 import main.utils.Utils.await
 import Context._
 
-class AkkaNetBuilder {
+class NetBuilder {
   var defSlope = SLOPE
   var defTreshold = TRESHOLD
   var defWeight = WEIGHT
@@ -79,72 +79,72 @@ class AkkaNetBuilder {
     n
   }
 
-  private def add(name: String, layer: mutable.Set[String], treshold: Double, slope:Double, forgetting: Double):AkkaNetBuilder = {
-    debug(this, s"adding $name with treshold $treshold, slope $slope and forgetting $forgetting")
+  private def add(name: String, layer: mutable.Set[String], treshold: Double, slope:Double, forgetting: Double):NetBuilder = {
+    debug(NetBuilder.this, s"adding $name with treshold $treshold, slope $slope and forgetting $forgetting")
     val n = if(contains(name)){
       if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
     } else add(newNeuron(name, treshold, slope, forgetting)) 
             
     layer += n.id
-    this    
+    NetBuilder.this    
   }
   
   private def chain(name: String, layer: mutable.Set[String], weight: Double, treshold: Double, 
-                    slope: Double, forgetting: Double):AkkaNetBuilder = {
+                    slope: Double, forgetting: Double):NetBuilder = {
     val n1 = current
-    debug(this, s"chaining from ${n1.id} to $name with treshold $treshold and slope $slope")
+    debug(NetBuilder.this, s"chaining from ${n1.id} to $name with treshold $treshold and slope $slope")
     if(throwOnError && outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron only from input or middle neurons")
     add(name, layer, treshold, slope, forgetting)
     val n = neurons(currentNeuronId.get)
     n1.connect(n, weight)
-    this
+    NetBuilder.this
   }
     
-  def addInput(name: String, treshold: Double =0.0, slope:Double = defSlope, forgetting: Double = 0.0):AkkaNetBuilder = 
+  def addInput(name: String, treshold: Double =0.0, slope:Double = defSlope, forgetting: Double = 0.0):NetBuilder = 
     add(name, ins, treshold, slope, forgetting)
-  def addInput():AkkaNetBuilder = addInput(generateName(INPUT_LAYER_NAME))
+  def addInput():NetBuilder = addInput(generateName(INPUT_LAYER_NAME))
   
   def addMiddle(name: String, treshold: Double =defTreshold, 
-                slope: Double = defSlope, forgetting: Double = defForgetting):AkkaNetBuilder = 
+                slope: Double = defSlope, forgetting: Double = defForgetting):NetBuilder = 
     add(name, mids, treshold, slope, forgetting)
-  def addMiddle():AkkaNetBuilder = addInput(generateName(MIDDLE_LAYER_NAME))
+  def addMiddle():NetBuilder = addInput(generateName(MIDDLE_LAYER_NAME))
 
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, 
-                  slope: Double =defSlope, forgetting: Double =defForgetting):AkkaNetBuilder = 
+                  slope: Double =defSlope, forgetting: Double =defForgetting):NetBuilder = 
     chain(name, mids, weight, treshold, slope, forgetting)
-  def chainMiddle():AkkaNetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
-  def chainMiddle(weight: Double):AkkaNetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME), weight)
-  def chainMiddle(weight: Double, treshold: Double):AkkaNetBuilder = 
+  def chainMiddle():NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
+  def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME), weight)
+  def chainMiddle(weight: Double, treshold: Double):NetBuilder = 
     chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold)
-  def chainMiddle(weight: Double, treshold: Double, slope: Double):AkkaNetBuilder = 
+  def chainMiddle(weight: Double, treshold: Double, slope: Double):NetBuilder = 
     chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold, slope)
     
   def addOutput(name: String, treshold: Double =defTreshold, 
-                slope: Double = defSlope, forgetting: Double = defForgetting):AkkaNetBuilder = 
+                slope: Double = defSlope, forgetting: Double = defForgetting):NetBuilder = 
     add(name, outs, treshold, slope, forgetting)
-  def addOutput():AkkaNetBuilder = addInput(generateName(OUTPUT_LAYER_NAME))
+  def addOutput():NetBuilder = addInput(generateName(OUTPUT_LAYER_NAME))
   def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defTreshold, 
-                  slope: Double =defSlope, forgetting: Double =defForgetting):AkkaNetBuilder = 
+                  slope: Double =defSlope, forgetting: Double =defForgetting):NetBuilder = 
     chain(name, outs, weight, treshold, slope, forgetting)
-  def chainOutput():AkkaNetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME))
-  def chainOutput(weight: Double):AkkaNetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME), weight)
-  def chainOutput(weight: Double, treshold: Double):AkkaNetBuilder = 
+  def chainOutput():NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME))
+  def chainOutput(weight: Double):NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME), weight)
+  def chainOutput(weight: Double, treshold: Double):NetBuilder = 
     chainOutput(generateName(OUTPUT_LAYER_NAME), weight, treshold)
     
-  def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):AkkaNetBuilder = {
+  def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current
     if(throwOnError && !mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
     chainMiddle(name, w1, treshold, slope)
     current.connect(n1, w2)
     currentNeuronId = Some(n1.id)
-    this
+    NetBuilder.this
   }
     
-  def loop():AkkaNetBuilder = loop(generateName(MIDDLE_LAYER_NAME))
-  def loop(w1: Double, treshold: Double, w2: Double):AkkaNetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, treshold, w2)
-  def loop(w1: Double, w2: Double):AkkaNetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, defTreshold, w2)
+  def loop():NetBuilder = loop(generateName(MIDDLE_LAYER_NAME))
+  def loop(w1: Double, treshold: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, treshold, w2)
+  def loop(w1: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, defTreshold, w2)
   
   def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
   def oscillator() = loop(1.0, 0.5, -1.0)
@@ -154,28 +154,28 @@ class AkkaNetBuilder {
   def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
   
   def build:NetRef = {
-    debug(this,s"build()")
+    debug(NetBuilder.this, s"build()")
     net.setInputLayer(ins.toSeq)
-    debug(this, "input layer set request sent")
+    debug(NetBuilder.this, "input layer set request sent")
     net.setOutputLayer(outs.toSeq)
-    debug(this, "output layer set request sent")
+    debug(NetBuilder.this, "output layer set request sent")
     net
   }
   
-  def build(netInputName: String, netOutputName: String):(AkkaNetInput,NetRef,AkkaNetOutput) = {
-    debug(this,s"build($netInputName,$netOutputName)")
+  def build(netInputName: String, netOutputName: String):(NetInput,NetRef,NetOutput) = {
+    debug(NetBuilder.this, s"build($netInputName,$netOutputName)")
     build
-    val in = AkkaNetInput(netInputName, net, resolution)
-    debug(this, "net input built")
-    val out = AkkaNetOutput(netOutputName, net)
-    debug(this, "net output built")
+    val in = NetInput(netInputName, net, resolution)
+    debug(NetBuilder.this, "net input built")
+    val out = NetOutput(netOutputName, net)
+    debug(NetBuilder.this, "net output built")
     (in, net, out)
   }
 }
 
-object AkkaNetBuilder {
-  def apply():AkkaNetBuilder = {
+object NetBuilder {
+  def apply():NetBuilder = {
     debug("a new akka net builder created")
-    new AkkaNetBuilder()
+    new NetBuilder()
   }
 }

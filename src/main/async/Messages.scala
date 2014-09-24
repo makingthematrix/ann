@@ -10,7 +10,7 @@ object Messages {
   case object HushNow // become silent
   case class Connect(destinationRef: NeuronRef, weight: Double)
   case class Disconnect(destinationId: String)
-  case class UpdateSynapse(destinationId: String, synapse: AkkaSynapse) // unused
+  case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
   case class CreateNeuron(id: String, treshold: Double, slope: Double, forgetting: Double)
   case class ConnectNeurons(id1: String, id2: String, weight: Double)
   case class SetInputLayer(ids: Seq[String])
@@ -37,12 +37,12 @@ object Messages {
   case class NeuronShutdownDone(id: String) extends Answer // a special case - successful shutdown of a neuron
   case class NetShutdownDone(id: String) extends Answer // a special case - successful shutdown if the whole net
   case class Msg(d: Double, str: String) extends Answer // general answer to a question about a number or an id
-  case class MsgSynapse(synapseOpt: Option[AkkaSynapse]) extends Answer // sends back a synapse
-  case class MsgSynapses(synapses: List[AkkaSynapse]) extends Answer // sends back all synapses of the neuron
+  case class MsgSynapse(synapseOpt: Option[Synapse]) extends Answer // sends back a synapse
+  case class MsgSynapses(synapses: List[Synapse]) extends Answer // sends back all synapses of the neuron
   case class MsgNeuron(neuronOpt: Option[NeuronRef]) extends Answer
   case class MsgNeurons(neurons: List[NeuronRef]) extends Answer
 	
   // triggers
-  case class AddAfterFireTrigger(id: String, f: (AkkaNeuron) => Any)
+  case class AddAfterFireTrigger(id: String, f: (Neuron) => Any)
 
 }

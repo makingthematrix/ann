@@ -14,15 +14,15 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-case class AkkaSynapse(val dest: NeuronRef,val weight: Double)
+case class Synapse(val dest: NeuronRef,val weight: Double)
 
-class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
-extends Actor with NeuronTriggers[AkkaNeuron] {
-  protected val synapses = mutable.ListBuffer[AkkaSynapse]()
+class Neuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
+extends Actor with NeuronTriggers[Neuron] {
+  protected val synapses = mutable.ListBuffer[Synapse]()
   
   def this(id: String) = this(id,0.5,20.0,0.0)
   def this(id: String, treshold: Double) = this(id, treshold, 20.0, 0.0)
-  def that = this
+  def that = Neuron.this
   
   protected var buffer = 0.0
   protected var output = 0.0
@@ -45,26 +45,26 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
      // might be changed into the S function later on
   
   def +=(signal: Double) = {
-    debug(this,s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
+    debug(Neuron.this, s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
-    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(Neuron.this) )
   }
   
   protected def run() = {
-    debug(this, s"run $id")
+    debug(Neuron.this, s"run $id")
     output = calculateOutput
     buffer = 0.0
     println(s"output $output")
     synapses.foreach( _.dest ! Signal(output))
-    afterFireTriggers.values.foreach( _(this) )
+    afterFireTriggers.values.foreach( _(Neuron.this) )
   }
   
-  def connect(destination: AkkaNeuron, weight: Double) =
+  def connect(destination: Neuron, weight: Double) =
     throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
   
   private def _connect(destinationRef: NeuronRef, weight: Double) = {
-    debug(this,s"_connect(${destinationRef.id},$weight)")
-    synapses += new AkkaSynapse(destinationRef, weight)
+    debug(Neuron.this, s"_connect(${destinationRef.id},$weight)")
+    synapses += new Synapse(destinationRef, weight)
     sender ! Success("connect_"+id)
   }
   protected def connect(destinationRef: NeuronRef, weight: Double):Unit = findSynapse(destinationRef.id) match {
@@ -76,10 +76,10 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
     case Some(s) => synapses -= s
     case None =>
   }
-  protected def disconnect(destination: AkkaNeuron):Unit = disconnect(destination.id)
+  protected def disconnect(destination: Neuron):Unit = disconnect(destination.id)
   
-  def findSynapse(destinationId: String):Option[AkkaSynapse] = synapses.find(_.dest.id == destinationId)
-  def findSynapse(destination: AkkaNeuron):Option[AkkaSynapse] = findSynapse(destination.id)
+  def findSynapse(destinationId: String):Option[Synapse] = synapses.find(_.dest.id == destinationId)
+  def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
   private def answer(msg: Answer) = NetRef.get match {
     case Some(netref) => netref ! msg
@@ -87,13 +87,13 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
   }
   
   protected def init(){
-    debug(this, s"init for $id with threshold $treshold and slope $slope")
-    addTresholdPassedTrigger("run", (_: AkkaNeuron) => future { 
+    debug(Neuron.this, s"init for $id with threshold $treshold and slope $slope")
+    addTresholdPassedTrigger("run", (_: Neuron) => future { 
       Thread.sleep(50L)
       debug("tresholdPassedTrigger run")
       that.run() 
     })
-    answer(Success("init_"+this.id))
+    answer(Success("init_"+Neuron.this.id))
   }
   
   private def shutdown(){
@@ -103,7 +103,7 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
   
   def receive = { 
     case Init => init()
-    case Signal(s) => this += s
+    case Signal(s) => Neuron.this += s
     case GetId => sender ! Msg(0.0, id)
     case GetInput => sender ! Msg(input.toDouble, id)
     case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)

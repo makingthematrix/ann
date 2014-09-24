@@ -5,13 +5,12 @@ import scala.collection.mutable
 import scala.concurrent.Await
 import akka.util.Timeout
 import scala.concurrent.duration._
-import main.sync.AbstractNet
 
 import main.logger.LOG._
 import Messages._
 
-class AkkaNet(val id: String, val defSlope: Double = 20.0, 
-              val defTreshold: Double = 0.5, val defWeight: Double = 1.0,
+class Net(val id: String, val defSlope: Double = 20.0, 
+              val defTreshold: Double = 0.5, val defWeight: Double = 1.0, 
               val defForgetting:Double = 0.0) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
   private val ins = mutable.ListBuffer[NeuronRef]()
@@ -47,28 +46,28 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   
   def initializing: Receive = {
     case Success(initId) if initId.startsWith("init_") => {
-      debug(this,"initializing, " + initId)
+      debug(Net.this, "initializing, " + initId)
       val id = initId.substring(5)
       waitingForInit.remove(id)
-      if(waitingForInit.isEmpty){
-        if(caller != None) caller.get ! Success("netinit_"+this.id)
+      if(waitingForInit.isEmpty) {
+        if(caller != None) caller.get ! Success("netinit_"+Net.this.id)
         caller = None
         context.unbecome
       }
     }
-    case Success(str) => error(this,"this Success message shouldn't be here: " + str)
+    case Success(str) => error(Net.this, "this Success message shouldn't be here: " + str)
     case Failure(initId) if initId.startsWith("init_") => {
-      error(this, initId) 
+      error(Net.this, initId) 
       val id = initId.substring(5)
-      if(caller != None) caller.get ! Success("netinit_"+this.id)
+      if(caller != None) caller.get ! Success("netinit_"+Net.this.id)
       caller = None
       context.unbecome
     }
-    case Failure(str) => error(this,"this Failure message shouldn't be here: " + str)
+    case Failure(str) => error(Net.this, "this Failure message shouldn't be here: " + str)
   }
   
   private def init() = {
-    debug(this, s"init for $id")
+    debug(Net.this, s"init for $id")
     waitingForInit ++= neurons.map( _.id )
     caller = Some(sender)
     context.become(initializing)
@@ -83,8 +82,8 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   }
   
   private def createNeuron(id: String, treshold: Double, slope: Double, forgetting: Double){
-	debug(this,s"creating neuron for ${this.id}: $id")
-	val ref = context.actorOf(Props(new AkkaNeuron(id, treshold, slope, forgetting)), name=id)
+	debug(this, s"(this.id}: ,$id)")
+	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
     sender ! neuronRef
@@ -108,27 +107,27 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
-    debug(this,s"signal received in $id: " + in.mkString(", "))
+    debug(Net.this, s"signal received in $id: " + in.mkString(", "))
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   
   private def setInputLayer(ids: Seq[String]){
-    debug(this,s"input layer set in $id: " + ids.mkString(", "))
+    debug(Net.this, s"input layer set in $id: " + ids.mkString(", "))
     ins.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )
     sender ! Success("setInputLayer_"+id)
   }
   
   private def setOutputLayer(ids: Seq[String]){
-    debug(this,s"output layer set in $id: " + ids.mkString(", "))
+    debug(Net.this, s"output layer set in $id: " + ids.mkString(", "))
     outs.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( outs += _ )
     sender ! Success("setOutputLayer_"+id)
-  }
+  } 
   
   private def connectNeurons(id1: String, id2: String, weight: Double) = findRef(id1, id2) match {
     case (Some(ref1),Some(ref2)) => {
-      debug(this,s"connectNeurons($id1,$id2,$weight in $id)")
+      debug(Net.this, s"connectNeurons($id1,$id2,$weight in $id)")
       ref1.connect(ref2, weight) match {
         case true => sender ! Success(s"${id}_connectNeurons($id1,$id2)")
         case false => sender ! Failure(s"$id: Unable to connecct neurons $id1 and $id2")
@@ -145,7 +144,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   private def getNeuron(id: String) = sender ! MsgNeuron(findRef(id))
   
   def setInput(in: Seq[Double]){
-    debug(this,s"setInput, signal received in $id: " + in.mkString(", "))
+    debug(Net.this, s"setInput, signal received in $id: " + in.mkString(", "))
     val ins = inputLayer
     assert(ins.size == in.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
     
@@ -165,7 +164,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   def outputIds = outputLayer.map( _.id )
   
   def find(id: String):Option[NeuronRef] = {
-    debug(this,s"finding neuron $id in ${this.id}")
+    debug(this, s"id in ${this.id}")
     val inFind = inputLayer.find( _.id == id )
     if(inFind.isDefined) return inFind
     val midFind = middleLayer.find( _.id == id )
@@ -183,12 +182,12 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
   
   def contains(id: String) = find(id).isDefined
   
-  protected val afterTickTriggers = mutable.Map[String,(AkkaNet)=>Any]()
-  def addAfterTickTrigger(id: String, f: (AkkaNet) => Any):Unit = afterTickTriggers.contains(id) match {
+  protected val afterTickTriggers = mutable.Map[String, (Net)=>Any]()
+  def addAfterTickTrigger(id: String, f: (Net) => Any):Unit = afterTickTriggers.contains(id) match {
     case false => afterTickTriggers.put(id, f)
     case true => throw new IllegalArgumentException(s"There was already registered an after tick trigger with id $id")
   } 
-  def addAfterTickTrigger(f: (AkkaNet) => Any):Unit = addAfterTickTrigger("anon"+afterTickTriggers.size,f)
+  def addAfterTickTrigger(f: (Net) => Any):Unit = addAfterTickTrigger("anon"+afterTickTriggers.size,f)
   def isAfterTickTrigger(id: String) = afterTickTriggers.contains(id)
   def removeAfterTickTrigger(id: String) = afterTickTriggers.remove(id)
   def clearAfterTickTriggers() = afterTickTriggers.clear

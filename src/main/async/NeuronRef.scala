@@ -27,7 +27,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   protected def calculateOutput = Double.NaN // we don't do that here 
   
-  def addAfterFireTrigger(name: String, f:(AkkaNeuron) => Any) = ref ! AddAfterFireTrigger(name, f)
+  def addAfterFireTrigger(name: String, f:(Neuron) => Any) = ref ! AddAfterFireTrigger(name, f)
   
   def +=(signal: Double) = ref ! Signal(signal) 
   
@@ -41,13 +41,13 @@ class NeuronRef(val id: String, val ref: ActorRef) {
 
 object NeuronRef {
   def apply(id: String):NeuronRef = {
-    val ref = system.actorOf(Props(new AkkaNeuron(id)), name=id)
+    val ref = system.actorOf(Props(new Neuron(id)), name=id)
     new NeuronRef(id, ref)
   }
   
   def apply(id: String, treshold: Double, slope: Double, forgetting: Double):NeuronRef = {
     debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
-    val ref = system.actorOf(Props(new AkkaNeuron(id, treshold, slope, forgetting)), name=id)
+    val ref = system.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
     new NeuronRef(id, ref)
   }
 }
