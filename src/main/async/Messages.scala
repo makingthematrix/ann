@@ -6,7 +6,7 @@ object Messages {
   case class SignalSeq(input: Seq[Double])
 
   // commands
-  case class Init(id: String)
+  case object Init
   case object HushNow // become silent
   case class Connect(destinationRef: NeuronRef, weight: Double)
   case class Disconnect(destinationId: String)

@@ -18,8 +18,6 @@ case class AkkaSynapse(val dest: NeuronRef,val weight: Double)
 
 class AkkaNeuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
 extends Actor with NeuronTriggers[AkkaNeuron] {
-  private var netOpt: Option[NetRef] = None
-  
   protected val synapses = mutable.ListBuffer[AkkaSynapse]()
   
   def this(id: String) = this(id,0.5,20.0,0.0)
@@ -83,13 +81,12 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
   def findSynapse(destinationId: String):Option[AkkaSynapse] = synapses.find(_.dest.id == destinationId)
   def findSynapse(destination: AkkaNeuron):Option[AkkaSynapse] = findSynapse(destination.id)
 
-  private def answer(msg: Answer) = netOpt match {
+  private def answer(msg: Answer) = NetRef.get match {
     case Some(netref) => netref ! msg
     case None => //error(this, "answer demanded, but no netref!")
   }
   
-  protected def init(id: String){
-    netOpt = Some(NetRef(id))
+  protected def init(){
     debug(this, s"init for $id with threshold $treshold and slope $slope")
     addTresholdPassedTrigger("run", (_: AkkaNeuron) => future { 
       Thread.sleep(50L)
@@ -102,11 +99,10 @@ extends Actor with NeuronTriggers[AkkaNeuron] {
   private def shutdown(){
     answer(NeuronShutdownDone(id))
     context.stop(self)
-    netOpt = None
   }
   
   def receive = { 
-    case Init(id) => init(id)
+    case Init => init()
     case Signal(s) => this += s
     case GetId => sender ! Msg(0.0, id)
     case GetInput => sender ! Msg(input.toDouble, id)

@@ -47,19 +47,16 @@ class NetRef(val id: String, val ref: ActorRef) {
 }
 
 object NetRef {
-  private val netRefMap = mutable.HashMap[String,NetRef]()
+  private var netRefOpt: Option[NetRef] = None
   
-  def apply(id: String):NetRef = netRefMap.getOrElseUpdate(id, 
-    new NetRef(id, system.actorOf(Props(new AkkaNet(id))))
-  )
-   
-  def apply(id: String, defSlope: Double, defTreshold: Double, defWeight: Double):NetRef = netRefMap.get(id) match {
-    case Some(netref) => throw new IllegalArgumentException(s"The net $id cannot be created - already exists")
-    case None => {
-      val ref = system.actorOf(Props(new AkkaNet(id, defSlope, defTreshold, defWeight)))
-      val netref = new NetRef(id, ref)
-      netRefMap += ((id, netref))
-      netref
-    }
+  def apply(id: String):NetRef = apply(id, Context.SLOPE, Context.TRESHOLD, Context.WEIGHT)
+  
+  def apply(id: String, defSlope: Double, defTreshold: Double, defWeight: Double):NetRef = {
+    val ref = system.actorOf(Props(new AkkaNet(id, defSlope, defTreshold, defWeight)))
+    val netRef = new NetRef(id, ref)
+    netRefOpt = Some(netRef)
+    netRef
   }
+  
+  def get = netRefOpt
 }

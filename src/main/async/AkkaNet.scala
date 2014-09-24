@@ -10,13 +10,9 @@ import main.sync.AbstractNet
 import main.logger.LOG._
 import Messages._
 
-import Context.system
-
 class AkkaNet(val id: String, val defSlope: Double = 20.0, 
               val defTreshold: Double = 0.5, val defWeight: Double = 1.0,
               val defForgetting:Double = 0.0) extends Actor {
-  implicit val timeout = Timeout(5 seconds)
-  
   private val neurons = mutable.ListBuffer[NeuronRef]()
   private val ins = mutable.ListBuffer[NeuronRef]()
   private val outs = mutable.ListBuffer[NeuronRef]()
@@ -76,7 +72,7 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     waitingForInit ++= neurons.map( _.id )
     caller = Some(sender)
     context.become(initializing)
-    neurons.foreach( _ ! Init(id) )
+    neurons.foreach( _ ! Init )
   }
   
   private def shutdown() = {
@@ -216,8 +212,4 @@ class AkkaNet(val id: String, val defSlope: Double = 20.0,
     inputLayer.map( _.absWeightSum ).sum +
     middleLayer.map( _.absWeightSum ).sum +
     outputLayer.map( _.absWeightSum ).sum  */
-}
-
-object AkkaNet{
-  def apply(id: String):ActorRef = system.actorOf(Props(new AkkaNet(id)))
 }

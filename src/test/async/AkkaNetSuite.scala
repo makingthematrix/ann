@@ -33,9 +33,8 @@ class AkkaNetSuite extends JUnitSuite {
 
     val n1 = net.createNeuron("id1", TRESHOLD, SLOPE, FORGETTING)
     val n2 = net.createNeuron("id2", TRESHOLD, SLOPE, FORGETTING)
-    net ! Init
     
-    Thread.sleep(50L)
+    net.init()
     
     val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons
@@ -52,9 +51,8 @@ class AkkaNetSuite extends JUnitSuite {
     
     net.createNeuron("id1", TRESHOLD, SLOPE, FORGETTING)
     net.createNeuron("id2", TRESHOLD, SLOPE, FORGETTING)
-    net ! Init
     
-    Thread.sleep(50L)
+    net.init()
     
     val msg1 = await[MsgNeurons](net, GetNeurons)
     val neurons = msg1.neurons
@@ -101,7 +99,7 @@ class AkkaNetSuite extends JUnitSuite {
     assertEquals("id2",out.id)
     assertEquals(0.0,out.lastOutput,0.01) // the 'lastOutput' here is a method sending msg to out.ref and waiting for the answer
     
-    net ! Init
+    net.init()
 
     var outputRegistered = false
     out ! AddAfterFireTrigger("out1trigger", (n:AkkaNeuron) => {
@@ -135,8 +133,8 @@ class AkkaNetSuite extends JUnitSuite {
     assertEquals("out1",out.id)
     assertEquals(0.0,out.lastOutput,0.01) // the 'lastOutput' here is a method sending msg to out.ref and waiting for the answer
        
-    net ! Init
-
+    net.init()
+    
     var outputRegistered = false
     out.addAfterFireTrigger("out1trigger", (n:AkkaNeuron) => {
       assertTrue(n.lastOutput > 0.01)
@@ -177,7 +175,7 @@ class AkkaNetSuite extends JUnitSuite {
     debug("7.5")
     assertEquals(0.0,out.lastOutput,0.01)
     debug("8")
-    net ! Init
+    net.init()
     debug("9")
     var outputRegistered = 0
     out.addAfterFireTrigger("out1trigger", (n:AkkaNeuron) => {
@@ -211,8 +209,7 @@ class AkkaNetSuite extends JUnitSuite {
     val out = AkkaNetOutput("out1", net)
     debug("7")
     
-    net ! Init
-    Thread.sleep(50L)
+    net.init()
     debug("8")
     
     var outputRegistered = false
@@ -272,8 +269,7 @@ class AkkaNetSuite extends JUnitSuite {
       outputRegistered = true
     })
 
-    net ! Init
-    Thread.sleep(50L)
+    net.init()
     
     in.tick(3)
     Thread.sleep(500L)
@@ -304,8 +300,7 @@ class AkkaNetSuite extends JUnitSuite {
       outputRegistered = true
     })
 
-    net ! Init
-    Thread.sleep(50L)
+    assertTrue(net.init())
     
     in.tick(3)
     Thread.sleep(500L)
