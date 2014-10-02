@@ -319,10 +319,11 @@ class NetSuite extends JUnitSuite {
     val resultTime = Await.result(p.future, timeoutSeconds seconds).asInstanceOf[Long]
     debug(this,s"resultTime: $resultTime")
     assertTrue(resultTime > afterMillis)
+    LOG.date()
   }
   
   @Test
-  def shouldSendOutputWithDelay(){
+  def shouldSendOutputWithDelay_usingInputSynapse(){
     LOG.addLogToStdout()
     
     val builder = NetBuilder()
@@ -331,6 +332,69 @@ class NetSuite extends JUnitSuite {
     net.init()
     
     in += "1"
+      
+    assertOutputAfter(in, out, 100L, 5)
+    
+    net ! Shutdown
+  }
+  
+    @Test
+  def shouldSendOutputWithDelay_usingSlopeAndSelf(){
+    LOG.addLogToStdout()
+    
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.7,0.5,5.0).self(1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    net.init()
+    in += "1"
+      
+    assertOutputAfter(in, out, 100L, 5)
+    
+    net ! Shutdown
+  }
+  
+  @Test
+  def shouldSendOutputWithMoreDelay_usingInputSynapse(){
+    LOG.addLogToStdout()
+    
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    net.init()
+    
+    in += "1"
+      
+    assertOutputAfter(in, out, 100L, 5)
+    
+    net ! Shutdown
+  }
+  
+  @Test
+  def shouldSendOutputWithMoreDelay_usingSlopeAndSelf(){
+    LOG.addLogToStdout()
+    
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.55,0.5,8.0).self(1.0).chainOutput(1.0,0.75)
+    val (in, net, out) = builder.build("in1","out1")
+    net.init()
+    
+    in += "1"
+      
+    assertOutputAfter(in, out, 100L, 5)
+    
+    net ! Shutdown
+  }
+  
+  @Test
+  def shouldSendOutputWith2Signals_usingTreshold(){
+    LOG.addLogToStdout()
+    
+    val builder = NetBuilder()
+    builder.addInput().chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput(1.0,0.9)
+    val (in, net, out) = builder.build("in1","out1")
+    net.init()
+    
+    in += "1,1"
       
     assertOutputAfter(in, out, 100L, 5)
     

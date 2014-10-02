@@ -171,6 +171,12 @@ class NetBuilder {
     debug(NetBuilder.this, "net output built")
     (in, net, out)
   }
+  
+  def self(weight: Double =defWeight):NetBuilder = {
+    current.connect(current, weight)
+    this
+  }
+  
 }
 
 object NetBuilder {
