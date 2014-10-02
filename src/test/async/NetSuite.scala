@@ -309,30 +309,31 @@ class NetSuite extends JUnitSuite {
     net ! Shutdown
   }
   
-  private def assertOutputAfter(in: NetInput, net: NetRef, out: NetOutput, iterations: Int) = {
-    val outId = out.getId(0)
+  private def assertOutputAfter(in: NetInput, out: NetOutput, afterMillis: Long, timeoutSeconds: Int) = {
+    val p = Promise[Long]
+    out.addAfterFireTrigger(out.getId(0), (_:Neuron) => p.success(LOG.time) )
+
+    LOG.timer()
+    in.tick()
     
-    var outputRegistered = false
-    out.addAfterFireTrigger(outId, (_:Neuron) => {
-      println(s"fired!, outId=$outId, net tick=${net.iteration}")
-      outputRegistered = true
-    })
-    
-    while(!outputRegistered && net.iteration < 100) in.tick()
-    
-    assertTrue(outputRegistered)
-    assertEquals(iterations, net.iteration)
+    val resultTime = Await.result(p.future, timeoutSeconds seconds).asInstanceOf[Long]
+    debug(this,s"resultTime: $resultTime")
+    assertTrue(resultTime > afterMillis)
   }
   
   @Test
-  def shouldSendOutputWith2IterDelay_usingInputSynapse(){
+  def shouldSendOutputWithDelay(){
     LOG.addLogToStdout()
     
     val builder = NetBuilder()
     builder.addInput().chainMiddle(0.55,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75)
     val (in, net, out) = builder.build("in1","out1")
-    in += "1,0,0"
+    net.init()
+    
+    in += "1"
       
-    assertOutputAfter(in, net, out, 2)
+    assertOutputAfter(in, out, 100L, 5)
+    
+    net ! Shutdown
   }
 }

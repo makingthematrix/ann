@@ -83,16 +83,34 @@ object LOG {
     outs.foreach{ _.println(sb.toString) }
   }
   
-  private def dateTag = {
-    val cal = Calendar.getInstance
-	StringBuilder.newBuilder
-		.append(cal.get(Calendar.YEAR)).append('-')
-		.append(cal.get(Calendar.MONTH)+1).append('-')
-		.append(cal.get(Calendar.DAY_OF_MONTH)).append('_')
-		.append(cal.get(Calendar.HOUR_OF_DAY)).append(':')
-		.append(cal.get(Calendar.MINUTE)).append(':')
-		.append(cal.get(Calendar.SECOND)).append('.')
-		.append(cal.get(Calendar.MILLISECOND)).toString
+  private var offset:Option[Long] = None
+  
+  def timer(){
+    offset = Some(System.currentTimeMillis())
+  }
+  
+  def date(){
+    offset = None
+  }
+  
+  def time = offset match {
+    case Some(t) => (System.currentTimeMillis() - t)
+    case None => throw new IllegalArgumentException("Logger.time called with no timer set")
+  }
+  
+  def timerSet = offset != None
+  
+  private def dateTag = offset match {
+    case None => val cal = Calendar.getInstance
+	             StringBuilder.newBuilder
+		         .append(cal.get(Calendar.YEAR)).append('-')
+		         .append(cal.get(Calendar.MONTH)+1).append('-')
+		         .append(cal.get(Calendar.DAY_OF_MONTH)).append('_')
+		         .append(cal.get(Calendar.HOUR_OF_DAY)).append(':')
+		         .append(cal.get(Calendar.MINUTE)).append(':')
+		         .append(cal.get(Calendar.SECOND)).append('.')
+		         .append(cal.get(Calendar.MILLISECOND)).toString
+    case Some(t) => (System.currentTimeMillis() - t).toString
   }
 	
   def log(expr: => Boolean, str: String, logLevel: LogLevel.Value):Unit = if(expr) log(str, logLevel)

@@ -45,16 +45,17 @@ extends Actor with NeuronTriggers[Neuron] {
      // might be changed into the S function later on
   
   def +=(signal: Double) = {
-    debug(Neuron.this, s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
+    debug(this, s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
-    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(Neuron.this) )
+    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
   }
   
   protected def run() = {
-    debug(Neuron.this, s"run $id")
+    debug(this, s"run $id")
     output = calculateOutput
     buffer = 0.0
-    println(s"output $output")
+    debug(this, s"output $output, synapses size: ${synapses.size}")
+    synapses.foreach { s => debug(this, s.dest.id) }
     synapses.foreach( _.dest ! Signal(output))
     afterFireTriggers.values.foreach( _(Neuron.this) )
   }
@@ -103,7 +104,7 @@ extends Actor with NeuronTriggers[Neuron] {
   
   def receive = { 
     case Init => init()
-    case Signal(s) => Neuron.this += s
+    case Signal(s) => this += s
     case GetId => sender ! Msg(0.0, id)
     case GetInput => sender ! Msg(input.toDouble, id)
     case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)

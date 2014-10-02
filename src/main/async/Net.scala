@@ -50,7 +50,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
       val id = initId.substring(5)
       waitingForInit.remove(id)
       if(waitingForInit.isEmpty) {
-        if(caller != None) caller.get ! Success("netinit_"+Net.this.id)
+        if(caller != None) caller.get ! Success("netinit_"+this.id)
         caller = None
         context.unbecome
       }
@@ -59,7 +59,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
     case Failure(initId) if initId.startsWith("init_") => {
       error(Net.this, initId) 
       val id = initId.substring(5)
-      if(caller != None) caller.get ! Success("netinit_"+Net.this.id)
+      if(caller != None) caller.get ! Success("netinit_"+this.id)
       caller = None
       context.unbecome
     }
@@ -82,7 +82,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
   }
   
   private def createNeuron(id: String, treshold: Double, slope: Double, forgetting: Double){
-	debug(this, s"(this.id}: ,$id)")
+	debug(this, s"${this.id}: ,$id)")
 	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
