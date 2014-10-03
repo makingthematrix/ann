@@ -14,7 +14,9 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-case class Synapse(val dest: NeuronRef,val weight: Double)
+case class Synapse(val dest: NeuronRef,val weight: Double){
+  def send(signal: Double) = dest ! Signal(signal * weight)
+}
 
 class Neuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
 extends Actor with NeuronTriggers[Neuron] {
@@ -22,7 +24,7 @@ extends Actor with NeuronTriggers[Neuron] {
   
   def this(id: String) = this(id,0.5,20.0,0.0)
   def this(id: String, treshold: Double) = this(id, treshold, 20.0, 0.0)
-  def that = Neuron.this
+  def that = this
   
   protected var buffer = 0.0
   protected var output = 0.0
@@ -55,9 +57,11 @@ extends Actor with NeuronTriggers[Neuron] {
     output = calculateOutput
     buffer = 0.0
     debug(this, s"output $output, synapses size: ${synapses.size}")
-    synapses.foreach { s => debug(this, s.dest.id) }
-    synapses.foreach( _.dest ! Signal(output))
-    afterFireTriggers.values.foreach( _(Neuron.this) )
+    synapses.foreach( s => { 
+      debug(this, s.dest.id) 
+      s.send(output)
+    })
+    afterFireTriggers.values.foreach( _(this) )
   }
   
   def connect(destination: Neuron, weight: Double) =
