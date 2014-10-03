@@ -53,6 +53,10 @@ class NetRef(val id: String, val ref: ActorRef) {
     ref ! SignalSeq(seq)
     _iteration += 1
   }
+  
+  def shutdown() = {
+    await[NetShutdownDone](ref,Shutdown)
+  }
 }
 
 object NetRef {
