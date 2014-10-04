@@ -47,7 +47,7 @@ class DelaySuite extends JUnitSuite {
 
     net.init()
     LOG.timer()
-    in.tick()
+    while(!in.empty) in.tick()
     
     val resultTime = Await.result(p.future, timeoutSeconds seconds).asInstanceOf[Long]
     debug(this,s"resultTime: $resultTime")
@@ -61,7 +61,7 @@ class DelaySuite extends JUnitSuite {
     
     in += "1"
       
-    assertOutputAfter(100L, 5)
+    assertOutputAfter(50L, 5)
   }
   
   @Test def shouldSendOutputWithDelay_usingSlopeAndSelf(){
@@ -70,7 +70,7 @@ class DelaySuite extends JUnitSuite {
     
     in += "1"
       
-    assertOutputAfter(100L, 5)
+    assertOutputAfter(50L, 5)
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingInputSynapse(){
@@ -79,7 +79,7 @@ class DelaySuite extends JUnitSuite {
     
     in += "1"
       
-    assertOutputAfter(100L, 5)
+    assertOutputAfter(50L, 5)
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingSlopeAndSelf(){
@@ -88,7 +88,7 @@ class DelaySuite extends JUnitSuite {
     
     in += "1"
       
-    assertOutputAfter(100L, 5)
+    assertOutputAfter(50L, 5)
   }
   
   @Test def shouldSendOutputWith2Signals_usingTreshold(){

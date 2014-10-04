@@ -56,6 +56,8 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, val t
     Thread.sleep(tickInterval)
     _iteration = _iteration + 1
   }
+  
+  def empty = inputQueue.isEmpty
 }
 
 object NetInput {

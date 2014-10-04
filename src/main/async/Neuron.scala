@@ -91,14 +91,19 @@ extends Actor with NeuronTriggers[Neuron] {
     case None => //error(this, "answer demanded, but no netref!")
   }
   
+  case object WakeUp
+  
   protected def init(){
     debug(Neuron.this, s"init for $id with threshold $treshold and slope $slope")
-    addTresholdPassedTrigger("run", (_: Neuron) => future { 
-      Thread.sleep(50L)
+    addTresholdPassedTrigger("run", (_: Neuron) => { 
       debug("tresholdPassedTrigger run")
       that.run() 
+      context.become(sleep)
+      context.system.scheduler.scheduleOnce(50 millis){
+        self ! WakeUp
+      }
     })
-    answer(Success("init_"+Neuron.this.id))
+    answer(Success("init_"+this.id))
   }
   
   private def shutdown(){
@@ -106,20 +111,44 @@ extends Actor with NeuronTriggers[Neuron] {
     context.stop(self)
   }
   
-  def receive = { 
-    case Init => init()
-    case Signal(s) => this += s
+  def receive: Receive = { 
     case GetId => sender ! Msg(0.0, id)
     case GetInput => sender ! Msg(input.toDouble, id)
     case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
     case HushNow => silence()
-    case Connect(destinationRef, weight) => connect(destinationRef, weight)
-    case Disconnect(destinationId) => disconnect(destinationId)
     case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
-    // case UpdateSynapse
     case GetSynapses => sender ! MsgSynapses(synapses.toList)
     case NeuronShutdown => shutdown()
+
+    case Init => init()
+    case Connect(destinationRef, weight) => connect(destinationRef, weight)
+    case Disconnect(destinationId) => disconnect(destinationId)
     case AddAfterFireTrigger(id, f) => addAfterFireTrigger(id, f)
+
+    case Signal(s) => this += s
+    
+    case other => debug(this,"receive, unrecognized message: $other")
+  }
+  
+  private def wakeUp(){
+    buffer = minmax(-1.0, buffer, 1.0)
+    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
+    context.unbecome()
+  }
+  
+  def sleep: Receive = {
+    case GetId => sender ! Msg(0.0, id)
+    case GetInput => sender ! Msg(input.toDouble, id)
+    case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
+    case HushNow => silence()
+    case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
+    case GetSynapses => sender ! MsgSynapses(synapses.toList)
+    case NeuronShutdown => shutdown()
+    
+    case WakeUp => wakeUp()
+    case Signal(s) => buffer += s
+    
+    case other => debug(this,"sleep, unrecognized message: $other")
   }
 
 }
