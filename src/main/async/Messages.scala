@@ -4,20 +4,26 @@ object Messages {
   // signals
   case class Signal(s: Double)
   case class SignalSeq(input: Seq[Double])
+  case object Forgetting
+  trait ForgettingTick
+  case object ForgetAll extends ForgettingTick
+  case class ForgetValue(value: Double) extends ForgettingTick
+  case object DontForget extends ForgettingTick
 
   // commands
   case object Init
   case object HushNow // become silent
+  case object WakeUp
   case class Connect(destinationRef: NeuronRef, weight: Double)
   case class Disconnect(destinationId: String)
   case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
-  case class CreateNeuron(id: String, treshold: Double, slope: Double, forgetting: Double)
+  case class CreateNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick)
   case class ConnectNeurons(id1: String, id2: String, weight: Double)
   case class SetInputLayer(ids: Seq[String])
   case class SetOutputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
-
+  
   // questions
   case object GetId
   case object GetInput

@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 import Messages._
 import main.logger.LOG._
 
-class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, val tickInterval: Long = 50L) {
+class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var tickInterval: Long = 50L) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   

@@ -3,6 +3,7 @@ package main.async
 import akka.actor.ActorSystem
 import akka.util.Timeout
 import scala.concurrent.duration._
+import main.async.Messages._
 
 object Context {
   implicit val timeout = Timeout(5 seconds)
@@ -11,7 +12,7 @@ object Context {
   val SLOPE = 20.0
   val TRESHOLD = 0.5
   val WEIGHT = 1.0
-  val FORGETTING = 0.0
+  val FORGETTING = DontForget
   
   val INPUT_LAYER_NAME = "in"
   val MIDDLE_LAYER_NAME = "mid"

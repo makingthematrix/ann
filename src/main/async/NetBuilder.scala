@@ -50,12 +50,12 @@ class NetBuilder {
   }
   
   protected def newNeuron(id: String, treshold: Double, 
-                        slope: Double, forgetting: Double) = 
+                        slope: Double, forgetting: ForgettingTick) = 
     await[NeuronRef](net, CreateNeuron(id, treshold, slope, forgetting))
     
-  protected def newInput(id: String, treshold: Double, slope: Double, forgetting: Double) = newNeuron(id, treshold, slope, forgetting)
-  protected def newMiddle(id: String, treshold: Double, slope: Double, forgetting: Double) = newNeuron(id, treshold, slope, forgetting)
-  protected def newOutput(id: String, treshold: Double, slope: Double, forgetting: Double) = newNeuron(id, treshold, slope, forgetting)
+  protected def newInput(id: String, treshold: Double, slope: Double) = newNeuron(id, treshold, slope, DontForget)
+  protected def newMiddle(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick) = newNeuron(id, treshold, slope, forgetting)
+  protected def newOutput(id: String, treshold: Double, forgetting: ForgettingTick) = newNeuron(id, treshold, defSlope, forgetting)
 
   def get(name: String) = neurons(name)  
   def contains(name: String) = neurons.contains(name)
@@ -79,7 +79,7 @@ class NetBuilder {
     n
   }
 
-  private def add(name: String, layer: mutable.Set[String], treshold: Double, slope:Double, forgetting: Double):NetBuilder = {
+  private def add(name: String, layer: mutable.Set[String], treshold: Double, slope:Double, forgetting: ForgettingTick):NetBuilder = {
     debug(NetBuilder.this, s"adding $name with treshold $treshold, slope $slope and forgetting $forgetting")
     val n = if(contains(name)){
       if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
@@ -90,7 +90,7 @@ class NetBuilder {
   }
   
   private def chain(name: String, layer: mutable.Set[String], weight: Double, treshold: Double, 
-                    slope: Double, forgetting: Double):NetBuilder = {
+                    slope: Double, forgetting: ForgettingTick):NetBuilder = {
     val n1 = current
     debug(NetBuilder.this, s"chaining from ${n1.id} to $name with treshold $treshold and slope $slope")
     if(throwOnError && outs.contains(n1.id))
@@ -101,17 +101,17 @@ class NetBuilder {
     NetBuilder.this
   }
     
-  def addInput(name: String, treshold: Double =0.0, slope:Double = defSlope, forgetting: Double = 0.0):NetBuilder = 
-    add(name, ins, treshold, slope, forgetting)
+  def addInput(name: String, treshold: Double =0.0, slope:Double = defSlope):NetBuilder = 
+    add(name, ins, treshold, slope, DontForget)
   def addInput():NetBuilder = addInput(generateName(INPUT_LAYER_NAME))
   
   def addMiddle(name: String, treshold: Double =defTreshold, 
-                slope: Double = defSlope, forgetting: Double = defForgetting):NetBuilder = 
+                slope: Double = defSlope, forgetting: ForgettingTick = DontForget):NetBuilder = 
     add(name, mids, treshold, slope, forgetting)
   def addMiddle():NetBuilder = addInput(generateName(MIDDLE_LAYER_NAME))
 
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, 
-                  slope: Double =defSlope, forgetting: Double =defForgetting):NetBuilder = 
+                  slope: Double =defSlope, forgetting: ForgettingTick =DontForget):NetBuilder = 
     chain(name, mids, weight, treshold, slope, forgetting)
   def chainMiddle():NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
   def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME), weight)
@@ -120,17 +120,17 @@ class NetBuilder {
   def chainMiddle(weight: Double, treshold: Double, slope: Double):NetBuilder = 
     chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold, slope)
     
-  def addOutput(name: String, treshold: Double =defTreshold, 
-                slope: Double = defSlope, forgetting: Double = defForgetting):NetBuilder = 
-    add(name, outs, treshold, slope, forgetting)
+  def addOutput(name: String, treshold: Double =defTreshold, forgetting: ForgettingTick =DontForget):NetBuilder = 
+    add(name, outs, treshold, defSlope, forgetting)
   def addOutput():NetBuilder = addInput(generateName(OUTPUT_LAYER_NAME))
-  def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defTreshold, 
-                  slope: Double =defSlope, forgetting: Double =defForgetting):NetBuilder = 
-    chain(name, outs, weight, treshold, slope, forgetting)
+  def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defTreshold, forgetting: ForgettingTick =DontForget):NetBuilder = 
+    chain(name, outs, weight, treshold, defSlope, forgetting)
   def chainOutput():NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME))
   def chainOutput(weight: Double):NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME), weight)
   def chainOutput(weight: Double, treshold: Double):NetBuilder = 
     chainOutput(generateName(OUTPUT_LAYER_NAME), weight, treshold)
+  def chainOutput(weight: Double, treshold: Double, forgetting: ForgettingTick):NetBuilder = 
+    chainOutput(generateName(OUTPUT_LAYER_NAME), weight, treshold, forgetting)
     
   def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current

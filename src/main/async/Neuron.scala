@@ -18,12 +18,12 @@ case class Synapse(val dest: NeuronRef,val weight: Double){
   def send(signal: Double) = dest ! Signal(signal * weight)
 }
 
-class Neuron(val id: String, val treshold: Double, val slope: Double, var forgetting: Double)
+class Neuron(val id: String, val treshold: Double, val slope: Double, val forgetting: ForgettingTick)
 extends Actor with NeuronTriggers[Neuron] {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
-  def this(id: String) = this(id,0.5,20.0,0.0)
-  def this(id: String, treshold: Double) = this(id, treshold, 20.0, 0.0)
+  def this(id: String) = this(id, 0.5, 20.0, DontForget)
+  def this(id: String, treshold: Double) = this(id, treshold, 20.0, DontForget)
   def that = this
   
   protected var buffer = 0.0
@@ -41,34 +41,31 @@ extends Actor with NeuronTriggers[Neuron] {
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
   
-  protected def tickForgetting() = 
-    if(buffer > 0.0) buffer = Math.max(buffer - forgetting, 0.0)
-    else if(buffer < 0.0) buffer = Math.min(buffer + forgetting, 0.0)
-     // might be changed into the S function later on
-  
   def +=(signal: Double) = {
     debug(this, s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
     if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(forgetting == ForgetAll) buffer = 0.0
   }
   
   protected def run() = {
-    debug(this, s"run $id")
     output = calculateOutput
     buffer = 0.0
-    debug(this, s"output $output, synapses size: ${synapses.size}")
-    synapses.foreach( s => { 
-      debug(this, s.dest.id) 
-      s.send(output)
-    })
+    debug(this, s"$id trigger output $output, synapses size: ${synapses.size}")
+    synapses.foreach( _.send(output) )
     afterFireTriggers.values.foreach( _(this) )
+    debug(this, s"$id, going to sleep")
+    context.become(sleep)
+    context.system.scheduler.scheduleOnce(50 millis){ 
+      self ! WakeUp
+    }
   }
   
   def connect(destination: Neuron, weight: Double) =
     throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
   
   private def _connect(destinationRef: NeuronRef, weight: Double) = {
-    debug(Neuron.this, s"_connect(${destinationRef.id},$weight)")
+    //debug(this, s"_connect(${destinationRef.id},$weight)")
     synapses += new Synapse(destinationRef, weight)
     sender ! Success("connect_"+id)
   }
@@ -91,18 +88,16 @@ extends Actor with NeuronTriggers[Neuron] {
     case None => //error(this, "answer demanded, but no netref!")
   }
   
-  case object WakeUp
-  
   protected def init(){
     debug(Neuron.this, s"init for $id with threshold $treshold and slope $slope")
-    addTresholdPassedTrigger("run", (_: Neuron) => { 
-      debug("tresholdPassedTrigger run")
-      that.run() 
-      context.become(sleep)
-      context.system.scheduler.scheduleOnce(50 millis){
-        self ! WakeUp
+    addTresholdPassedTrigger("run", (_: Neuron) => that.run() )
+    context.become(presleep)
+    forgetting match {
+      case ForgetValue(value) => context.system.scheduler.schedule(50 millis, 50 millis){
+        self ! Forgetting
       }
-    })
+      case _ =>
+    }
     answer(Success("init_"+this.id))
   }
   
@@ -111,44 +106,66 @@ extends Actor with NeuronTriggers[Neuron] {
     context.stop(self)
   }
   
-  def receive: Receive = { 
-    case GetId => sender ! Msg(0.0, id)
-    case GetInput => sender ! Msg(input.toDouble, id)
-    case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
-    case HushNow => silence()
-    case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
-    case GetSynapses => sender ! MsgSynapses(synapses.toList)
-    case NeuronShutdown => shutdown()
-
-    case Init => init()
-    case Connect(destinationRef, weight) => connect(destinationRef, weight)
-    case Disconnect(destinationId) => disconnect(destinationId)
-    case AddAfterFireTrigger(id, f) => addAfterFireTrigger(id, f)
-
-    case Signal(s) => this += s
-    
-    case other => debug(this,"receive, unrecognized message: $other")
-  }
-  
   private def wakeUp(){
+    debug(this,s"$id, waking up")
     buffer = minmax(-1.0, buffer, 1.0)
     if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
     context.unbecome()
   }
   
-  def sleep: Receive = {
-    case GetId => sender ! Msg(0.0, id)
-    case GetInput => sender ! Msg(input.toDouble, id)
-    case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
-    case HushNow => silence()
-    case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
-    case GetSynapses => sender ! MsgSynapses(synapses.toList)
-    case NeuronShutdown => shutdown()
-    
+  private def forget() = forgetting match {
+    case ForgetAll => silence()
+    case ForgetValue(value) if value > 0 => {
+      if(buffer > 0.0) buffer = Math.max(buffer - value, 0.0)
+      else if(buffer < 0.0) buffer = Math.min(buffer + value, 0.0)
+      debug(this,s"$id, forgetting $value")
+      // might be changed into the S function later on      
+    }
+    case DontForget =>
+  }
+  
+  def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
+  
+  def sleep = sleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
+
+  def presleep = preSleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, presleep")
+
+  val activeBehaviour: Receive = {
+    case WakeUp =>
+    case Signal(s) => this += s
+  }
+  
+  val commonBehaviour: Receive = {
+      case GetId => sender ! Msg(0.0, id)
+      case GetInput => sender ! Msg(input.toDouble, id)
+      case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
+      case HushNow => silence()
+      case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
+      case GetSynapses => sender ! MsgSynapses(synapses.toList)
+      case NeuronShutdown => shutdown()
+      case Connect(destinationRef, weight) => connect(destinationRef, weight)
+      case Disconnect(destinationId) => disconnect(destinationId)
+      case AddAfterFireTrigger(id, f) => addAfterFireTrigger(id, f)
+      case Init => init()
+      case Forgetting => forget()
+  }
+  
+  val sleepBehaviour: Receive = {
     case WakeUp => wakeUp()
     case Signal(s) => buffer += s
-    
-    case other => debug(this,"sleep, unrecognized message: $other")
   }
-
+  
+  val preSleepBehaviour: Receive = {
+    case WakeUp => wakeUp()
+    case Signal(s) => 
+      buffer += s
+      context.system.scheduler.scheduleOnce(50 millis){ 
+        wakeUp()
+        forget()
+      }
+  }
+  
+  def otherBehaviour(state: String): Receive = {
+    case other => debug(this,s"$state, unrecognized message: $other")
+  }
 }

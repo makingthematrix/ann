@@ -70,34 +70,44 @@ class DelaySuite extends JUnitSuite {
     
     in += "1"
       
-    assertOutputAfter(50L, 5)
+    assertOutputAfter(200L, 5)
   }
   
-  @Test def shouldSendOutputWithMoreDelay_usingInputSynapse(){
-    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75)
+  @Test def shouldSendOutputWithMoreDelay_usingInputSynapseAndForgetting(){
+    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75,ForgetValue(1.0))
     build()
     
     in += "1"
       
-    assertOutputAfter(50L, 5)
+    assertOutputAfter(280L, 5)
   }
   
-  @Test def shouldSendOutputWithMoreDelay_usingSlopeAndSelf(){
-    builder.addInput().chainMiddle(0.55,0.5,8.0).self(1.0).chainOutput(1.0,0.75)
+  @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgetting(){
+    builder.addInput().chainMiddle(0.55,0.5,5.0).loop(1.0,0.5,0.75).chainOutput(1.0,0.75,ForgetValue(1.0))
     build()
     
     in += "1"
       
-    assertOutputAfter(50L, 5)
+    assertOutputAfter(280L, 5)
+  }
+  
+  @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgettingAll(){
+    builder.addInput().chainMiddle(0.51,0.5,2.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75,ForgetAll)
+    build()
+    
+    in += "1"
+      
+    assertOutputAfter(350L, 5)
   }
   
   @Test def shouldSendOutputWith2Signals_usingTreshold(){
     builder.addInput().chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput(1.0,0.9)
     build()
+    in.tickInterval = 100L
     
     in += "1,1"
       
-    assertOutputAfter(100L, 5)
+    assertOutputAfter(200L, 5)
   }
   
   

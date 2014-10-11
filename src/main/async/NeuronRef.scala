@@ -35,7 +35,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     debug(this,s"$id, received: ${any.toString}")
     ref ! any
   }
-  
+
   def ?(any: Any) = ref ? any
 } 
 
@@ -45,7 +45,7 @@ object NeuronRef {
     new NeuronRef(id, ref)
   }
   
-  def apply(id: String, treshold: Double, slope: Double, forgetting: Double):NeuronRef = {
+  def apply(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick):NeuronRef = {
     debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
     val ref = system.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
     new NeuronRef(id, ref)

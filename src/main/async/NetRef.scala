@@ -21,10 +21,7 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def iteration = _iteration
   
-  def !(any: Any) = {
-    debug(this, "received: " + any.toString)
-    ref ! any
-  } 
+  def !(any: Any) = ref ! any
   def ?(any: Any) = ref ? any
   
   def inputIds = await[MsgNeurons](ref,GetInputLayer).neurons.map( _.id )
@@ -36,13 +33,13 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, treshold: Double, slope: Double, forgetting: Double) = 
+  def createNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick) = 
     await[NeuronRef](ref, CreateNeuron(id, treshold, slope, forgetting))
  
   def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
   
   def init() = await[Answer](ref, Init) match {
-    case Success(netId) if(netId == "netinit_"+id) => debug(this,"initialization succeeded " + netId); true
+    case Success(netId) if(netId == "netinit_"+id) => true
     case Failure(msg) => error(this, msg); false
   }
   
@@ -54,9 +51,7 @@ class NetRef(val id: String, val ref: ActorRef) {
     _iteration += 1
   }
   
-  def shutdown() = {
-    await[NetShutdownDone](ref,Shutdown)
-  }
+  def shutdown() = await[NetShutdownDone](ref,Shutdown)
 }
 
 object NetRef {

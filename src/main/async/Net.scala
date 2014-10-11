@@ -11,7 +11,7 @@ import Messages._
 
 class Net(val id: String, val defSlope: Double = 20.0, 
               val defTreshold: Double = 0.5, val defWeight: Double = 1.0, 
-              val defForgetting:Double = 0.0) extends Actor {
+              val defForgetting:ForgettingTick = DontForget) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
   private val ins = mutable.ListBuffer[NeuronRef]()
   private val outs = mutable.ListBuffer[NeuronRef]()
@@ -81,7 +81,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
     neurons.foreach(_ ! NeuronShutdown)
   }
   
-  private def createNeuron(id: String, treshold: Double, slope: Double, forgetting: Double){
+  private def createNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick){
 	debug(this, s"${this.id}: ,$id)")
 	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
     val neuronRef = new NeuronRef(id, ref)
