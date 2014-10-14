@@ -14,10 +14,6 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-case class Synapse(val dest: NeuronRef,val weight: Double){
-  def send(signal: Double) = dest ! Signal(signal * weight)
-}
-
 class Neuron(val id: String, val threshold: Double, val slope: Double, val forgetting: ForgettingTick)
 extends Actor with NeuronTriggers[Neuron] {
   protected val synapses = mutable.ListBuffer[Synapse]()
@@ -37,6 +33,14 @@ extends Actor with NeuronTriggers[Neuron] {
     output = 0.0
   }
   
+  private def makeSleep() = {
+    debug(this, s"$id, going to sleep")
+    context.become(sleep)
+    context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
+      self ! WakeUp
+    }
+  }
+  
   protected def calculateOutput = minMaxOpen(buffer, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(buffer-0.5))) )
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
@@ -54,22 +58,18 @@ extends Actor with NeuronTriggers[Neuron] {
     debug(this, s"$id trigger output $output, synapses size: ${synapses.size}")
     synapses.foreach( _.send(output) )
     afterFireTriggers.values.foreach( _(this) )
-    debug(this, s"$id, going to sleep")
-    context.become(sleep)
-    context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
-      self ! WakeUp
-    }
+    makeSleep()
   }
   
   def connect(destination: Neuron, weight: Double) =
     throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
   
-  private def _connect(destinationRef: NeuronRef, weight: Double) = {
+  private def _connect(destinationRef: NeuronRef, weight: SynapseWeight) = {
     //debug(this, s"_connect(${destinationRef.id},$weight)")
     synapses += new Synapse(destinationRef, weight)
     sender ! Success("connect_"+id)
   }
-  protected def connect(destinationRef: NeuronRef, weight: Double):Unit = findSynapse(destinationRef.id) match {
+  protected def connect(destinationRef: NeuronRef, weight: SynapseWeight):Unit = findSynapse(destinationRef.id) match {
     case Some(s) => sender ! Failure(s"a synapse to ${destinationRef.id} already exists")
     case None => _connect(destinationRef, weight)
   }

@@ -14,7 +14,7 @@ object Messages {
   case class Init(userPresleep: Boolean)
   case object HushNow // become silent
   case object WakeUp
-  case class Connect(destinationRef: NeuronRef, weight: Double)
+  case class Connect(destinationRef: NeuronRef, weight: SynapseWeight)
   case class Disconnect(destinationId: String)
   case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
   case class CreateNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick)

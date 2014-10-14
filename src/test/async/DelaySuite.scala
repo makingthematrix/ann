@@ -18,6 +18,7 @@ import main.async.NetBuilder
 import main.async.Messages._
 import main.async.NetRef
 import main.async.Context
+import main.async.Hush
 
 import scala.collection.mutable
 
@@ -209,14 +210,11 @@ class DelaySuite extends JUnitSuite {
   
   @Test def shouldCreateOscillator2(){
     builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)
-    builder.use("in1").chainMiddle("mi2",1.0).chainOutput("out2",1.0,0.75)
-    builder.use("osc").connect("mi2",-1.0)
-    // how about a "hush" signal?
-    // how about a synapse with an explicit delay in transferring the signal to another neuron?
+    builder.use("osc").chainMiddle("mi2",1.0).chainOutput("out2",1.0,0.75)
     build()
     
     in += "1,1,1,1,1,1"
-    in.tickInterval = Context.sleepTime * 4;
+    in.tickInterval = Context.sleepTime * 2;
     
     val sb = StringBuilder.newBuilder
     out.find("out1").addAfterFireTrigger("fired 1", (_:Neuron) => sb.append('1') )
@@ -224,7 +222,7 @@ class DelaySuite extends JUnitSuite {
     
     net.init(usePresleep = false)
     LOG.timer()
-    in.tick(6)
+    in.tickUntilCalm()
     
     val str = sb.toString
     println(str)

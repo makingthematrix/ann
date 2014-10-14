@@ -66,7 +66,9 @@ class NetBuilder {
     this
   }
   
-  def connect(name: String, weight: Double =defWeight):NetBuilder = {
+  def hush(name: String):NetBuilder = connect(name, Hush)
+  def connect(name: String, weight: Double =defWeight):NetBuilder = connect(name, SynapseWeight(weight))
+  private def connect(name: String, weight: SynapseWeight):NetBuilder = {
     current.connect(get(name), weight)
     this
   }
