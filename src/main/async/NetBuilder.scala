@@ -8,13 +8,13 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import Messages._
 import main.utils.Utils.await
-import Context._
+import Context.{ INPUT_LAYER_NAME, MIDDLE_LAYER_NAME, OUTPUT_LAYER_NAME }
 
 class NetBuilder {
-  var defSlope = SLOPE
-  var defTreshold = TRESHOLD
-  var defWeight = WEIGHT
-  var defForgetting = FORGETTING
+  var defSlope = Context.slope
+  var defThreshold = Context.threshold
+  var defWeight = Context.weight
+  var defForgetting = Context.forgetting
   var resolution = 1
   var defInputName = INPUT_LAYER_NAME
   var defMiddleName = MIDDLE_LAYER_NAME
@@ -24,7 +24,7 @@ class NetBuilder {
   var throwOnError = true
   
   protected val neurons = mutable.Map[String,NeuronRef]()
-  protected lazy val net = NetRef(defNetName, defSlope, defTreshold, defWeight)
+  protected lazy val net = NetRef(defNetName, defSlope, defThreshold, defWeight)
   
   protected val ins = mutable.Set[String]()
   protected val mids = mutable.Set[String]()
@@ -59,6 +59,17 @@ class NetBuilder {
 
   def get(name: String) = neurons(name)  
   def contains(name: String) = neurons.contains(name)
+  
+  def use(name: String) = {
+    debug(this, s"using $name")
+    currentNeuronId = Some(get(name).id)
+    this
+  }
+  
+  def connect(name: String, weight: Double =defWeight):NetBuilder = {
+    current.connect(get(name), weight)
+    this
+  }
   
   def current = currentNeuronId match {
     case Some(id) => neurons(id)
@@ -105,12 +116,12 @@ class NetBuilder {
     add(name, ins, treshold, slope, DontForget)
   def addInput():NetBuilder = addInput(generateName(INPUT_LAYER_NAME))
   
-  def addMiddle(name: String, treshold: Double =defTreshold, 
+  def addMiddle(name: String, treshold: Double =defThreshold, 
                 slope: Double = defSlope, forgetting: ForgettingTick = DontForget):NetBuilder = 
     add(name, mids, treshold, slope, forgetting)
   def addMiddle():NetBuilder = addInput(generateName(MIDDLE_LAYER_NAME))
 
-  def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defTreshold, 
+  def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defThreshold, 
                   slope: Double =defSlope, forgetting: ForgettingTick =DontForget):NetBuilder = 
     chain(name, mids, weight, treshold, slope, forgetting)
   def chainMiddle():NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
@@ -120,10 +131,10 @@ class NetBuilder {
   def chainMiddle(weight: Double, treshold: Double, slope: Double):NetBuilder = 
     chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold, slope)
     
-  def addOutput(name: String, treshold: Double =defTreshold, forgetting: ForgettingTick =DontForget):NetBuilder = 
+  def addOutput(name: String, treshold: Double =defThreshold, forgetting: ForgettingTick =DontForget):NetBuilder = 
     add(name, outs, treshold, defSlope, forgetting)
   def addOutput():NetBuilder = addInput(generateName(OUTPUT_LAYER_NAME))
-  def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defTreshold, forgetting: ForgettingTick =DontForget):NetBuilder = 
+  def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defThreshold, forgetting: ForgettingTick =DontForget):NetBuilder = 
     chain(name, outs, weight, treshold, defSlope, forgetting)
   def chainOutput():NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME))
   def chainOutput(weight: Double):NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME), weight)
@@ -132,7 +143,7 @@ class NetBuilder {
   def chainOutput(weight: Double, treshold: Double, forgetting: ForgettingTick):NetBuilder = 
     chainOutput(generateName(OUTPUT_LAYER_NAME), weight, treshold, forgetting)
     
-  def loop(name: String, w1: Double =defWeight, treshold: Double =defTreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
+  def loop(name: String, w1: Double =defWeight, treshold: Double =defThreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current
     if(throwOnError && !mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
@@ -144,7 +155,7 @@ class NetBuilder {
     
   def loop():NetBuilder = loop(generateName(MIDDLE_LAYER_NAME))
   def loop(w1: Double, treshold: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, treshold, w2)
-  def loop(w1: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, defTreshold, w2)
+  def loop(w1: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, defThreshold, w2)
   
   def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
   def oscillator() = loop(1.0, 0.5, -1.0)

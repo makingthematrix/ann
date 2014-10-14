@@ -18,7 +18,7 @@ case class Synapse(val dest: NeuronRef,val weight: Double){
   def send(signal: Double) = dest ! Signal(signal * weight)
 }
 
-class Neuron(val id: String, val treshold: Double, val slope: Double, val forgetting: ForgettingTick)
+class Neuron(val id: String, val threshold: Double, val slope: Double, val forgetting: ForgettingTick)
 extends Actor with NeuronTriggers[Neuron] {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
@@ -42,9 +42,9 @@ extends Actor with NeuronTriggers[Neuron] {
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
   
   def +=(signal: Double) = {
-    debug(this, s"$id adding signal $signal to buffer $buffer, treshold is $treshold")
+    debug(this, s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
-    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _(this) )
     if(forgetting == ForgetAll) buffer = 0.0
   }
   
@@ -56,7 +56,7 @@ extends Actor with NeuronTriggers[Neuron] {
     afterFireTriggers.values.foreach( _(this) )
     debug(this, s"$id, going to sleep")
     context.become(sleep)
-    context.system.scheduler.scheduleOnce(50 millis){ 
+    context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
       self ! WakeUp
     }
   }
@@ -88,14 +88,19 @@ extends Actor with NeuronTriggers[Neuron] {
     case None => //error(this, "answer demanded, but no netref!")
   }
   
-  protected def init(){
-    debug(Neuron.this, s"init for $id with threshold $treshold and slope $slope")
+  protected def init(usePresleep: Boolean){
+    debug(Neuron.this, s"init for $id with threshold $threshold and slope $slope")
+    
     addTresholdPassedTrigger("run", (_: Neuron) => that.run() )
-    context.become(presleep)
+    
+    if(usePresleep) context.become(presleep)
+    
     forgetting match {
-      case ForgetValue(value) => context.system.scheduler.schedule(50 millis, 50 millis){
-        self ! Forgetting
-      }
+      case ForgetValue(value) => 
+        val t = (Context.sleepTime.toDouble / Context.forgettingGranularity).toLong
+        context.system.scheduler.schedule(t millis, t millis){
+          self ! Forgetting
+        }
       case _ =>
     }
     answer(Success("init_"+this.id))
@@ -109,16 +114,17 @@ extends Actor with NeuronTriggers[Neuron] {
   private def wakeUp(){
     debug(this,s"$id, waking up")
     buffer = minmax(-1.0, buffer, 1.0)
-    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _(this) )
     context.unbecome()
   }
   
   private def forget() = forgetting match {
     case ForgetAll => silence()
     case ForgetValue(value) if value > 0 => {
-      if(buffer > 0.0) buffer = Math.max(buffer - value, 0.0)
-      else if(buffer < 0.0) buffer = Math.min(buffer + value, 0.0)
-      debug(this,s"$id, forgetting $value")
+      val t = value / Context.forgettingGranularity
+      if(buffer > 0.0) buffer = Math.max(buffer - t, 0.0)
+      else if(buffer < 0.0) buffer = Math.min(buffer + t, 0.0)
+      debug(this,s"$id, forgetting $t")
       // might be changed into the S function later on      
     }
     case DontForget =>
@@ -145,8 +151,13 @@ extends Actor with NeuronTriggers[Neuron] {
       case NeuronShutdown => shutdown()
       case Connect(destinationRef, weight) => connect(destinationRef, weight)
       case Disconnect(destinationId) => disconnect(destinationId)
-      case AddAfterFireTrigger(id, f) => addAfterFireTrigger(id, f)
-      case Init => init()
+      case AddAfterFireTrigger(triggerId, trigger) => 
+        addAfterFireTrigger(triggerId, trigger)
+        sender ! Success(triggerId)
+      case RemoveAfterFireTrigger(triggerId) =>
+        removeAfterFireTrigger(triggerId)
+        sender ! Success(triggerId)
+      case Init(usePresleep) => init(usePresleep)
       case Forgetting => forget()
   }
   
@@ -159,7 +170,7 @@ extends Actor with NeuronTriggers[Neuron] {
     case WakeUp => wakeUp()
     case Signal(s) => 
       buffer += s
-      context.system.scheduler.scheduleOnce(50 millis){ 
+      context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
         wakeUp()
         forget()
       }

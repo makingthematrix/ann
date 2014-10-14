@@ -5,13 +5,13 @@ object Messages {
   case class Signal(s: Double)
   case class SignalSeq(input: Seq[Double])
   case object Forgetting
-  trait ForgettingTick
+  sealed trait ForgettingTick
   case object ForgetAll extends ForgettingTick
   case class ForgetValue(value: Double) extends ForgettingTick
   case object DontForget extends ForgettingTick
 
   // commands
-  case object Init
+  case class Init(userPresleep: Boolean)
   case object HushNow // become silent
   case object WakeUp
   case class Connect(destinationRef: NeuronRef, weight: Double)
@@ -50,5 +50,6 @@ object Messages {
 	
   // triggers
   case class AddAfterFireTrigger(id: String, f: (Neuron) => Any)
+  case class RemoveAfterFireTrigger(id: String)
 
 }

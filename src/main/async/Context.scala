@@ -9,10 +9,13 @@ object Context {
   implicit val timeout = Timeout(5 seconds)
   val system = ActorSystem("system")
   
-  val SLOPE = 20.0
-  val TRESHOLD = 0.5
-  val WEIGHT = 1.0
-  val FORGETTING = DontForget
+  // neuron
+  val slope = 20.0
+  val threshold = 0.5
+  val weight = 1.0
+  val forgetting = DontForget
+  val sleepTime = 50L
+  val forgettingGranularity = 1.0
   
   val INPUT_LAYER_NAME = "in"
   val MIDDLE_LAYER_NAME = "mid"

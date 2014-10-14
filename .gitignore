@@ -20,3 +20,5 @@ dist
 .target/*
 *.diff
 *.log
+*.sc
+.worksheet*

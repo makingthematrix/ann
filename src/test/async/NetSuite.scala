@@ -31,8 +31,8 @@ class NetSuite extends JUnitSuite {
   def shouldCreateNeurons(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", TRESHOLD, SLOPE, FORGETTING)
-    val n2 = net.createNeuron("id2", TRESHOLD, SLOPE, FORGETTING)
+    val n1 = net.createNeuron("id1", Context.threshold, Context.slope, Context.forgetting)
+    val n2 = net.createNeuron("id2", Context.threshold, Context.slope, Context.forgetting)
     
     net.init()
     
@@ -49,8 +49,8 @@ class NetSuite extends JUnitSuite {
   def shouldConnectNeurons(){
     val net = NetRef("net1")
     
-    net.createNeuron("id1", TRESHOLD, SLOPE, FORGETTING)
-    net.createNeuron("id2", TRESHOLD, SLOPE, FORGETTING)
+    net.createNeuron("id1", Context.threshold, Context.slope, Context.forgetting)
+    net.createNeuron("id2", Context.threshold, Context.slope, Context.forgetting)
     
     net.init()
     
@@ -75,14 +75,14 @@ class NetSuite extends JUnitSuite {
     val net = NetRef("net1")
     
     debug("2")
-    net.createNeuron("id1", TRESHOLD, SLOPE, FORGETTING)
-    net.createNeuron("id2", TRESHOLD, SLOPE, FORGETTING)
+    net.createNeuron("id1", Context.threshold, Context.slope, Context.forgetting)
+    net.createNeuron("id2", Context.threshold, Context.slope, Context.forgetting)
  
     Thread.sleep(50L)
     
     debug("4")
     
-    net.connectNeurons("id1", "id2", WEIGHT) match {
+    net.connectNeurons("id1", "id2", Context.weight) match {
       case Failure(str) => fail(str)
       case Success(id) => assertEquals("net1_connectNeurons(id1,id2)",id)
     }
@@ -120,9 +120,9 @@ class NetSuite extends JUnitSuite {
     LOG.addLogToStdout()
   
     val builder = NetBuilder()
-    builder.defSlope = SLOPE
-    builder.defTreshold = TRESHOLD
-    builder.defWeight = WEIGHT
+    builder.defSlope = Context.slope
+    builder.defThreshold = Context.threshold
+    builder.defWeight = Context.weight
     builder.addInput("in1")
            .chainOutput("out1")
     val net = builder.build
@@ -154,7 +154,7 @@ class NetSuite extends JUnitSuite {
     LOG.addLogToStdout()
     
     val builder = NetBuilder()
-    builder.defTreshold = 0.5
+    builder.defThreshold = 0.5
     
     debug("1")
     builder.addInput()
@@ -197,14 +197,14 @@ class NetSuite extends JUnitSuite {
     debug("1")
     val builder = NetBuilder()
     debug("2")
-    builder.defTreshold = TRESHOLD
+    builder.defThreshold = Context.threshold
     builder.addInput().chainMiddle().loop().chainOutput()
     debug("3")
     val net = builder.build
     debug("4")
     val in = NetInput("in1", net)
     debug("5")
-    in += TRESHOLD + 0.1
+    in += Context.threshold + 0.1
     debug("6")
     val out = NetOutput("out1", net)
     debug("7")
@@ -246,19 +246,19 @@ class NetSuite extends JUnitSuite {
     LOG.addLogToStdout()
     
     val builder = NetBuilder()
-    builder.defTreshold = TRESHOLD
+    builder.defThreshold = Context.threshold
     builder.addInput().chainMiddle().loop().chainOutput()
     
     val net = builder.build
     
     val in = NetInput("in1", net)
-    in += TRESHOLD + 0.1
+    in += Context.threshold + 0.1
     in += 0.0
     in += 0.0
-    in += TRESHOLD + 0.1
+    in += Context.threshold + 0.1
     in += 0.0
     in += 0.0
-    in += TRESHOLD + 0.1
+    in += Context.threshold + 0.1
     
     val out = NetOutput("out1", net)
     val outId = out.getId(0)
@@ -283,12 +283,12 @@ class NetSuite extends JUnitSuite {
     LOG.addLogToStdout()
     
     val builder = NetBuilder()
-    builder.defTreshold = TRESHOLD
+    builder.defThreshold = Context.threshold
     builder.addInput().chainMiddle().loop().chainOutput()
     
     val (in, net, out) = builder.build("in","out")
     
-    in.regSign('a',TRESHOLD + 0.1)
+    in.regSign('a',Context.threshold + 0.1)
     // 0 and 1 should be registered already as "0" and "1" respectively
     in += "a,0,0,a,0,0,a"
     

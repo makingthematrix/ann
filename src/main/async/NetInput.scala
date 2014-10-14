@@ -57,6 +57,27 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var t
     _iteration = _iteration + 1
   }
   
+  def tickUntilCalm(timeout: Int = 100) = {
+    var neuronFired = false
+    val neurons = net.getNeurons
+    
+    neurons.foreach(_.addAfterFireTrigger("tickUntilCalm", (_:Neuron) => neuronFired = true))
+    
+    var calmTick = 0
+    var counter = 0
+    while(calmTick < 3 && counter < timeout){
+      neuronFired = false
+      tick()
+      if(neuronFired) calmTick = 0
+      else calmTick += 1
+      counter += 1
+    }
+    
+    neurons.foreach(_.removeAfterFireTrigger("tickUntilCalm"))
+    counter
+  }
+
+  
   def empty = inputQueue.isEmpty
 }
 

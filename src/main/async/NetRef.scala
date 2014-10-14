@@ -10,7 +10,7 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.pattern.ask
 
-import Context._
+import Context._ 
 
 import main.logger.LOG._
 import Messages._
@@ -31,6 +31,8 @@ class NetRef(val id: String, val ref: ActorRef) {
   def outputIds = await[MsgNeurons](ref,GetOutputLayer).neurons.map( _.id )
   def outputSize = await[MsgNeurons](ref,GetOutputLayer).neurons.size
 
+  def getNeurons = await[MsgNeurons](ref,GetNeurons).neurons
+  
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
   def createNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick) = 
@@ -38,7 +40,7 @@ class NetRef(val id: String, val ref: ActorRef) {
  
   def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
   
-  def init() = await[Answer](ref, Init) match {
+  def init(usePresleep: Boolean =true) = await[Answer](ref, Init(usePresleep)) match {
     case Success(netId) if(netId == "netinit_"+id) => true
     case Failure(msg) => error(this, msg); false
   }
@@ -57,7 +59,7 @@ class NetRef(val id: String, val ref: ActorRef) {
 object NetRef {
   private var netRefOpt: Option[NetRef] = None
   
-  def apply(id: String):NetRef = apply(id, Context.SLOPE, Context.TRESHOLD, Context.WEIGHT)
+  def apply(id: String):NetRef = apply(id, Context.slope, Context.threshold, Context.weight)
   
   def apply(id: String, defSlope: Double, defTreshold: Double, defWeight: Double):NetRef = {
     val ref = system.actorOf(Props(new Net(id, defSlope, defTreshold, defWeight)))

@@ -66,12 +66,12 @@ class Net(val id: String, val defSlope: Double = 20.0,
     case Failure(str) => error(Net.this, "this Failure message shouldn't be here: " + str)
   }
   
-  private def init() = {
+  private def init(usePresleep: Boolean) = {
     debug(Net.this, s"init for $id")
     waitingForInit ++= neurons.map( _.id )
     caller = Some(sender)
     context.become(initializing)
-    neurons.foreach( _ ! Init )
+    neurons.foreach( _ ! Init(usePresleep) )
   }
   
   private def shutdown() = {
@@ -90,7 +90,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
   }
 
   def receive: Receive = {
-    case Init => init()
+    case Init(usePresleep) => init(usePresleep)
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, treshold, slope, forgetting) => createNeuron(id, treshold, slope, forgetting)

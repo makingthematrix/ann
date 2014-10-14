@@ -22,12 +22,19 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   def connect(dest: NeuronRef, weight: Double) = await[Answer](ref, Connect(dest, weight)) match {
     case Success(id) => true
-    case Failure(str) => println(s"NeuronRef.connect failure: $str"); false 
+    case Failure(str) => error(this,s"connect failure: $str"); false 
   }
   
   protected def calculateOutput = Double.NaN // we don't do that here 
   
-  def addAfterFireTrigger(name: String, f:(Neuron) => Any) = ref ! AddAfterFireTrigger(name, f)
+  def addAfterFireTrigger(triggerId: String, trigger:(Neuron) => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, trigger)) match {
+    case Success(id) => true
+    case Failure(str) => error(this,s"addAfterFireTrigger failure: $str"); false
+  }
+  def removeAfterFireTrigger(name: String) = await[Answer](ref, RemoveAfterFireTrigger(name)) match {
+    case Success(id) => true
+    case Failure(str) => error(this,s"removeAfterFireTrigger failure: $str"); false    
+  }
   
   def +=(signal: Double) = ref ! Signal(signal) 
   
