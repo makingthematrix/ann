@@ -39,7 +39,7 @@ class NetInput(val name: String, val net: Net, val resolution: Int = 1) {
   
   def tickUntilCalm(timeout: Int = 100) = {
     var neuronFired = false
-    net.getNeurons.foreach(_.addAfterFireTrigger("tickUntilCalm", (_:Neuron) => neuronFired = true))
+    net.getNeurons.foreach(_.addAfterFireTrigger("tickUntilCalm", () => neuronFired = true))
     
     var calmTick = 0
     var counter = 0

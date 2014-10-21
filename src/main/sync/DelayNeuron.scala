@@ -13,7 +13,7 @@ extends Neuron(id, treshold, slope, forgetting) {
     lastTickBuffer = buffer
     tickForgetting()
  
-    afterTickTriggers.values.foreach( _(this) )
+    afterTickTriggers.values.foreach( _() )
   }
   
   def getLastTickBuffer = lastTickBuffer // debugging purposes only

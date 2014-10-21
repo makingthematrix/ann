@@ -1,9 +1,9 @@
-package main
+package main.sync
 
 import scala.collection.mutable
 
-trait NeuronTriggers[N] {
-  type Trigger = (N) => Any
+trait NeuronTriggers {
+  type Trigger = () => Any
   protected val afterFireTriggers = mutable.Map[String, Trigger]()
   def addAfterFireTrigger(id: String, f: Trigger) = afterFireTriggers.contains(id) match {
     case false => afterFireTriggers.put(id, f)

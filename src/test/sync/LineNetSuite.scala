@@ -20,7 +20,7 @@ class LineNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out2, (_:Neuron) => {
+    out.addAfterFireTrigger(out2, () => {
       println("KRECHA!")
       sb.append('-'); 
     })
@@ -37,7 +37,7 @@ class LineNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out2, (_:Neuron) => {
+    out.addAfterFireTrigger(out2, () => {
       println("KRECHA!")
       sb.append('-'); 
     })
@@ -54,7 +54,7 @@ class LineNetSuite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out2, (_:Neuron) => {
+    out.addAfterFireTrigger(out2, () => {
       println("KRECHA!")
       sb.append('-'); 
     })

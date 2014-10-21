@@ -11,7 +11,7 @@ class DelayNetSuite extends JUnitSuite {
     val outId:String = out.ids(0)
     
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
+    out.addAfterFireTrigger(outId, () => {
       println(s"fired!, outId=$outId, net tick=${net.iteration}")
       outputRegistered = true
     })
@@ -80,11 +80,11 @@ class DelayNetSuite extends JUnitSuite {
     val out1 = builder.get("out1")
     val out2 = builder.get("out2")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(out1, (n:Neuron) => {
+    out.addAfterFireTrigger(out1, () => {
       println("KROPA!")
       sb.append('.'); 
     })
-    out.addAfterFireTrigger(out2, (n:Neuron) => {
+    out.addAfterFireTrigger(out2, () => {
       println("KRECHA!")
       sb.append('-')
     })
@@ -108,61 +108,5 @@ class DelayNetSuite extends JUnitSuite {
 	assertEquals(".-",sb.toString)
   }
     
-  /*
-  @Test
-  def shouldDotNotLine2(){
-	val (in, sb) = dotLineNet    
-	in += "1,0,0,1,0,0"
-	in.tickUntilCalm()
-	assertEquals("..",sb.toString)
-  }
-  
-  @Test
-  def shouldDotNotLine3(){
-	val (in, sb) = dotLineNet    
-	in += "1,0,0,1,0,0,1,0,0"
-	in.tickUntilCalm()
-	assertEquals("...",sb.toString)
-  }
-  
-  @Test
-  def shouldLineNotDot1(){
-	val (in, sb) = dotLineNet    
-	in += "1,1,0,0,0,0"
-	in.tickUntilCalm()
-	assertEquals("-",sb.toString)
-  }
-  
-  @Test
-  def shouldLineNotDot2(){
-	val (in, sb) = dotLineNet    
-	in += "1,1,0,1,1,0"
-	in.tickUntilCalm()
-	assertEquals("--",sb.toString)
-  }
-  
-  @Test
-  def shouldLineNotDot3(){
-	val (in, sb) = dotLineNet    
-	in += "1,1,0,1,1,0,1,1,0"
-	in.tickUntilCalm()
-	assertEquals("---",sb.toString)
-  }
-  
-  @Test
-  def shouldDotThenLineThenDot(){
-	val (in, sb) = dotLineNet    
-	in += "1,0,0"
-	val interval1 = in.tickUntilCalm()
-	assertEquals(".",sb.toString)
-	in += "1,1,0"
-	val interval2 = in.tickUntilCalm()
-	assertEquals(".-",sb.toString)
-	in += "1,0,0"
-	val interval3 = in.tickUntilCalm()
-	assertEquals(".-.",sb.toString)
-	println(s"intervals: $interval1, $interval2, $interval3")
-  }*/
-  
 
 }

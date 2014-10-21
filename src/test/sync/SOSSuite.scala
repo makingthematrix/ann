@@ -5,7 +5,7 @@ import org.junit.Test
 import org.junit.Assert._
 import main.sync._
 import main.logger.LOG
-import main.NetBuilderOps._
+import main.sync.NetBuilderOps._
 
 class SOSSuite extends JUnitSuite {
   
@@ -20,15 +20,15 @@ class SOSSuite extends JUnitSuite {
     builder.use("line").chainMiddle("O",0.9,0.9).setForgetting(0.01)
     
     val (in, net, out) = builder.build("in","out")
-    out.addAfterFireTrigger(builder.get("dot"), (_:Neuron) => println("KROPA!") )
-    out.addAfterFireTrigger(builder.get("line"), (_:Neuron) => println("KRECHA!") )
+    out.addAfterFireTrigger(builder.get("dot"), () => println("KROPA!") )
+    out.addAfterFireTrigger(builder.get("line"), () => println("KRECHA!") )
 
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger(builder.get("S"), (_:Neuron) => {
+    out.addAfterFireTrigger(builder.get("S"), () => {
       println("S!")
       sb.append('S'); 
     })
-    out.addAfterFireTrigger(builder.get("O"), (_:Neuron) => {
+    out.addAfterFireTrigger(builder.get("O"), () => {
       println("O!")
       sb.append('O'); 
     })

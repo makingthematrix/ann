@@ -1,5 +1,7 @@
 package main.async
 
+import Context.Trigger
+
 class NetOutput(val name: String, val net: NetRef) {
   def getId(index: Int):String = ids(index)
   lazy val ids = net.outputIds
@@ -10,10 +12,10 @@ class NetOutput(val name: String, val net: NetRef) {
     case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
  
-  def addAfterFireTrigger(id: String, f:(Neuron) => Any):Unit = find(id).addAfterFireTrigger(name+"_output_"+id, f)
-  def addAfterFireTrigger(neuron: Neuron, f:(Neuron) => Any):Unit = neuron.addAfterFireTrigger(name+"_output_"+neuron.id, f)
+  def addAfterFireTrigger(id: String, f: Trigger) = find(id).addAfterFireTrigger(name+"_output_"+id, f)
+  def addAfterFireTrigger(neuron: Neuron, f: Trigger) = neuron.addAfterFireTrigger(name+"_output_"+neuron.id, f)
 
-  def addInfo(id: String, info: String) = addAfterFireTrigger(id, (_: Neuron) => println( info ) )
+  def addInfo(id: String, info: String) = addAfterFireTrigger(id, () => println( info ) )
 }
 
 object NetOutput {

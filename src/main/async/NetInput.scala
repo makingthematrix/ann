@@ -61,7 +61,7 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var t
     var neuronFired = false
     val neurons = net.getNeurons
     
-    neurons.foreach(_.addAfterFireTrigger("tickUntilCalm", (_:Neuron) => neuronFired = true))
+    neurons.foreach(_.addAfterFireTrigger("tickUntilCalm", () => neuronFired = true))
     
     var calmTick = 0
     var counter = 0

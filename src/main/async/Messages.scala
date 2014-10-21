@@ -1,5 +1,7 @@
 package main.async
 
+import Context.Trigger
+
 object Messages {
   // signals
   case class Signal(s: Double)
@@ -49,7 +51,7 @@ object Messages {
   case class MsgNeurons(neurons: List[NeuronRef]) extends Answer
 	
   // triggers
-  case class AddAfterFireTrigger(id: String, f: (Neuron) => Any)
+  case class AddAfterFireTrigger(id: String, f: Trigger)
   case class RemoveAfterFireTrigger(id: String)
 
 }

@@ -9,13 +9,12 @@ import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent._
 import scala.concurrent.duration._
-import main.NeuronTriggers
 import Messages._
 
 import ExecutionContext.Implicits.global
 
 class Neuron(val id: String, val threshold: Double, val slope: Double, val forgetting: ForgettingTick)
-extends Actor with NeuronTriggers[Neuron] {
+extends Actor with NeuronTriggers {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
   def this(id: String) = this(id, 0.5, 20.0, DontForget)
@@ -48,7 +47,7 @@ extends Actor with NeuronTriggers[Neuron] {
   def +=(signal: Double) = {
     debug(this, s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
-    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _() )
     if(forgetting == ForgetAll) buffer = 0.0
   }
   
@@ -57,7 +56,7 @@ extends Actor with NeuronTriggers[Neuron] {
     buffer = 0.0
     debug(this, s"$id trigger output $output, synapses size: ${synapses.size}")
     synapses.foreach( _.send(output) )
-    afterFireTriggers.values.foreach( _(this) )
+    afterFireTriggers.values.foreach( _() )
     makeSleep()
   }
   
@@ -91,7 +90,7 @@ extends Actor with NeuronTriggers[Neuron] {
   protected def init(usePresleep: Boolean){
     debug(Neuron.this, s"init for $id with threshold $threshold and slope $slope")
     
-    addTresholdPassedTrigger("run", (_: Neuron) => that.run() )
+    addTresholdPassedTrigger("run", () => that.run() )
     
     if(usePresleep) context.become(presleep)
     
@@ -114,7 +113,7 @@ extends Actor with NeuronTriggers[Neuron] {
   private def wakeUp(){
     debug(this,s"$id, waking up")
     buffer = minmax(-1.0, buffer, 1.0)
-    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _() )
     context.unbecome()
   }
   

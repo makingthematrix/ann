@@ -46,12 +46,12 @@ class DelayRes4Suite extends JUnitSuite {
     val (in, net, out) = builder.build("in","out")
     val sb = StringBuilder.newBuilder
     val out1 = builder.get(out1Name)
-    out.addAfterFireTrigger(out1, (_:Neuron) => {
+    out.addAfterFireTrigger(out1, () => {
       println("KROPA!")
       sb.append('.'); 
     })
     val out2 = builder.get(out2Name)
-    out.addAfterFireTrigger(out2, (_:Neuron) => {
+    out.addAfterFireTrigger(out2, () => {
       println("KRECHA!")
       sb.append('-'); 
     })

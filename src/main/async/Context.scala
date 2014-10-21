@@ -6,6 +6,8 @@ import scala.concurrent.duration._
 import main.async.Messages._
 
 object Context {
+  type Trigger = () => Any
+    
   implicit val timeout = Timeout(5 seconds)
   val system = ActorSystem("system")
   

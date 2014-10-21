@@ -102,8 +102,8 @@ class NetSuite extends JUnitSuite {
     net.init()
 
     var outputRegistered = false
-    out ! AddAfterFireTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.lastOutput > 0.01)
+    out ! AddAfterFireTrigger("out1trigger", () => {
+      assertTrue(out.lastOutput > 0.01)
       outputRegistered = true
     })
     
@@ -136,8 +136,8 @@ class NetSuite extends JUnitSuite {
     net.init()
     
     var outputRegistered = false
-    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.lastOutput > 0.01)
+    out.addAfterFireTrigger("out1trigger", () => {
+      assertTrue(out.lastOutput > 0.01)
       outputRegistered = true
     })
     
@@ -178,13 +178,13 @@ class NetSuite extends JUnitSuite {
     net.init()
     debug("9")
     var outputRegistered = 0
-    out.addAfterFireTrigger("out1trigger", (n:Neuron) => {
-      assertTrue(n.lastOutput > 0.01)
+    out.addAfterFireTrigger("out1trigger", () => {
+      assertTrue(out.lastOutput > 0.01)
       if(outputRegistered < 2) outputRegistered += 1
     })
     debug("10")
     net ! SignalSeq(Seq(1.0)) // there is no 'tick' in AkkaNet. sending a signal triggers the calculations.
-    Thread.sleep(500L)
+    Thread.sleep(1000L)
     assertEquals(2, outputRegistered)
     debug("11")
     net ! Shutdown
@@ -213,8 +213,9 @@ class NetSuite extends JUnitSuite {
     debug("8")
     
     var outputRegistered = false
-    out.addAfterFireTrigger(out.getId(0), (n:Neuron) => {
-      println( n.id + " => " + n.lastOutput )
+    val out0 = out.find(out.getId(0))
+    out0.addAfterFireTrigger("out0trigger", () => {
+      println( out0.id + " => " + out0.lastOutput )
       outputRegistered = true
     })
     
@@ -262,10 +263,11 @@ class NetSuite extends JUnitSuite {
     
     val out = NetOutput("out1", net)
     val outId = out.getId(0)
-    
+    val out0 = out.find(outId)
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
-      debug( n.id + " => " + n.lastOutput )
+    
+    out0.addAfterFireTrigger("out0trigger", () => {
+      debug( out0.id + " => " + out0.lastOutput )
       outputRegistered = true
     })
 
@@ -293,10 +295,10 @@ class NetSuite extends JUnitSuite {
     in += "a,0,0,a,0,0,a"
     
     val outId = out.getId(0)
-    
+    val out0 = out.find(outId)
     var outputRegistered = false
-    out.addAfterFireTrigger(outId, (n:Neuron) => {
-      debug( n.id + " => " + n.lastOutput )
+    out0.addAfterFireTrigger("out0trigger", () => {
+      debug( out0.id + " => " + out0.lastOutput )
       outputRegistered = true
     })
 

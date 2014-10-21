@@ -3,10 +3,9 @@ package main.sync
 import scala.collection.mutable
 import main.logger.LOG
 import main.utils.Utils._
-import main.NeuronTriggers
 
 class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0, var forgetting: Double =0.0, var priority: Int =0) 
-extends NeuronTriggers[Neuron] {
+extends NeuronTriggers {
   implicit val self:Neuron = this 
   
   def getId = id
@@ -49,7 +48,7 @@ extends NeuronTriggers[Neuron] {
     }
     
     LOG +=  s"$id, after tick: buffer = $buffer"
-    afterTickTriggers.values.foreach( _(this) )
+    afterTickTriggers.values.foreach( _() )
   }
    
   protected def run(){
@@ -57,12 +56,12 @@ extends NeuronTriggers[Neuron] {
     buffer = 0.0
     //println(s"output $output")
     synapses foreach { _.send(output) } 
-    afterFireTriggers.values.foreach( _(this) )
+    afterFireTriggers.values.foreach( _() )
   }  
   
   def +=(signal: Double) = {
     buffer = minmax(-1.0, buffer+signal, 1.0)
-    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _(this) )
+    if(buffer > treshold) tresholdPassedTriggers.values.foreach( _() )
   }
   
   def connect(destination:Neuron, weight: Double): Boolean = findSynapse(destination) match {
