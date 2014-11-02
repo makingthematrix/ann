@@ -126,6 +126,9 @@ class NetBuilder {
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defThreshold, 
                   slope: Double =defSlope, forgetting: ForgettingTick =DontForget):NetBuilder = 
     chain(name, mids, weight, treshold, slope, forgetting)
+  def chain(name: String, weight: Double =defWeight, treshold: Double =defThreshold, 
+                  slope: Double =defSlope, forgetting: ForgettingTick =DontForget):NetBuilder =
+      chainMiddle(name, weight, treshold, slope, forgetting)
   def chainMiddle():NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
   def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME), weight)
   def chainMiddle(weight: Double, treshold: Double):NetBuilder = 

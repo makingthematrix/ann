@@ -54,6 +54,12 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
   
   def shutdown() = await[NetShutdownDone](ref,Shutdown)
+ 
+  def addAfterFireTrigger(id: String, f: Trigger) = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addAfterFireTrigger("net_"+id, f)
+    case None => error(this,s"Unable to find neuron with id $id")
+  }
+
 }
 
 object NetRef {
