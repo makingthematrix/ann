@@ -1,6 +1,7 @@
 package main.async
 
 import Context.Trigger
+import main.logger.LOG.debug
 
 class NetOutput(val name: String, val net: NetRef) {
   def getId(index: Int):String = ids(index)
@@ -15,7 +16,7 @@ class NetOutput(val name: String, val net: NetRef) {
   def addAfterFireTrigger(id: String, f: Trigger) = find(id).addAfterFireTrigger(name+"_output_"+id, f)
   def addAfterFireTrigger(neuron: Neuron, f: Trigger) = neuron.addAfterFireTrigger(name+"_output_"+neuron.id, f)
 
-  def addInfo(id: String, info: String) = addAfterFireTrigger(id, () => println( info ) )
+  def addDebug(id: String, info: String) = addAfterFireTrigger(id, () => debug(this, info ) )
 }
 
 object NetOutput {

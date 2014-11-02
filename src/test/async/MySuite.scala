@@ -65,13 +65,17 @@ class MySuite extends JUnitSuite {
     val p = Promise[Long]
     _out.addAfterFireTrigger(_out.getId(0), () => p.success(LOG.time) )
 
-    _net.init()
-    LOG.timer()
+    init()
     while(!_in.empty) _in.tick()
     
     val resultTime = Await.result(p.future, timeoutSeconds seconds).asInstanceOf[Long]
     debug(this,s"resultTime: $resultTime")
     assert(resultTime > afterMillis)
     LOG.date()
+  }
+  
+  protected def init() = {
+    _net.init()
+    LOG.timer()
   }
 }

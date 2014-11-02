@@ -63,9 +63,8 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var t
     
     neurons.foreach(_.addAfterFireTrigger("tickUntilCalm", () => neuronFired = true))
     
-    var calmTick = 0
-    var counter = 0
-    while(calmTick < 3 && counter < timeout){
+    var (calmTick, counter) = (0, 0)
+    while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
       neuronFired = false
       tick()
       if(neuronFired) calmTick = 0

@@ -27,6 +27,8 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     case Failure(str) => error(this,s"connect failure: $str"); false 
   }
   
+  def setForgetting(forgetting: ForgettingTick) = await[Answer](ref, SetForgetting(forgetting))
+ 
   protected def calculateOutput = Double.NaN // we don't do that here 
   
   def addAfterFireTrigger(triggerId: String, trigger: Trigger) = await[Answer](ref, AddAfterFireTrigger(triggerId, trigger)) match {

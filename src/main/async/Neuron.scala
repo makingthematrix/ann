@@ -13,7 +13,7 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-class Neuron(val id: String, val threshold: Double, val slope: Double, val forgetting: ForgettingTick)
+class Neuron(val id: String, val threshold: Double, val slope: Double, private var forgetting: ForgettingTick)
 extends Actor with NeuronTriggers {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
@@ -129,6 +129,11 @@ extends Actor with NeuronTriggers {
     case DontForget =>
   }
   
+  private def setForgetting(forgetting: ForgettingTick){
+    this.forgetting = forgetting
+    sender ! Success(id)
+  }
+  
   def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
   
   def sleep = sleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
@@ -158,6 +163,7 @@ extends Actor with NeuronTriggers {
         sender ! Success(triggerId)
       case Init(usePresleep) => init(usePresleep)
       case Forgetting => forget()
+      case SetForgetting(forgetting) => setForgetting(forgetting)
   }
   
   val sleepBehaviour: Receive = {

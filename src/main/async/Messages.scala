@@ -25,6 +25,7 @@ object Messages {
   case class SetOutputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
+  case class SetForgetting(forgetting: ForgettingTick)
   
   // questions
   case object GetId

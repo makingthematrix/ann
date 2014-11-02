@@ -14,7 +14,7 @@ class NetBuilder {
   var defSlope = Context.slope
   var defThreshold = Context.threshold
   var defWeight = Context.weight
-  var defForgetting = Context.forgetting
+  var defForgetting:ForgettingTick = Context.forgetting
   var resolution = 1
   var defInputName = INPUT_LAYER_NAME
   var defMiddleName = MIDDLE_LAYER_NAME
@@ -169,9 +169,13 @@ class NetBuilder {
   def build:NetRef = {
     debug(NetBuilder.this, s"build()")
     net.setInputLayer(ins.toSeq)
-    debug(NetBuilder.this, "input layer set request sent")
+    val sb = StringBuilder.newBuilder
+    ins.foreach( sb.append(_).append(','))
+    debug(NetBuilder.this, s"input layer set request sent: ${sb.toString}")
+    sb.clear()
     net.setOutputLayer(outs.toSeq)
-    debug(NetBuilder.this, "output layer set request sent")
+    outs.foreach( sb.append(_).append(','))
+    debug(NetBuilder.this, s"output layer set request sent: ${sb.toString}")
     net
   }
   
@@ -190,6 +194,11 @@ class NetBuilder {
     this
   }
   
+  def setForgetting(forgetting: ForgettingTick):NetBuilder = {
+    current.setForgetting(forgetting)
+    this
+  }
+  def setForgetting(forgetting: Double):NetBuilder = setForgetting(ForgetValue(forgetting))
 }
 
 object NetBuilder {
