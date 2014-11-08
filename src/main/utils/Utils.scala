@@ -32,5 +32,10 @@ object Utils {
   def await[T](ref: ActorRef, msg: Any): T = Await.result(ref ? msg, timeout.duration).asInstanceOf[T]
   def await[T](net: NetRef, msg: Any): T = await[T](net.ref, msg)
   def await[T](neuron: NeuronRef, msg: Any): T = await[T](neuron.ref, msg)
+  
+  def f(value: Double, slope: Double) = minMaxOpen(value, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(value-0.5))) )
+    // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
+    // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
+  
 }
 

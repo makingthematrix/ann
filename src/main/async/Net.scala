@@ -88,12 +88,21 @@ class Net(val id: String, val defSlope: Double = 20.0,
     neurons += neuronRef
     sender ! neuronRef
   }
+  
+  private def createDummy(id: String){
+	debug(this, s"${this.id}: ,$id)")
+	val ref = context.actorOf(Props(new DummyNeuron(id)), name=id)
+    val neuronRef = new NeuronRef(id, ref)
+    neurons += neuronRef
+    sender ! neuronRef
+  }
 
   def receive: Receive = {
     case Init(usePresleep) => init(usePresleep)
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, treshold, slope, forgetting) => createNeuron(id, treshold, slope, forgetting)
+    case CreateDummy(id) => createDummy(id)
     case ConnectNeurons(id1, id2, weight) => connectNeurons(id1, id2, weight) 
     case Shutdown => shutdown()
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)

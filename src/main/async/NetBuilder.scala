@@ -52,7 +52,9 @@ class NetBuilder {
   protected def newNeuron(id: String, treshold: Double, 
                         slope: Double, forgetting: ForgettingTick) = 
     await[NeuronRef](net, CreateNeuron(id, treshold, slope, forgetting))
-    
+  
+  protected def newDummy(id: String) = await[NeuronRef](net, CreateDummy(id))
+   
   protected def newInput(id: String, treshold: Double, slope: Double) = newNeuron(id, treshold, slope, DontForget)
   protected def newMiddle(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick) = newNeuron(id, treshold, slope, forgetting)
   protected def newOutput(id: String, treshold: Double, forgetting: ForgettingTick) = newNeuron(id, treshold, defSlope, forgetting)
@@ -93,25 +95,36 @@ class NetBuilder {
   }
 
   private def add(name: String, layer: mutable.Set[String], treshold: Double, slope:Double, forgetting: ForgettingTick):NetBuilder = {
-    debug(NetBuilder.this, s"adding $name with treshold $treshold, slope $slope and forgetting $forgetting")
+    debug(this, s"adding $name with treshold $treshold, slope $slope and forgetting $forgetting")
     val n = if(contains(name)){
       if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
     } else add(newNeuron(name, treshold, slope, forgetting)) 
             
     layer += n.id
-    NetBuilder.this    
+    this    
+  }
+  
+  def dummy(name: String, weight: Double): NetBuilder = {
+    val n1 = current
+    debug(this, s"chaining dummy from ${n1.id} to $name")
+    if(throwOnError && outs.contains(n1.id))
+      throw new IllegalArgumentException("You can chain a dummy only from input or middle neurons")
+    val n = add(newDummy(name))
+    mids += n.id
+    n1.connect(n, weight)
+    this
   }
   
   private def chain(name: String, layer: mutable.Set[String], weight: Double, treshold: Double, 
                     slope: Double, forgetting: ForgettingTick):NetBuilder = {
     val n1 = current
-    debug(NetBuilder.this, s"chaining from ${n1.id} to $name with treshold $treshold and slope $slope")
+    debug(this, s"chaining from ${n1.id} to $name with treshold $treshold and slope $slope")
     if(throwOnError && outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron only from input or middle neurons")
     add(name, layer, treshold, slope, forgetting)
     val n = neurons(currentNeuronId.get)
     n1.connect(n, weight)
-    NetBuilder.this
+    this
   }
     
   def addInput(name: String, treshold: Double =0.0, slope:Double = defSlope):NetBuilder = 

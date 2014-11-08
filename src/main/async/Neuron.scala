@@ -40,18 +40,16 @@ extends Actor with NeuronTriggers {
     }
   }
   
-  protected def calculateOutput = minMaxOpen(buffer, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(buffer-0.5))) )
-    // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
-    // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
+  protected def calculateOutput:Double = f(buffer, slope)
   
-  def +=(signal: Double) = {
+  def +=(signal: Double){
     debug(this, s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
     buffer = minmax(-1.0, buffer+signal, 1.0)
     if(buffer > threshold) tresholdPassedTriggers.values.foreach( _() )
     if(forgetting == ForgetAll) buffer = 0.0
   }
   
-  protected def run() = {
+  protected def run(){
     output = calculateOutput
     buffer = 0.0
     debug(this, s"$id trigger output $output, synapses size: ${synapses.size}")
@@ -82,13 +80,13 @@ extends Actor with NeuronTriggers {
   def findSynapse(destinationId: String):Option[Synapse] = synapses.find(_.dest.id == destinationId)
   def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
-  private def answer(msg: Answer) = NetRef.get match {
+  protected def answer(msg: Answer) = NetRef.get match {
     case Some(netref) => netref ! msg
     case None => //error(this, "answer demanded, but no netref!")
   }
   
   protected def init(usePresleep: Boolean){
-    debug(Neuron.this, s"init for $id with threshold $threshold and slope $slope")
+    debug(this, s"init for $id with threshold $threshold and slope $slope")
     
     addTresholdPassedTrigger("run", () => that.run() )
     
@@ -123,7 +121,7 @@ extends Actor with NeuronTriggers {
       val t = value / Context.forgettingGranularity
       if(buffer > 0.0) buffer = Math.max(buffer - t, 0.0)
       else if(buffer < 0.0) buffer = Math.min(buffer + t, 0.0)
-      debug(this,s"$id, forgetting $t")
+      //debug(this,s"$id, forgetting $t")
       // might be changed into the S function later on      
     }
     case DontForget =>
