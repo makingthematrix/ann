@@ -1,11 +1,11 @@
 package main.async
 
 import akka.actor.ActorContext
-import main.async.Messages.DontForget
 import main.logger.LOG._
 import main.async.Messages.Success
+import main.async.Messages.ForgetAll
 
-class DummyNeuron(override val id: String) extends Neuron(id,0.0,0.0,DontForget) {
+class DummyNeuron(override val id: String, hushValue: Double = 0.0) extends Neuron(id, 0.0, 0.0, hushValue, ForgetAll) {
   override protected def calculateOutput:Double = buffer
     
   override protected def init(usePresleep: Boolean){

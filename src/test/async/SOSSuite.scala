@@ -13,11 +13,11 @@ class SOSSuite extends MySuite {
   val s = "1,0,0,1,0,0,1,0,0"
   val o = "1,1,0,1,1,0,1,1,0"
       
-  private lazy val sosNet = {
+  private def foo(){
     builder.defSlope = 5.0
     builder.resolution = 4
           
-    builder.addInput("in1").chainMiddle("mi11",0.22,0.5).loop("loop1",0.75,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainMiddle("dot",1.0)
+    builder.addInput("in1").chainMiddle("mi11",0.23,0.5).loop("loop1",0.75,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainMiddle("dot",1.0)
     //builder.addInput("in1").dummy("mi11",0.55).loop("loop1",1.0,0.5,0.99).chainMiddle("mi12",1.0,0.66).chainMiddle("dot",1.0)
     
     builder.use("mi12").hush("mi11").hush("loop1")
@@ -30,6 +30,63 @@ class SOSSuite extends MySuite {
     //builder.use("mi22").connect("mi12",-1.0).connect("loop1",-1.0)
     builder.use("line").chainMiddle("O",0.9,0.9)
     builder.use("O").hush("S").hush("dot")
+  }
+  
+  private def firstTry(){
+    builder.defSlope = 5.0
+    builder.resolution = 4
+    builder.addInput("in1").chainMiddle("mi11",0.22,0.5).loop("loop1",0.75,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainMiddle("dot",1.0)
+    builder.use("mi12").hush("mi11").hush("loop1")
+    builder.use("dot").chainMiddle("S",0.5,0.9)
+         
+    builder.use("in1").chainMiddle("mi21",0.13,0.5).chainMiddle("mi22",1.0,0.5).chainMiddle("line",1.0)
+    builder.use("mi21").setForgetting(0.02)
+    builder.use("O").hush("S").hush("dot")    
+  }  
+  
+  private def secondTry(){
+    builder.defSlope = 5.0
+    builder.addInput("in1")
+    // dots
+    builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainMiddle("dot",1.0).chainMiddle("S",0.5,0.9)
+    builder.use("dot").connect("mi11", -0.49).connect("mi12", -1.0)
+         
+    // lines
+    builder.use("in1").chainMiddle("mi21",0.4,0.6).chainMiddle("mi22",1.0,0.6).chainMiddle("line",1.0).chainMiddle("O",0.9,0.9)
+    builder.use("mi21").setForgetting(0.05)
+    
+    // if line then not dot
+    builder.use("mi22").hush("mi21").connect("mi12",-1.0).connect("loop1",-1.0)
+    builder.use("line").hush("dot").connect("mi12",-1.0)
+    builder.use("O").hush("S").hush("dot")       
+  }
+    
+  private lazy val sosNet = {
+    builder.defSlope = 5.0
+    builder.defHushValue = 0.0
+    //builder.resolution = 4
+    builder.addInput("in1")
+    // dots
+    builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainMiddle("dot",1.0).chainMiddle("S",0.5,0.9)
+    builder.use("dot").connect("mi11", -0.49).connect("mi12", -1.0)      
+    //builder.addInput("in1").chainMiddle("mi11",0.23,0.5).loop("loop1",0.75,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainMiddle("dot",1.0)
+    //builder.addInput("in1").dummy("mi11",0.55).loop("loop1",1.0,0.5,0.99).chainMiddle("mi12",1.0,0.66).chainMiddle("dot",1.0)
+    
+    //builder.use("mi12").hush("mi11").hush("loop1")
+    //builder.use("dot").hush("mi11").hush("mi12").hush("loop1")
+    //builder.use("dot").chainMiddle("S",0.5,0.9)//.setForgetting(0.01)
+         
+        // lines
+    builder.use("in1").chainMiddle("mi21",0.4,0.6).chainMiddle("mi22",1.0,0.6).chainMiddle("line",1.0).chainMiddle("O",0.9,0.9)
+    builder.use("mi21").setForgetting(0.05)
+    
+    //builder.use("in1").chainMiddle("mi21",0.13,0.5).chainMiddle("mi22",1.0,0.5).chainMiddle("line",1.0)
+    //builder.use("mi21").setForgetting(0.02)
+    //builder.use("mi22").hush("mi21")
+    builder.use("mi22").connect("mi12",-1.0).connect("loop1",-1.0)//.connect("mi11",-1.0)
+    builder.use("line").hush("dot").hush("mi12")
+    builder.use("O").hush("S").hush("dot")
+    builder.use("S").hush("O").hush("line")
     
     build()
     debug("------------")
@@ -53,8 +110,8 @@ class SOSSuite extends MySuite {
     
   @Test def shouldReturnS() = {
     val sb = sosNet
-    LOG.allow("dot","S")
-    LOG.trackAll = false
+    //LOG.allow("dot","S")
+   // LOG.trackAll = false
     in += s
     init()
     val interval = in.tickUntilCalm()
@@ -65,8 +122,8 @@ class SOSSuite extends MySuite {
   
   @Test def shouldReturnO() = {
     val sb = sosNet
-    LOG.allow("line","O")
-    LOG.trackAll = false
+   // LOG.allow("line","O")
+    //LOG.trackAll = false
     in += o
     init()
     val interval = in.tickUntilCalm()

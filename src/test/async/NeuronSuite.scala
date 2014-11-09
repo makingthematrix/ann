@@ -3,9 +3,12 @@ package test.async
 import org.scalatest.junit.JUnitSuite
 import org.junit.Test
 import main.utils.Utils._
+import org.junit.Assert._
 import scala.annotation.tailrec
+import main.async.Context
+import main.async.Context.sleepTime
 
-class NeuronSuite extends JUnitSuite {
+class NeuronSuite extends MySuite {
   case class NeuronData(slope: Double, weight: Double, threshold: Double)
   case class DoubleRange(from: Double, to: Double)
   
@@ -46,4 +49,31 @@ class NeuronSuite extends JUnitSuite {
     
     println(s"maxIterations: $maxIterations, data: $foundData")
   }
+            
+  @Test def delayedSignal() = {
+    builder.defSlope = 5.0
+    builder.addInput("in").chainDummy("dummy", 1.0).chainMiddle("mi11", 0.54, 0.0).loop("loop",1.0,0.0,0.99).chainMiddle("out",0.8,0.75)
+    builder.use("mi11").hush("dummy")
+    builder.use("out").connect("mi11",-1.0).connect("loop",-1.0)
+    build()
+    in.tickInterval = sleepTime * 2
+    
+    var (goodLoops, badLoops) = (0, 0)
+    var done = false
+    net.addAfterFireTrigger("in", () => println("INCOMING!"))
+    net.addAfterFireTrigger("loop", () => { 
+      println("here") 
+      if(!done) goodLoops += 1 else badLoops += 1
+    })
+    net.addAfterFireTrigger("out", () => {
+      println("DONE") 
+      done = true
+    })
+    in += "1,0,0,0,1"
+    init()
+    val interval = in.tickUntilCalm()
+    println(s"interval: $interval, good loops: $goodLoops, bad loops: $badLoops")
+    assertEquals(0, badLoops)
+  }
+            
 }

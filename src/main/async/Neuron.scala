@@ -13,12 +13,12 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-class Neuron(val id: String, val threshold: Double, val slope: Double, private var forgetting: ForgettingTick)
+class Neuron(val id: String, val threshold: Double, val slope: Double, val hushValue: Double, private var forgetting: ForgettingTick)
 extends Actor with NeuronTriggers {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
-  def this(id: String) = this(id, 0.5, 20.0, DontForget)
-  def this(id: String, treshold: Double) = this(id, treshold, 20.0, DontForget)
+//  def this(id: String) = this(id, 0.5, 20.0, DontForget)
+//  def this(id: String, treshold: Double) = this(id, treshold, 20.0, DontForget)
   def that = this
   
   protected var buffer = 0.0
@@ -28,8 +28,10 @@ extends Actor with NeuronTriggers {
   def lastOutput = output // only for debugging purposes
   
   def silence(){
-    buffer = 0.0
+    assert(hushValue <= 0.0, s"The hush value for $id is $hushValue - expected something <= 0.0")
+    buffer = hushValue
     output = 0.0
+    makeSleep()
   }
   
   private def makeSleep() = {

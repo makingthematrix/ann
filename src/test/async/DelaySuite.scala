@@ -29,7 +29,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingInputSynapseAndForgetting(){ 
-    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75,ForgetValue(1.0))
+    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput("out", 1.0,0.75)
     build()
     
     in += "1"
@@ -38,7 +38,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgetting(){
-    builder.addInput().chainMiddle(0.55,0.5,5.0).loop(1.0,0.5,0.75).chainOutput(1.0,0.75,ForgetValue(1.0))
+    builder.addInput().chainMiddle(0.55,0.5,5.0).loop(1.0,0.5,0.75).chainOutput("out",1.0,0.75)
     build()
     
     in += "1"
@@ -47,7 +47,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgettingAll(){
-    builder.addInput().chainMiddle(0.51,0.5,2.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75,ForgetAll)
+    builder.addInput().chainMiddle(0.51,0.5,2.5).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.75)
     build()
     
     in += "1"

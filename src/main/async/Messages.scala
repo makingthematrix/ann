@@ -19,8 +19,8 @@ object Messages {
   case class Connect(destinationRef: NeuronRef, weight: SynapseWeight)
   case class Disconnect(destinationId: String)
   case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
-  case class CreateNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick)
-  case class CreateDummy(id: String)
+  case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick)
+  case class CreateDummy(id: String, hushValue: Double)
   case class ConnectNeurons(id1: String, id2: String, weight: Double)
   case class SetInputLayer(ids: Seq[String])
   case class SetOutputLayer(ids: Seq[String])

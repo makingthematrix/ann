@@ -31,8 +31,8 @@ class NetSuite extends JUnitSuite {
   def shouldCreateNeurons(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", Context.threshold, Context.slope, Context.forgetting)
-    val n2 = net.createNeuron("id2", Context.threshold, Context.slope, Context.forgetting)
+    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting)
+    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting)
     
     net.init()
     
@@ -49,8 +49,8 @@ class NetSuite extends JUnitSuite {
   def shouldConnectNeurons(){
     val net = NetRef("net1")
     
-    net.createNeuron("id1", Context.threshold, Context.slope, Context.forgetting)
-    net.createNeuron("id2", Context.threshold, Context.slope, Context.forgetting)
+    net.createNeuron("id1", threshold, slope, hushValue, forgetting)
+    net.createNeuron("id1", threshold, slope, hushValue, forgetting)
     
     net.init()
     
@@ -75,8 +75,8 @@ class NetSuite extends JUnitSuite {
     val net = NetRef("net1")
     
     debug("2")
-    net.createNeuron("id1", Context.threshold, Context.slope, Context.forgetting)
-    net.createNeuron("id2", Context.threshold, Context.slope, Context.forgetting)
+    net.createNeuron("id1", threshold, slope, hushValue, forgetting)
+    net.createNeuron("id1", threshold, slope, hushValue, forgetting)
  
     Thread.sleep(50L)
     

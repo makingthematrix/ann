@@ -51,14 +51,14 @@ class NeuronRef(val id: String, val ref: ActorRef) {
 } 
 
 object NeuronRef {
-  def apply(id: String):NeuronRef = {
+ /* def apply(id: String):NeuronRef = {
     val ref = system.actorOf(Props(new Neuron(id)), name=id)
     new NeuronRef(id, ref)
-  }
+  }*/
   
-  def apply(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick):NeuronRef = {
+  def apply(id: String, treshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick):NeuronRef = {
     debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
-    val ref = system.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
+    val ref = system.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
     new NeuronRef(id, ref)
   }
 }

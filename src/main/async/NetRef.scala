@@ -35,8 +35,8 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick) = 
-    await[NeuronRef](ref, CreateNeuron(id, treshold, slope, forgetting))
+  def createNeuron(id: String, treshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick) = 
+    await[NeuronRef](ref, CreateNeuron(id, treshold, slope, hushValue, forgetting))
  
   def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
   

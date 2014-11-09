@@ -81,17 +81,17 @@ class Net(val id: String, val defSlope: Double = 20.0,
     neurons.foreach(_ ! NeuronShutdown)
   }
   
-  private def createNeuron(id: String, treshold: Double, slope: Double, forgetting: ForgettingTick){
+  private def createNeuron(id: String, treshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick){
 	debug(this, s"${this.id}: ,$id)")
-	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, forgetting)), name=id)
+	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
     sender ! neuronRef
   }
   
-  private def createDummy(id: String){
+  private def createDummy(id: String, hushValue: Double){
 	debug(this, s"${this.id}: ,$id)")
-	val ref = context.actorOf(Props(new DummyNeuron(id)), name=id)
+	val ref = context.actorOf(Props(new DummyNeuron(id, hushValue)), name=id)
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
     sender ! neuronRef
@@ -101,8 +101,8 @@ class Net(val id: String, val defSlope: Double = 20.0,
     case Init(usePresleep) => init(usePresleep)
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
-    case CreateNeuron(id, treshold, slope, forgetting) => createNeuron(id, treshold, slope, forgetting)
-    case CreateDummy(id) => createDummy(id)
+    case CreateNeuron(id, threshold, slope, hushValue, forgetting) => createNeuron(id, threshold, slope, hushValue, forgetting)
+    case CreateDummy(id, hushValue) => createDummy(id, hushValue)
     case ConnectNeurons(id1, id2, weight) => connectNeurons(id1, id2, weight) 
     case Shutdown => shutdown()
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
