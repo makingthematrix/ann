@@ -3,6 +3,7 @@ package main.sync
 import scala.collection.mutable
 import scala.concurrent._
 import main.utils.Utils._
+import main.logger.LOG
 
 class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet[Neuron] {
   private val neurons = mutable.ListBuffer[Neuron]()
@@ -82,7 +83,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     // this is a synchronous tick of all neurons - first the input layer, then the middle, then the output layer
     // not really what we want to achieve here ;)
 	iterationCounter += 1
-    println(s"--- tick nr $iterationCounter ---")
+    LOG.debug(this, s"--- tick nr $iterationCounter ---")
     inputLayer.foreach( _.tick() )
     middleLayer.foreach( _.tick() )
     outputLayer.foreach( _.tick() )

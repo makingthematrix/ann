@@ -15,7 +15,7 @@ object Context {
   val slope = 20.0
   val threshold = 0.5
   val weight = 1.0
-  val hushValue = -1.0
+  val hushValue = HushValue(0.0)
   val forgetting = DontForget
   val sleepTime = 50L
   val forgettingGranularity = 1.0

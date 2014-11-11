@@ -67,7 +67,7 @@ class NetBuilder {
   }
   
   protected def newNeuron(neuronType: NeuronType.Value, id: String, 
-      threshold: Double =defThreshold, slope: Double =defSlope, hushValue: Double =defHushValue,
+      threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
       forgetting: ForgettingTick =defForgetting) = neuronType match {
     case STANDARD => await[NeuronRef](net, CreateNeuron(id, threshold, slope, hushValue, forgetting))
     case DUMMY => await[NeuronRef](net, CreateDummy(id, hushValue))
@@ -108,7 +108,7 @@ class NetBuilder {
     n
   }
 
-  private def add(name: String, layerName: String, treshold: Double, slope:Double, hushValue: Double, forgetting: ForgettingTick):NetBuilder = {
+  private def add(name: String, layerName: String, treshold: Double, hushValue: HushValue, forgetting: ForgettingTick, slope:Double):NetBuilder = {
     debug(this, s"adding $name with treshold $treshold, slope $slope, hush value $hushValue and forgetting $forgetting")
     val (layer, neuronType) = getLayer(layerName)
     val n = if(contains(name)){
@@ -122,18 +122,18 @@ class NetBuilder {
   }
   
   private def chain(name: String, layerName: String, weight: Double, threshold: Double, 
-                    slope: Double, hushValue: Double, forgetting: ForgettingTick):NetBuilder = {
+                    hushValue: HushValue, forgetting: ForgettingTick, slope: Double):NetBuilder = {
     val n1 = current
     debug(this, s"chaining from ${n1.id} to $name with treshold $threshold and slope $slope")
     if(throwOnError && outs.contains(n1.id))
       throw new IllegalArgumentException("You can chain a new neuron only from input or middle neurons")
-    add(name, layerName, threshold, slope, hushValue: Double, forgetting)
+    add(name, layerName, threshold, hushValue, forgetting, slope)
     val n = neurons(currentNeuronId.get)
     n1.connect(n, weight)
     this
   }
   
-  def chainDummy(name: String, weight: Double, hushValue: Double =defHushValue):NetBuilder = {
+  def chainDummy(name: String, weight: Double, hushValue: HushValue =defHushValue):NetBuilder = {
     val n1 = current
     debug(this, s"chaining a dummy from ${n1.id} to $name")
     
@@ -154,44 +154,39 @@ class NetBuilder {
     this
   }
   
-  def addInput(name: String, threshold: Double =0.0, slope:Double = defSlope, hushValue: Double =defHushValue):NetBuilder = 
-    add(name, INPUT_LAYER_NAME, threshold, slope, hushValue, ForgetAll)
-  def addInput():NetBuilder = addInput(generateName(INPUT_LAYER_NAME))
+  def addInput(name: String, threshold: Double =0.0, hushValue: HushValue =defHushValue, slope:Double = defSlope):NetBuilder = 
+    add(name, INPUT_LAYER_NAME, threshold, hushValue, ForgetAll, slope)
   
-  def addMiddle(name: String, treshold: Double =defThreshold, slope: Double = defSlope, 
-                hushValue: Double =defHushValue, forgetting: ForgettingTick = DontForget):NetBuilder = 
-    add(name, MIDDLE_LAYER_NAME, treshold, slope, hushValue, forgetting)
+  def addMiddle(name: String, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
+                forgetting: ForgettingTick = DontForget, slope: Double = defSlope):NetBuilder = 
+    add(name, MIDDLE_LAYER_NAME, treshold, hushValue, forgetting, slope)
   def addMiddle():NetBuilder = addInput(generateName(MIDDLE_LAYER_NAME))
 
-  def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defThreshold, slope: Double =defSlope, 
-                  hushValue: Double =defHushValue, forgetting: ForgettingTick =DontForget):NetBuilder = 
-    chain(name, defMiddleName, weight, treshold, slope, hushValue, forgetting)
-  def chain(name: String, weight: Double =defWeight, treshold: Double =defThreshold, slope: Double =defSlope, 
-            hushValue: Double =defHushValue, forgetting: ForgettingTick =DontForget):NetBuilder =
-      chainMiddle(name, weight, treshold, slope, hushValue, forgetting)
+  def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
+                  forgetting: ForgettingTick =DontForget, slope: Double =defSlope):NetBuilder = 
+    chain(name, defMiddleName, weight, treshold, hushValue, forgetting, slope)
+  def chain(name: String, weight: Double =defWeight, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
+            forgetting: ForgettingTick =DontForget, slope: Double =defSlope):NetBuilder =
+      chainMiddle(name, weight, treshold, hushValue, forgetting, slope)
   def chainMiddle():NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
   def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME), weight)
   def chainMiddle(weight: Double, treshold: Double):NetBuilder = 
     chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold)
   def chainMiddle(weight: Double, treshold: Double, slope: Double):NetBuilder = 
-    chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold, slope)
+    chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold, defHushValue, defForgetting, slope)
     
-  def addOutput(name: String, treshold: Double =defThreshold, hushValue: Double =defHushValue, forgetting: ForgettingTick =DontForget):NetBuilder = 
-    add(name, OUTPUT_LAYER_NAME, treshold, defSlope, hushValue, forgetting)
+  def addOutput(name: String, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, forgetting: ForgettingTick =DontForget):NetBuilder = 
+    add(name, OUTPUT_LAYER_NAME, treshold, hushValue, forgetting, defSlope)
   def addOutput():NetBuilder = addInput(generateName(OUTPUT_LAYER_NAME))
   def chainOutput(name: String, weight: Double =defWeight, treshold: Double =defThreshold, 
-                  hushValue: Double =defHushValue, forgetting: ForgettingTick =DontForget):NetBuilder = 
-    chain(name, OUTPUT_LAYER_NAME, weight, treshold, defSlope, hushValue, forgetting)
-  def chainOutput():NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME))
-  def chainOutput(weight: Double):NetBuilder = chainOutput(generateName(OUTPUT_LAYER_NAME), weight)
-  def chainOutput(weight: Double, treshold: Double):NetBuilder = 
-    chainOutput(generateName(OUTPUT_LAYER_NAME), weight, treshold)
+                  hushValue: HushValue =defHushValue, forgetting: ForgettingTick =DontForget):NetBuilder = 
+    chain(name, OUTPUT_LAYER_NAME, weight, treshold, hushValue, forgetting, defSlope)
 
   def loop(name: String, w1: Double =defWeight, treshold: Double =defThreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current
     if(throwOnError && !mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
-    chainMiddle(name, w1, treshold, slope)
+    chainMiddle(name, w1, treshold, defHushValue, defForgetting, slope)
     current.connect(n1, w2)
     currentNeuronId = Some(n1.id)
     NetBuilder.this

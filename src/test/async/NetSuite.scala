@@ -157,13 +157,13 @@ class NetSuite extends JUnitSuite {
     builder.defThreshold = 0.5
     
     debug("1")
-    builder.addInput()
+    builder.addInput("in")
     debug("2")
     builder.chainMiddle()
     debug("3")
     builder.loop()
     debug("4")
-    builder.chainOutput()
+    builder.chainOutput("out") 
     debug("5")
     val net = builder.build
     debug("6")
@@ -198,7 +198,7 @@ class NetSuite extends JUnitSuite {
     val builder = NetBuilder()
     debug("2")
     builder.defThreshold = Context.threshold
-    builder.addInput().chainMiddle().loop().chainOutput()
+    builder.addInput("in").chainMiddle().loop().chainOutput("out")
     debug("3")
     val net = builder.build
     debug("4")
@@ -233,7 +233,7 @@ class NetSuite extends JUnitSuite {
   def shouldInitializeTheNet(){
     LOG.addLogToStdout()
     val builder = NetBuilder()
-    builder.addInput().chainMiddle().loop().chainOutput()
+    builder.addInput("in").chainMiddle().loop().chainOutput("out")
     
     val net = builder.build
     
@@ -248,7 +248,7 @@ class NetSuite extends JUnitSuite {
     
     val builder = NetBuilder()
     builder.defThreshold = Context.threshold
-    builder.addInput().chainMiddle().loop().chainOutput()
+    builder.addInput("in").chainMiddle().loop().chainOutput("out")
     
     val net = builder.build
     
@@ -286,7 +286,7 @@ class NetSuite extends JUnitSuite {
     
     val builder = NetBuilder()
     builder.defThreshold = Context.threshold
-    builder.addInput().chainMiddle().loop().chainOutput()
+    builder.addInput("in").chainMiddle().loop().chainOutput("out")
     
     val (in, net, out) = builder.build("in","out")
     

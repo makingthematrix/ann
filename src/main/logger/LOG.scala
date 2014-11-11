@@ -1,7 +1,7 @@
 package main.logger
 
 import scala.collection.mutable
-import main.sync.Neuron
+//import main.sync.Neuron
 import java.util.Calendar
 import java.io.StringWriter
 import java.io.PrintWriter
@@ -54,14 +54,16 @@ object LOG {
   
   def allow(id: String):Unit = _allowedIds += id
   def allow(ids: String*):Unit = ids.foreach( allow(_) )
-  def allow[N <: Neuron](implicit n: N):Unit = allow(n.id)
+  def allow[N <: main.sync.Neuron](implicit n: N):Unit = allow(n.id)
   
   def allowedIds = _allowedIds.toSet
   def clearAllowedIds() = _allowedIds.clear()
   def removeAllowedId(id: String) = _allowedIds -= id
+  def allowed(id: String):Boolean = _allowedIds.contains(id)
+  def allowed[N <: main.sync.Neuron](n: N):Boolean = allowed(n.id)
   
-  def +=(str: String)(implicit n: Neuron) = log(str, n)
-  def log(str: String, n: Neuron):Unit = if(_allowedIds.contains(n.getId)) log(str, logLevel)
+  def +=(str: String)(implicit n: main.sync.Neuron) = log(str, n)
+  def log(str: String, n: main.sync.Neuron):Unit = if(allowed(n)) log(str, logLevel)
   
   def removeOut(out: LogOutput) = findOut(out.id) match{
     case None => false;
@@ -115,8 +117,8 @@ object LOG {
 	
   def log(expr: => Boolean, str: String, logLevel: LogLevel.Value):Unit = if(expr) log(str, logLevel)
 	
-  def log(source: Any, str: String, logLevel: LogLevel.Value):Unit = 
-    if(trackAll || isTracking(source.getClass))
+  def log(source: Any, str: String, logLevel: LogLevel.Value, neuronAllowed: Boolean =false):Unit = 
+    if(trackAll || neuronAllowed || isTracking(source.getClass))
 	  log(source.getClass.getName + "->" + str, logLevel)
 	
 
@@ -165,7 +167,12 @@ object LOG {
 	log(source, str, LogLevel.ERROR)
 	throw new IllegalArgumentException(str)
   }
-	
+
+  def error[N <: main.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR, allowed(source))
+  def debug[N <: main.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG, allowed(source))
+  def info[N <: main.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.INFO, allowed(source))
+  def comment[N <: main.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.COMMENT, allowed(source))
+
   def error(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR)
   def debug(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG)
   def info(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.INFO)

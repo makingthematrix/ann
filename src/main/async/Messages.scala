@@ -16,11 +16,12 @@ object Messages {
   case class Init(userPresleep: Boolean)
   case object HushNow // become silent
   case object WakeUp
+  case object WakeFromHush
   case class Connect(destinationRef: NeuronRef, weight: SynapseWeight)
   case class Disconnect(destinationId: String)
   case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
-  case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick)
-  case class CreateDummy(id: String, hushValue: Double)
+  case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick)
+  case class CreateDummy(id: String, hushValue: HushValue)
   case class ConnectNeurons(id1: String, id2: String, weight: Double)
   case class SetInputLayer(ids: Seq[String])
   case class SetOutputLayer(ids: Seq[String])

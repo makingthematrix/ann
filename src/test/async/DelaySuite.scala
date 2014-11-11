@@ -11,7 +11,7 @@ import org.junit.Assert._
 
 class DelaySuite extends MySuite {  
   @Test def shouldSendOutputWithDelay_usingInputSynapse(){
-    builder.addInput().chainMiddle(0.55,0.5).loop(1.0,0.5,1.0).chainOutput(1.0,0.75)
+    builder.addInput("in").chainMiddle(0.55,0.5).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.75)
     build()
     
     in += "1"
@@ -20,7 +20,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithDelay_usingSlopeAndSelf(){
-    builder.addInput().chainMiddle(0.7,0.5,5.0).self(1.0).chainOutput(1.0,0.75)
+    builder.addInput("in").chainMiddle(0.7,0.5,5.0).self(1.0).chainOutput("out",1.0,0.75)
     build()
     
     in += "1"
@@ -29,7 +29,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingInputSynapseAndForgetting(){ 
-    builder.addInput().chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput("out", 1.0,0.75)
+    builder.addInput("in").chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput("out", 1.0,0.75)
     build()
     
     in += "1"
@@ -38,7 +38,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgetting(){
-    builder.addInput().chainMiddle(0.55,0.5,5.0).loop(1.0,0.5,0.75).chainOutput("out",1.0,0.75)
+    builder.addInput("in").chainMiddle(0.55,0.5,5.0).loop(1.0,0.5,0.75).chainOutput("out",1.0,0.75)
     build()
     
     in += "1"
@@ -47,7 +47,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgettingAll(){
-    builder.addInput().chainMiddle(0.51,0.5,2.5).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.75)
+    builder.addInput("in").chainMiddle(0.51,0.5,2.5).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.75)
     build()
     
     in += "1"
@@ -56,7 +56,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWith2Signals_usingTreshold(){
-    builder.addInput().chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput(1.0,0.9)
+    builder.addInput("in").chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.9)
     build()
     in.tickInterval = 100L
     
@@ -106,7 +106,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
-    builder.addInput().chainMiddle(1.0).oscillator().chainOutput("out1", 1.0, 0.75)
+    builder.addInput("in").chainMiddle(1.0).oscillator().chainOutput("out1", 1.0, 0.75)
     build()
     
     in += "1,1,1,1,1,1"
@@ -124,7 +124,7 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillatorWithMethod2(){
-    builder.addInput().chainOscillator(1.0).chainOutput("out1", 1.0, 0.75)
+    builder.addInput("in").chainOscillator(1.0).chainOutput("out1", 1.0, 0.75)
     build()
     
     in += "1,1,1,1,1,1"

@@ -50,7 +50,7 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var t
 
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n * resolution) yield {
-    debug(NetInput.this, s"iteration ${_iteration}")
+    debug(this, s"-------- ITERATION ${_iteration} ---------")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
     Thread.sleep(tickInterval)

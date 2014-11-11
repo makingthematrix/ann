@@ -81,7 +81,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
     neurons.foreach(_ ! NeuronShutdown)
   }
   
-  private def createNeuron(id: String, treshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick){
+  private def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick){
 	debug(this, s"${this.id}: ,$id)")
 	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
     val neuronRef = new NeuronRef(id, ref)
@@ -89,7 +89,7 @@ class Net(val id: String, val defSlope: Double = 20.0,
     sender ! neuronRef
   }
   
-  private def createDummy(id: String, hushValue: Double){
+  private def createDummy(id: String, hushValue: HushValue){
 	debug(this, s"${this.id}: ,$id)")
 	val ref = context.actorOf(Props(new DummyNeuron(id, hushValue)), name=id)
     val neuronRef = new NeuronRef(id, ref)

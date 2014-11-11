@@ -35,7 +35,7 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, treshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick) = 
+  def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick) = 
     await[NeuronRef](ref, CreateNeuron(id, treshold, slope, hushValue, forgetting))
  
   def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
@@ -55,10 +55,11 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def shutdown() = await[NetShutdownDone](ref,Shutdown)
  
-  def addAfterFireTrigger(id: String, f: Trigger) = find(id).neuronOpt match {
-    case Some(neuronRef) => neuronRef.addAfterFireTrigger("net_"+id, f)
+  def addAfterFireTrigger(id: String, name: String, f: Trigger):Unit = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addAfterFireTrigger(name, f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
+  def addAfterFireTrigger(id: String, f: Trigger):Unit  = addAfterFireTrigger(id, id, f)
 
 }
 

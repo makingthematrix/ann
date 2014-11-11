@@ -7,6 +7,8 @@ import org.junit.Assert._
 import scala.annotation.tailrec
 import main.async.Context
 import main.async.Context.sleepTime
+import main.async.HushValue
+import main.async.Messages.ForgetAll
 
 class NeuronSuite extends MySuite {
   case class NeuronData(slope: Double, weight: Double, threshold: Double)
@@ -52,8 +54,8 @@ class NeuronSuite extends MySuite {
             
   @Test def delayedSignal() = {
     builder.defSlope = 5.0
-    builder.addInput("in").chainDummy("dummy", 1.0).chainMiddle("mi11", 0.54, 0.0).loop("loop",1.0,0.0,0.99).chainMiddle("out",0.8,0.75)
-    builder.use("mi11").hush("dummy")
+    builder.addInput("in").chainDummy("mi11", 0.55).loop("loop",1.0,0.0,0.99).chainMiddle("out",1.0,0.66, HushValue(0.0), ForgetAll)
+    builder.use("mi11").hush("in")
     builder.use("out").connect("mi11",-1.0).connect("loop",-1.0)
     build()
     in.tickInterval = sleepTime * 2
@@ -69,7 +71,7 @@ class NeuronSuite extends MySuite {
       println("DONE") 
       done = true
     })
-    in += "1,0,0,0,1"
+    in += "1"
     init()
     val interval = in.tickUntilCalm()
     println(s"interval: $interval, good loops: $goodLoops, bad loops: $badLoops")

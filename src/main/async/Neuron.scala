@@ -13,12 +13,12 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-class Neuron(val id: String, val threshold: Double, val slope: Double, val hushValue: Double, private var forgetting: ForgettingTick)
+case class HushValue(value: Double =0.0, iterations: Int = 1)
+
+class Neuron(val id: String, val threshold: Double, val slope: Double, val hushValue: HushValue, private var forgetting: ForgettingTick)
 extends Actor with NeuronTriggers {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
-//  def this(id: String) = this(id, 0.5, 20.0, DontForget)
-//  def this(id: String, treshold: Double) = this(id, treshold, 20.0, DontForget)
   def that = this
   
   protected var buffer = 0.0
@@ -28,27 +28,58 @@ extends Actor with NeuronTriggers {
   def lastOutput = output // only for debugging purposes
   
   def silence(){
-    assert(hushValue <= 0.0, s"The hush value for $id is $hushValue - expected something <= 0.0")
-    buffer = hushValue
+    debug(this,s"$id silence, hushValue.iterations is ${hushValue.iterations}")
+    assert(hushValue.value <= 0.0, s"The hush value for $id is $hushValue - expected something <= 0.0")
+    buffer = hushValue.value
     output = 0.0
-    makeSleep()
+    if(hushValue.iterations == 0) makeSleep() else makeHush()
   }
   
   private def makeSleep() = {
-    debug(this, s"$id, going to sleep")
     context.become(sleep)
-    context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
-      self ! WakeUp
-    }
+    context.system.scheduler.scheduleOnce(Context.sleepTime millis){ self ! WakeUp }
+  }
+  
+  private def makeHush() = {
+    val t = Context.sleepTime * hushValue.iterations.toLong
+    debug(this, s"$id making hush for ${hushValue.iterations} iterations ($t millis)")
+    context.become(hushTime)
+    context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
   }
   
   protected def calculateOutput:Double = f(buffer, slope)
   
   def +=(signal: Double){
+    forget()
     debug(this, s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
-    buffer = minmax(-1.0, buffer+signal, 1.0)
+    buffer += signal
+    tick()
+  }
+  
+  private def wakeUp(){
+    debug(this,s"$id waking up")
+    forget()
+	tick()
+    context.become(receive)
+  }
+  
+  private def tick(){
+    buffer = minmax(-1.0, buffer, 1.0)
     if(buffer > threshold) tresholdPassedTriggers.values.foreach( _() )
     if(forgetting == ForgetAll) buffer = 0.0
+  }
+  
+  private var lastForgetting:Option[Long] = None
+  
+  private def forget() = forgetting match {
+    case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
+    case ForgetValue(forgetValue) =>
+      val offset = System.currentTimeMillis() - lastForgetting.get
+      val delta = offset.toDouble/Context.sleepTime * forgetValue
+      debug(this, s"forgetting, offset=$offset, sleepTime=${Context.sleepTime}, forgetValue=$forgetValue, so delta is $delta")
+      buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
+      lastForgetting = Some(System.currentTimeMillis())
+    case _ =>
   }
   
   protected def run(){
@@ -92,41 +123,14 @@ extends Actor with NeuronTriggers {
     
     addTresholdPassedTrigger("run", () => that.run() )
     
-    if(usePresleep) context.become(presleep)
+    //if(usePresleep) context.become(presleep)
     
-    forgetting match {
-      case ForgetValue(value) => 
-        val t = (Context.sleepTime.toDouble / Context.forgettingGranularity).toLong
-        context.system.scheduler.schedule(t millis, t millis){
-          self ! Forgetting
-        }
-      case _ =>
-    }
     answer(Success("init_"+this.id))
   }
   
   private def shutdown(){
     answer(NeuronShutdownDone(id))
     context.stop(self)
-  }
-  
-  private def wakeUp(){
-    debug(this,s"$id, waking up")
-    buffer = minmax(-1.0, buffer, 1.0)
-    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _() )
-    context.unbecome()
-  }
-  
-  private def forget() = forgetting match {
-    case ForgetAll => silence()
-    case ForgetValue(value) if value > 0 => {
-      val t = value / Context.forgettingGranularity
-      if(buffer > 0.0) buffer = Math.max(buffer - t, 0.0)
-      else if(buffer < 0.0) buffer = Math.min(buffer + t, 0.0)
-      //debug(this,s"$id, forgetting $t")
-      // might be changed into the S function later on      
-    }
-    case DontForget =>
   }
   
   private def setForgetting(forgetting: ForgettingTick){
@@ -138,18 +142,31 @@ extends Actor with NeuronTriggers {
   
   def sleep = sleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
 
-  def presleep = preSleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, presleep")
+  def hushTime = hushBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
+  
+  //def presleep = preSleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, presleep")
 
   val activeBehaviour: Receive = {
-    case WakeUp =>
     case Signal(s) => this += s
+    case HushNow => silence()
+    case WakeUp =>
+  }
+  
+  val hushBehaviour: Receive = {
+    case WakeFromHush if sender == self => debug(this, s"$id hush wake up"); wakeUp()
+    case Signal(s) => debug(this,s"$id, signal hushed: $s")// so it's like sleep, but we ignore signals
+  }
+  
+  val sleepBehaviour: Receive = {
+    case WakeUp if sender == self => debug(this, s"$id sleep wake up"); wakeUp()
+    case HushNow => silence()
+    case Signal(s) => buffer += s
   }
   
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
       case GetInput => sender ! Msg(input.toDouble, id)
       case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
-      case HushNow => silence()
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses.toList)
       case NeuronShutdown => shutdown()
@@ -162,24 +179,17 @@ extends Actor with NeuronTriggers {
         removeAfterFireTrigger(triggerId)
         sender ! Success(triggerId)
       case Init(usePresleep) => init(usePresleep)
-      case Forgetting => forget()
       case SetForgetting(forgetting) => setForgetting(forgetting)
   }
   
-  val sleepBehaviour: Receive = {
-    case WakeUp => wakeUp()
-    case Signal(s) => buffer += s
-  }
-  
-  val preSleepBehaviour: Receive = {
+  /*val preSleepBehaviour: Receive = {
     case WakeUp => wakeUp()
     case Signal(s) => 
       buffer += s
       context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
         wakeUp()
-        forget()
       }
-  }
+  }*/
   
   def otherBehaviour(state: String): Receive = {
     case other => debug(this,s"$state, unrecognized message: $other")

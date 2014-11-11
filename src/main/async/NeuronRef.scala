@@ -56,7 +56,7 @@ object NeuronRef {
     new NeuronRef(id, ref)
   }*/
   
-  def apply(id: String, treshold: Double, slope: Double, hushValue: Double, forgetting: ForgettingTick):NeuronRef = {
+  def apply(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick):NeuronRef = {
     debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
     val ref = system.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
     new NeuronRef(id, ref)
