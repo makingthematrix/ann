@@ -30,7 +30,7 @@ class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeig
     n
   }
   def addNeuron(neuron: Neuron){
-    println("adding neuron " + neuron.id)
+    LOG.debug(this, "adding neuron " + neuron.id)
     neurons += neuron
   }
   

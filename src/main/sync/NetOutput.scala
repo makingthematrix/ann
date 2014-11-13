@@ -15,8 +15,7 @@ class NetOutput(val name: String, val net: Net) {
   
   def addAfterFireTrigger(id: String, f:() => Any):Unit = find(id).addAfterFireTrigger(name+"_output_"+id, f)
   def addAfterFireTrigger(neuron: Neuron, f:() => Any):Unit = neuron.addAfterFireTrigger(name+"_output_"+neuron.id, f)
-  def addAfterFireTrigger(neuronRef: NeuronRef, f:() => Any):Unit = neuronRef.addAfterFireTrigger(name+"_output_"+neuronRef.id, f)
-  
+
   def addAfterTickTrigger(id: String, f:() => Any):Unit = find(id).addAfterTickTrigger(name+"_output_"+id, f)
   def addAfterTickTrigger(neuron: Neuron, f:() => Any):Unit = neuron.addAfterTickTrigger(name+"_output_"+neuron.id, f)
   

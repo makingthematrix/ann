@@ -1,8 +1,6 @@
 package test.async
 
 import org.junit.Test
-import main.async.Messages.ForgetValue
-import main.async.Messages.ForgetAll
 import main.async.Context.sleepTime
 import scala.collection.mutable
 import main.async.Neuron
@@ -56,9 +54,9 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldSendOutputWith2Signals_usingTreshold(){
+	builder.tickInterval = 100L
     builder.addInput("in").chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.9)
     build()
-    in.tickInterval = 100L
     
     in += "1,1"
       
@@ -66,14 +64,14 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldGiveConstantOutput(){
+	builder.tickInterval = sleepTime * 2
     builder.addInput("in1").chainMiddle("mi1",1.0).chainOutput("out1",1.0,0.75)
     build()
     
     in += "1,1,1,1,1,1"
-    in.tickInterval = sleepTime * 2;
       
     val list = mutable.ListBuffer[Long]()
-    out.find("out1").addAfterFireTrigger("fired", () => list += LOG.time )
+    out.find("out1").addAfterFireTrigger("fired"){ list += LOG.time }
     
     net.init(usePresleep = false)
     LOG.timer()
@@ -86,14 +84,14 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillator(){
+    builder.tickInterval = sleepTime * 2
     builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)
     build()
     
     in += "1,1,1,1,1,1"
-    in.tickInterval = sleepTime * 2;
       
     val list = mutable.ListBuffer[Long]()
-    out.find("out1").addAfterFireTrigger("fired", () => list += LOG.time )
+    out.find("out1").addAfterFireTrigger("fired"){ list += LOG.time }
     
     net.init(usePresleep = false)
     LOG.timer()
@@ -106,14 +104,14 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
+    builder.tickInterval = sleepTime * 2
     builder.addInput("in").chainMiddle(1.0).oscillator().chainOutput("out1", 1.0, 0.75)
     build()
     
     in += "1,1,1,1,1,1"
-    in.tickInterval = sleepTime * 2;
       
     val list = mutable.ListBuffer[Long]()
-    out.find("out1").addAfterFireTrigger("fired", () => list += LOG.time )
+    out.find("out1").addAfterFireTrigger("fired"){ list += LOG.time }
     
     net.init(usePresleep = false)
     LOG.timer()
@@ -124,14 +122,14 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillatorWithMethod2(){
+    builder.tickInterval = sleepTime * 2
     builder.addInput("in").chainOscillator(1.0).chainOutput("out1", 1.0, 0.75)
     build()
     
     in += "1,1,1,1,1,1"
-    in.tickInterval = sleepTime * 2;
       
     val list = mutable.ListBuffer[Long]()
-    out.find("out1").addAfterFireTrigger("fired", () => list += LOG.time )
+    out.find("out1").addAfterFireTrigger("fired"){ list += LOG.time }
     
     net.init(usePresleep = false)
     LOG.timer()
@@ -142,16 +140,16 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillator2(){
+    builder.tickInterval = sleepTime * 2
     builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)
     builder.use("osc").chainMiddle("mi2",1.0).chainOutput("out2",1.0,0.75)
     build()
     
     in += "1,1,1,1,1,1"
-    in.tickInterval = sleepTime * 2;
     
     val sb = StringBuilder.newBuilder
-    out.find("out1").addAfterFireTrigger("fired 1", () => sb.append('1') )
-    out.find("out2").addAfterFireTrigger("fired 0", () => sb.append('0') )
+    out.find("out1").addAfterFireTrigger("fired 1"){ sb.append('1') }
+    out.find("out2").addAfterFireTrigger("fired 0"){ sb.append('0') }
     
     net.init(usePresleep = false)
     LOG.timer()

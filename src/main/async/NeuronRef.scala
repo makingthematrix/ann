@@ -26,12 +26,14 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     case Success(id) => true
     case Failure(str) => error(this,s"connect failure: $str"); false 
   }
-  
-  def setForgetting(forgetting: ForgettingTick) = await[Answer](ref, SetForgetting(forgetting))
  
   protected def calculateOutput = Double.NaN // we don't do that here 
   
-  def addAfterFireTrigger(triggerId: String, trigger: Trigger) = await[Answer](ref, AddAfterFireTrigger(triggerId, trigger)) match {
+  def addAfterFireTrigger(triggerId: String)(f: => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, () => f)) match {
+    case Success(id) => true
+    case Failure(str) => error(this,s"addAfterFireTrigger failure: $str"); false
+  }
+  def addAfterFireTrigger2(triggerId: String, f: () => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, f)) match {
     case Success(id) => true
     case Failure(str) => error(this,s"addAfterFireTrigger failure: $str"); false
   }
@@ -51,12 +53,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
 } 
 
 object NeuronRef {
- /* def apply(id: String):NeuronRef = {
-    val ref = system.actorOf(Props(new Neuron(id)), name=id)
-    new NeuronRef(id, ref)
-  }*/
-  
-  def apply(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick):NeuronRef = {
+  def apply(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait):NeuronRef = {
     debug(this,s"new neuronref $id with treshold $treshold and slope $slope")
     val ref = system.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
     new NeuronRef(id, ref)

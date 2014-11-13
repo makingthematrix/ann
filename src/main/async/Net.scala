@@ -9,9 +9,7 @@ import scala.concurrent.duration._
 import main.logger.LOG._
 import Messages._
 
-class Net(val id: String, val defSlope: Double = 20.0, 
-              val defTreshold: Double = 0.5, val defWeight: Double = 1.0, 
-              val defForgetting:ForgettingTick = DontForget) extends Actor {
+class Net(val id: String) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
   private val ins = mutable.ListBuffer[NeuronRef]()
   private val outs = mutable.ListBuffer[NeuronRef]()
@@ -66,12 +64,12 @@ class Net(val id: String, val defSlope: Double = 20.0,
     case Failure(str) => error(Net.this, "this Failure message shouldn't be here: " + str)
   }
   
-  private def init(usePresleep: Boolean) = {
+  private def init() = {
     debug(Net.this, s"init for $id")
     waitingForInit ++= neurons.map( _.id )
     caller = Some(sender)
     context.become(initializing)
-    neurons.foreach( _ ! Init(usePresleep) )
+    neurons.foreach( _ ! Init )
   }
   
   private def shutdown() = {
@@ -81,24 +79,24 @@ class Net(val id: String, val defSlope: Double = 20.0,
     neurons.foreach(_ ! NeuronShutdown)
   }
   
-  private def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick){
-	debug(this, s"${this.id}: ,$id)")
-	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
+  private def add(id: String, ref: ActorRef) = {
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
     sender ! neuronRef
   }
   
+  private def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait){
+	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
+    add(id, ref)
+  }
+  
   private def createDummy(id: String, hushValue: HushValue){
-	debug(this, s"${this.id}: ,$id)")
 	val ref = context.actorOf(Props(new DummyNeuron(id, hushValue)), name=id)
-    val neuronRef = new NeuronRef(id, ref)
-    neurons += neuronRef
-    sender ! neuronRef
+    add(id, ref)
   }
 
   def receive: Receive = {
-    case Init(usePresleep) => init(usePresleep)
+    case Init => init()
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, threshold, slope, hushValue, forgetting) => createNeuron(id, threshold, slope, hushValue, forgetting)

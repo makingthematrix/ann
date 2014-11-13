@@ -35,12 +35,12 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick) = 
+  def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait) = 
     await[NeuronRef](ref, CreateNeuron(id, treshold, slope, hushValue, forgetting))
  
   def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
   
-  def init(usePresleep: Boolean =true) = await[Answer](ref, Init(usePresleep)) match {
+  def init(usePresleep: Boolean =true) = await[Answer](ref, Init) match {
     case Success(netId) if(netId == "netinit_"+id) => true
     case Failure(msg) => error(this, msg); false
   }
@@ -55,21 +55,19 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def shutdown() = await[NetShutdownDone](ref,Shutdown)
  
-  def addAfterFireTrigger(id: String, name: String, f: Trigger):Unit = find(id).neuronOpt match {
-    case Some(neuronRef) => neuronRef.addAfterFireTrigger(name, f)
+  def addAfterFireTrigger(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addAfterFireTrigger(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
-  def addAfterFireTrigger(id: String, f: Trigger):Unit  = addAfterFireTrigger(id, id, f)
+  def addAfterFireTrigger(id: String)(f: => Any):Unit  = addAfterFireTrigger(id, id)(f)
 
 }
 
 object NetRef {
   private var netRefOpt: Option[NetRef] = None
   
-  def apply(id: String):NetRef = apply(id, Context.slope, Context.threshold, Context.weight)
-  
-  def apply(id: String, defSlope: Double, defTreshold: Double, defWeight: Double):NetRef = {
-    val ref = system.actorOf(Props(new Net(id, defSlope, defTreshold, defWeight)))
+  def apply(id: String):NetRef = {
+    val ref = system.actorOf(Props(new Net(id)))
     val netRef = new NetRef(id, ref)
     netRefOpt = Some(netRef)
     netRef

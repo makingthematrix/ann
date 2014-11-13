@@ -136,10 +136,10 @@ class NetSuite extends JUnitSuite {
     net.init()
     
     var outputRegistered = false
-    out.addAfterFireTrigger("out1trigger", () => {
+    out.addAfterFireTrigger("out1trigger"){
       assertTrue(out.lastOutput > 0.01)
       outputRegistered = true
-    })
+    }
     
     net ! SignalSeq(Seq(1.0)) // there is no 'tick' in AkkaNet. sending a signal triggers the calculations.
     Thread.sleep(500L)
@@ -178,10 +178,10 @@ class NetSuite extends JUnitSuite {
     net.init()
     debug("9")
     var outputRegistered = 0
-    out.addAfterFireTrigger("out1trigger", () => {
+    out.addAfterFireTrigger("out1trigger"){
       assertTrue(out.lastOutput > 0.01)
       if(outputRegistered < 2) outputRegistered += 1
-    })
+    }
     debug("10")
     net ! SignalSeq(Seq(1.0)) // there is no 'tick' in AkkaNet. sending a signal triggers the calculations.
     Thread.sleep(1000L)
@@ -197,12 +197,13 @@ class NetSuite extends JUnitSuite {
     debug("1")
     val builder = NetBuilder()
     debug("2")
+    builder.tickInterval = sleepTime * 2
     builder.defThreshold = Context.threshold
     builder.addInput("in").chainMiddle().loop().chainOutput("out")
     debug("3")
     val net = builder.build
     debug("4")
-    val in = NetInput("in1", net)
+    val in = NetInput("in1", net, 1, builder.tickInterval)
     debug("5")
     in += Context.threshold + 0.1
     debug("6")
@@ -214,10 +215,10 @@ class NetSuite extends JUnitSuite {
     
     var outputRegistered = false
     val out0 = out.find(out.getId(0))
-    out0.addAfterFireTrigger("out0trigger", () => {
+    out0.addAfterFireTrigger("out0trigger"){
       println( out0.id + " => " + out0.lastOutput )
       outputRegistered = true
-    })
+    }
     
     in.tick(3)
     debug("9")
@@ -247,12 +248,13 @@ class NetSuite extends JUnitSuite {
     LOG.addLogToStdout()
     
     val builder = NetBuilder()
+    builder.tickInterval = sleepTime * 2
     builder.defThreshold = Context.threshold
     builder.addInput("in").chainMiddle().loop().chainOutput("out")
     
     val net = builder.build
     
-    val in = NetInput("in1", net)
+    val in = NetInput("in1", net, 1, builder.tickInterval)
     in += Context.threshold + 0.1
     in += 0.0
     in += 0.0
@@ -266,10 +268,10 @@ class NetSuite extends JUnitSuite {
     val out0 = out.find(outId)
     var outputRegistered = false
     
-    out0.addAfterFireTrigger("out0trigger", () => {
+    out0.addAfterFireTrigger("out0trigger"){
       debug( out0.id + " => " + out0.lastOutput )
       outputRegistered = true
-    })
+    }
 
     net.init()
     
@@ -297,10 +299,10 @@ class NetSuite extends JUnitSuite {
     val outId = out.getId(0)
     val out0 = out.find(outId)
     var outputRegistered = false
-    out0.addAfterFireTrigger("out0trigger", () => {
+    out0.addAfterFireTrigger("out0trigger"){
       debug( out0.id + " => " + out0.lastOutput )
       outputRegistered = true
-    })
+    }
 
     assertTrue(net.init())
     

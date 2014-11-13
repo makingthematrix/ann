@@ -1,33 +1,27 @@
 package main.async
 
-import Context.Trigger
+import NeuronTriggers.Trigger
 
 object Messages {
   // signals
   case class Signal(s: Double)
   case class SignalSeq(input: Seq[Double])
-  case object Forgetting
-  sealed trait ForgettingTick
-  case object ForgetAll extends ForgettingTick
-  case class ForgetValue(value: Double) extends ForgettingTick
-  case object DontForget extends ForgettingTick
 
   // commands
-  case class Init(userPresleep: Boolean)
+  case object Init
   case object HushNow // become silent
   case object WakeUp
   case object WakeFromHush
   case class Connect(destinationRef: NeuronRef, weight: SynapseWeight)
   case class Disconnect(destinationId: String)
   case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
-  case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgettingTick)
+  case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait)
   case class CreateDummy(id: String, hushValue: HushValue)
   case class ConnectNeurons(id1: String, id2: String, weight: Double)
   case class SetInputLayer(ids: Seq[String])
   case class SetOutputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
-  case class SetForgetting(forgetting: ForgettingTick)
   
   // questions
   case object GetId

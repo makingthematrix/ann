@@ -10,7 +10,7 @@ import main.logger.LOG
 
 class DotNetSuite extends MySuite {
   private def dotNet() = {
-    builder.defSlope = 5.0
+    builder.tickInterval = sleepTime * 2
     builder.addInput("in1")
     // dots
     builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainOutput("out1",1.0)
@@ -20,12 +20,11 @@ class DotNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    in.tickInterval = sleepTime * 2
     out.ids.foreach( debug(this, _) )
-    out.addAfterFireTrigger("out1", () => {
+    out.addAfterFireTrigger("out1"){
       println("KROPA!")
       sb.append('.')
-     })
+     }
     
     sb
   }
@@ -49,7 +48,7 @@ class DotNetSuite extends MySuite {
   }
   
   private def dotNetRes4() = {
-    builder.defSlope = 5.0
+    builder.tickInterval = sleepTime * 2
     builder.resolution = 4
     builder.addInput("in1")
     // dots
@@ -61,11 +60,10 @@ class DotNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    in.tickInterval = sleepTime * 2
-    out.addAfterFireTrigger("out1", () => {
+    out.addAfterFireTrigger("out1"){
       println("KROPA!")
       sb.append('.') 
-    })
+    }
     
     sb
   }

@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 import Messages._
 import main.logger.LOG._
 
-class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var tickInterval: Long = 50L) {
+class NetInput(val name: String, val net: NetRef, val resolution: Int, val tickInterval: Long) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   
@@ -61,7 +61,7 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var t
     var neuronFired = false
     val neurons = net.getNeurons
     
-    neurons.foreach(_.addAfterFireTrigger("tickUntilCalm", () => neuronFired = true))
+    neurons.foreach(_.addAfterFireTrigger("tickUntilCalm"){ neuronFired = true })
     
     var (calmTick, counter) = (0, 0)
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
@@ -75,14 +75,13 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int = 1, var t
     neurons.foreach(_.removeAfterFireTrigger("tickUntilCalm"))
     counter
   }
-
   
   def empty = inputQueue.isEmpty
 }
 
 object NetInput {
-  def apply(name: String, net: NetRef, resolution: Int = 1) = {
-    val ani = new NetInput(name, net: NetRef, resolution)
+  def apply(name: String, net: NetRef, resolution: Int, tickInterval: Long) = {
+    val ani = new NetInput(name, net, resolution, tickInterval)
     ani.regSign('0',0.0)
     ani.regSign('1', 1.0)
     ani

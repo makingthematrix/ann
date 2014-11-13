@@ -13,9 +13,14 @@ import Messages._
 
 import ExecutionContext.Implicits.global
 
-case class HushValue(value: Double =0.0, iterations: Int = 1)
+case class HushValue(iterations: Int = 1) extends AnyVal
+  
+sealed trait ForgetTrait extends Any
+case class ForgetValue(value: Double) extends AnyVal with ForgetTrait 
+case object ForgetAll extends ForgetTrait
+case object DontForget extends ForgetTrait
 
-class Neuron(val id: String, val threshold: Double, val slope: Double, val hushValue: HushValue, private var forgetting: ForgettingTick)
+class Neuron(val id: String, val threshold: Double, val slope: Double, val hushValue: HushValue, val forgetting: ForgetTrait)
 extends Actor with NeuronTriggers {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
@@ -29,8 +34,7 @@ extends Actor with NeuronTriggers {
   
   def silence(){
     debug(this,s"$id silence, hushValue.iterations is ${hushValue.iterations}")
-    assert(hushValue.value <= 0.0, s"The hush value for $id is $hushValue - expected something <= 0.0")
-    buffer = hushValue.value
+    buffer = 0.0
     output = 0.0
     if(hushValue.iterations == 0) makeSleep() else makeHush()
   }
@@ -118,13 +122,10 @@ extends Actor with NeuronTriggers {
     case None => //error(this, "answer demanded, but no netref!")
   }
   
-  protected def init(usePresleep: Boolean){
+  protected def init(){
     debug(this, s"init for $id with threshold $threshold and slope $slope")
     
-    addTresholdPassedTrigger("run", () => that.run() )
-    
-    //if(usePresleep) context.become(presleep)
-    
+    addTresholdPassedTrigger("run", () => that.run() )  
     answer(Success("init_"+this.id))
   }
   
@@ -133,19 +134,12 @@ extends Actor with NeuronTriggers {
     context.stop(self)
   }
   
-  private def setForgetting(forgetting: ForgettingTick){
-    this.forgetting = forgetting
-    sender ! Success(id)
-  }
-  
   def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
   
   def sleep = sleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
 
   def hushTime = hushBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
   
-  //def presleep = preSleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, presleep")
-
   val activeBehaviour: Receive = {
     case Signal(s) => this += s
     case HushNow => silence()
@@ -178,18 +172,8 @@ extends Actor with NeuronTriggers {
       case RemoveAfterFireTrigger(triggerId) =>
         removeAfterFireTrigger(triggerId)
         sender ! Success(triggerId)
-      case Init(usePresleep) => init(usePresleep)
-      case SetForgetting(forgetting) => setForgetting(forgetting)
+      case Init => init()
   }
-  
-  /*val preSleepBehaviour: Receive = {
-    case WakeUp => wakeUp()
-    case Signal(s) => 
-      buffer += s
-      context.system.scheduler.scheduleOnce(Context.sleepTime millis){ 
-        wakeUp()
-      }
-  }*/
   
   def otherBehaviour(state: String): Receive = {
     case other => debug(this,s"$state, unrecognized message: $other")

@@ -63,7 +63,7 @@ class MySuite extends JUnitSuite {
   
   protected def assertOutputAfter(afterMillis: Long, timeoutSeconds: Int) = {
     val p = Promise[Long]
-    _out.addAfterFireTrigger(_out.getId(0), () => p.success(LOG.time) )
+    _out.addAfterFireTrigger(_out.getId(0)){ p.success(LOG.time) }
 
     init()
     while(!_in.empty) _in.tick()
