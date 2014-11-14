@@ -95,15 +95,13 @@ extends Actor with NeuronTriggers {
     makeSleep()
   }
   
-  def connect(destination: Neuron, weight: Double) =
-    throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
-  
-  private def _connect(destinationRef: NeuronRef, weight: SynapseWeight) = {
+  private def _connect(destinationRef: NeuronRef, weight: SynapseTrait) = {
     //LOG +=  s"_connect(${destinationRef.id},$weight)")
     synapses += new Synapse(destinationRef, weight)
     sender ! Success("connect_"+id)
   }
-  protected def connect(destinationRef: NeuronRef, weight: SynapseWeight):Unit = findSynapse(destinationRef.id) match {
+  
+  protected def connect(destinationRef: NeuronRef, weight: SynapseTrait) = findSynapse(destinationRef.id) match {
     case Some(s) => sender ! Failure(s"a synapse to ${destinationRef.id} already exists")
     case None => _connect(destinationRef, weight)
   }

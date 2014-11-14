@@ -49,7 +49,7 @@ class NetSuite extends JUnitSuite {
   def shouldInitializeTheNet(){
     LOG.addLogToStdout()
     val builder = NetBuilder()
-    builder.addInput("in").chainMiddle().loop().chainOutput("out")
+    builder.addInput("in").chain("mi").loop().chain("out")
     
     val net = builder.build
     

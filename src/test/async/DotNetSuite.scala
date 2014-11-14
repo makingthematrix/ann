@@ -13,15 +13,14 @@ class DotNetSuite extends MySuite {
     builder.tickInterval = sleepTime * 2
     builder.addInput("in1")
     // dots
-    builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainOutput("out1",1.0)
+    builder.use("in1").chainMiddle("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chain("mi12",1.0,0.75).chain("out1",1.0)
     builder.use("out1").connect("mi11", -0.49)
     builder.use("out1").connect("mi12", -1.0)
     
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    out.ids.foreach( debug(this, _) )
-    out.addAfterFireTrigger("out1"){
+    net.addAfterFireTrigger("out1"){
       println("KROPA!")
       sb.append('.')
      }
@@ -52,7 +51,7 @@ class DotNetSuite extends MySuite {
     builder.resolution = 4
     builder.addInput("in1")
     // dots
-    builder.use("in1").chainMiddle("mi11",0.24,0.5).loop("loop1",0.75,0.5,1.0).chainMiddle("mi12",1.0,0.75).chainOutput("out1",1.0)
+    builder.use("in1").chain("mi11",0.24,0.5).loop("loop1",0.75,0.5,1.0).chain("mi12",1.0,0.75).chain("out1",1.0)
     builder.use("out1").hush("mi11")
     builder.use("out1").hush("mi12")
     builder.use("out1").hush("loop1")
@@ -60,7 +59,7 @@ class DotNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger("out1"){
+    net.addAfterFireTrigger("out1"){
       println("KROPA!")
       sb.append('.') 
     }

@@ -28,8 +28,6 @@ class NetRef(val id: String, val ref: ActorRef) {
   def inputSize = await[MsgNeurons](ref,GetInputLayer).neurons.size
   def middleIds = await[MsgNeurons](ref,GetMiddleLayer).neurons.map( _.id )
   def middleSize = await[MsgNeurons](ref,GetMiddleLayer).neurons.size
-  def outputIds = await[MsgNeurons](ref,GetOutputLayer).neurons.map( _.id )
-  def outputSize = await[MsgNeurons](ref,GetOutputLayer).neurons.size
 
   def getNeurons = await[MsgNeurons](ref,GetNeurons).neurons
   
@@ -46,7 +44,6 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
   
   def setInputLayer(seq: Seq[String]) = await[Answer](ref, SetInputLayer(seq))
-  def setOutputLayer(seq: Seq[String]) = await[Answer](ref, SetOutputLayer(seq))
   
   def signal(seq: Seq[Double]) = {
     ref ! SignalSeq(seq)

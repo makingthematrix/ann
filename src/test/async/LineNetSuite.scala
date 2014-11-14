@@ -13,12 +13,12 @@ class LineNetSuite extends MySuite {
   private def lineNet() = {
     builder.tickInterval = sleepTime * 2
     // lines
-    builder.addInput("in1").chainMiddle("mi21",0.4,0.6,HushValue(),ForgetValue(0.05)).chainMiddle("mi22",1.0,0.6).chainOutput("out2",1.0)
+    builder.addInput("in1").chain("mi21",0.4,0.6,HushValue(),ForgetValue(0.05)).chain("mi22",1.0,0.6).chain("out2",1.0)
     builder.use("mi22").hush("mi21")
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger("out2"){
+    net.addAfterFireTrigger("out2"){
       println("KRECHA!")
       sb.append('-')
     }
@@ -30,12 +30,12 @@ class LineNetSuite extends MySuite {
     builder.tickInterval = sleepTime * 2
     builder.resolution = 4
     // lines
-    builder.addInput("in1").chainMiddle("mi21",0.13,0.5,HushValue(),ForgetValue(0.02)).chainMiddle("mi22",1.0,0.5).chainOutput("out2",1.0)
+    builder.addInput("in1").chain("mi21",0.13,0.5,HushValue(),ForgetValue(0.02)).chain("mi22",1.0,0.5).chain("out2",1.0)
     builder.use("mi22").hush("mi21")
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    out.addAfterFireTrigger("out2"){
+    net.addAfterFireTrigger("out2"){
       println("KRECHA!")
       sb.append('-') 
     }
