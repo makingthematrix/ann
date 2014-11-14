@@ -4,7 +4,7 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.Test
 import org.junit.Assert._
 import main.async.Messages._
-import main.logger.LOG.debug
+import main.async.logger.LOG.debug
 import main.async.Context.sleepTime
 import main.async.HushValue
 import main.async.ForgetValue

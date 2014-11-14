@@ -4,8 +4,8 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.Test
 import org.junit.Assert._
 import main.async.Messages._
-import main.logger.LOG.debug
-import main.logger.LOG
+import main.async.logger.LOG.debug
+import main.async.logger.LOG
 import main.async.Context.sleepTime
 import main.async.Context
 import main.async.HushValue
@@ -451,14 +451,14 @@ class SOSSuite extends MySuite {
   // 111 -> -
   
   // v1. przenieść tickInterval do buildera, by można było go ustawić tam, a nie w samym in
-  // 2. przenieść mechanizm tickUntilCalm do net. na koniec net powinna wysyłać do neuronów Hush, 
+  // -2. przenieść mechanizm tickUntilCalm do net. na koniec net powinna wysyłać do neuronów Hush, 
   //    a do in wiadomość, że już jest "calm".
   // v3. wywalić Hush.value; wystarczy iterations, a value zawsze = 0.0
   // v4. zmienić forgetting w Neuron z var na val
   // v5. builder.defSlope domyślnie = 5.0, żeby nie trzeba było tego za każdym razem ustawiać
   // v6. zmienić addAfterFireTrigger tak, aby można było pisać net.addAfterFireTrigger("S"){ sb.append('S') }
   // v7. wywalić Messages.Forget i Context.forgettingGranularity
-  // 8. wywalić niedziałające unit testy, a działające przeorganizować ;)
+  // v8. wywalić niedziałające unit testy, a działające przeorganizować ;)
   // 9. zrobić osobny logger dla synca i asynca
   // 10. zapisać na githubie jako "stable"
   // 11. wycinanie niepotrzebnego kodu: wywalić 'sync', NetOutput, output neurony z NetBuildera, NetRef i Net, delay z synaps.

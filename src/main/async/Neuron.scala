@@ -2,8 +2,8 @@ package main.async
 
 import akka.actor._
 import scala.collection.mutable
-import main.logger.LOG
-import main.logger.LOG._
+import main.async.logger.LOG
+import main.async.logger.LOG._
 import main.utils.Utils._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -24,7 +24,7 @@ class Neuron(val id: String, val threshold: Double, val slope: Double, val hushV
 extends Actor with NeuronTriggers {
   protected val synapses = mutable.ListBuffer[Synapse]()
   
-  def that = this
+  implicit val that = this
   
   protected var buffer = 0.0
   protected var output = 0.0
@@ -33,7 +33,7 @@ extends Actor with NeuronTriggers {
   def lastOutput = output // only for debugging purposes
   
   def silence(){
-    debug(this,s"$id silence, hushValue.iterations is ${hushValue.iterations}")
+    LOG += s"$id silence, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
     output = 0.0
     if(hushValue.iterations == 0) makeSleep() else makeHush()
@@ -46,7 +46,7 @@ extends Actor with NeuronTriggers {
   
   private def makeHush() = {
     val t = Context.sleepTime * hushValue.iterations.toLong
-    debug(this, s"$id making hush for ${hushValue.iterations} iterations ($t millis)")
+    LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
     context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
   }
@@ -55,13 +55,13 @@ extends Actor with NeuronTriggers {
   
   def +=(signal: Double){
     forget()
-    debug(this, s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
+    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
     buffer += signal
     tick()
   }
   
   private def wakeUp(){
-    debug(this,s"$id waking up")
+    LOG += s"$id waking up"
     forget()
 	tick()
     context.become(receive)
@@ -80,7 +80,7 @@ extends Actor with NeuronTriggers {
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
       val delta = offset.toDouble/Context.sleepTime * forgetValue
-      debug(this, s"forgetting, offset=$offset, sleepTime=${Context.sleepTime}, forgetValue=$forgetValue, so delta is $delta")
+      LOG += s"forgetting, offset=$offset, sleepTime=${Context.sleepTime}, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>
@@ -89,7 +89,7 @@ extends Actor with NeuronTriggers {
   protected def run(){
     output = calculateOutput
     buffer = 0.0
-    debug(this, s"$id trigger output $output, synapses size: ${synapses.size}")
+    LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
     synapses.foreach( _.send(output) )
     afterFireTriggers.values.foreach( _() )
     makeSleep()
@@ -99,7 +99,7 @@ extends Actor with NeuronTriggers {
     throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
   
   private def _connect(destinationRef: NeuronRef, weight: SynapseWeight) = {
-    //debug(this, s"_connect(${destinationRef.id},$weight)")
+    //LOG +=  s"_connect(${destinationRef.id},$weight)")
     synapses += new Synapse(destinationRef, weight)
     sender ! Success("connect_"+id)
   }
@@ -123,7 +123,7 @@ extends Actor with NeuronTriggers {
   }
   
   protected def init(){
-    debug(this, s"init for $id with threshold $threshold and slope $slope")
+    LOG += s"init for $id with threshold $threshold and slope $slope"
     
     addTresholdPassedTrigger("run", () => that.run() )  
     answer(Success("init_"+this.id))
@@ -147,12 +147,16 @@ extends Actor with NeuronTriggers {
   }
   
   val hushBehaviour: Receive = {
-    case WakeFromHush if sender == self => debug(this, s"$id hush wake up"); wakeUp()
-    case Signal(s) => debug(this,s"$id, signal hushed: $s")// so it's like sleep, but we ignore signals
+    case WakeFromHush if sender == self => 
+      LOG +=  s"$id hush wake up"
+      wakeUp()
+    case Signal(s) => LOG += s"$id, signal hushed: $s" // so it's like sleep, but we ignore signals
   }
   
   val sleepBehaviour: Receive = {
-    case WakeUp if sender == self => debug(this, s"$id sleep wake up"); wakeUp()
+    case WakeUp if sender == self => 
+      LOG +=  s"$id sleep wake up" 
+      wakeUp()
     case HushNow => silence()
     case Signal(s) => buffer += s
   }
@@ -176,6 +180,6 @@ extends Actor with NeuronTriggers {
   }
   
   def otherBehaviour(state: String): Receive = {
-    case other => debug(this,s"$state, unrecognized message: $other")
+    case other => LOG += s"$state, unrecognized message: $other"
   }
 }

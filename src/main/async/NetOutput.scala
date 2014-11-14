@@ -1,7 +1,7 @@
 package main.async
 
 import NeuronTriggers.Trigger
-import main.logger.LOG.debug
+import main.async.logger.LOG.debug
 
 class NetOutput(val name: String, val net: NetRef) {
   def getId(index: Int):String = ids(index)

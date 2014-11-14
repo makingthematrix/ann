@@ -12,7 +12,7 @@ import akka.pattern.ask
 
 import Context._ 
 
-import main.logger.LOG._
+import main.async.logger.LOG._
 import Messages._
 import main.utils.Utils.await
 

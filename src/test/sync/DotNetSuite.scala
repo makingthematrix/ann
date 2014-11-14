@@ -4,7 +4,7 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.Test
 import org.junit.Assert._
 import main.sync._
-import main.logger.LOG
+import main.sync.logger.LOG
 
 class DotNetSuite extends JUnitSuite {
   private def dotNet() = {

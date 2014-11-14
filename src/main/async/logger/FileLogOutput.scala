@@ -1,4 +1,4 @@
-package main.logger
+package main.async.logger
 
 import java.io.BufferedWriter
 import java.io.File

@@ -4,64 +4,10 @@ import org.junit.Test
 import main.async.Context.sleepTime
 import scala.collection.mutable
 import main.async.Neuron
-import main.logger.LOG
+import main.async.logger.LOG
 import org.junit.Assert._
 
 class DelaySuite extends MySuite {  
-  @Test def shouldSendOutputWithDelay_usingInputSynapse(){
-    builder.addInput("in").chainMiddle(0.55,0.5).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.75)
-    build()
-    
-    in += "1"
-      
-    assertOutputAfter(50L, 5)
-  }
-  
-  @Test def shouldSendOutputWithDelay_usingSlopeAndSelf(){
-    builder.addInput("in").chainMiddle(0.7,0.5,5.0).self(1.0).chainOutput("out",1.0,0.75)
-    build()
-    
-    in += "1"
-      
-    assertOutputAfter(200L, 5)
-  }
-  
-  @Test def shouldSendOutputWithMoreDelay_usingInputSynapseAndForgetting(){ 
-    builder.addInput("in").chainMiddle(0.501,0.5).loop(1.0,0.5,1.0).chainOutput("out", 1.0,0.75)
-    build()
-    
-    in += "1"
-      
-    assertOutputAfter(280L, 5)
-  }
-  
-  @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgetting(){
-    builder.addInput("in").chainMiddle(0.55,0.5,5.0).loop(1.0,0.5,0.75).chainOutput("out",1.0,0.75)
-    build()
-    
-    in += "1"
-      
-    assertOutputAfter(280L, 5)
-  }
-  
-  @Test def shouldSendOutputWithMoreDelay_usingSlopeAndLoopAndForgettingAll(){
-    builder.addInput("in").chainMiddle(0.51,0.5,2.5).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.75)
-    build()
-    
-    in += "1"
-      
-    assertOutputAfter(350L, 5)
-  }
-  
-  @Test def shouldSendOutputWith2Signals_usingTreshold(){
-	builder.tickInterval = 100L
-    builder.addInput("in").chainMiddle(0.4,0.75,5.0).loop(1.0,0.5,1.0).chainOutput("out",1.0,0.9)
-    build()
-    
-    in += "1,1"
-      
-    assertOutputAfter(200L, 5)
-  }
   
   @Test def shouldGiveConstantOutput(){
 	builder.tickInterval = sleepTime * 2
@@ -83,7 +29,7 @@ class DelaySuite extends MySuite {
     assertEqualsWithTolerance(produceSeq(6, tolerance, in.tickInterval), list.toSeq, tolerance)
   }
   
-  @Test def shouldCreateOscillator(){
+  @Test def shouldCreateOscillatorWithMethod1(){
     builder.tickInterval = sleepTime * 2
     builder.addInput("in1").chainMiddle("mi1",1.0).loop("osc",1.0,0.5,-1.0).chainOutput("out1",1.0,0.75)
     build()
@@ -103,27 +49,9 @@ class DelaySuite extends MySuite {
     assertEqualsWithTolerance(produceSeq(3, tolerance, in.tickInterval * 2), list.toSeq, tolerance)
   }
   
-  @Test def shouldCreateOscillatorWithMethod1(){
-    builder.tickInterval = sleepTime * 2
-    builder.addInput("in").chainMiddle(1.0).oscillator().chainOutput("out1", 1.0, 0.75)
-    build()
-    
-    in += "1,1,1,1,1,1"
-      
-    val list = mutable.ListBuffer[Long]()
-    out.find("out1").addAfterFireTrigger("fired"){ list += LOG.time }
-    
-    net.init(usePresleep = false)
-    LOG.timer()
-    in.tickUntilCalm()
-
-    val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, in.tickInterval * 2), list.toSeq, tolerance)
-  }
-  
   @Test def shouldCreateOscillatorWithMethod2(){
     builder.tickInterval = sleepTime * 2
-    builder.addInput("in").chainOscillator(1.0).chainOutput("out1", 1.0, 0.75)
+    builder.addInput("in").chainMiddle(1.0).oscillator().chainOutput("out1", 1.0, 0.75)
     build()
     
     in += "1,1,1,1,1,1"

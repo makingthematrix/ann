@@ -1,4 +1,4 @@
-package main.logger
+package main.async.logger
 
 class SystemLogOutput extends LogOutput {
   override def log = ""

@@ -9,7 +9,7 @@ import akka.actor.Props
 import akka.actor.actorRef2Scala
 import akka.pattern.ask
 import Context._
-import main.logger.LOG._
+import main.async.logger.LOG._
 import main.utils.Utils.await
 import Messages._
 
@@ -18,7 +18,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def lastOutput = await[Msg](ref, GetLastOutput).d
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   
-  def silence() = ref ! HushNow
+  def hush() = ref ! HushNow
   
   def connect(dest: NeuronRef, weight: Double): Boolean = connect(dest, SynapseWeight(weight))
   

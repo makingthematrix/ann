@@ -1,4 +1,4 @@
-package main.logger
+package main.sync.logger
 
 import java.io.PrintWriter
 import java.io.StringWriter

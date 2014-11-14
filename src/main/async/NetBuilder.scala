@@ -2,7 +2,7 @@ package main.async
 
 import scala.collection.mutable
 import akka.actor.ActorSystem
-import main.logger.LOG._
+import main.async.logger.LOG._
 import scala.concurrent.Await
 import akka.util.Timeout
 import scala.concurrent.duration._
@@ -205,25 +205,25 @@ class NetBuilder {
   def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
   
   def build:NetRef = {
-    debug(NetBuilder.this, s"build()")
+    debug(this, s"build()")
     net.setInputLayer(ins.toSeq)
     val sb = StringBuilder.newBuilder
     ins.foreach( sb.append(_).append(','))
-    debug(NetBuilder.this, s"input layer set request sent: ${sb.toString}")
+    debug(this, s"input layer set request sent: ${sb.toString}")
     sb.clear()
     net.setOutputLayer(outs.toSeq)
     outs.foreach( sb.append(_).append(','))
-    debug(NetBuilder.this, s"output layer set request sent: ${sb.toString}")
+    debug(this, s"output layer set request sent: ${sb.toString}")
     net
   }
   
   def build(netInputName: String, netOutputName: String):(NetInput,NetRef,NetOutput) = {
-    debug(NetBuilder.this, s"build($netInputName,$netOutputName)")
+    debug(this, s"build($netInputName,$netOutputName)")
     build
     val in = NetInput(netInputName, net, resolution, tickInterval)
-    debug(NetBuilder.this, "net input built")
+    debug(this, "net input built")
     val out = NetOutput(netOutputName, net)
-    debug(NetBuilder.this, "net output built")
+    debug(this, "net output built")
     (in, net, out)
   }
   

@@ -7,13 +7,12 @@ import main.async.NetOutput
 import main.async.NetRef
 import org.junit.Before
 import org.junit.After
-import main.logger.LOG
+import main.async.logger.LOG
 import org.junit.Assert._
 import scala.concurrent.Promise
 import main.async.Neuron
 import scala.concurrent.Await
-import main.logger.LOG
-import main.logger.LOG.debug
+import main.async.logger.LOG.debug
 import scala.concurrent.duration._
 
 class MySuite extends JUnitSuite {
@@ -32,7 +31,7 @@ class MySuite extends JUnitSuite {
   }
   
   @After def after(){
-    _net.shutdown()
+    if(_net != null) _net.shutdown()
     _builder = null
     _in = null
     _out = null

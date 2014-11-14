@@ -5,8 +5,8 @@ import main.async.NetBuilder
 import org.junit.Test
 import org.junit.Assert._
 import main.async.Context.sleepTime
-import main.logger.LOG.debug
-import main.logger.LOG
+import main.async.logger.LOG.debug
+import main.async.logger.LOG
 
 class DotNetSuite extends MySuite {
   private def dotNet() = {
@@ -79,14 +79,4 @@ class DotNetSuite extends MySuite {
     LOG.clearAllowedIds()
   }
   
-  @Test def shouldDot3TimesRes4(){
-    val sb = dotNetRes4()
-    LOG.allow("mi11")
-    in += "1,0,0,1,0,0,1,0,0"
-    init()
-    LOG.timer()  
-    in.tickUntilCalm()
-    assertEquals("...",sb.toString)
-    LOG.clearAllowedIds()
-  }
 }

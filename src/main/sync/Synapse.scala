@@ -1,6 +1,6 @@
 package main.sync
 
-import main.logger.LOG
+import main.sync.logger.LOG
 
 class Synapse(val source: Neuron, val destination: Neuron,var weight: Double){
   def send(signal: Double) = {

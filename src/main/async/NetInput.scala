@@ -4,7 +4,7 @@ import scala.collection.mutable
 
 import scala.concurrent.duration._
 import Messages._
-import main.logger.LOG._
+import main.async.logger.LOG._
 
 class NetInput(val name: String, val net: NetRef, val resolution: Int, val tickInterval: Long) {
   lazy val ids = net.inputIds

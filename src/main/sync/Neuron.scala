@@ -1,7 +1,7 @@
 package main.sync
 
 import scala.collection.mutable
-import main.logger.LOG
+import main.sync.logger.LOG
 import main.utils.Utils._
 
 class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0, var forgetting: Double =0.0, var priority: Int =0) 

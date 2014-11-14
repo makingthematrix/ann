@@ -5,7 +5,7 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.Test
 import org.junit.Assert._
 import main._
-import main.logger.LOG
+import main.sync.logger.LOG
 import main.sync.Neuron
 import main.sync.NeuronType
 import main.sync.NetBuilder

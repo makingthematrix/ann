@@ -1,4 +1,4 @@
-package main.logger
+package main.async.logger
 
 class StringLogOutput(val id: String) extends LogOutput {
   private val sb = StringBuilder.newBuilder

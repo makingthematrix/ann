@@ -1,4 +1,4 @@
-package main.logger
+package main.sync.logger
 
 import scala.collection.mutable
 //import main.sync.Neuron

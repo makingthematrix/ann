@@ -1,7 +1,6 @@
 package main.async
 
 import akka.actor.ActorContext
-import main.logger.LOG._
 import main.async.Messages.Success
 
 class DummyNeuron(override val id: String, hushValue: HushValue = HushValue()) extends Neuron(id, 0.0, 0.0, hushValue, ForgetAll) {

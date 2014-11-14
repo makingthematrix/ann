@@ -6,7 +6,7 @@ import scala.concurrent.Await
 import akka.util.Timeout
 import scala.concurrent.duration._
 
-import main.logger.LOG._
+import main.async.logger.LOG._
 import Messages._
 
 class Net(val id: String) extends Actor {
@@ -44,7 +44,7 @@ class Net(val id: String) extends Actor {
   
   def initializing: Receive = {
     case Success(initId) if initId.startsWith("init_") => {
-      debug(Net.this, "initializing, " + initId)
+      debug(this, "initializing, " + initId)
       val id = initId.substring(5)
       waitingForInit.remove(id)
       if(waitingForInit.isEmpty) {
@@ -65,7 +65,7 @@ class Net(val id: String) extends Actor {
   }
   
   private def init() = {
-    debug(Net.this, s"init for $id")
+    debug(this, s"init for $id")
     waitingForInit ++= neurons.map( _.id )
     caller = Some(sender)
     context.become(initializing)
@@ -114,7 +114,7 @@ class Net(val id: String) extends Actor {
   
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
-    debug(Net.this, s"signal received in $id: " + in.mkString(", "))
+    debug(this, s"signal received in $id: " + in.mkString(", "))
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   

@@ -3,7 +3,7 @@ package main.sync
 import scala.collection.mutable
 import scala.concurrent._
 import main.utils.Utils._
-import main.logger.LOG
+import main.sync.logger.LOG
 
 class Net(val defSlope: Double = 20.0,val defTreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet[Neuron] {
   private val neurons = mutable.ListBuffer[Neuron]()
