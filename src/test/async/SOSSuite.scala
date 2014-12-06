@@ -6,7 +6,6 @@ import org.junit.Assert._
 import main.async.Messages._
 import main.async.logger.LOG.debug
 import main.async.logger.LOG
-import main.async.Context.sleepTime
 import main.async.Context
 import main.async.HushValue
 import main.async.ForgetValue
@@ -17,13 +16,13 @@ class SOSSuite extends MySuite {
   val o = "1,1,0,1,1,0,1,1,0"
   
   private def dotNet(){
-    val res = 3
-    builder.tickInterval = sleepTime * res
+    val itm = 3
+    builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.7,HushValue(iterations = 2 * res)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop1",1.0,0.5,1.0)
-                     .chainMiddle("dot",0.1,0.6).hush("mi12").hush("loop1").hush("dot")                          
+    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+                     .chainMiddle("mi12",1.0,0.0).loop("loop1",1.0,0.0,1.0)
+                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop1").hush("dot")                          
     build()
     
   }
@@ -49,11 +48,11 @@ class SOSSuite extends MySuite {
   }
   
   private def lineNet(){
-    val res = 3
-    builder.tickInterval = sleepTime * res
+    val itm = 3
+    builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / res)).hush("mi21")
+    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
                      .chainMiddle("line",1.0,0.0).hush("line")                          
     build()
     
@@ -80,15 +79,15 @@ class SOSSuite extends MySuite {
   }
   
   private def dotLineNet(){
-    val res = 3
-    builder.tickInterval = sleepTime * res
+    val itm = 3
+    builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.7,HushValue(iterations = 2 * res)).hush("mi11")
+    builder.use("in").chainMiddle("mi11",1.0,0.7,HushValue(iterations = 2 * itm)).hush("mi11")
                      .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.5,1.0)
-                     .chainMiddle("dot",0.1,0.6).hush("mi12").hush("loop").hush("dot") 
+                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / res)).hush("mi21")
+    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
                      .chainMiddle("line",1.0,0.0).hush("line")
                      
     // if line then not dot
@@ -122,13 +121,13 @@ class SOSSuite extends MySuite {
   }
   
   private def SNet(){
-    val res = 3
-    builder.tickInterval = sleepTime * res
+    val itm = 3
+    builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.7,HushValue(iterations = 2 * res)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.5,1.0)
-                     .chainMiddle("dot",0.1,0.6).hush("mi12").hush("loop").hush("dot")
+    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
                      .chainMiddle("S",0.5,0.81)
     build()
     
@@ -160,12 +159,12 @@ class SOSSuite extends MySuite {
   }
   
   private def ONet(){
-    val res = 3
-    builder.tickInterval = sleepTime * res
+    val itm = 3
+    builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / res)).hush("mi21")
-                     .chainMiddle("line",1.0,0.5).hush("line")    
+    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+                     .chainMiddle("line",1.0,0.0).hush("line")    
                      .chainMiddle("O",0.6,0.81)
     build()
     
@@ -197,17 +196,17 @@ class SOSSuite extends MySuite {
   }
   
   private def SOSNet(){
-    val res = 3
-    builder.tickInterval = sleepTime * res
+    val itm = 3
+    builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.7,HushValue(iterations = 2 * res)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.5,1.0)
-                     .chainMiddle("dot",0.1,0.6).hush("mi12").hush("loop").hush("dot") 
+    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
+                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
                      .chainMiddle("S",0.5,0.81)
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / res)).hush("mi21")
-                     .chainMiddle("line",1.0,0.5).hush("line")
+    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+                     .chainMiddle("line",1.0,0.0).hush("line")
                      .chainMiddle("O",0.6,0.81)
                      
     // if line then not dot
@@ -275,4 +274,67 @@ class SOSSuite extends MySuite {
     assertEquals("SOS", sb.toString)
   }
 
+  @Test def shouldTestNoises() = {
+    SOSNet()
+    
+    val sb = StringBuilder.newBuilder
+    net.addAfterFireTrigger("S"){ sb.append('S') }
+    net.addAfterFireTrigger("O"){ sb.append('O') }
+    
+    init()
+
+    // S
+    in += "1,0,0,1,0,0,1,0,0"
+    in.tickUntilCalm()
+    assertEquals("S", sb.toString)
+    
+    sb.clear()
+    
+    // forward shift by one
+    in += "0,1,0,0,1,0,0,1,0"
+    in.tickUntilCalm()
+    assertEquals("S", sb.toString)
+    
+    sb.clear()
+    
+    // forward shift by two
+    in += "0,0,1,0,0,1,0,0,1"
+    in.tickUntilCalm()
+    assertEquals("S", sb.toString)
+    
+    sb.clear()
+    
+    // noise at the end
+    in += "1,0,0,1,0,0,1,0,0,1"
+    in.tickUntilCalm()
+    assertEquals("S", sb.toString)
+     
+    sb.clear()
+    
+    // O
+    in += "1,1,0,1,1,0,1,1,0"
+    in.tickUntilCalm()
+    assertEquals("O", sb.toString)
+    
+    sb.clear()
+    
+    // forward shift by one
+    in += "0,1,1,0,1,1,0,1,1"
+    in.tickUntilCalm()
+    assertEquals("O", sb.toString)
+    
+    sb.clear()
+    
+    // noise at the end
+    in += "1,1,0,1,1,0,1,1,0,1"
+    in.tickUntilCalm()
+    assertEquals("O", sb.toString)
+    
+    sb.clear()
+    
+    // noise in the middle
+    in += "1,1,0,1,1,1,1,1,0"
+    in.tickUntilCalm()
+    assertEquals("O", sb.toString)
+  }
 }

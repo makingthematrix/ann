@@ -23,14 +23,13 @@ class NetBuilder {
   var defWeight = Context.weight
   var defHushValue = Context.hushValue
   var defForgetting: ForgetTrait = Context.forgetting
-  var resolution = 1
   var defInputName = INPUT_LAYER_NAME
   var defMiddleName = MIDDLE_LAYER_NAME
   var defNetName = "net"
   var inputNeuronType = NeuronType.DUMMY
   var middleNeuronType = NeuronType.STANDARD
   var outputNeuronType = NeuronType.DUMMY
-  var tickInterval = Context.sleepTime
+  var inputTickMultiplicity = 1
   
   var throwOnError = true
   
@@ -206,7 +205,7 @@ class NetBuilder {
   def build(netInputName: String, netOutputName: String):(NetInput,NetRef) = {
     debug(this, s"build($netInputName,$netOutputName)")
     build
-    val in = NetInput(netInputName, net, resolution, tickInterval)
+    val in = NetInput(netInputName, net, inputTickMultiplicity)
     debug(this, "net input built")
     (in, net)
   }

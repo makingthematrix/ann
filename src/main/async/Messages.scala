@@ -21,6 +21,7 @@ object Messages {
   case class SetInputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
+  case object ResetBuffer
   
   // questions
   case object GetId
