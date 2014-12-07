@@ -83,8 +83,8 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.7,HushValue(iterations = 2 * itm)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.5,1.0)
+    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
                      .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
     // lines
     builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
@@ -118,6 +118,61 @@ class SOSSuite extends MySuite {
     println(s"dots: $dots, lines: $lines")
     assertEquals(0, dots)
     assertEquals(3, lines)
+  }
+  
+  @Test def shouldGuessDotsAndLines() = {
+    dotLineNet()
+    val sb = StringBuilder.newBuilder
+    net.addAfterFireTrigger("dot"){ sb.append('.') }
+    net.addAfterFireTrigger("line"){ sb.append('-') }
+    init()
+    /*
+    in += "1,0,0"
+    in.tickUntilCalm()
+    assertEquals(".",sb.toString)
+    
+    sb.clear()
+    
+    in += "0,1,0"
+    in.tickUntilCalm()
+    assertEquals(".",sb.toString)
+    
+    sb.clear()
+    
+    in += "0,0,1"
+    in.tickUntilCalm()
+    assertEquals(".",sb.toString)
+    
+    sb.clear()
+    
+    in += "1,0,1"
+    in.tickUntilCalm()
+    assertEquals(".",sb.toString)
+    
+    sb.clear()
+    
+    in += "1,1,0"
+    in.tickUntilCalm()
+    assertEquals("-",sb.toString)
+    
+    sb.clear()
+    
+    in += "0,1,1"
+    in.tickUntilCalm()
+    assertEquals("-",sb.toString)
+    
+    sb.clear()
+    
+    in += "1,1,1"
+    in.tickUntilCalm()
+    assertEquals("-",sb.toString)
+    */
+    sb.clear()
+    
+    in += "1,0,1,1"
+    in.tickUntilCalm()
+    assertEquals("..",sb.toString)
+    
   }
   
   private def SNet(){
