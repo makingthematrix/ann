@@ -5,30 +5,23 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import Messages._
 import main.async.logger.LOG._
+import main.async.Context.tickTime
 
-class NetInput(val name: String, val net: NetRef, val resolution: Int, val tickInterval: Long) {
+class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   
   private val inputQueue = mutable.Queue[Seq[Double]]()
   
   private var _iteration = 0
+  def iteration = _iteration 
   
-  def iteration = _iteration / resolution
-  def iterationRemainder = _iteration % resolution
-  
-  def find(id: String) = ids.contains(id) match {
-    case true => net.find(id).neuronOpt.get
-    case false => throw new IllegalArgumentException(s"There is no output neuron with id $id")
-  }
+  def find(id: String) = if(ids.contains(id)) net.find(id).neuronOpt.get
+                         else throw new IllegalArgumentException(s"There is no output neuron with id $id")
     
   def add(input: Seq[Double]) = {
 	assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
-    for(counter <- 1 to resolution) {
-      val inputBuffer = mutable.ListBuffer[Double]()
-      inputBuffer ++= input
-      inputQueue += inputBuffer.toSeq
-    }
+    inputQueue += input
   }
   
   def addEmptyInput = add(generateEmptyInput)
@@ -49,11 +42,11 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int, val tickI
   )).foreach( add )
 
   def tick():Unit = tick(1)
-  def tick(n: Int):Unit = for(i <- 1 to n * resolution) yield {
+  def tick(n: Int):Unit = for(i <- 1 to n) yield {
     debug(this, s"-------- ITERATION ${_iteration} ---------")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
-    Thread.sleep(tickInterval)
+    Thread.sleep(inputTickMultiplicity * tickTime)
     _iteration = _iteration + 1
   }
   
@@ -67,11 +60,11 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int, val tickI
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
       neuronFired = false
       tick()
-      if(neuronFired) calmTick = 0
-      else calmTick += 1
+      if(neuronFired) calmTick = 0 else calmTick += 1
       counter += 1
     }
     
+    neurons.foreach(_ ! ResetBuffer)
     neurons.foreach(_.removeAfterFireTrigger("tickUntilCalm"))
     counter
   }
@@ -80,8 +73,8 @@ class NetInput(val name: String, val net: NetRef, val resolution: Int, val tickI
 }
 
 object NetInput {
-  def apply(name: String, net: NetRef, resolution: Int, tickInterval: Long) = {
-    val ani = new NetInput(name, net, resolution, tickInterval)
+  def apply(name: String, net: NetRef, inputTickMultiplicity: Int) = {
+    val ani = new NetInput(name, net, inputTickMultiplicity)
     ani.regSign('0',0.0)
     ani.regSign('1', 1.0)
     ani

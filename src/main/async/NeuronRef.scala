@@ -22,7 +22,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   def connect(dest: NeuronRef, weight: Double): Boolean = connect(dest, SynapseWeight(weight))
   
-  def connect(dest: NeuronRef, weight: SynapseWeight): Boolean = await[Answer](ref, Connect(dest, weight)) match {
+  def connect(dest: NeuronRef, weight: SynapseTrait): Boolean = await[Answer](ref, Connect(dest, weight)) match {
     case Success(id) => true
     case Failure(str) => error(this,s"connect failure: $str"); false 
   }

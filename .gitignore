@@ -22,3 +22,4 @@ dist
 *.log
 *.sc
 .worksheet*
+doc/*

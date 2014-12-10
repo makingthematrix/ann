@@ -15,10 +15,8 @@ object Context {
   val weight = 1.0
   val hushValue = HushValue()
   val forgetting = DontForget
-  val sleepTime = 50L
+  val tickTime = 30L
   
   val INPUT_LAYER_NAME = "in"
-  val MIDDLE_LAYER_NAME = "mid"
-  val OUTPUT_LAYER_NAME = "out"
-    
+  val MIDDLE_LAYER_NAME = "mid"   
 }

@@ -6,7 +6,6 @@ import main.utils.Utils._
 import org.junit.Assert._
 import scala.annotation.tailrec
 import main.async.Context
-import main.async.Context.sleepTime
 import main.async.HushValue
 import main.async.ForgetAll
 
@@ -53,7 +52,7 @@ class NeuronSuite extends MySuite {
   }
             
   @Test def delayedSignal() = {
-    builder.tickInterval = sleepTime * 2
+    builder.inputTickMultiplicity = 2
     builder.addInput("in").chainDummy("mi11", 0.55).loop("loop",1.0,0.0,0.99).chainMiddle("out",1.0,0.66, HushValue(), ForgetAll)
     builder.use("mi11").hush("in")
     builder.use("out").connect("mi11",-1.0).connect("loop",-1.0)

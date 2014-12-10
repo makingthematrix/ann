@@ -10,6 +10,7 @@ import akka.util.Timeout
 import scala.concurrent._
 import scala.concurrent.duration._
 import Messages._
+import Context.tickTime
 
 import ExecutionContext.Implicits.global
 
@@ -27,25 +28,23 @@ extends Actor with NeuronTriggers {
   implicit val that = this
   
   protected var buffer = 0.0
-  protected var output = 0.0
-  
   def input = buffer // only for debugging purposes
-  def lastOutput = output // only for debugging purposes
+  var lastOutput = 0.0 // only for debugging purposes
   
   def silence(){
     LOG += s"$id silence, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
-    output = 0.0
+    //output = 0.0
     if(hushValue.iterations == 0) makeSleep() else makeHush()
   }
   
   private def makeSleep() = {
     context.become(sleep)
-    context.system.scheduler.scheduleOnce(Context.sleepTime millis){ self ! WakeUp }
+    context.system.scheduler.scheduleOnce(tickTime millis){ self ! WakeUp }
   }
   
   private def makeHush() = {
-    val t = Context.sleepTime * hushValue.iterations.toLong
+    val t = tickTime * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
     context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
@@ -79,15 +78,16 @@ extends Actor with NeuronTriggers {
     case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = offset.toDouble/Context.sleepTime * forgetValue
-      LOG += s"forgetting, offset=$offset, sleepTime=${Context.sleepTime}, forgetValue=$forgetValue, so delta is $delta"
+      val delta = offset.toDouble/tickTime * forgetValue
+      LOG += s"forgetting, offset=$offset, sleepTime=$tickTime, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>
   }
   
   protected def run(){
-    output = calculateOutput
+    val output = calculateOutput
+    lastOutput = output
     buffer = 0.0
     LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
     synapses.foreach( _.send(output) )
@@ -95,15 +95,13 @@ extends Actor with NeuronTriggers {
     makeSleep()
   }
   
-  def connect(destination: Neuron, weight: Double) =
-    throw new IllegalArgumentException("Use Connect(destinationRef: NeuronRef, weight: Double) request")
-  
-  private def _connect(destinationRef: NeuronRef, weight: SynapseWeight) = {
+  private def _connect(destinationRef: NeuronRef, weight: SynapseTrait) = {
     //LOG +=  s"_connect(${destinationRef.id},$weight)")
     synapses += new Synapse(destinationRef, weight)
     sender ! Success("connect_"+id)
   }
-  protected def connect(destinationRef: NeuronRef, weight: SynapseWeight):Unit = findSynapse(destinationRef.id) match {
+  
+  protected def connect(destinationRef: NeuronRef, weight: SynapseTrait) = findSynapse(destinationRef.id) match {
     case Some(s) => sender ! Failure(s"a synapse to ${destinationRef.id} already exists")
     case None => _connect(destinationRef, weight)
   }
@@ -164,7 +162,6 @@ extends Actor with NeuronTriggers {
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
       case GetInput => sender ! Msg(input.toDouble, id)
-      case GetLastOutput => sender ! Msg(lastOutput.toDouble, id)
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses.toList)
       case NeuronShutdown => shutdown()
@@ -177,6 +174,7 @@ extends Actor with NeuronTriggers {
         removeAfterFireTrigger(triggerId)
         sender ! Success(triggerId)
       case Init => init()
+      case ResetBuffer => buffer = 0.0
   }
   
   def otherBehaviour(state: String): Receive = {

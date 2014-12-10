@@ -3,7 +3,6 @@ package test.async
 import org.scalatest.junit.JUnitSuite
 import main.async.NetBuilder
 import main.async.NetInput
-import main.async.NetOutput
 import main.async.NetRef
 import org.junit.Before
 import org.junit.After
@@ -20,8 +19,6 @@ class MySuite extends JUnitSuite {
   def builder = _builder
   private var _in: NetInput = _
   def in = _in
-  private var _out: NetOutput = _
-  def out = _out
   private var _net: NetRef = _
   def net = _net
   
@@ -34,7 +31,6 @@ class MySuite extends JUnitSuite {
     if(_net != null) _net.shutdown()
     _builder = null
     _in = null
-    _out = null
     _net = null
     LOG.date()
   }
@@ -43,7 +39,6 @@ class MySuite extends JUnitSuite {
     val triple = _builder.build("in1","out1")
     _in = triple._1
     _net = triple._2
-    _out = triple._3
   }
   
   protected def assertEqualsWithTolerance(expected: Seq[Long], received: Seq[Long], tolerance: Long) = {
@@ -58,19 +53,6 @@ class MySuite extends JUnitSuite {
   protected def produceSeq(size: Int, ini: Long, off: Long):Seq[Long] = size match {
     case 1 => Seq(ini)
     case x if x > 1 => produceSeq(x-1, ini, off) ++ Seq(ini+(x-1)*off)
-  }
-  
-  protected def assertOutputAfter(afterMillis: Long, timeoutSeconds: Int) = {
-    val p = Promise[Long]
-    _out.addAfterFireTrigger(_out.getId(0)){ p.success(LOG.time) }
-
-    init()
-    while(!_in.empty) _in.tick()
-    
-    val resultTime = Await.result(p.future, timeoutSeconds seconds).asInstanceOf[Long]
-    debug(this,s"resultTime: $resultTime")
-    assert(resultTime > afterMillis)
-    LOG.date()
   }
   
   protected def init() = {

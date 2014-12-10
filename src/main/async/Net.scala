@@ -12,14 +12,11 @@ import Messages._
 class Net(val id: String) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
   private val ins = mutable.ListBuffer[NeuronRef]()
-  private val outs = mutable.ListBuffer[NeuronRef]()
   
   def inputLayer = ins.toSeq
-  def outputLayer = outs.toSeq
   def middleLayer = {
     val inputIds = ins.map( _.id ).toSet
-    val outputIds = outs.map( _.id ).toSet
-    neurons.filterNot( n => inputIds.contains(n.id) || outputIds.contains(n.id))
+    neurons.filterNot( n => inputIds.contains(n.id) )
   }
 
   private def remove(id: String) = findRef(id) match {
@@ -53,9 +50,9 @@ class Net(val id: String) extends Actor {
         context.unbecome
       }
     }
-    case Success(str) => error(Net.this, "this Success message shouldn't be here: " + str)
+    case Success(str) => error(this, "this Success message shouldn't be here: " + str)
     case Failure(initId) if initId.startsWith("init_") => {
-      error(Net.this, initId) 
+      error(this, initId) 
       val id = initId.substring(5)
       if(caller != None) caller.get ! Success("netinit_"+this.id)
       caller = None
@@ -106,8 +103,6 @@ class Net(val id: String) extends Actor {
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
     case SetInputLayer(ids) => setInputLayer(ids)
     case GetMiddleLayer => sender ! MsgNeurons(middleLayer.toList)
-    case GetOutputLayer => sender ! MsgNeurons(outputLayer.toList)
-    case SetOutputLayer(ids) => setOutputLayer(ids)
     case GetNeuron(id) => getNeuron(id)
     case SignalSeq(in) => signal(in)
   }
@@ -125,16 +120,9 @@ class Net(val id: String) extends Actor {
     sender ! Success("setInputLayer_"+id)
   }
   
-  private def setOutputLayer(ids: Seq[String]){
-    debug(Net.this, s"output layer set in $id: " + ids.mkString(", "))
-    outs.clear
-    neurons.filter( n => ids.contains(n.id) ).foreach( outs += _ )
-    sender ! Success("setOutputLayer_"+id)
-  } 
-  
   private def connectNeurons(id1: String, id2: String, weight: Double) = findRef(id1, id2) match {
     case (Some(ref1),Some(ref2)) => {
-      debug(Net.this, s"connectNeurons($id1,$id2,$weight in $id)")
+      debug(this, s"connectNeurons($id1,$id2,$weight in $id)")
       ref1.connect(ref2, weight) match {
         case true => sender ! Success(s"${id}_connectNeurons($id1,$id2)")
         case false => sender ! Failure(s"$id: Unable to connecct neurons $id1 and $id2")
@@ -150,33 +138,19 @@ class Net(val id: String) extends Actor {
   
   private def getNeuron(id: String) = sender ! MsgNeuron(findRef(id))
   
-  def setInput(in: Seq[Double]){
-    debug(Net.this, s"setInput, signal received in $id: " + in.mkString(", "))
-    val ins = inputLayer
-    assert(ins.size == in.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
-    
-    ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
-  }
-  
-  def output = outputLayer.map( _.lastOutput )
-  
-  def size = inputLayer.size + middleLayer.size + outputLayer.size
+  def size = inputLayer.size + middleLayer.size
   def inputSize = inputLayer.size
   def middleSize = middleLayer.size
-  def outputSize = outputLayer.size
   
-  def ids = inputIds ++ middleIds ++ outputIds
+  def ids = inputIds ++ middleIds
   def inputIds = inputLayer.map( _.id )
   def middleIds = middleLayer.map( _.id )
-  def outputIds = outputLayer.map( _.id )
   
   def find(id: String):Option[NeuronRef] = {
     debug(this, s"id in ${this.id}")
     val inFind = inputLayer.find( _.id == id )
     if(inFind.isDefined) return inFind
-    val midFind = middleLayer.find( _.id == id )
-    if(midFind.isDefined) return midFind
-    outputLayer.find( _.id == id )
+    middleLayer.find( _.id == id )
   }
   
   protected def find(id1: String, id2: String):(NeuronRef,NeuronRef) = {
@@ -198,24 +172,4 @@ class Net(val id: String) extends Actor {
   def isAfterTickTrigger(id: String) = afterTickTriggers.contains(id)
   def removeAfterTickTrigger(id: String) = afterTickTriggers.remove(id)
   def clearAfterTickTriggers() = afterTickTriggers.clear
-
-  def countSynapses = 
-    inputLayer.flatMap( _.getSynapses ).length +
-    middleLayer.flatMap( _.getSynapses ).length +
-    outputLayer.flatMap( _.getSynapses ).length
-    
-  def outputSum = 
-    inputLayer.map( _.lastOutput ).sum +
-    middleLayer.map( _.lastOutput ).sum +
-    outputLayer.map( _.lastOutput ).sum
-    
-  /*def weightSum = 
-    inputLayer.map( _.weightSum ).sum +
-    middleLayer.map( _.weightSum ).sum +
-    outputLayer.map( _.weightSum ).sum  
- 
-  def absWeightSum = 
-    inputLayer.map( _.absWeightSum ).sum +
-    middleLayer.map( _.absWeightSum ).sum +
-    outputLayer.map( _.absWeightSum ).sum  */
 }
