@@ -16,6 +16,7 @@ object Messages {
   case class Disconnect(destinationId: String)
   case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait)
   case class CreateDummy(id: String, hushValue: HushValue)
+  case class CreateHushNeuron(id: String)
   case class SetInputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
@@ -48,5 +49,7 @@ object Messages {
   // triggers
   case class AddAfterFireTrigger(id: String, f: Trigger)
   case class RemoveAfterFireTrigger(id: String)
+  case class AddHushRequestedTrigger(id: String, f: Trigger)
+  case class RemoveHushRequestedTrigger(id: String)
 
 }

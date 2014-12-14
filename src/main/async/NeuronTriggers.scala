@@ -5,23 +5,35 @@ import scala.collection.mutable
 import NeuronTriggers.Trigger
 
 trait NeuronTriggers {
-  protected val afterFireTriggers = mutable.Map[String, Trigger]()
-  def addAfterFireTrigger(id: String, f: Trigger) = afterFireTriggers.contains(id) match {
-    case false => afterFireTriggers.put(id, f)
-    case true => throw new IllegalArgumentException(s"There was already registered an after fire trigger with id $id")
-  } 
-  def isAfterFireTrigger(id: String) = afterFireTriggers.contains(id)
-  def removeAfterFireTrigger(id: String) = afterFireTriggers.remove(id)
-  def clearAfterFireTriggers() = afterFireTriggers.clear
+  private val afterFire = mutable.Map[String, Trigger]()
+  private val thresholdPassed = mutable.Map[String, Trigger]()
+  private val hushRequested = mutable.Map[String, Trigger]()
+  
+  private def add(id: String, f: Trigger, triggers: mutable.Map[String, Trigger]) =
+    if(triggers.contains(id)) throw new IllegalArgumentException(s"There was already registered a trigger $id")
+    else triggers.put(id, f)
+  private def is(id: String, triggers: mutable.Map[String, Trigger]) = triggers.contains(id) 
+  private def remove(id: String, triggers: mutable.Map[String, Trigger]) = triggers.remove(id)
+  private def clear(triggers: mutable.Map[String, Trigger]) = triggers.clear()
+  private def trigger(triggers: mutable.Map[String, Trigger]) = triggers.values.foreach( _() )
+  
+  def addAfterFire(id: String, f: Trigger) = add(id, f, afterFire)
+  def isAfterFire(id: String) = is(id, afterFire)
+  def removeAfterFire(id: String) = remove(id, afterFire)
+  def clearAfterFire() = clear(afterFire)
+  def triggerAfterFire() = trigger(afterFire)
 
-  protected val tresholdPassedTriggers = mutable.Map[String, Trigger]()
-  def addTresholdPassedTrigger(id: String, f: Trigger) = tresholdPassedTriggers.contains(id) match {
-    case false => tresholdPassedTriggers.put(id, f)
-    case true => throw new IllegalArgumentException("There was already registered a trigger with id " + id)
-  } 
-  def isTresholdPassedTrigger(id: String) = tresholdPassedTriggers.contains(id)
-  def removeTresholdPassedTrigger(id: String) = tresholdPassedTriggers.remove(id)
-  def clearTresholdPassedTriggers() = tresholdPassedTriggers.clear  
+  def addThresholdPassed(id: String, f: Trigger) = add(id, f, thresholdPassed)
+  def isThresholdPassed(id: String) = is(id, thresholdPassed)
+  def removeThresholdPassed(id: String) = remove(id, thresholdPassed)
+  def clearThresholdPassed() = clear(thresholdPassed) 
+  def triggerThresholdPassed() = trigger(thresholdPassed)
+  
+  def addHushRequested(id: String, f: Trigger) = add(id, f, hushRequested)
+  def isHushRequested(id: String) = is(id, hushRequested)
+  def removeHushRequested(id: String) = remove(id, hushRequested)
+  def clearHushRequested() = clear(hushRequested)
+  def triggerHushRequested() = trigger(hushRequested)
 }
 
 object NeuronTriggers {

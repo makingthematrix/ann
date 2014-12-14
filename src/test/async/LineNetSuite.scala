@@ -17,7 +17,7 @@ class LineNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    net.addAfterFireTrigger("out2"){
+    net.addAfterFire("out2"){
       println("KRECHA!")
       sb.append('-')
     }

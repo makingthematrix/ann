@@ -54,7 +54,7 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int
     var neuronFired = false
     val neurons = net.getNeurons
     
-    neurons.foreach(_.addAfterFireTrigger("tickUntilCalm"){ neuronFired = true })
+    neurons.foreach(_.addAfterFire("tickUntilCalm"){ neuronFired = true })
     
     var (calmTick, counter) = (0, 0)
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
@@ -64,8 +64,10 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int
       counter += 1
     }
     
+    debug(this, "tickUntilCalm completed")
+    
     neurons.foreach(_ ! ResetBuffer)
-    neurons.foreach(_.removeAfterFireTrigger("tickUntilCalm"))
+    neurons.foreach(_.removeAfterFire("tickUntilCalm"))
     counter
   }
   

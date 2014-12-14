@@ -26,17 +26,21 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   protected def calculateOutput = Double.NaN // we don't do that here 
   
-  def addAfterFireTrigger(triggerId: String)(f: => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, () => f)) match {
+  def addAfterFire(triggerId: String)(f: => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, () => f)) match {
     case Success(id) => true
-    case Failure(str) => error(this,s"addAfterFireTrigger failure: $str"); false
+    case Failure(str) => error(this,s"addAfterFire failure: $str"); false
   }
-  def addAfterFireTrigger2(triggerId: String, f: () => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, f)) match {
+  def removeAfterFire(name: String) = await[Answer](ref, RemoveAfterFireTrigger(name)) match {
     case Success(id) => true
-    case Failure(str) => error(this,s"addAfterFireTrigger failure: $str"); false
+    case Failure(str) => error(this,s"removeAfterFire failure: $str"); false    
   }
-  def removeAfterFireTrigger(name: String) = await[Answer](ref, RemoveAfterFireTrigger(name)) match {
+  def addHushRequested(triggerId: String)(f: => Any) = await[Answer](ref, AddHushRequestedTrigger(triggerId, () => f)) match {
     case Success(id) => true
-    case Failure(str) => error(this,s"removeAfterFireTrigger failure: $str"); false    
+    case Failure(str) => error(this,s"addHushRequested failure: $str"); false
+  }
+  def removeHushRequested(name: String) = await[Answer](ref, RemoveHushRequestedTrigger(name)) match {
+    case Success(id) => true
+    case Failure(str) => error(this,s"removeHushRequested failure: $str"); false    
   }
   
   def +=(signal: Double) = ref ! Signal(signal) 

@@ -8,7 +8,7 @@ extends Neuron(id, 0.0, 0.0, hushValue, ForgetAll) {
   override protected def calculateOutput:Double = buffer
     
   override protected def init(){
-    addTresholdPassedTrigger("run", () => run() )
+    addThresholdPassed("run", () => run() )
     answer(Success("init_"+this.id))
   } 
 }

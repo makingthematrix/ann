@@ -19,7 +19,7 @@ class DotNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    net.addAfterFireTrigger("out1"){
+    net.addAfterFire("out1"){
       println("KROPA!")
       sb.append('.')
      }

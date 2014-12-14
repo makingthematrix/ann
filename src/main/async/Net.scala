@@ -87,6 +87,11 @@ class Net(val id: String) extends Actor {
 	val ref = context.actorOf(Props(new DummyNeuron(id, hushValue)), name=id)
     add(id, ref)
   }
+  
+  private def createHushNeuron(id: String){
+    val ref = context.actorOf(Props(new HushNeuron(id)), name=id)
+    add(id, ref)
+  }
 
   def receive: Receive = {
     case Init => init()
@@ -94,6 +99,7 @@ class Net(val id: String) extends Actor {
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, threshold, slope, hushValue, forgetting) => createNeuron(id, threshold, slope, hushValue, forgetting)
     case CreateDummy(id, hushValue) => createDummy(id, hushValue)
+    case CreateHushNeuron(id) => createHushNeuron(id)
     case Shutdown => shutdown()
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
     case SetInputLayer(ids) => setInputLayer(ids)

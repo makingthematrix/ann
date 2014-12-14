@@ -60,12 +60,12 @@ class NeuronSuite extends MySuite {
     
     var (goodLoops, badLoops) = (0, 0)
     var done = false
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
-    net.addAfterFireTrigger("loop"){ 
+    net.addAfterFire("in"){ println("INCOMING!") }
+    net.addAfterFire("loop"){ 
       println("here") 
       if(!done) goodLoops += 1 else badLoops += 1
     }
-    net.addAfterFireTrigger("out"){
+    net.addAfterFire("out"){
       println("DONE") 
       done = true
     }

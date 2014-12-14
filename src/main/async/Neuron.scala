@@ -27,7 +27,7 @@ class Neuron(
     val slope: Double, 
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
-    private var synapses: List[Synapse] = List[Synapse]()
+    protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
@@ -35,10 +35,11 @@ class Neuron(
   def input = buffer // only for debugging purposes
   var lastOutput = 0.0 // only for debugging purposes
   
-  def silence(){
-    LOG += s"$id silence, hushValue.iterations is ${hushValue.iterations}"
+  private def hushNow(){
+    LOG += s"$id hushNow, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
     if(hushValue.iterations == 0) makeSleep() else makeHush()
+    triggerHushRequested()
   }
   
   private def makeSleep() = {
@@ -55,7 +56,7 @@ class Neuron(
   
   protected def calculateOutput:Double = f(buffer, slope)
   
-  def +=(signal: Double){
+  protected def +=(signal: Double){
     forget()
     LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
     buffer += signal
@@ -71,7 +72,7 @@ class Neuron(
   
   private def tick(){
     buffer = minmax(-1.0, buffer, 1.0)
-    if(buffer > threshold) tresholdPassedTriggers.values.foreach( _() )
+    if(buffer > threshold) triggerThresholdPassed()
     if(forgetting == ForgetAll) buffer = 0.0
   }
   
@@ -96,13 +97,13 @@ class Neuron(
       LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
       synapses.foreach( _.send(output) )
     } 
-    afterFireTriggers.values.foreach( _() )
+    triggerAfterFire()
     makeSleep()
   }
     
-  def findSynapse(destinationId: String):Option[Synapse] = 
+  protected def findSynapse(destinationId: String):Option[Synapse] = 
     if(synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
-  def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
+  protected def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
   protected def answer(msg: Answer) = NetRef.get match {
     case Some(netref) => netref ! msg
@@ -112,7 +113,7 @@ class Neuron(
   protected def init(){
     LOG += s"init for $id with threshold $threshold and slope $slope"
     
-    addTresholdPassedTrigger("run", () => that.run() )  
+    addThresholdPassed("run", () => that.run() )  
     answer(Success("init_"+this.id))
   }
   
@@ -129,7 +130,7 @@ class Neuron(
   
   val activeBehaviour: Receive = {
     case Signal(s) => this += s
-    case HushNow => silence()
+    case HushNow => hushNow()
     case WakeUp =>
   }
   
@@ -144,7 +145,7 @@ class Neuron(
     case WakeUp if sender == self => 
       LOG +=  s"$id sleep wake up" 
       wakeUp()
-    case HushNow => silence()
+    case HushNow => hushNow()
     case Signal(s) => buffer += s
   }
    
@@ -156,10 +157,16 @@ class Neuron(
       case SetSynapses(synapses) => this.synapses = synapses
       case NeuronShutdown => shutdown()
       case AddAfterFireTrigger(triggerId, trigger) => 
-        addAfterFireTrigger(triggerId, trigger)
+        addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)
       case RemoveAfterFireTrigger(triggerId) =>
-        removeAfterFireTrigger(triggerId)
+        removeAfterFire(triggerId)
+        sender ! Success(triggerId)
+      case AddHushRequestedTrigger(triggerId, trigger) => 
+        addHushRequested(triggerId, trigger)
+        sender ! Success(triggerId)
+      case RemoveHushRequestedTrigger(triggerId) =>
+        removeHushRequested(triggerId)
         sender ! Success(triggerId)
       case Init => init()
       case ResetBuffer => buffer = 0.0

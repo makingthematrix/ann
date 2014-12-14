@@ -35,8 +35,10 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait) = 
     await[NeuronRef](ref, CreateNeuron(id, treshold, slope, hushValue, forgetting))
+  def createDummy(id: String, hushValue: HushValue) = await[NeuronRef](ref, CreateDummy(id, hushValue))
+  def createHushNeuron(id: String) = await[NeuronRef](ref, CreateHushNeuron(id)) 
   
-  def init(usePresleep: Boolean =true) = await[Answer](ref, Init) match {
+  def init() = await[Answer](ref, Init) match {
     case Success(netId) if(netId == "netinit_"+id) => true
     case Failure(msg) => error(this, msg); false
   }
@@ -50,11 +52,17 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def shutdown() = await[NetShutdownDone](ref,Shutdown)
  
-  def addAfterFireTrigger(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
-    case Some(neuronRef) => neuronRef.addAfterFireTrigger(name)(f)
+  def addAfterFire(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addAfterFire(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
-  def addAfterFireTrigger(id: String)(f: => Any):Unit  = addAfterFireTrigger(id, id)(f)
+  def addAfterFire(id: String)(f: => Any):Unit  = addAfterFire(id, id)(f)
+
+  def addHushRequested(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addHushRequested(name)(f)
+    case None => error(this,s"Unable to find neuron with id $id")
+  }
+  def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)
 
 }
 

@@ -17,9 +17,9 @@ class DelaySuite extends MySuite {
     in += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    net.addAfterFireTrigger("out1","fired"){ list += LOG.time }
+    net.addAfterFire("out1","fired"){ list += LOG.time }
     
-    net.init(usePresleep = false)
+    net.init()
     LOG.timer()
     in.tickUntilCalm()
     
@@ -38,9 +38,9 @@ class DelaySuite extends MySuite {
     in += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    net.addAfterFireTrigger("out1","fired"){ list += LOG.time }
+    net.addAfterFire("out1","fired"){ list += LOG.time }
     
-    net.init(usePresleep = false)
+    net.init()
     LOG.timer()
     in.tickUntilCalm()
     
@@ -58,9 +58,9 @@ class DelaySuite extends MySuite {
     in += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    net.addAfterFireTrigger("out1","fired"){ list += LOG.time }
+    net.addAfterFire("out1","fired"){ list += LOG.time }
     
-    net.init(usePresleep = false)
+    net.init()
     LOG.timer()
     in.tickUntilCalm()
 
@@ -77,10 +77,10 @@ class DelaySuite extends MySuite {
     in += "1,1,1,1,1,1"
     
     val sb = StringBuilder.newBuilder
-    net.addAfterFireTrigger("out1","fired 1"){ sb.append('1') }
-    net.addAfterFireTrigger("out1","fired 0"){ sb.append('0') }
+    net.addAfterFire("out1","fired 1"){ sb.append('1') }
+    net.addAfterFire("out1","fired 0"){ sb.append('0') }
     
-    net.init(usePresleep = false)
+    net.init()
     LOG.timer()
     in.tickUntilCalm()
     

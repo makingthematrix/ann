@@ -31,8 +31,8 @@ class SOSSuite extends MySuite {
     dotNet()
     debug("------------")
     var dots = 0
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
-    net.addAfterFireTrigger("dot"){ println("KROPA!"); dots += 1; }
+    net.addAfterFire("in"){ println("INCOMING!") }
+    net.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
     
     in += s
     init()
@@ -62,8 +62,8 @@ class SOSSuite extends MySuite {
     lineNet()
     debug("------------")
     var lines = 0
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
-    net.addAfterFireTrigger("line"){ println("KRECHA!"); lines += 1; }
+    net.addAfterFire("in"){ println("INCOMING!") }
+    net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
     
     in += o
     init()
@@ -95,15 +95,15 @@ class SOSSuite extends MySuite {
     
     build()
     
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
+    net.addAfterFire("in"){ println("INCOMING!") }
     
     debug("------------")
   }
   
   @Test def shouldHaveDotsAndLines() = {
     dotLineNet()
-    var dots = 0; net.addAfterFireTrigger("dot"){ println("KROPA!"); dots += 1; }
-    var lines = 0; net.addAfterFireTrigger("line"){ println("KRECHA!"); lines += 1; }
+    var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
+    var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
     init()
     
     in += s
@@ -123,8 +123,8 @@ class SOSSuite extends MySuite {
   @Test def shouldGuessDotsAndLines() = {
     dotLineNet()
     val sb = StringBuilder.newBuilder
-    net.addAfterFireTrigger("dot"){ sb.append('.') }
-    net.addAfterFireTrigger("line"){ sb.append('-') }
+    net.addAfterFire("dot"){ sb.append('.') }
+    net.addAfterFire("line"){ sb.append('-') }
     init()
     
     in += "1,0,0"
@@ -179,7 +179,7 @@ class SOSSuite extends MySuite {
                      .chainMiddle("S",0.5,0.81)
     build()
     
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
+    net.addAfterFire("in"){ println("INCOMING!") }
 
     debug("------------")
   }
@@ -187,8 +187,8 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveSInterval3() = {
     SNet()
     
-    var dots = 0; net.addAfterFireTrigger("dot"){ println("KROPA!"); dots += 1; } 
-    var S = 0; net.addAfterFireTrigger("S"){ println("S!"); S += 1; }
+    var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
+    var S = 0; net.addAfterFire("S"){ println("S!"); S += 1; }
     
     in += s
     init()
@@ -216,7 +216,7 @@ class SOSSuite extends MySuite {
                      .chainMiddle("O",0.6,0.81)
     build()
     
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
+    net.addAfterFire("in"){ println("INCOMING!") }
 
     debug("------------")
   }
@@ -224,8 +224,8 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveOInterval3() = {
     ONet()
     
-    var lines = 0; net.addAfterFireTrigger("line"){ println("KRECHA!"); lines += 1; }
-    var O = 0; net.addAfterFireTrigger("O"){ println("O!"); O += 1; }
+    var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    var O = 0; net.addAfterFire("O"){ println("O!"); O += 1; }
     
     in += o
     init()
@@ -262,7 +262,7 @@ class SOSSuite extends MySuite {
     
     build()
 
-    net.addAfterFireTrigger("in"){ println("INCOMING!") }
+    net.addAfterFire("in"){ println("INCOMING!") }
     
     debug("------------")
   }
@@ -270,10 +270,10 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveSOSInterval3() = {
     SOSNet()
     
-    var dots = 0; net.addAfterFireTrigger("dot"){ println("KROPA!"); dots += 1; } 
-    var S = 0; net.addAfterFireTrigger("S"){ println("S!"); S += 1; }
-    var lines = 0; net.addAfterFireTrigger("line"){ println("KRECHA!"); lines += 1; }
-    var O = 0; net.addAfterFireTrigger("O"){ println("O!"); O += 1; }
+    var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
+    var S = 0; net.addAfterFire("S"){ println("S!"); S += 1; }
+    var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    var O = 0; net.addAfterFire("O"){ println("O!"); O += 1; }
     
     init()
 
@@ -310,8 +310,8 @@ class SOSSuite extends MySuite {
     SOSNet()
     
     val sb = StringBuilder.newBuilder
-    net.addAfterFireTrigger("S"){ sb.append('S') }
-    net.addAfterFireTrigger("O"){ sb.append('O') }
+    net.addAfterFire("S"){ sb.append('S') }
+    net.addAfterFire("O"){ sb.append('O') }
     
     in += s
     in += o
@@ -326,8 +326,8 @@ class SOSSuite extends MySuite {
     SOSNet()
     
     val sb = StringBuilder.newBuilder
-    net.addAfterFireTrigger("S"){ sb.append('S') }
-    net.addAfterFireTrigger("O"){ sb.append('O') }
+    net.addAfterFire("S"){ sb.append('S') }
+    net.addAfterFire("O"){ sb.append('O') }
     
     init()
 
@@ -384,5 +384,48 @@ class SOSSuite extends MySuite {
     in += "1,1,0,1,1,1,1,1,0"
     in.tickUntilCalm()
     assertEquals("O", sb.toString)
+  }
+  
+  private def SOSNetWithHushNeuron(){
+    val itm = 3
+    builder.inputTickMultiplicity = itm
+    builder.addInput("in")
+    // dots
+    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
+                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chainMiddle("dot",0.6/(2.0*itm),0.6)
+                     .chainMiddle("S",0.5,0.81)
+    builder.addHushNeuron("dot_hush").hush("mi12").hush("loop").hush("dot")
+    builder.use("dot").hush("dot_hush")
+    
+    // lines
+    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+                     .chainMiddle("line",1.0,0.0).hush("line")
+                     .chainMiddle("O",0.6,0.81)
+                     
+    // if line then not dot
+    builder.use("line").hush("dot_hush")
+    
+    build()
+
+    net.addAfterFire("in"){ println("INCOMING!") }
+    
+    debug("------------")
+  }
+  
+  @Test def shouldHaveSOSWithHushNeuron() = {
+    SOSNetWithHushNeuron()
+    
+    val sb = StringBuilder.newBuilder
+    net.addAfterFire("S"){ sb.append('S') }
+    net.addAfterFire("O"){ sb.append('O') }
+    
+    in += s
+    in += o
+    in += s
+    
+    init()
+    in.tickUntilCalm()
+    assertEquals("SOS", sb.toString)
   }
 }

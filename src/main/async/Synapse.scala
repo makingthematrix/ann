@@ -23,4 +23,5 @@ class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
 object Synapse{
   def apply(dest: NeuronRef, weight: SynapseTrait):Synapse = new Synapse(dest, weight)
   def apply(dest: NeuronRef, weight: Double):Synapse = apply(dest, SynapseWeight(weight))
+  def apply(dest: NeuronRef):Synapse = apply(dest, 1.0)
 }

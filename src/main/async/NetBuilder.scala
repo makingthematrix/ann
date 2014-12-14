@@ -12,7 +12,7 @@ import Context.{ INPUT_LAYER_NAME, MIDDLE_LAYER_NAME }
 
 object NeuronType extends Enumeration {
   type NeuronType = Value
-  val STANDARD, DUMMY = Value
+  val STANDARD, DUMMY, HUSH = Value
 }
 
 import NeuronType._
@@ -72,6 +72,7 @@ class NetBuilder {
       forgetting: ForgetTrait =defForgetting) = neuronType match {
     case STANDARD => await[NeuronRef](net, CreateNeuron(id, threshold, slope, hushValue, forgetting))
     case DUMMY => await[NeuronRef](net, CreateDummy(id, hushValue))
+    case HUSH => await[NeuronRef](net, CreateHushNeuron(id))
   }
 
   def get(name: String) = neurons(name)  
@@ -126,8 +127,6 @@ class NetBuilder {
                     hushValue: HushValue, forgetting: ForgetTrait, slope: Double):NetBuilder = {
     val n1 = current
     debug(this, s"chaining from ${n1.id} to $name with treshold $threshold and slope $slope")
-    if(throwOnError && outs.contains(n1.id))
-      throw new IllegalArgumentException("You can chain a new neuron only from input or middle neurons")
     add(name, layerName, threshold, hushValue, forgetting, slope)
     val n = neurons(currentNeuronId.get)
     addSynapse(n1.id, n, SynapseWeight(weight))
@@ -138,9 +137,6 @@ class NetBuilder {
     val n1 = current
     debug(this, s"chaining a dummy from ${n1.id} to $name")
     
-    if(throwOnError && outs.contains(n1.id))
-      throw new IllegalArgumentException("You can chain a dummy only from input or middle neurons")
-    
     if(contains(name)){
       if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
     } else {
@@ -148,7 +144,20 @@ class NetBuilder {
     }
     
     val n = current
-    addSynapse(n.id, n1, SynapseWeight(weight))
+    addSynapse(n1.id, n, SynapseWeight(weight))
+    mids += n.id
+    
+    this
+  }
+  
+  def chainHushNeuron(name: String):NetBuilder = {
+    val n1 = current
+    debug(this, s"chaining a hush neuron from ${n1.id} to $name")
+    
+    addHushNeuron(name)
+    
+    val n = current
+    addSynapse(n1.id, n, Hush)
     mids += n.id
     
     this
@@ -160,8 +169,28 @@ class NetBuilder {
   def addMiddle(name: String, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
                 forgetting: ForgetTrait = DontForget, slope: Double = defSlope):NetBuilder = 
     add(name, MIDDLE_LAYER_NAME, treshold, hushValue, forgetting, slope)
-  def addMiddle():NetBuilder = addInput(generateName(MIDDLE_LAYER_NAME))
+  def addMiddle():NetBuilder = addMiddle(generateName(MIDDLE_LAYER_NAME))
 
+  def addHushNeuron(name: String):NetBuilder = {
+    if(contains(name)){
+      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+    } else {
+      add(newNeuron(HUSH, name))
+    }
+    this
+  }
+  def addHushNeuron():NetBuilder = addHushNeuron(generateName(MIDDLE_LAYER_NAME))
+  
+  def addDummy(name: String):NetBuilder = {
+    if(contains(name)){
+      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+    } else {
+      add(newNeuron(DUMMY, name))
+    }
+    this
+  }
+  def addDummy():NetBuilder = addDummy(generateName(MIDDLE_LAYER_NAME))
+  
   def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
                   forgetting: ForgetTrait =DontForget, slope: Double =defSlope):NetBuilder = 
     chain(name, defMiddleName, weight, treshold, hushValue, forgetting, slope)
