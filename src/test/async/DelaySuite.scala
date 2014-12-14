@@ -33,6 +33,7 @@ class DelaySuite extends MySuite {
     builder.inputTickMultiplicity = 2
     builder.addInput("in1").chain("mi1",1.0).loop("osc",1.0,0.5,-1.0).chain("out1",1.0,0.75)
     build()
+    LOG.debug(this,"here!")
     
     in += "1,1,1,1,1,1"
       

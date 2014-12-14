@@ -35,8 +35,6 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait) = 
     await[NeuronRef](ref, CreateNeuron(id, treshold, slope, hushValue, forgetting))
- 
-  def connectNeurons(id1: String, id2: String, weight: Double) = await[Answer](ref, ConnectNeurons(id1, id2, weight))
   
   def init(usePresleep: Boolean =true) = await[Answer](ref, Init) match {
     case Success(netId) if(netId == "netinit_"+id) => true

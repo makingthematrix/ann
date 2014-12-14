@@ -17,16 +17,13 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def input = await[Msg](ref, GetInput).d
   def lastOutput = await[Msg](ref, GetLastOutput).d
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
+  def setSynapses(synapses: List[Synapse]) = {
+    synapses.foreach( s => println(s.toString()) )
+    ref ! SetSynapses(synapses)
+  }
   
   def hush() = ref ! HushNow
   
-  def connect(dest: NeuronRef, weight: Double): Boolean = connect(dest, SynapseWeight(weight))
-  
-  def connect(dest: NeuronRef, weight: SynapseTrait): Boolean = await[Answer](ref, Connect(dest, weight)) match {
-    case Success(id) => true
-    case Failure(str) => error(this,s"connect failure: $str"); false 
-  }
- 
   protected def calculateOutput = Double.NaN // we don't do that here 
   
   def addAfterFireTrigger(triggerId: String)(f: => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, () => f)) match {

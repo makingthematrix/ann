@@ -21,10 +21,14 @@ case class ForgetValue(value: Double) extends AnyVal with ForgetTrait
 case object ForgetAll extends ForgetTrait
 case object DontForget extends ForgetTrait
 
-class Neuron(val id: String, val threshold: Double, val slope: Double, val hushValue: HushValue, val forgetting: ForgetTrait)
-extends Actor with NeuronTriggers {
-  protected val synapses = mutable.ListBuffer[Synapse]()
-  
+class Neuron(
+    val id: String, 
+    val threshold: Double, 
+    val slope: Double, 
+    val hushValue: HushValue, 
+    val forgetting: ForgetTrait,
+    private var synapses: Option[List[Synapse]] = None
+) extends Actor with NeuronTriggers {
   implicit val that = this
   
   protected var buffer = 0.0
@@ -34,7 +38,6 @@ extends Actor with NeuronTriggers {
   def silence(){
     LOG += s"$id silence, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
-    //output = 0.0
     if(hushValue.iterations == 0) makeSleep() else makeHush()
   }
   
@@ -89,30 +92,16 @@ extends Actor with NeuronTriggers {
     val output = calculateOutput
     lastOutput = output
     buffer = 0.0
-    LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
-    synapses.foreach( _.send(output) )
+    if(synapses.nonEmpty){
+      LOG += s"$id trigger output $output, synapses size: ${synapses.get.size}"
+      synapses.get.foreach( _.send(output) )
+    } 
     afterFireTriggers.values.foreach( _() )
     makeSleep()
   }
-  
-  private def _connect(destinationRef: NeuronRef, weight: SynapseTrait) = {
-    //LOG +=  s"_connect(${destinationRef.id},$weight)")
-    synapses += new Synapse(destinationRef, weight)
-    sender ! Success("connect_"+id)
-  }
-  
-  protected def connect(destinationRef: NeuronRef, weight: SynapseTrait) = findSynapse(destinationRef.id) match {
-    case Some(s) => sender ! Failure(s"a synapse to ${destinationRef.id} already exists")
-    case None => _connect(destinationRef, weight)
-  }
-  
-  protected def disconnect(destinationId: String):Unit = findSynapse(destinationId) match {
-    case Some(s) => synapses -= s
-    case None =>
-  }
-  protected def disconnect(destination: Neuron):Unit = disconnect(destination.id)
-  
-  def findSynapse(destinationId: String):Option[Synapse] = synapses.find(_.dest.id == destinationId)
+    
+  def findSynapse(destinationId: String):Option[Synapse] = 
+    if(synapses.nonEmpty) synapses.get.find(_.dest.id == destinationId) else None
   def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
   protected def answer(msg: Answer) = NetRef.get match {
@@ -158,15 +147,14 @@ extends Actor with NeuronTriggers {
     case HushNow => silence()
     case Signal(s) => buffer += s
   }
-  
+   
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
       case GetInput => sender ! Msg(input.toDouble, id)
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
-      case GetSynapses => sender ! MsgSynapses(synapses.toList)
+      case GetSynapses => sender ! MsgSynapses(if(synapses.nonEmpty) synapses.get.toList else List[Synapse]())
+      case SetSynapses(synapses) => this.synapses = Some(synapses)
       case NeuronShutdown => shutdown()
-      case Connect(destinationRef, weight) => connect(destinationRef, weight)
-      case Disconnect(destinationId) => disconnect(destinationId)
       case AddAfterFireTrigger(triggerId, trigger) => 
         addAfterFireTrigger(triggerId, trigger)
         sender ! Success(triggerId)

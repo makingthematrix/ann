@@ -36,6 +36,8 @@ class NetBuilder {
   protected val neurons = mutable.Map[String,NeuronRef]()
   protected lazy val net = NetRef(defNetName)
   
+  private val synapses = mutable.Map[String,mutable.ListBuffer[Synapse]]()
+  
   protected val ins = mutable.Set[String]()
   protected val mids = mutable.Set[String]()
   
@@ -62,6 +64,9 @@ class NetBuilder {
     case MIDDLE_LAYER_NAME => (mids, middleNeuronType)
   }
   
+  private def addSynapse(fromId: String, toRef: NeuronRef, weight: SynapseTrait) =
+    synapses.getOrElseUpdate(fromId, mutable.ListBuffer[Synapse]()) += Synapse(toRef, weight)
+  
   protected def newNeuron(neuronType: NeuronType.Value, id: String, 
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
       forgetting: ForgetTrait =defForgetting) = neuronType match {
@@ -81,7 +86,7 @@ class NetBuilder {
   def hush(name: String):NetBuilder = connect(name, Hush)
   def connect(name: String, weight: Double =defWeight):NetBuilder = connect(name, SynapseWeight(weight))
   private def connect(name: String, weight: SynapseTrait):NetBuilder = {
-    current.connect(get(name), weight)
+    addSynapse(current.id, get(name), weight)
     this
   }
   
@@ -125,7 +130,7 @@ class NetBuilder {
       throw new IllegalArgumentException("You can chain a new neuron only from input or middle neurons")
     add(name, layerName, threshold, hushValue, forgetting, slope)
     val n = neurons(currentNeuronId.get)
-    n1.connect(n, weight)
+    addSynapse(n1.id, n, SynapseWeight(weight))
     this
   }
   
@@ -143,8 +148,7 @@ class NetBuilder {
     }
     
     val n = current
-    n1.connect(n, weight)
-    
+    addSynapse(n.id, n1, SynapseWeight(weight))
     mids += n.id
     
     this
@@ -176,7 +180,7 @@ class NetBuilder {
     if(throwOnError && !mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
     chainMiddle(name, w1, treshold, defHushValue, defForgetting, slope)
-    current.connect(n1, w2)
+    addSynapse(current.id, n1, SynapseWeight(w2))
     currentNeuronId = Some(n1.id)
     NetBuilder.this
   }
@@ -192,8 +196,21 @@ class NetBuilder {
   def chainOscillator(name: String, weight: Double) = chainMiddle(name, weight).oscillator(name+"_osc")
   def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
   
+  def self(weight: Double =defWeight):NetBuilder = {
+    addSynapse(current.id, current, SynapseWeight(weight))
+    this
+  }
+  
   def build:NetRef = {
     debug(this, s"build()")
+    
+    neurons.foreach( tuple => {
+      if(synapses.contains(tuple._1)){
+        debug(this,s"setting synapses for ${tuple._1}")
+        tuple._2.setSynapses(synapses(tuple._1).toList) 
+      }
+    })
+    
     net.setInputLayer(ins.toSeq)
     val sb = StringBuilder.newBuilder
     ins.foreach( sb.append(_).append(','))
@@ -208,11 +225,6 @@ class NetBuilder {
     val in = NetInput(netInputName, net, inputTickMultiplicity)
     debug(this, "net input built")
     (in, net)
-  }
-  
-  def self(weight: Double =defWeight):NetBuilder = {
-    current.connect(current, weight)
-    this
   }
   
 }

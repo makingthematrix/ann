@@ -24,55 +24,51 @@ class Net(val id: String) extends Actor {
     case None => 
   }
   
-  private var caller: Option[ActorRef] = None
-  
-  def shutdowning: Receive = {
+  def shutdowning(caller: ActorRef): Receive = {
     case NeuronShutdownDone(id) => {
       remove(id)
       if(neurons.isEmpty){
-        if(caller != None) caller.get ! NetShutdownDone(id) 
-        caller = None
+        caller ! NetShutdownDone(id) 
         context.stop(self)
       }
     }
   }
   
-  private val waitingForInit = mutable.Set[String]()
+  private def neuronInitialized(initId: String, caller: ActorRef, waitingForInit: Set[String]){
+    val neuronId = initId.substring(5)
+    assert(waitingForInit.contains(neuronId), s"received initialization signal from a neuron which I know nothing about: $neuronId")
+    debug(this, s"initialized $neuronId")
+    val newWaiting = waitingForInit - neuronId
+    if(newWaiting.isEmpty) {
+      caller ! Success("netinit_"+this.id)
+      context.become( receive )
+    } else {
+      context.become( initializing(caller, newWaiting) )
+    }
+  }
   
-  def initializing: Receive = {
-    case Success(initId) if initId.startsWith("init_") => {
-      debug(this, "initializing, " + initId)
-      val id = initId.substring(5)
-      waitingForInit.remove(id)
-      if(waitingForInit.isEmpty) {
-        if(caller != None) caller.get ! Success("netinit_"+this.id)
-        caller = None
-        context.unbecome
-      }
-    }
+  private def neuronInitFailure(initId: String, caller: ActorRef){
+    error(this, initId) 
+    caller ! Failure(s"netinit_${this.id}, $initId")
+    context.become( receive )
+  }
+  
+  def initializing(caller: ActorRef, waitingForInit: Set[String]): Receive = {
+    case Success(initId) if initId.startsWith("init_") => neuronInitialized(initId, caller, waitingForInit)
     case Success(str) => error(this, "this Success message shouldn't be here: " + str)
-    case Failure(initId) if initId.startsWith("init_") => {
-      error(this, initId) 
-      val id = initId.substring(5)
-      if(caller != None) caller.get ! Success("netinit_"+this.id)
-      caller = None
-      context.unbecome
-    }
+    case Failure(initId) if initId.startsWith("init_") => neuronInitFailure(initId, caller)
     case Failure(str) => error(Net.this, "this Failure message shouldn't be here: " + str)
   }
   
   private def init() = {
     debug(this, s"init for $id")
-    waitingForInit ++= neurons.map( _.id )
-    caller = Some(sender)
-    context.become(initializing)
+    context.become( initializing(sender, neurons.map( _.id ).toSet) )
     neurons.foreach( _ ! Init )
   }
   
   private def shutdown() = {
     debug(s"shutdown for $id")
-    caller = Some(sender)
-    context.become(shutdowning)
+    context.become( shutdowning(sender) )
     neurons.foreach(_ ! NeuronShutdown)
   }
   
@@ -98,7 +94,6 @@ class Net(val id: String) extends Actor {
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, threshold, slope, hushValue, forgetting) => createNeuron(id, threshold, slope, hushValue, forgetting)
     case CreateDummy(id, hushValue) => createDummy(id, hushValue)
-    case ConnectNeurons(id1, id2, weight) => connectNeurons(id1, id2, weight) 
     case Shutdown => shutdown()
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
     case SetInputLayer(ids) => setInputLayer(ids)
@@ -118,19 +113,6 @@ class Net(val id: String) extends Actor {
     ins.clear
     neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )
     sender ! Success("setInputLayer_"+id)
-  }
-  
-  private def connectNeurons(id1: String, id2: String, weight: Double) = findRef(id1, id2) match {
-    case (Some(ref1),Some(ref2)) => {
-      debug(this, s"connectNeurons($id1,$id2,$weight in $id)")
-      ref1.connect(ref2, weight) match {
-        case true => sender ! Success(s"${id}_connectNeurons($id1,$id2)")
-        case false => sender ! Failure(s"$id: Unable to connecct neurons $id1 and $id2")
-      }
-    }
-    case (Some(ref1),None) => sender ! Failure(s"There is no neuron with id $id2")
-    case (None,Some(ref2)) => sender ! Failure(s"There is no neuron with id $id1")
-    case (None, None) => sender ! Failure(s"There is neither neuron with id $id1 nor $id2")
   }
   
   private def findRef(id: String):Option[NeuronRef] = neurons.find(_.id == id)

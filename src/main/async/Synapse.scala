@@ -16,4 +16,11 @@ class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
   }
   
   def send(signal: Double) = dest ! msg(signal)
+  
+  override def toString() = s"Synapse(${dest.id}, $weight)"
+}
+
+object Synapse{
+  def apply(dest: NeuronRef, weight: SynapseTrait):Synapse = new Synapse(dest, weight)
+  def apply(dest: NeuronRef, weight: Double):Synapse = apply(dest, SynapseWeight(weight))
 }

@@ -14,14 +14,13 @@ object Messages {
   case object WakeFromHush
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
-  case class UpdateSynapse(destinationId: String, synapse: Synapse) // unused
   case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait)
   case class CreateDummy(id: String, hushValue: HushValue)
-  case class ConnectNeurons(id1: String, id2: String, weight: Double)
   case class SetInputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
   case object ResetBuffer
+  case class SetSynapses(synapses: List[Synapse])
   
   // questions
   case object GetId
