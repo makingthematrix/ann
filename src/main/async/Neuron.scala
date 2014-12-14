@@ -27,7 +27,7 @@ class Neuron(
     val slope: Double, 
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
-    private var synapses: Option[List[Synapse]] = None
+    private var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
@@ -93,15 +93,15 @@ class Neuron(
     lastOutput = output
     buffer = 0.0
     if(synapses.nonEmpty){
-      LOG += s"$id trigger output $output, synapses size: ${synapses.get.size}"
-      synapses.get.foreach( _.send(output) )
+      LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
+      synapses.foreach( _.send(output) )
     } 
     afterFireTriggers.values.foreach( _() )
     makeSleep()
   }
     
   def findSynapse(destinationId: String):Option[Synapse] = 
-    if(synapses.nonEmpty) synapses.get.find(_.dest.id == destinationId) else None
+    if(synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
   def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
   protected def answer(msg: Answer) = NetRef.get match {
@@ -152,8 +152,8 @@ class Neuron(
       case GetId => sender ! Msg(0.0, id)
       case GetInput => sender ! Msg(input.toDouble, id)
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
-      case GetSynapses => sender ! MsgSynapses(if(synapses.nonEmpty) synapses.get.toList else List[Synapse]())
-      case SetSynapses(synapses) => this.synapses = Some(synapses)
+      case GetSynapses => sender ! MsgSynapses(synapses)
+      case SetSynapses(synapses) => this.synapses = synapses
       case NeuronShutdown => shutdown()
       case AddAfterFireTrigger(triggerId, trigger) => 
         addAfterFireTrigger(triggerId, trigger)
