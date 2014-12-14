@@ -34,38 +34,6 @@ class Net(val id: String) extends Actor {
     }
   }
   
-  private def neuronInitialized(initId: String, caller: ActorRef, waitingForInit: Set[String]){
-    val neuronId = initId.substring(5)
-    assert(waitingForInit.contains(neuronId), s"received initialization signal from a neuron which I know nothing about: $neuronId")
-    debug(this, s"initialized $neuronId")
-    val newWaiting = waitingForInit - neuronId
-    if(newWaiting.isEmpty) {
-      caller ! Success("netinit_"+this.id)
-      context.become( receive )
-    } else {
-      context.become( initializing(caller, newWaiting) )
-    }
-  }
-  
-  private def neuronInitFailure(initId: String, caller: ActorRef){
-    error(this, initId) 
-    caller ! Failure(s"netinit_${this.id}, $initId")
-    context.become( receive )
-  }
-  
-  def initializing(caller: ActorRef, waitingForInit: Set[String]): Receive = {
-    case Success(initId) if initId.startsWith("init_") => neuronInitialized(initId, caller, waitingForInit)
-    case Success(str) => error(this, "this Success message shouldn't be here: " + str)
-    case Failure(initId) if initId.startsWith("init_") => neuronInitFailure(initId, caller)
-    case Failure(str) => error(Net.this, "this Failure message shouldn't be here: " + str)
-  }
-  
-  private def init() = {
-    debug(this, s"init for $id")
-    context.become( initializing(sender, neurons.map( _.id ).toSet) )
-    neurons.foreach( _ ! Init )
-  }
-  
   private def shutdown() = {
     debug(s"shutdown for $id")
     context.become( shutdowning(sender) )
@@ -94,7 +62,6 @@ class Net(val id: String) extends Actor {
   }
 
   def receive: Receive = {
-    case Init => init()
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(id, threshold, slope, hushValue, forgetting) => createNeuron(id, threshold, slope, hushValue, forgetting)

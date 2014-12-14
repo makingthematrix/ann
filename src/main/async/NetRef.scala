@@ -38,11 +38,6 @@ class NetRef(val id: String, val ref: ActorRef) {
   def createDummy(id: String, hushValue: HushValue) = await[NeuronRef](ref, CreateDummy(id, hushValue))
   def createHushNeuron(id: String) = await[NeuronRef](ref, CreateHushNeuron(id)) 
   
-  def init() = await[Answer](ref, Init) match {
-    case Success(netId) if(netId == "netinit_"+id) => true
-    case Failure(msg) => error(this, msg); false
-  }
-  
   def setInputLayer(seq: Seq[String]) = await[Answer](ref, SetInputLayer(seq))
   
   def signal(seq: Seq[Double]) = {

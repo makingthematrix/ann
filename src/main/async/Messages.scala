@@ -8,7 +8,6 @@ object Messages {
   case class SignalSeq(input: Seq[Double])
 
   // commands
-  case object Init
   case object HushNow // become silent
   case object WakeUp
   case object WakeFromHush

@@ -29,8 +29,6 @@ class HushSuite extends MySuite {
       p.success(true)
     }
     
-    net.init()
-    
     net.signal(List(1.0))
     
     val hushReceived = Await.result(p.future, timeout.duration).asInstanceOf[Boolean]
@@ -52,8 +50,7 @@ class HushSuite extends MySuite {
     }
     
     in += "1"
-      
-    net.init()
+
     LOG.timer()
     
     in.tickUntilCalm()
@@ -78,8 +75,6 @@ class HushSuite extends MySuite {
       p.success(true)
     }
     
-    net.init()
-    
     net.signal(List(1.0))
     
     val hushReceived = Await.result(p.future, timeout.duration).asInstanceOf[Boolean]
@@ -101,8 +96,7 @@ class HushSuite extends MySuite {
     }
     
     in += "1"
-      
-    net.init()
+     
     LOG.timer()
     
     in.tickUntilCalm()

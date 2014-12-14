@@ -56,7 +56,6 @@ class MySuite extends JUnitSuite {
   }
   
   protected def init() = {
-    _net.init()
     LOG.timer()
   }
 }

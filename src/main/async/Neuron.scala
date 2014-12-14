@@ -72,7 +72,10 @@ class Neuron(
   
   private def tick(){
     buffer = minmax(-1.0, buffer, 1.0)
-    if(buffer > threshold) triggerThresholdPassed()
+    if(buffer > threshold){
+      triggerThresholdPassed()
+      run()
+    }
     if(forgetting == ForgetAll) buffer = 0.0
   }
   
@@ -108,13 +111,6 @@ class Neuron(
   protected def answer(msg: Answer) = NetRef.get match {
     case Some(netref) => netref ! msg
     case None => //error(this, "answer demanded, but no netref!")
-  }
-  
-  protected def init(){
-    LOG += s"init for $id with threshold $threshold and slope $slope"
-    
-    addThresholdPassed("run", () => that.run() )  
-    answer(Success("init_"+this.id))
   }
   
   private def shutdown(){
@@ -168,7 +164,6 @@ class Neuron(
       case RemoveHushRequestedTrigger(triggerId) =>
         removeHushRequested(triggerId)
         sender ! Success(triggerId)
-      case Init => init()
       case ResetBuffer => buffer = 0.0
   }
   

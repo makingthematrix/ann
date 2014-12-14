@@ -34,8 +34,6 @@ class NetSuite extends JUnitSuite {
     val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting)
     val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting)
     
-    net.init()
-    
     val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons
     assertEquals(2, neurons.size)
@@ -43,19 +41,6 @@ class NetSuite extends JUnitSuite {
     assertTrue(neurons.map{ _.id }.contains(n2.id))
     
     net ! Shutdown
-  }
-  
-  @Test
-  def shouldInitializeTheNet(){
-    LOG.addLogToStdout()
-    val builder = NetBuilder()
-    builder.addInput("in").chain("mi").loop().chain("out")
-    
-    val net = builder.build
-    
-    debug("--------------------------------")
-    assertTrue(net.init())
-    debug("--------------------------------")
   }
 
 }

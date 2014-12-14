@@ -19,7 +19,6 @@ class DelaySuite extends MySuite {
     val list = mutable.ListBuffer[Long]()
     net.addAfterFire("out1","fired"){ list += LOG.time }
     
-    net.init()
     LOG.timer()
     in.tickUntilCalm()
     
@@ -40,7 +39,6 @@ class DelaySuite extends MySuite {
     val list = mutable.ListBuffer[Long]()
     net.addAfterFire("out1","fired"){ list += LOG.time }
     
-    net.init()
     LOG.timer()
     in.tickUntilCalm()
     
@@ -60,7 +58,6 @@ class DelaySuite extends MySuite {
     val list = mutable.ListBuffer[Long]()
     net.addAfterFire("out1","fired"){ list += LOG.time }
     
-    net.init()
     LOG.timer()
     in.tickUntilCalm()
 
@@ -80,7 +77,6 @@ class DelaySuite extends MySuite {
     net.addAfterFire("out1","fired 1"){ sb.append('1') }
     net.addAfterFire("out1","fired 0"){ sb.append('0') }
     
-    net.init()
     LOG.timer()
     in.tickUntilCalm()
     
