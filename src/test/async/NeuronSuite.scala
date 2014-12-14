@@ -8,17 +8,11 @@ import scala.annotation.tailrec
 import main.async.Context
 import main.async.HushValue
 import main.async.ForgetAll
+import main.utils.DoubleRange
+import main.utils.DoubleRange._
 
 class NeuronSuite extends MySuite {
   case class NeuronData(slope: Double, weight: Double, threshold: Double)
-  case class DoubleRange(from: Double, to: Double)
-  
-  implicit class RichD(d: Double) {
-    def <=>(other: Double) = DoubleRange(d, other)
-  }
-  
-  def iterator(range: DoubleRange, resolution: Int) = 
-    (0 to resolution).map{ x => (x.toDouble/resolution)*(range.to-range.from)+range.from }.view.iterator
   
   def oneIteration(input: Double, slope: Double, weight: Double) = f(input, slope) * weight
   
@@ -29,9 +23,9 @@ class NeuronSuite extends MySuite {
     else countIterations(oneIteration(input, data.slope, data.weight), data, currentIteration + 1)
   
   def neuronDataIter(slopeRange: DoubleRange, weightRange: DoubleRange, thresholdRange: DoubleRange, resolution: Int) = 
-      for { s <- iterator(slopeRange, resolution)
-            w <- iterator(weightRange, resolution)
-            t <- iterator(thresholdRange, resolution) } yield NeuronData(s, w, t)
+      for { s <- slopeRange.iterator(resolution)
+            w <- weightRange.iterator(resolution)
+            t <- thresholdRange.iterator(resolution) } yield NeuronData(s, w, t)
     
   @Test def findLongestLoop() = {
     implicit val timeout = 10
