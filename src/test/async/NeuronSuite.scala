@@ -6,8 +6,8 @@ import main.utils.Utils._
 import org.junit.Assert._
 import scala.annotation.tailrec
 import main.async.Context
-import main.async.HushValue
-import main.async.ForgetAll
+import main.data.HushValue
+import main.data.ForgetAll
 import main.utils.DoubleRange
 import main.utils.DoubleRange._
 

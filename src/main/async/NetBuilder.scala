@@ -9,13 +9,15 @@ import scala.concurrent.duration._
 import Messages._
 import main.utils.Utils.await
 import Context.{ INPUT_LAYER_NAME, MIDDLE_LAYER_NAME }
-
-object NeuronType extends Enumeration {
-  type NeuronType = Value
-  val STANDARD, DUMMY, HUSH = Value
-}
-
+import main.data.SynapseTrait
+import main.data.Hush
+import main.data.SynapseWeight
 import NeuronType._
+import main.data.ForgetTrait
+import main.data.HushValue
+import main.data.ForgetAll
+import main.data.DontForget
+
 
 class NetBuilder {
   var defSlope = Context.slope

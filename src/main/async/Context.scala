@@ -4,6 +4,8 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import scala.concurrent.duration._
 import main.async.Messages._
+import main.data.HushValue
+import main.data.DontForget
 
 object Context {    
   implicit val timeout = Timeout(5 seconds)

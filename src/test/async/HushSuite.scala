@@ -4,7 +4,7 @@ import org.junit.Test
 import main.async.NetRef
 import main.async.Context._
 import main.async.Synapse
-import main.async.Hush
+import main.data.Hush
 import org.junit.Assert._
 import main.async.logger.LOG
 import scala.concurrent.Promise

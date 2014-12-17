@@ -7,9 +7,9 @@ import main.async.Messages._
 import main.async.logger.LOG.debug
 import main.async.logger.LOG
 import main.async.Context
-import main.async.HushValue
-import main.async.ForgetValue
-import main.async.ForgetAll
+import main.data.HushValue
+import main.data.ForgetValue
+import main.data.ForgetAll
 
 class SOSSuite extends MySuite {
   val s = "1,0,0,1,0,0,1,0,0"

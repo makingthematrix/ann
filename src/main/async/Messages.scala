@@ -1,6 +1,9 @@
 package main.async
 
 import NeuronTriggers.Trigger
+import main.data.SynapseTrait
+import main.data.HushValue
+import main.data.ForgetTrait
 
 object Messages {
   // signals

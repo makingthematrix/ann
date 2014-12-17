@@ -3,8 +3,8 @@ package test.async.epengine
 import org.scalatest.junit.JUnitSuite
 import org.junit.Test
 import org.junit.Assert._
-import main.async.Hush
-import main.async.SynapseWeight
+import main.data.Hush
+import main.data.SynapseWeight
 import main.async.epengine.Engine
 import main.utils.DoubleRange
 import main.utils.DoubleRange._
@@ -32,7 +32,7 @@ class EngineSuite extends JUnitSuite {
     var hushCount = 0
     for(i <- 1 to totalCount){
       val synapseChromosome = engine.tossForSynapse("id1")
-      assertEquals("id1",synapseChromosome.id)
+      assertEquals("id1",synapseChromosome.neuronId)
       synapseChromosome.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) => 

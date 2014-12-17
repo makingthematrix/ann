@@ -12,6 +12,8 @@ import Context._
 import main.async.logger.LOG._
 import main.utils.Utils.await
 import Messages._
+import main.data.ForgetTrait
+import main.data.HushValue
 
 class NeuronRef(val id: String, val ref: ActorRef) {
   def input = await[Msg](ref, GetInput).d

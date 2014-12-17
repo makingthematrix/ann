@@ -3,13 +3,14 @@ package main.async.epengine
 import main.utils.DoubleRange
 import main.utils.DoubleRange._
 import main.utils.Utils.assert
-import main.async.SynapseTrait
+import main.data.SynapseTrait
 import TossType._
 import scala.util.Random
-import main.async.Hush
-import main.async.SynapseWeight
+import main.data.Hush
+import main.data.SynapseWeight
+import main.data.SynapseData
 
-case class SynapseChromosome(id: String, weight: SynapseTrait)
+case class SynapseChromosome(override val neuronId: String, override val weight: SynapseTrait) extends SynapseData(neuronId, weight)
 
 class Engine {
   var synapseWeightRange: DoubleRange = 0.0<=>1.0

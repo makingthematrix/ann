@@ -11,15 +11,11 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import Messages._
 import Context.tickTime
-
 import ExecutionContext.Implicits.global
-
-case class HushValue(iterations: Int = 1) extends AnyVal
-  
-sealed trait ForgetTrait extends Any
-case class ForgetValue(value: Double) extends AnyVal with ForgetTrait 
-case object ForgetAll extends ForgetTrait
-case object DontForget extends ForgetTrait
+import main.data.HushValue
+import main.data.ForgetTrait
+import main.data.ForgetValue
+import main.data.ForgetAll
 
 class Neuron(
     val id: String, 

@@ -5,8 +5,8 @@ import org.junit.Test
 import org.junit.Assert._
 import main.async.Messages._
 import main.async.logger.LOG.debug
-import main.async.HushValue
-import main.async.ForgetValue
+import main.data.HushValue
+import main.data.ForgetValue
 
 class LineNetSuite extends MySuite {
   private def lineNet() = {

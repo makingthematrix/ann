@@ -1,7 +1,6 @@
 package main.async
 
 import scala.collection.mutable
-
 import akka.actor.ActorRef
 import akka.util.Timeout
 import scala.concurrent._
@@ -9,12 +8,12 @@ import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.pattern.ask
-
-import Context._ 
-
+import Context._
 import main.async.logger.LOG._
 import Messages._
 import main.utils.Utils.await
+import main.data.HushValue
+import main.data.ForgetTrait
 
 class NetRef(val id: String, val ref: ActorRef) {
   private var _iteration = 0L
