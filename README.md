@@ -1,4 +1,11 @@
-ann
-===
+Artificial Neural Networks in Akka
+==================================
 
-Asynchronous Artificial Neural Networks in Scala
+1. What is it that I want to solve here
+ - In the moment this project is not so much about solving a specific problem, but about investigating an idea - a type of artificial neural network (ANN) which works in real time and consists of neurons which are independent of one another and have more resemblance to organic neurons than mathematical models used in traditional ANNs. In time I plan to develop it to the point where such a network can be used as a data flow transformer - eg. receiving a stream of bytes and generating a stream of more abstract symbols, using as additional information both the context (ie. data which was received before) and time gaps between consecutive chunks of data.
+ - A traditional Multi-Layered Perceptron (MLP) or a Hopfield model require to receive a whole input vector at once. Therefore, they are not well suited for a situation when the input signal appears gradually (a stream).
+ - The structure of an artificial neural networks encourages us to treat each neuron as independent, but both MLP and Hopfield require synchronisation of neurons. In MLP we first compute the input layer, then the hidden, then the output. In Hopfield the order of computing is not important within one iteration (at least in the asynchronous version of the Hopfield model), but no neuron should be computed twice while another one is still awaiting its first computation.
+ - At last, ANNs are built as very generic structures. In MLP every neuron of the N-th layer (N > 1) is connected to every neuron in the layer N-1. In Hopfield there is only one layer with all-to-all connections. Only when we teach the network we differentiate the weights of connections and in special case some of them may be set up to 0 (so, in practice, it's as if they didn't exist). Treating ANN as such it is possible to model it as a matrix with each cell (a,b) consisting of a weight of connection from the neuron a to b, and then computation of signals become simple multiplication of the matrix and the input vector. 
+ - In contrast, my idea is not to focus on teaching a generic ANN, but to construct a small network performing a specific task using neurons which are smarter than the simple "sum the signals - check the threshold - compute the output" neurons of traditional models. Each neuron should be asynchronous, perform its own computations in order to achieve a specific effect and send the results only to a few other neurons which "know" what these results mean and how to deal with them.
+2. An example: Recognizing the S.O.S. signal
+ - to be continued...
