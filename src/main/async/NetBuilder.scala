@@ -43,7 +43,6 @@ class NetBuilder {
   private val mids = mutable.Set[String]()
   
   private var currentNeuronId:Option[String] = None
-  private var nextFreeId = 0L
   
   def generateId(layer: String) = {
     val prefix = layer match {
@@ -51,7 +50,7 @@ class NetBuilder {
       case MIDDLE_LAYER_NAME => defMiddleName
     }
     
-    prefix + nextId()
+    prefix + nextIndex()
   }
   
   def addSynapse(fromId: String, toId: String, weight: SynapseTrait) =
@@ -171,10 +170,13 @@ class NetBuilder {
     case HUSH => await[NeuronRef](net, CreateHushNeuron(data.id))
   }
   
-  private def nextId() = {
-    val t = nextFreeId
-    nextFreeId += 1L
-    t
+  private val nextIndex = {
+    var nextFreeIndex = 0L
+    () => {
+      val t = nextFreeIndex
+      nextFreeIndex += 1L
+      t
+    }
   }
   
   private def getLayer(name: String) = name match {
