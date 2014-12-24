@@ -17,6 +17,8 @@ import main.data.ForgetTrait
 import main.data.HushValue
 import main.data.ForgetAll
 import main.data.DontForget
+import main.data.SynapseData
+import main.data.NeuronData
 
 
 class NetBuilder {
@@ -35,10 +37,8 @@ class NetBuilder {
   
   var throwOnError = true
   
-  protected val neurons = mutable.Map[String,NeuronRef]()
-  protected lazy val net = NetRef(defNetName)
-  
-  private val synapses = mutable.Map[String,mutable.ListBuffer[Synapse]]()
+  private val neurons = mutable.Map[String,NeuronData]()
+  private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
   
   protected val ins = mutable.Set[String]()
   protected val mids = mutable.Set[String]()
@@ -52,7 +52,7 @@ class NetBuilder {
     t
   }
   
-  protected def generateName(layer: String) = {
+  protected def generateId(layer: String) = {
     val prefix = layer match {
       case INPUT_LAYER_NAME => defInputName
       case MIDDLE_LAYER_NAME => defMiddleName
@@ -66,30 +66,35 @@ class NetBuilder {
     case MIDDLE_LAYER_NAME => (mids, middleNeuronType)
   }
   
-  private def addSynapse(fromId: String, toRef: NeuronRef, weight: SynapseTrait) =
-    synapses.getOrElseUpdate(fromId, mutable.ListBuffer[Synapse]()) += Synapse(toRef, weight)
+  private def addSynapse(fromId: String, toId: String, weight: SynapseTrait) =
+    synapses.getOrElseUpdate(fromId, mutable.ListBuffer[SynapseData]()) += SynapseData(toId, weight)
   
-  protected def newNeuron(neuronType: NeuronType.Value, id: String, 
+  /*private def newNeuron(neuronType: NeuronType.Value, id: String, 
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
       forgetting: ForgetTrait =defForgetting) = neuronType match {
     case STANDARD => await[NeuronRef](net, CreateNeuron(id, threshold, slope, hushValue, forgetting))
     case DUMMY => await[NeuronRef](net, CreateDummy(id, hushValue))
     case HUSH => await[NeuronRef](net, CreateHushNeuron(id))
-  }
+  }*/
+    
+  private def newNeuron(neuronType: NeuronType.Value, id: String, 
+      threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
+      forgetting: ForgetTrait =defForgetting) 
+    = NeuronData(id, threshold, slope, hushValue, forgetting, Nil, neuronType)
 
-  def get(name: String) = neurons(name)  
-  def contains(name: String) = neurons.contains(name)
+  private def get(id: String) = neurons(id)  
+  def contains(id: String) = neurons.contains(id)
   
-  def use(name: String) = {
-    debug(this, s"using $name")
-    currentNeuronId = Some(get(name).id)
+  def use(id: String) = if(contains(id)){
+    debug(this, s"using id")
+    currentNeuronId = Some(id)
     this
-  }
+  } else throw new IllegalArgumentException(s"There is no neuron with id $id")
   
-  def hush(name: String):NetBuilder = connect(name, Hush)
-  def connect(name: String, weight: Double =defWeight):NetBuilder = connect(name, SynapseWeight(weight))
-  private def connect(name: String, weight: SynapseTrait):NetBuilder = {
-    addSynapse(current.id, get(name), weight)
+  def hush(id: String):NetBuilder = connect(id, Hush)
+  def connect(id: String, weight: Double =defWeight):NetBuilder = connect(id, SynapseWeight(weight))
+  private def connect(id: String, weight: SynapseTrait):NetBuilder = {
+    addSynapse(current.id, id, weight)
     this
   }
   
@@ -98,127 +103,114 @@ class NetBuilder {
     case None => throw new IllegalArgumentException("There is no current neuron id set")
   }
   
-  def currentName = currentNeuronId match {
-    case Some(id) => neurons.contains(id) match {
-      case true => id
-      case false => throw new IllegalArgumentException(s"Unable to find the name of the current neuron, even though its id is $id")
-    }
-    case None => throw new IllegalArgumentException("There is no current neuron id set")
-  }
-  
-  protected def add(n: NeuronRef) = {
+  protected def add(n: NeuronData) = {
     neurons.put(n.id, n)
     currentNeuronId = Some(n.id)
     n
   }
 
-  private def add(name: String, layerName: String, treshold: Double, hushValue: HushValue, forgetting: ForgetTrait, slope:Double):NetBuilder = {
-    debug(this, s"adding $name with treshold $treshold, slope $slope, hush value $hushValue and forgetting $forgetting")
+  private def add(id: String, layerName: String, treshold: Double, hushValue: HushValue, forgetting: ForgetTrait, slope:Double):NetBuilder = {
+    debug(this, s"adding id with treshold $treshold, slope $slope, hush value $hushValue and forgetting $forgetting")
     val (layer, neuronType) = getLayer(layerName)
-    val n = if(contains(name)){
-      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+    val n = if(contains(id)){
+      if(!throwOnError) get(id) else throw new IllegalArgumentException(s"There is already a neuron with id $id")
     } else {
-      add(newNeuron(neuronType, name, treshold, slope, hushValue, forgetting)) 
+      add(newNeuron(neuronType, id, treshold, slope, hushValue, forgetting)) 
     }
     layer += n.id
             
     this    
   }
   
-  private def chain(name: String, layerName: String, weight: Double, threshold: Double, 
+  private def chain(id: String, layerName: String, weight: Double, threshold: Double, 
                     hushValue: HushValue, forgetting: ForgetTrait, slope: Double):NetBuilder = {
     val n1 = current
-    debug(this, s"chaining from ${n1.id} to $name with treshold $threshold and slope $slope")
-    add(name, layerName, threshold, hushValue, forgetting, slope)
-    val n = neurons(currentNeuronId.get)
-    addSynapse(n1.id, n, SynapseWeight(weight))
+    debug(this, s"chaining from ${n1.id} to $id with treshold $threshold and slope $slope")
+    add(id, layerName, threshold, hushValue, forgetting, slope)
+    addSynapse(n1.id, id, SynapseWeight(weight))
     this
   }
   
-  def chainDummy(name: String, weight: Double, hushValue: HushValue =defHushValue):NetBuilder = {
+  def chainDummy(id: String, weight: Double, hushValue: HushValue =defHushValue) = {
     val n1 = current
-    debug(this, s"chaining a dummy from ${n1.id} to $name")
+    debug(this, s"chaining a dummy from ${n1.id} to $id")
     
-    if(contains(name)){
-      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
-    } else {
-      add(newNeuron(DUMMY, name))
-    }
+    addDummy(id)
     
-    val n = current
-    addSynapse(n1.id, n, SynapseWeight(weight))
-    mids += n.id
+    addSynapse(n1.id, id, SynapseWeight(weight))
+    mids += id
     
     this
   }
   
-  def chainHushNeuron(name: String):NetBuilder = {
+  def chainHushNeuron(id: String) = {
     val n1 = current
-    debug(this, s"chaining a hush neuron from ${n1.id} to $name")
+    debug(this, s"chaining a hush neuron from ${n1.id} to $id")
     
-    addHushNeuron(name)
+    addHushNeuron(id)
     
-    val n = current
-    addSynapse(n1.id, n, Hush)
-    mids += n.id
+    addSynapse(n1.id, id, Hush)
+    mids += id
     
     this
   }
   
-  def addInput(name: String, threshold: Double =0.0, hushValue: HushValue =defHushValue, slope:Double = defSlope):NetBuilder = 
-    add(name, INPUT_LAYER_NAME, threshold, hushValue, ForgetAll, slope)
+  def addInput(id: String, threshold: Double =0.0, hushValue: HushValue =defHushValue, slope:Double = defSlope):NetBuilder = 
+    add(id, INPUT_LAYER_NAME, threshold, hushValue, ForgetAll, slope)
   
-  def addMiddle(name: String, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
+  def addMiddle(id: String, threshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
                 forgetting: ForgetTrait = DontForget, slope: Double = defSlope):NetBuilder = 
-    add(name, MIDDLE_LAYER_NAME, treshold, hushValue, forgetting, slope)
-  def addMiddle():NetBuilder = addMiddle(generateName(MIDDLE_LAYER_NAME))
+    add(id, MIDDLE_LAYER_NAME, threshold, hushValue, forgetting, slope)
+  def addMiddle():NetBuilder = addMiddle(generateId(MIDDLE_LAYER_NAME))
 
-  def addHushNeuron(name: String):NetBuilder = {
-    if(contains(name)){
-      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+  def addHushNeuron(id: String):NetBuilder = {
+    if(contains(id)){
+      if(!throwOnError) get(id) else throw new IllegalArgumentException(s"There is already a neuron with id $id")
     } else {
-      add(newNeuron(HUSH, name))
+      add(newNeuron(HUSH, id))
     }
     this
   }
-  def addHushNeuron():NetBuilder = addHushNeuron(generateName(MIDDLE_LAYER_NAME))
+  def addHushNeuron():NetBuilder = addHushNeuron(generateId(MIDDLE_LAYER_NAME))
   
-  def addDummy(name: String):NetBuilder = {
-    if(contains(name)){
-      if(!throwOnError) get(name) else throw new IllegalArgumentException(s"There is already a neuron with name $name")
+  def addDummy(id: String):NetBuilder = {
+    if(contains(id)){
+      if(!throwOnError) get(id) else throw new IllegalArgumentException(s"There is already a neuron with id $id")
     } else {
-      add(newNeuron(DUMMY, name))
+      add(newNeuron(DUMMY, id))
     }
     this
   }
-  def addDummy():NetBuilder = addDummy(generateName(MIDDLE_LAYER_NAME))
+  def addDummy():NetBuilder = addDummy(generateId(MIDDLE_LAYER_NAME))
   
-  def chainMiddle(name: String, weight: Double =defWeight, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
+  def chainMiddle(id: String, weight: Double =defWeight, threshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
                   forgetting: ForgetTrait =DontForget, slope: Double =defSlope):NetBuilder = 
-    chain(name, defMiddleName, weight, treshold, hushValue, forgetting, slope)
-  def chain(name: String, weight: Double =defWeight, treshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
+    chain(id, defMiddleName, weight, threshold, hushValue, forgetting, slope)
+  def chain(id: String, weight: Double =defWeight, threshold: Double =defThreshold, hushValue: HushValue =defHushValue, 
             forgetting: ForgetTrait =DontForget, slope: Double =defSlope):NetBuilder =
-      chainMiddle(name, weight, treshold, hushValue, forgetting, slope)
-  def chainMiddle():NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME))
-  def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateName(MIDDLE_LAYER_NAME), weight)
+      chainMiddle(id, weight, threshold, hushValue, forgetting, slope)
+  def chainMiddle():NetBuilder = chainMiddle(generateId(MIDDLE_LAYER_NAME))
+  def chainMiddle(weight: Double):NetBuilder = chainMiddle(generateId(MIDDLE_LAYER_NAME), weight)
   def chainMiddle(weight: Double, treshold: Double):NetBuilder = 
-    chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold)
+    chainMiddle(generateId(MIDDLE_LAYER_NAME), weight, treshold)
   def chainMiddle(weight: Double, treshold: Double, slope: Double):NetBuilder = 
-    chainMiddle(generateName(MIDDLE_LAYER_NAME), weight, treshold, defHushValue, defForgetting, slope)
+    chainMiddle(generateId(MIDDLE_LAYER_NAME), weight, treshold, defHushValue, defForgetting, slope)
     
-  def loop(name: String, w1: Double =defWeight, treshold: Double =defThreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
+  def loop(id: String, w1: Double =defWeight, treshold: Double =defThreshold, w2: Double =defWeight, slope: Double =defSlope):NetBuilder = {
     val n1 = current
     if(throwOnError && !mids.contains(n1.id))
       throw new IllegalArgumentException("You can loop only in the middle layer")
-    chainMiddle(name, w1, treshold, defHushValue, defForgetting, slope)
-    addSynapse(current.id, n1, SynapseWeight(w2))
+    
+    chainMiddle(id, w1, treshold, defHushValue, defForgetting, slope)
+    
+    addSynapse(id, n1.id, SynapseWeight(w2))
     currentNeuronId = Some(n1.id)
     NetBuilder.this
   }
     
-  def loop():NetBuilder = loop(generateName(MIDDLE_LAYER_NAME))
-  def loop(w1: Double, treshold: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, treshold, w2)
-  def loop(w1: Double, w2: Double):NetBuilder = loop(generateName(MIDDLE_LAYER_NAME), w1, defThreshold, w2)
+  def loop():NetBuilder = loop(generateId(MIDDLE_LAYER_NAME))
+  def loop(w1: Double, treshold: Double, w2: Double):NetBuilder = loop(generateId(MIDDLE_LAYER_NAME), w1, treshold, w2)
+  def loop(w1: Double, w2: Double):NetBuilder = loop(generateId(MIDDLE_LAYER_NAME), w1, defThreshold, w2)
   
   def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
   def oscillator() = loop(1.0, 0.5, -1.0)
@@ -228,19 +220,24 @@ class NetBuilder {
   def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
   
   def self(weight: Double =defWeight):NetBuilder = {
-    addSynapse(current.id, current, SynapseWeight(weight))
+    addSynapse(current.id, current.id, SynapseWeight(weight))
     this
+  }
+  
+  private def createNeuronInNet(net: NetRef, data: NeuronData) = data.neuronType match {
+    case STANDARD => await[NeuronRef](net, CreateNeuron(data.id, data.threshold, data.slope, data.hushValue, data.forgetting))
+    case DUMMY => await[NeuronRef](net, CreateDummy(data.id, data.hushValue))
+    case HUSH => await[NeuronRef](net, CreateHushNeuron(data.id))
   }
   
   def build:NetRef = {
     debug(this, s"build()")
     
-    neurons.foreach( tuple => {
-      if(synapses.contains(tuple._1)){
-        debug(this,s"setting synapses for ${tuple._1}")
-        tuple._2.setSynapses(synapses(tuple._1).toList) 
-      }
-    })
+    val net = NetRef(defNetName)
+    val nRefs = neurons.values.map{ nd => (nd.id -> createNeuronInNet(net, nd)) }.toMap
+    nRefs.values.foreach(
+      nRef => nRef.setSynapses(synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight)))
+    )
     
     net.setInputLayer(ins.toSeq)
     val sb = StringBuilder.newBuilder
@@ -252,7 +249,7 @@ class NetBuilder {
   
   def build(netInputName: String, netOutputName: String):(NetInput,NetRef) = {
     debug(this, s"build($netInputName,$netOutputName)")
-    build
+    val net = build
     val in = NetInput(netInputName, net, inputTickMultiplicity)
     debug(this, "net input built")
     (in, net)

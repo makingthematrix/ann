@@ -23,7 +23,7 @@ object Messages {
   case object NeuronShutdown
   case object Shutdown // net shutdown
   case object ResetBuffer
-  case class SetSynapses(synapses: List[Synapse])
+  case class SetSynapses(synapses: Seq[Synapse])
   
   // questions
   case object GetId
@@ -44,9 +44,9 @@ object Messages {
   case class NetShutdownDone(id: String) extends Answer // a special case - successful shutdown if the whole net
   case class Msg(d: Double, str: String) extends Answer // general answer to a question about a number or an id
   case class MsgSynapse(synapseOpt: Option[Synapse]) extends Answer // sends back a synapse
-  case class MsgSynapses(synapses: List[Synapse]) extends Answer // sends back all synapses of the neuron
+  case class MsgSynapses(synapses: Seq[Synapse]) extends Answer // sends back all synapses of the neuron
   case class MsgNeuron(neuronOpt: Option[NeuronRef]) extends Answer
-  case class MsgNeurons(neurons: List[NeuronRef]) extends Answer
+  case class MsgNeurons(neurons: Seq[NeuronRef]) extends Answer
 	
   // triggers
   case class AddAfterFireTrigger(id: String, f: Trigger)

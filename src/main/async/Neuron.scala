@@ -23,7 +23,7 @@ class Neuron(
     val slope: Double, 
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
-    protected var synapses: List[Synapse] = List[Synapse]()
+    protected var synapses: Seq[Synapse] = Seq[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
