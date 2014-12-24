@@ -10,6 +10,8 @@ import main.data.HushValue
 import main.data.ForgetAll
 import main.utils.DoubleRange
 import main.utils.DoubleRange._
+import main.async.NetBuilderOps._
+
 
 class NeuronSuite extends MySuite {
   case class NeuronData(slope: Double, weight: Double, threshold: Double)
@@ -47,7 +49,7 @@ class NeuronSuite extends MySuite {
             
   @Test def delayedSignal() = {
     builder.inputTickMultiplicity = 2
-    builder.addInput("in").chainDummy("mi11", 0.55).loop("loop",1.0,0.0,0.99).chainMiddle("out",1.0,0.66, HushValue(), ForgetAll)
+    builder.addInput("in").chainDummy("mi11", 0.55).loop("loop",1.0,0.0,0.99).chain("out",1.0,0.66, HushValue(), ForgetAll)
     builder.use("mi11").hush("in")
     builder.use("out").connect("mi11",-1.0).connect("loop",-1.0)
     build()

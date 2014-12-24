@@ -7,6 +7,7 @@ import main.async.Messages._
 import main.async.logger.LOG.debug
 import main.data.HushValue
 import main.data.ForgetValue
+import main.async.NetBuilderOps._
 
 class LineNetSuite extends MySuite {
   private def lineNet() = {

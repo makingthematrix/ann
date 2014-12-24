@@ -10,6 +10,7 @@ import main.async.Context
 import main.data.HushValue
 import main.data.ForgetValue
 import main.data.ForgetAll
+import main.async.NetBuilderOps._
 
 class SOSSuite extends MySuite {
   val s = "1,0,0,1,0,0,1,0,0"
@@ -20,9 +21,9 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop1",1.0,0.0,1.0)
-                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop1").hush("dot")                          
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+                     .chain("mi12",1.0,0.0).loop("loop1",1.0,0.0,1.0)
+                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop1").hush("dot")                          
     build()
     
   }
@@ -173,10 +174,10 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
-                     .chainMiddle("S",0.5,0.81)
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+                     .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
+                     .chain("S",0.5,0.81)
     build()
     
     net.addAfterFire("in"){ println("INCOMING!") }
@@ -211,9 +212,9 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
-                     .chainMiddle("line",1.0,0.0).hush("line")    
-                     .chainMiddle("O",0.6,0.81)
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+                     .chain("line",1.0,0.0).hush("line")    
+                     .chain("O",0.6,0.81)
     build()
     
     net.addAfterFire("in"){ println("INCOMING!") }
@@ -248,14 +249,14 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
-                     .chainMiddle("S",0.5,0.81)
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
+                     .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
+                     .chain("S",0.5,0.81)
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
-                     .chainMiddle("line",1.0,0.0).hush("line")
-                     .chainMiddle("O",0.6,0.81)
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+                     .chain("line",1.0,0.0).hush("line")
+                     .chain("O",0.6,0.81)
                      
     // if line then not dot
     builder.use("line").hush("mi12").hush("loop").hush("dot")
@@ -391,17 +392,17 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chainMiddle("dot",0.6/(2.0*itm),0.6)
-                     .chainMiddle("S",0.5,0.81)
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
+                     .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chain("dot",0.6/(2.0*itm),0.6)
+                     .chain("S",0.5,0.81)
     builder.addHushNeuron("dot_hush").hush("mi12").hush("loop").hush("dot")
     builder.use("dot").hush("dot_hush")
     
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
-                     .chainMiddle("line",1.0,0.0).hush("line")
-                     .chainMiddle("O",0.6,0.81)
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+                     .chain("line",1.0,0.0).hush("line")
+                     .chain("O",0.6,0.81)
                      
     // if line then not dot
     builder.use("line").hush("dot_hush")

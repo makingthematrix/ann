@@ -11,6 +11,7 @@ import scala.concurrent.Promise
 import scala.concurrent.Future
 import scala.concurrent.Await
 import main.async.Messages._
+import main.async.NetBuilderOps._
 
 class HushSuite extends MySuite {
   @Test def shouldSendHush(){

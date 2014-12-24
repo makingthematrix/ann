@@ -6,6 +6,7 @@ import scala.collection.mutable
 import main.async.Neuron
 import main.async.logger.LOG
 import org.junit.Assert._
+import main.async.NetBuilderOps._
 
 class DelaySuite extends MySuite {  
   

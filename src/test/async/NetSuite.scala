@@ -15,6 +15,7 @@ import main.async.logger.LOG._
 import Messages._
 import Context._
 import main.utils.Utils.await
+import main.async.NetBuilderOps._
 
 class NetSuite extends JUnitSuite {     
   @Test def shouldCreateNet(){
