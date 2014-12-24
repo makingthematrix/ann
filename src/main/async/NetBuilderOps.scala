@@ -67,6 +67,5 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
 }
 
 object NetBuilderOps {
-  def apply(builder: NetBuilder):NetBuilderOps = new NetBuilderOps(builder)
-  implicit def fromNetBuilder(builder: NetBuilder):NetBuilderOps = apply(builder) 
+  implicit def fromNetBuilder(builder: NetBuilder):NetBuilderOps = new NetBuilderOps(builder) 
 }
