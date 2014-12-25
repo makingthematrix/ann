@@ -1,8 +1,8 @@
 package anna.async
 
-import scala.collection.mutable
+import anna.async.NeuronTriggers.Trigger
 
-import NeuronTriggers.Trigger
+import scala.collection.mutable
 
 trait NeuronTriggers {
   private val afterFire = mutable.Map[String, Trigger]()

@@ -1,11 +1,11 @@
 package test.sync
 
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
 import anna.sync._
 import anna.sync.logger.LOG
+import org.junit.Assert._
+import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 class LineNetSuite extends JUnitSuite {
   private def lineNet() = {

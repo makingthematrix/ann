@@ -1,11 +1,11 @@
 package test.sync
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
+import anna.sync.NetBuilderOps._
 import anna.sync._
 import anna.sync.logger.LOG
-import anna.sync.NetBuilderOps._
+import org.junit.Assert._
+import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 class SOSSuite extends JUnitSuite {
   

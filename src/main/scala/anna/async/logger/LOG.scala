@@ -1,10 +1,11 @@
 package anna.async.logger
 
-import scala.collection.mutable
-import anna.async.Neuron
+import java.io.{PrintWriter, StringWriter}
 import java.util.Calendar
-import java.io.StringWriter
-import java.io.PrintWriter
+
+import anna.async.Neuron
+
+import scala.collection.mutable
 
 object LogLevel extends Enumeration {
   type LogLevel = Value

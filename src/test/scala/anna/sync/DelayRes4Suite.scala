@@ -1,14 +1,11 @@
 package test.sync
 
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
-import anna._
+import anna.sync.{NetBuilder, NeuronType}
 import anna.sync.logger.LOG
-import anna.sync.Neuron
-import anna.sync.NeuronType
-import anna.sync.NetBuilder
+import org.junit.Assert._
+import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 class DelayRes4Suite extends JUnitSuite {
   

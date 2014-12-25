@@ -1,21 +1,12 @@
 package anna.async
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
-import akka.actor._
-import anna._
-import scala.concurrent._
-import scala.concurrent.duration._
-import akka.util.Timeout
-import anna.async._
-
-import anna.async.logger.LOG
-import anna.async.logger.LOG._
-import Messages._
-import Context._
-import anna.utils.Utils.await
+import anna.async.Context._
+import anna.async.Messages._
 import anna.async.NetBuilderOps._
+import anna.utils.Utils.await
+import org.junit.Assert._
+import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 class NetSuite extends JUnitSuite {     
   @Test def shouldCreateNet(){

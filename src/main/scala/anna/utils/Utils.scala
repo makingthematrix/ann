@@ -1,11 +1,11 @@
 package anna.utils
 
-import scala.concurrent.Await
-import anna.async.Context.timeout
 import akka.actor.ActorRef
 import akka.pattern.ask
-import anna.async.NetRef
-import anna.async.NeuronRef
+import anna.async.Context.timeout
+import anna.async.{NetRef, NeuronRef}
+
+import scala.concurrent.Await
 
 object Utils {
   def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)

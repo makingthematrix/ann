@@ -1,24 +1,13 @@
 package anna.async
 
-import scala.collection.mutable
-import akka.actor.ActorSystem
+import anna.async.Context.{INPUT_LAYER_NAME, MIDDLE_LAYER_NAME}
+import anna.async.Messages._
+import anna.async.NeuronType._
 import anna.async.logger.LOG._
-import scala.concurrent.Await
-import akka.util.Timeout
-import scala.concurrent.duration._
-import Messages._
+import anna.data.{DontForget, ForgetAll, ForgetTrait, Hush, HushValue, NeuronData, SynapseData, SynapseTrait, SynapseWeight}
 import anna.utils.Utils.await
-import Context.{ INPUT_LAYER_NAME, MIDDLE_LAYER_NAME }
-import anna.data.SynapseTrait
-import anna.data.Hush
-import anna.data.SynapseWeight
-import NeuronType._
-import anna.data.ForgetTrait
-import anna.data.HushValue
-import anna.data.ForgetAll
-import anna.data.DontForget
-import anna.data.SynapseData
-import anna.data.NeuronData
+
+import scala.collection.mutable
 
 class NetBuilder {
   var defSlope = Context.slope

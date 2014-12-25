@@ -1,11 +1,7 @@
 package anna.async
 
-import Messages._
-import scala.concurrent._
-import ExecutionContext.Implicits.global
-import anna.data.SynapseTrait
-import anna.data.Hush
-import anna.data.SynapseWeight
+import anna.async.Messages._
+import anna.data.{Hush, SynapseTrait, SynapseWeight}
 
 class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
   private def msg(signal: Double) = weight match {

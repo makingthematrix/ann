@@ -1,17 +1,13 @@
 package anna.async
 
-import org.junit.Test
-import anna.async.NetRef
 import anna.async.Context._
-import anna.async.Synapse
+import anna.async.NetBuilderOps._
+import anna.async.logger.LOG
 import anna.data.Hush
 import org.junit.Assert._
-import anna.async.logger.LOG
-import scala.concurrent.Promise
-import scala.concurrent.Future
-import scala.concurrent.Await
-import anna.async.Messages._
-import anna.async.NetBuilderOps._
+import org.junit.Test
+
+import scala.concurrent.{Await, Promise}
 
 class HushSuite extends MySuite {
   @Test def shouldSendHush(){

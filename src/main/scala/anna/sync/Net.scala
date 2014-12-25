@@ -1,9 +1,9 @@
 package anna.sync
 
-import scala.collection.mutable
-import scala.concurrent._
-import anna.utils.Utils._
 import anna.sync.logger.LOG
+import anna.utils.Utils._
+
+import scala.collection.mutable
 
 class Net(val defSlope: Double = 20.0,val defThreshold: Double = 0.5, val defWeight: Double = 1.0) extends AbstractNet[Neuron] {
   private val neurons = mutable.ListBuffer[Neuron]()

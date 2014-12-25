@@ -1,21 +1,14 @@
 package anna.async
 
 import akka.actor._
-import scala.collection.mutable
+import anna.async.Context.tickTime
+import anna.async.Messages._
 import anna.async.logger.LOG
-import anna.async.logger.LOG._
+import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
 import anna.utils.Utils._
-import akka.pattern.ask
-import akka.util.Timeout
-import scala.concurrent._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import Messages._
-import Context.tickTime
-import ExecutionContext.Implicits.global
-import anna.data.HushValue
-import anna.data.ForgetTrait
-import anna.data.ForgetValue
-import anna.data.ForgetAll
 
 class Neuron(
     val id: String, 
@@ -106,7 +99,7 @@ class Neuron(
 
   protected def answer(msg: Answer) = NetRef.get match {
     case Some(netref) => netref ! msg
-    case None => //error(this, "answer demanded, but no netref!")
+    case None =>
   }
   
   private def shutdown(){

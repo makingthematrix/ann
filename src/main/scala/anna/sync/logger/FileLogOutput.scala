@@ -1,9 +1,6 @@
 package anna.sync.logger
 
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
-import java.io.IOException
+import java.io.{BufferedWriter, File, FileWriter, IOException}
  
 class FileLogOutput(val fileName: String) extends LogOutput {
   private var writer:Option[BufferedWriter] = None

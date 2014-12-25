@@ -1,18 +1,9 @@
 package anna.async
 
-import org.scalatest.junit.JUnitSuite
-import anna.async.NetBuilder
-import anna.async.NetInput
-import anna.async.NetRef
-import org.junit.Before
-import org.junit.After
 import anna.async.logger.LOG
 import org.junit.Assert._
-import scala.concurrent.Promise
-import anna.async.Neuron
-import scala.concurrent.Await
-import anna.async.logger.LOG.debug
-import scala.concurrent.duration._
+import org.junit.{After, Before}
+import org.scalatest.junit.JUnitSuite
 
 class MySuite extends JUnitSuite {
   private var _builder: NetBuilder = _

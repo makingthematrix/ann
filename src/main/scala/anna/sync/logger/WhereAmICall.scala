@@ -1,7 +1,6 @@
 package anna.sync.logger
 
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.{PrintWriter, StringWriter}
 
 class WhereAmICall extends IllegalArgumentException("Where Am I?")
 

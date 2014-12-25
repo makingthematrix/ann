@@ -1,16 +1,10 @@
 package anna.async
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
-import anna.async.Messages._
-import anna.async.logger.LOG.debug
-import anna.async.logger.LOG
-import anna.async.Context
-import anna.data.HushValue
-import anna.data.ForgetValue
-import anna.data.ForgetAll
 import anna.async.NetBuilderOps._
+import anna.async.logger.LOG.debug
+import anna.data.{ForgetValue, HushValue}
+import org.junit.Assert._
+import org.junit.Test
 
 class SOSSuite extends MySuite {
   val s = "1,0,0,1,0,0,1,0,0"

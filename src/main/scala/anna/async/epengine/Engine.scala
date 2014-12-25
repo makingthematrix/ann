@@ -1,14 +1,11 @@
 package anna.async.epengine
 
+import anna.async.epengine.TossType._
+import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 import anna.utils.DoubleRange
 import anna.utils.DoubleRange._
-import anna.utils.Utils.assert
-import anna.data.SynapseTrait
-import TossType._
+
 import scala.util.Random
-import anna.data.Hush
-import anna.data.SynapseWeight
-import anna.data.SynapseData
 
 case class SynapseChromosome(override val neuronId: String, override val weight: SynapseTrait) extends SynapseData(neuronId, weight)
 

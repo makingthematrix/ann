@@ -1,12 +1,12 @@
 package anna.async
 
-import org.junit.Test
 import anna.async.Context.tickTime
-import scala.collection.mutable
-import anna.async.Neuron
+import anna.async.NetBuilderOps._
 import anna.async.logger.LOG
 import org.junit.Assert._
-import anna.async.NetBuilderOps._
+import org.junit.Test
+
+import scala.collection.mutable
 
 class DelaySuite extends MySuite {  
   

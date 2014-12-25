@@ -1,10 +1,7 @@
 package anna.async
 
-import akka.actor.ActorContext
 import anna.async.Messages._
-import anna.async.logger.LOG
-import anna.data.HushValue
-import anna.data.ForgetAll
+import anna.data.{ForgetAll, HushValue}
 
 class HushNeuron(override val id: String) 
 extends Neuron(id, 0.0, 0.0, HushValue(), ForgetAll) {

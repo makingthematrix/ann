@@ -1,16 +1,14 @@
 package anna.async
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import anna.utils.Utils._
-import org.junit.Assert._
-import scala.annotation.tailrec
-import anna.async.Context
-import anna.data.HushValue
-import anna.data.ForgetAll
+import anna.async.NetBuilderOps._
+import anna.data.{ForgetAll, HushValue}
 import anna.utils.DoubleRange
 import anna.utils.DoubleRange._
-import anna.async.NetBuilderOps._
+import anna.utils.Utils._
+import org.junit.Assert._
+import org.junit.Test
+
+import scala.annotation.tailrec
 
 
 class NeuronSuite extends MySuite {

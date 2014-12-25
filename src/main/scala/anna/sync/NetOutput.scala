@@ -1,7 +1,5 @@
 package anna.sync
 
-import anna.async.NeuronRef
-
 class NetOutput(val name: String, val net: Net) {
   def getId(index: Int):String = ids(index)
   def ids = net.outputIds

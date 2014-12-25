@@ -1,9 +1,9 @@
 package test.sync
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
 import anna.sync.Neuron
+import org.junit.Assert._
+import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 class NeuronSuite extends JUnitSuite {
   val SLOPE = 20.0

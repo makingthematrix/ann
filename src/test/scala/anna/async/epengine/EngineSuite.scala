@@ -1,18 +1,13 @@
 package test.async.epengine
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
-import anna.data.Hush
-import anna.data.SynapseWeight
-import anna.async.epengine.Engine
-import anna.utils.DoubleRange
-import anna.utils.DoubleRange._
-import anna.async.epengine.TossType
-import anna.async.logger.LOG._
+import anna.async.epengine.{Engine, TossType}
 import anna.async.logger.LOG
-import org.junit.Before
-import org.junit.After
+import anna.async.logger.LOG._
+import anna.data.{Hush, SynapseWeight}
+import anna.utils.DoubleRange._
+import org.junit.Assert._
+import org.junit.{After, Before, Test}
+import org.scalatest.junit.JUnitSuite
 
 class EngineSuite extends JUnitSuite {
   private var engine:Engine = _

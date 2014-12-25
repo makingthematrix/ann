@@ -2,10 +2,9 @@ package anna.async
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
+import anna.data.{DontForget, HushValue}
+
 import scala.concurrent.duration._
-import anna.async.Messages._
-import anna.data.HushValue
-import anna.data.DontForget
 
 object Context {    
   implicit val timeout = Timeout(5 seconds)

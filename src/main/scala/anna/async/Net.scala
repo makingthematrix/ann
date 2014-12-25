@@ -1,14 +1,11 @@
 package anna.async
 
 import akka.actor._
-import scala.collection.mutable
-import scala.concurrent.Await
-import akka.util.Timeout
-import scala.concurrent.duration._
+import anna.async.Messages._
 import anna.async.logger.LOG._
-import Messages._
-import anna.data.HushValue
-import anna.data.ForgetTrait
+import anna.data.{ForgetTrait, HushValue}
+
+import scala.collection.mutable
 
 class Net(val id: String) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
@@ -24,18 +21,17 @@ class Net(val id: String) extends Actor {
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
     case SetInputLayer(ids) => setInputLayer(ids)
     case GetMiddleLayer => sender ! MsgNeurons(middleLayer.toList)
-    case GetNeuron(id) => getNeuron(id)
+    case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
     case SignalSeq(in) => signal(in)
   }
   
   def shutdowning(caller: ActorRef): Receive = {
-    case NeuronShutdownDone(id) => {
+    case NeuronShutdownDone(id) =>
       remove(id)
       if(neurons.isEmpty){
         caller ! NetShutdownDone(id) 
         context.stop(self)
       }
-    }
   }
   
   private def inputLayer = ins.toSeq
@@ -85,20 +81,11 @@ class Net(val id: String) extends Actor {
   
   private def setInputLayer(ids: Seq[String]){
     debug(Net.this, s"input layer set in $id: " + ids.mkString(", "))
-    ins.clear
+    ins.clear()
     neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )
     sender ! Success("setInputLayer_"+id)
   }
   
   private def findRef(id: String):Option[NeuronRef] = neurons.find(_.id == id)
 
-  private def getNeuron(id: String) = sender ! MsgNeuron(findRef(id))
-  
-  private def find(id: String):Option[NeuronRef] = {
-    debug(this, s"id in ${this.id}")
-    val inFind = inputLayer.find( _.id == id )
-    if(inFind.isDefined) return inFind
-    middleLayer.find( _.id == id )
-  }
-  
 }

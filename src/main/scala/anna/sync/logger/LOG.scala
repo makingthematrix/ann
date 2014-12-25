@@ -2,9 +2,8 @@ package anna.sync.logger
 
 import scala.collection.mutable
 //import main.sync.Neuron
+import java.io.{PrintWriter, StringWriter}
 import java.util.Calendar
-import java.io.StringWriter
-import java.io.PrintWriter
 
 object LogLevel extends Enumeration {
   type LogLevel = Value

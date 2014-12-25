@@ -1,19 +1,12 @@
 package anna.async
 
-import scala.collection.mutable
-import akka.actor.ActorRef
-import akka.util.Timeout
-import scala.concurrent._
-import scala.concurrent.duration._
-import akka.actor.ActorSystem
-import akka.actor.Props
+import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
-import Context._
+import anna.async.Context._
+import anna.async.Messages._
 import anna.async.logger.LOG._
-import Messages._
+import anna.data.{ForgetTrait, HushValue}
 import anna.utils.Utils.await
-import anna.data.HushValue
-import anna.data.ForgetTrait
 
 class NetRef(val id: String, val ref: ActorRef) {
   private var _iteration = 0L

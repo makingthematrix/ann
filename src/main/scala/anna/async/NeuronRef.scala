@@ -1,19 +1,12 @@
 package anna.async
 
-import akka.actor.ActorRef
-import akka.util.Timeout
-import scala.concurrent._
-import scala.concurrent.duration._
-import akka.actor.ActorSystem
-import akka.actor.Props
-import akka.actor.actorRef2Scala
+import akka.actor.{ActorRef, Props, actorRef2Scala}
 import akka.pattern.ask
-import Context._
+import anna.async.Context._
+import anna.async.Messages._
 import anna.async.logger.LOG._
+import anna.data.{ForgetTrait, HushValue}
 import anna.utils.Utils.await
-import Messages._
-import anna.data.ForgetTrait
-import anna.data.HushValue
 
 class NeuronRef(val id: String, val ref: ActorRef) {
   def input = await[Msg](ref, GetInput).d

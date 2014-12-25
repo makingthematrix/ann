@@ -1,8 +1,9 @@
 package anna.sync
 
-import scala.collection.mutable
 import anna.sync.logger.LOG
 import anna.utils.Utils._
+
+import scala.collection.mutable
 
 class Neuron(val id: String, val treshold: Double =0.5, val slope: Double =20.0, var forgetting: Double =0.0, var priority: Int =0) 
 extends NeuronTriggers {

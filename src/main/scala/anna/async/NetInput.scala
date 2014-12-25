@@ -1,11 +1,10 @@
 package anna.async
 
-import scala.collection.mutable
-
-import scala.concurrent.duration._
-import Messages._
-import anna.async.logger.LOG._
 import anna.async.Context.tickTime
+import anna.async.Messages._
+import anna.async.logger.LOG._
+
+import scala.collection.mutable
 
 class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int) {
   lazy val ids = net.inputIds

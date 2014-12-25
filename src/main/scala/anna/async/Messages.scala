@@ -1,9 +1,7 @@
 package anna.async
 
-import NeuronTriggers.Trigger
-import anna.data.SynapseTrait
-import anna.data.HushValue
-import anna.data.ForgetTrait
+import anna.async.NeuronTriggers.Trigger
+import anna.data.{ForgetTrait, HushValue, SynapseTrait}
 
 object Messages {
   // signals

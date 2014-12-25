@@ -1,12 +1,9 @@
 package anna.async
 
-import org.scalatest.junit.JUnitSuite
-import anna.async.NetBuilder
-import org.junit.Test
-import org.junit.Assert._
-import anna.async.logger.LOG.debug
-import anna.async.logger.LOG
 import anna.async.NetBuilderOps._
+import anna.async.logger.LOG.debug
+import org.junit.Assert._
+import org.junit.Test
 
 class DotNetSuite extends MySuite {
   private def dotNet() = {

@@ -1,13 +1,10 @@
 package anna.async
 
-import org.scalatest.junit.JUnitSuite
-import org.junit.Test
-import org.junit.Assert._
-import anna.async.Messages._
-import anna.async.logger.LOG.debug
-import anna.data.HushValue
-import anna.data.ForgetValue
 import anna.async.NetBuilderOps._
+import anna.async.logger.LOG.debug
+import anna.data.{ForgetValue, HushValue}
+import org.junit.Assert._
+import org.junit.Test
 
 class LineNetSuite extends MySuite {
   private def lineNet() = {

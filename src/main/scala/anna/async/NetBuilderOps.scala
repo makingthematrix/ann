@@ -1,11 +1,7 @@
 package anna.async
 
-import anna.utils.Utils.assert
-import anna.data.SynapseWeight
 import anna.async.Context._
-import anna.data.HushValue
-import anna.data.ForgetTrait
-import anna.data.DontForget
+import anna.data.{DontForget, ForgetTrait, HushValue, SynapseWeight}
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def chainMiddle(id: String, 
