@@ -38,13 +38,8 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     case Failure(str) => error(this,s"removeHushRequested failure: $str"); false    
   }
   
-  def +=(signal: Double) = ref ! Signal(signal) 
-  
-  def !(any: Any) = {
-    debug(this,s"$id, received: ${any.toString}")
-    ref ! any
-  }
-
+  def +=(signal: Double) = ref ! Signal(signal)
+  def !(any: Any) = ref ! any
   def ?(any: Any) = ref ? any
 } 
 

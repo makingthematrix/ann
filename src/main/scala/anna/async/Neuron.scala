@@ -4,6 +4,7 @@ import akka.actor._
 import anna.async.Context.tickTime
 import anna.async.Messages._
 import anna.async.logger.LOG
+import anna.async.logger.LOG._
 import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
 import anna.utils.Utils._
 
@@ -47,7 +48,8 @@ class Neuron(
   
   protected def +=(signal: Double){
     forget()
-    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
+    //LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
+    debug(s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
     buffer += signal
     tick()
   }

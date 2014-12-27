@@ -30,8 +30,6 @@ class HushSuite extends MySuite {
     
     val hushReceived = Await.result(p.future, timeout.duration).asInstanceOf[Boolean]
     assertTrue(hushReceived)
-    
-    net.shutdown()
   }
   
   @Test def shouldSendHushThroughBuilder(){
@@ -76,8 +74,6 @@ class HushSuite extends MySuite {
     
     val hushReceived = Await.result(p.future, timeout.duration).asInstanceOf[Boolean]
     assertTrue(hushReceived)
-    
-    net.shutdown()
   }
   
   

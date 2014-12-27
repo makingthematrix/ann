@@ -7,8 +7,6 @@ import anna.utils.DoubleRange._
 
 import scala.util.Random
 
-case class SynapseChromosome(override val neuronId: String, override val weight: SynapseTrait) extends SynapseData(neuronId, weight)
-
 class Engine {
   var synapseWeightRange: DoubleRange = 0.0<=>1.0
   var synapseHushProbability: Probability = 0.1

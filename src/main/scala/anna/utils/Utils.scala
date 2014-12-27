@@ -1,10 +1,13 @@
 package anna.utils
 
+import java.text.{NumberFormat, ParsePosition}
+import java.util.Locale
+
 import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.async.Context.timeout
 import anna.async.{NetRef, NeuronRef}
-
+import anna.async.logger.LOG._
 import scala.concurrent.Await
 
 object Utils {
@@ -36,6 +39,14 @@ object Utils {
   def f(value: Double, slope: Double) = minMaxOpen(value, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(value-0.5))) )
     // = 2/(1+EXP(-C*x))-1 ; mapowanie S -1->-1,0->0,1->1, gdzie C to stromość
     // = 1/(1+EXP(-C*(x-0.5))) ; mapowanie S 0->0,0.5->0.5,1->1, gdzie C to stromość
-  
+
+  def parseDouble(s: String) = {
+    debug(this, s"parsing $s")
+    val pp = new ParsePosition(0)
+    val nf = NumberFormat.getInstance(Locale.ENGLISH)
+    val d = nf.parse(s, pp)
+    if (pp.getErrorIndex == -1) Some(d.doubleValue) else None
+  }
+
 }
 
