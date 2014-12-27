@@ -5,17 +5,14 @@ import org.scalatest.junit.JUnitSuite
 import org.junit.Assert._
 import anna.async.logger.LOG
 import anna.async.logger.LOG._
+import anna.async.NeuronType._
 
 /**
  * Created by gorywoda on 27.12.14.
  */
 class JsonSuite extends JUnitSuite {
-  @Before def before(): Unit ={
+  @Before def before(): Unit = {
     LOG.addLogToStdout()
-  }
-
-  @After def after(): Unit ={
-    LOG.resetOuts()
   }
 
   @Test def shouldMakeJsonFromSynapseData() = {
@@ -41,5 +38,24 @@ class JsonSuite extends JUnitSuite {
     val json3 = "{\"neuronId\":\"id3\",\"weight\":\"SynapseWeight(-1.0)\"}"
     val data3 = SynapseData.fromJson(json3)
     assertEquals(SynapseData("id3",-1.0), data3)
+
+    val d4 = SynapseData("id1",1.0)
+    val json4 = d4.toJson
+    assertEquals(d4, SynapseData.fromJson(json4))
+  }
+
+  @Test def shouldMakeJsonFromNeuronData() = {
+    val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget)
+    assertEquals("{\"id\":\"id1\",\"threshold\":0.0,\"slope\":5.0,\"hushValue\":\"HushValue(1)\",\"forgetting\":\"DontForget\",\"synapses\":[],\"neuronType\":\"STANDARD\"}", data1.toJson)
+  }
+
+  @Test def shouldMakeNeuronDataFromJson() = {
+    val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget)
+    val json1 = data1.toJson
+    assertEquals(data1, NeuronData.fromJson(json1))
+
+    val data2 = NeuronData("id1",0.0,5.0,HushValue(2),ForgetAll, List(SynapseData("id2",Hush),SynapseData("id3",1.0)))
+    val json2 = data2.toJson
+    assertEquals(data2, NeuronData.fromJson(json2))
   }
 }

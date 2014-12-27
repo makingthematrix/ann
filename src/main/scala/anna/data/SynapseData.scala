@@ -1,6 +1,5 @@
 package anna.data
 
-import anna.utils.Utils
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
@@ -23,14 +22,6 @@ case class SynapseData(val neuronId: String, val weight: SynapseTrait){
 object SynapseData {
   def apply(neuronId: String, weight: Double):SynapseData = SynapseData(neuronId, SynapseWeight(weight))
 
-  private val weightr = """SynapseWeight\(([0-9\.\-]+)\)""".r
-  private val hushr = Hush.toString
-
-  private def parseWeight(weightStr: String):SynapseTrait = weightStr match {
-    case weightr(w) => SynapseWeight(w.toDouble)
-    case hushr => Hush
-  }
-
   def fromJson(jsonStr: String) = {
     val json = parse(jsonStr)
 
@@ -42,5 +33,13 @@ object SynapseData {
 
     if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
     parsed(0)
+  }
+
+  private val weightr = """SynapseWeight\(([0-9\.\-]+)\)""".r
+  private val hushr = Hush.toString
+
+  private def parseWeight(weightStr: String):SynapseTrait = weightStr match {
+    case `hushr` => Hush
+    case weightr(w) => SynapseWeight(w.toDouble)
   }
 }
