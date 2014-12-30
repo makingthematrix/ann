@@ -16,9 +16,8 @@ class Net(val id: String) extends Actor {
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
     case CreateNeuron(data) => createNeuron(data)
     case Shutdown => shutdown()
-    case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
-    case SetInputLayer(ids) => setInputLayer(ids)
-    case GetMiddleLayer => sender ! MsgNeurons(middleLayer.toList)
+    case GetInputs => sender ! MsgNeurons(inputs)
+    case SetInputs(ids) => setInputs(ids)
     case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
     case SignalSeq(in) => signal(in)
   }
@@ -32,10 +31,10 @@ class Net(val id: String) extends Actor {
       }
   }
   
-  private def inputLayer = ins.toSeq
-  private def middleLayer = {
+  private def inputs = ins.toList
+  private def middles = {
     val inputIds = ins.map( _.id ).toSet
-    neurons.filterNot( n => inputIds.contains(n.id) )
+    neurons.filterNot( n => inputIds.contains(n.id) ).toList
   }
 
   private def remove(id: String) = findRef(id) match {
@@ -73,7 +72,7 @@ class Net(val id: String) extends Actor {
   }
 
   private def createDummy(id: String, hushValue: HushValue, tickTime: Long){
-	  val ref = context.actorOf(Props(new DummyNeuron(id, hushValue, tickTime)), name=id)
+	  val ref = context.actorOf(Props(new DummyNeuron(id, tickTime)), name=id)
     add(id, ref)
   }
   
@@ -88,7 +87,7 @@ class Net(val id: String) extends Actor {
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   
-  private def setInputLayer(ids: Seq[String]){
+  private def setInputs(ids: Seq[String]){
     debug(Net.this, s"input layer set in $id: " + ids.mkString(", "))
     ins.clear()
     neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )

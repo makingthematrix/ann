@@ -15,7 +15,7 @@ object Messages {
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
   case class CreateNeuron(data: NeuronData)
-  case class SetInputLayer(ids: Seq[String])
+  case class SetInputs(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
   case object ResetBuffer
@@ -29,8 +29,7 @@ object Messages {
   case object GetSynapses
   case class GetNeuron(id: String)
   case object GetNeurons
-  case object GetInputLayer
-  case object GetMiddleLayer
+  case object GetInputs
 
   // answers
   abstract class Answer

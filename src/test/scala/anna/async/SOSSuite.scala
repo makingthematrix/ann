@@ -18,12 +18,13 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chainMiddle("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
-                     .chainMiddle("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chainMiddle("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+                     .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
-                     .chainMiddle("line",1.0,0.0).hush("line")
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm))
+                     .hush("mi21")
+                     .chain("line",1.0,0.0).hush("line")
                      
     // if line then not dot
     builder.use("line").hush("mi12").hush("loop").hush("dot")

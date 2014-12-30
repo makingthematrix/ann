@@ -37,8 +37,8 @@ class NetSuite extends JUnitSuite {
   
   @Test def shouldCreateNeuronsWithBuilder(){
     val builder = NetBuilder()
-    builder.addMiddle("id1", threshold, hushValue, forgetting, slope)
-           .addMiddle("id2", threshold, hushValue, forgetting, slope)
+    builder.addMiddle("id1", threshold, slope, hushValue, forgetting)
+           .addMiddle("id2", threshold, slope, hushValue, forgetting)
     val net = builder.build
     
     val neurons = net.getNeurons
@@ -52,8 +52,8 @@ class NetSuite extends JUnitSuite {
   
   @Test def shouldConnectNeuronsWithBuilder(){
     val builder = NetBuilder()
-    builder.addMiddle("id1", threshold, hushValue, forgetting, slope)
-           .chain("id2", weight, threshold, hushValue, forgetting, slope)
+    builder.addMiddle("id1", threshold,  slope, hushValue, forgetting)
+           .chain("id2", weight, slope, threshold, hushValue, forgetting)
     val net = builder.build
     
     val neurons = net.getNeurons

@@ -17,7 +17,7 @@ class HushSuite extends MySuite {
     val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
     
     n1.setSynapses(List(Synapse(n2,Hush)))
-    net.setInputLayer(List(n1.id))
+    net.setInputs(List(n1.id))
     
     val p = Promise[Boolean]()
 
@@ -28,7 +28,7 @@ class HushSuite extends MySuite {
     
     net.signal(List(1.0))
     
-    val hushReceived = Await.result(p.future, timeout.duration).asInstanceOf[Boolean]
+    val hushReceived = Await.result(p.future, timeout.duration)
     assertTrue(hushReceived)
   }
   
@@ -61,7 +61,7 @@ class HushSuite extends MySuite {
     
     n1.setSynapses(List(Synapse(hushNeuron)))
     hushNeuron.setSynapses(List(Synapse(n2)))
-    net.setInputLayer(List(n1.id))
+    net.setInputs(List(n1.id))
     
     val p = Promise[Boolean]()
 

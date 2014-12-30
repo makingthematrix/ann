@@ -17,7 +17,5 @@ object Context {
   val hushValue = HushValue()
   val forgetting = DontForget
   val tickTime = 30L
-  
-  val INPUT_LAYER_NAME = "in"
-  val MIDDLE_LAYER_NAME = "mid"   
+
 }

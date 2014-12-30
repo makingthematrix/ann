@@ -13,7 +13,10 @@ class LineNetSuite extends MySuite {
   private def lineNet2() = {
     builder.inputTickMultiplicity = 2
     // lines
-    builder.addInput("in1").chain("mi21",0.4,0.6,HushValue(),ForgetValue(0.05)).chain("mi22",1.0,0.6).chain("out2",1.0)
+    builder.addInput("in1")
+           .chain("mi21",0.4,0.6,ForgetValue(0.05))
+           .chain("mi22",1.0,0.6)
+           .chain("out2",1.0)
     builder.use("mi22").hush("mi21")
     build()
     debug("----------")
@@ -66,8 +69,10 @@ class LineNetSuite extends MySuite {
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // lines
-    builder.use("in").chainMiddle("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
-      .chainMiddle("line",1.0,0.0).hush("line")
+    builder.use("in")
+           .chain("mi21",0.5,0.55,ForgetValue(0.4 / itm))
+           .hush("mi21")
+           .chain("line",1.0,0.0).hush("line")
     build()
 
   }

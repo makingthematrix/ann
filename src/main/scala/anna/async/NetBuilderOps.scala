@@ -1,50 +1,71 @@
 package anna.async
 
-import anna.async.Context._
-import anna.data.{DontForget, ForgetTrait, HushValue, SynapseWeight}
+import anna.data.{ForgetTrait, HushValue, SynapseWeight}
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
-  def chainMiddle(id: String, 
+  private def chainMiddle(id: String,
                   weight: Double =builder.defWeight, 
-                  threshold: Double =builder.defThreshold, 
+                  threshold: Double =builder.defThreshold,
+                  slope: Double =builder.defSlope,
                   hushValue: HushValue =builder.defHushValue, 
-                  forgetting: ForgetTrait =DontForget, 
-                  slope: Double =builder.defSlope):NetBuilder =
-    builder.chain(id, builder.defMiddleName, weight, threshold, hushValue, forgetting, slope)
+                  forgetting: ForgetTrait =builder.defForgetting,
+                  tickTime: Long =builder.defTickTime):NetBuilder =
+    builder.chain(id, weight, threshold, slope, hushValue, forgetting, tickTime)
 
   def chain(id: String, 
-            weight: Double =builder.defWeight, 
-            threshold: Double =builder.defThreshold, 
-            hushValue: HushValue =builder.defHushValue, 
-            forgetting: ForgetTrait =DontForget, 
-            slope: Double =builder.defSlope):NetBuilder =
-    chainMiddle(id, weight, threshold, hushValue, forgetting, slope)
-  def chainMiddle():NetBuilder = chainMiddle(builder.generateId(MIDDLE_LAYER_NAME))
-  def chainMiddle(weight: Double):NetBuilder = chainMiddle(builder.generateId(MIDDLE_LAYER_NAME), weight)
-  def chainMiddle(weight: Double, threshold: Double):NetBuilder = 
-    chainMiddle(builder.generateId(MIDDLE_LAYER_NAME), weight, threshold)
-  def chainMiddle(weight: Double, threshold: Double, slope: Double):NetBuilder = 
-    chainMiddle(builder.generateId(MIDDLE_LAYER_NAME), weight, threshold, builder.defHushValue, builder.defForgetting, slope)
-    
+            weight: Double,
+            threshold: Double,
+            slope: Double,
+            hushValue: HushValue,
+            forgetting: ForgetTrait,
+            tickTime: Long):NetBuilder =
+    chainMiddle(id, weight, threshold, slope, hushValue, forgetting, tickTime)
+  def chain(id: String,
+            weight: Double,
+            threshold: Double,
+            slope: Double,
+            hushValue: HushValue,
+            forgetting: ForgetTrait):NetBuilder =
+    chainMiddle(id, weight, threshold, slope, hushValue, forgetting, builder.defTickTime)
+  def chain(id: String,
+            weight: Double,
+            threshold: Double,
+            hushValue: HushValue,
+            forgetting: ForgetTrait):NetBuilder =
+    chainMiddle(id, weight, threshold, builder.defSlope, hushValue, forgetting, builder.defTickTime)
+  def chain(id: String,
+            weight: Double,
+            threshold: Double,
+            hushValue: HushValue):NetBuilder =
+    chainMiddle(id, weight, threshold, builder.defSlope, hushValue, builder.defForgetting, builder.defTickTime)
+  def chain(id: String,
+            weight: Double,
+            threshold: Double,
+            forgetting: ForgetTrait):NetBuilder =
+    chainMiddle(id, weight, threshold, builder.defSlope, builder.defHushValue, forgetting, builder.defTickTime)
+  def chain(id: String):NetBuilder =
+    chainMiddle(id, builder.defWeight, builder.defThreshold, builder.defSlope, builder.defHushValue, builder.defForgetting, builder.defTickTime)
+  def chain(id: String, weight: Double):NetBuilder =
+    chainMiddle(id, weight, builder.defThreshold, builder.defSlope, builder.defHushValue, builder.defForgetting, builder.defTickTime)
+  def chain(id: String, weight: Double, threshold: Double):NetBuilder =
+    chainMiddle(id, weight, threshold, builder.defSlope, builder.defHushValue, builder.defForgetting, builder.defTickTime)
+
   def loop(id: String, 
            w1: Double =builder.defWeight, 
            threshold: Double =builder.defThreshold, 
            w2: Double =builder.defWeight, 
            slope: Double =builder.defSlope):NetBuilder = {
     val n1 = builder.current
-    if(builder.throwOnError && !builder.contains(n1.id))
-      throw new IllegalArgumentException("You can loop only in the middle layer")
+    if(builder.inputSet.contains(n1.id)) throw new IllegalArgumentException("You can loop only in the middle layer")
     
-    chainMiddle(id, w1, threshold, builder.defHushValue, builder.defForgetting, slope)
+    chainMiddle(id, w1, threshold, slope, builder.defHushValue, builder.defForgetting)
     
-    builder.addSynapse(id, n1.id, SynapseWeight(w2))
-    builder.use(n1.id)
-    builder
+    builder.addSynapse(id, n1.id, SynapseWeight(w2)).use(n1.id)
   }
     
-  def loop(w1: Double, threshold: Double, w2: Double):NetBuilder = loop(builder.generateId(MIDDLE_LAYER_NAME), w1, threshold, w2)
-  def loop(w1: Double, w2: Double):NetBuilder = loop(builder.generateId(MIDDLE_LAYER_NAME), w1, builder.defThreshold, w2)
-  def loop():NetBuilder = loop(builder.generateId(MIDDLE_LAYER_NAME))
+  def loop(w1: Double, threshold: Double, w2: Double):NetBuilder = loop(builder.generateId(), w1, threshold, w2)
+  def loop(w1: Double, w2: Double):NetBuilder = loop(builder.generateId(), w1, builder.defThreshold, w2)
+  def loop():NetBuilder = loop(builder.generateId())
   
   def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
   def oscillator() = loop(1.0, 0.5, -1.0)
@@ -52,7 +73,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def chainOscillator(id: String, weight: Double, threshold: Double) = 
     chainMiddle(id, weight, threshold).oscillator(id+"_osc")
   def chainOscillator(id: String, weight: Double) = chainMiddle(id, weight).oscillator(id+"_osc")
-  def chainOscillator(weight: Double) = chainMiddle(weight).oscillator()
+  def chainOscillator(weight: Double) = chainMiddle(builder.generateId(), weight).oscillator()
   
   def self(weight: Double =builder.defWeight):NetBuilder = {
     builder.addSynapse(builder.current.id, builder.current.id, SynapseWeight(weight))
