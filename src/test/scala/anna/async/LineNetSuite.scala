@@ -2,7 +2,7 @@ package anna.async
 
 import anna.async.NetBuilderOps._
 import anna.async.logger.LOG.debug
-import anna.data.{ForgetValue, HushValue}
+import anna.data.ForgetValue
 import org.junit.Assert._
 import org.junit.Test
 

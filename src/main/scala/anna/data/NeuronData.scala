@@ -2,9 +2,9 @@ package anna.data
 
 import anna.async.NeuronType
 import anna.async.logger.LOG._
+import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import org.json4s.JsonDSL._
 
 case class HushValue(iterations: Int = 1) extends AnyVal
   

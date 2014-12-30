@@ -1,7 +1,7 @@
 package anna.async.epengine
 
 import anna.async.NeuronType
-import anna.data.{SynapseData, HushValue, ForgetTrait, NeuronData}
+import anna.data.{ForgetTrait, HushValue, NeuronData, SynapseData}
 
 /**
  * Created by gorywoda on 28.12.14.

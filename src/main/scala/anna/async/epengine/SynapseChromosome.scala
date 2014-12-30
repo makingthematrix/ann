@@ -1,6 +1,6 @@
 package anna.async.epengine
 
-import anna.data.{SynapseWeight, SynapseTrait, SynapseData}
+import anna.data.{SynapseData, SynapseTrait, SynapseWeight}
 
 /**
  * Created by gorywoda on 27.12.14.

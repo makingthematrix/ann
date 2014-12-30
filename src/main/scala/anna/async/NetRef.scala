@@ -5,7 +5,7 @@ import akka.pattern.ask
 import anna.async.Context._
 import anna.async.Messages._
 import anna.async.logger.LOG._
-import anna.data.{NeuronData, ForgetTrait, HushValue}
+import anna.data.{ForgetTrait, HushValue, NeuronData}
 import anna.utils.Utils.await
 
 class NetRef(val id: String, val ref: ActorRef) {

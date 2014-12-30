@@ -1,6 +1,6 @@
 package anna.async
 
-import anna.async.Context.{threshold, slope, hushValue, forgetting, tickTime, timeout}
+import anna.async.Context.{forgetting, hushValue, slope, threshold, tickTime, timeout}
 import anna.async.NetBuilderOps._
 import anna.async.logger.LOG
 import anna.data.Hush

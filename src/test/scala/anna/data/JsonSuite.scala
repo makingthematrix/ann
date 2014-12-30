@@ -1,11 +1,9 @@
 package anna.data
 
-import org.junit.{After, Before, Test}
-import org.scalatest.junit.JUnitSuite
-import org.junit.Assert._
 import anna.async.logger.LOG
-import anna.async.logger.LOG._
-import anna.async.NeuronType._
+import org.junit.Assert._
+import org.junit.{Before, Test}
+import org.scalatest.junit.JUnitSuite
 
 /**
  * Created by gorywoda on 27.12.14.

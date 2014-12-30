@@ -6,8 +6,9 @@ import java.util.Locale
 import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.async.Context.timeout
-import anna.async.{NetRef, NeuronRef}
 import anna.async.logger.LOG._
+import anna.async.{NetRef, NeuronRef}
+
 import scala.concurrent.Await
 
 object Utils {

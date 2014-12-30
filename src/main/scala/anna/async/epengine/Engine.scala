@@ -1,7 +1,7 @@
 package anna.async.epengine
 
 import anna.async.epengine.TossType._
-import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
+import anna.data.{Hush, SynapseWeight}
 import anna.utils.DoubleRange
 import anna.utils.DoubleRange._
 

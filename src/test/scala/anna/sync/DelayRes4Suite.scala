@@ -1,8 +1,8 @@
 package test.sync
 
 
-import anna.sync.{NetBuilder, NeuronType}
 import anna.sync.logger.LOG
+import anna.sync.{NetBuilder, NeuronType}
 import org.junit.Assert._
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite

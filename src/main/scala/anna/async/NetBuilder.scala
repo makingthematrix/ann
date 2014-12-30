@@ -2,10 +2,8 @@ package anna.async
 
 import anna.async.Messages._
 import anna.async.NeuronType._
-import anna.async.logger.LOG._
 import anna.data.{DontForget, ForgetTrait, Hush, HushValue, NeuronData, SynapseData, SynapseTrait, SynapseWeight}
-import anna.utils.Utils.await
-import anna.utils.Utils.assert
+import anna.utils.Utils.{assert, await}
 
 import scala.collection.mutable
 
