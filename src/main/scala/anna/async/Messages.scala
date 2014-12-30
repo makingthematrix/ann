@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.async.NeuronTriggers.Trigger
-import anna.data.{ForgetTrait, HushValue, SynapseTrait}
+import anna.data.{NeuronData, ForgetTrait, HushValue, SynapseTrait}
 
 object Messages {
   // signals
@@ -14,9 +14,7 @@ object Messages {
   case object WakeFromHush
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
-  case class CreateNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait)
-  case class CreateDummy(id: String, hushValue: HushValue)
-  case class CreateHushNeuron(id: String)
+  case class CreateNeuron(data: NeuronData)
   case class SetInputLayer(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown

@@ -15,6 +15,8 @@ class NetBuilder {
   var defWeight = Context.weight
   var defHushValue = Context.hushValue
   var defForgetting: ForgetTrait = Context.forgetting
+  val defTickTime: Long = Context.tickTime
+
   var defInputName = INPUT_LAYER_NAME
   var defMiddleName = MIDDLE_LAYER_NAME
   var netName = "net"
@@ -132,7 +134,7 @@ class NetBuilder {
     debug(this, s"build()")
     
     val net = NetRef(netName)
-    val nRefs = neurons.values.map{ nd => (nd.id -> createNeuronInNet(net, nd)) }.toMap
+    val nRefs = neurons.values.map{ nd => nd.id -> createNeuronInNet(net, nd) }.toMap
     nRefs.values.foreach(
       nRef => nRef.setSynapses(synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight)))
     )
@@ -153,11 +155,7 @@ class NetBuilder {
     (in, net)
   }
   
-  private def createNeuronInNet(net: NetRef, data: NeuronData) = data.neuronType match {
-    case STANDARD => await[NeuronRef](net, CreateNeuron(data.id, data.threshold, data.slope, data.hushValue, data.forgetting))
-    case DUMMY => await[NeuronRef](net, CreateDummy(data.id, data.hushValue))
-    case HUSH => await[NeuronRef](net, CreateHushNeuron(data.id))
-  }
+  private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))
   
   private val nextIndex = {
     var nextFreeIndex = 0L
@@ -175,8 +173,8 @@ class NetBuilder {
   
   private def newNeuron(neuronType: NeuronType.Value, id: String, 
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
-      forgetting: ForgetTrait =defForgetting) = 
-    NeuronData(id, threshold, slope, hushValue, forgetting, Nil, neuronType)
+      forgetting: ForgetTrait =defForgetting, tickTime: Long = defTickTime) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTime, neuronType)
 
   private def get(id: String) = neurons(id)  
   

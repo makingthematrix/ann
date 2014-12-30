@@ -45,16 +45,16 @@ class JsonSuite extends JUnitSuite {
   }
 
   @Test def shouldMakeJsonFromNeuronData() = {
-    val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget)
-    assertEquals("{\"id\":\"id1\",\"threshold\":0.0,\"slope\":5.0,\"hushValue\":\"HushValue(1)\",\"forgetting\":\"DontForget\",\"synapses\":[],\"neuronType\":\"STANDARD\"}", data1.toJson)
+    val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget, 100L)
+    assertEquals("{\"id\":\"id1\",\"threshold\":0.0,\"slope\":5.0,\"hushValue\":\"HushValue(1)\",\"forgetting\":\"DontForget\",\"synapses\":[],\"tickTime\":100,\"neuronType\":\"STANDARD\"}", data1.toJson)
   }
 
   @Test def shouldMakeNeuronDataFromJson() = {
-    val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget)
+    val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget, 100L)
     val json1 = data1.toJson
     assertEquals(data1, NeuronData.fromJson(json1))
 
-    val data2 = NeuronData("id1",0.0,5.0,HushValue(2),ForgetAll, List(SynapseData("id2",Hush),SynapseData("id3",1.0)))
+    val data2 = NeuronData("id1",0.0,5.0,HushValue(2),ForgetAll, List(SynapseData("id2",Hush),SynapseData("id3",1.0)), 100L)
     val json2 = data2.toJson
     assertEquals(data2, NeuronData.fromJson(json2))
   }

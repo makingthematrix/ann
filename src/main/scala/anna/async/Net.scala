@@ -3,7 +3,7 @@ package anna.async
 import akka.actor._
 import anna.async.Messages._
 import anna.async.logger.LOG._
-import anna.data.{ForgetTrait, HushValue}
+import anna.data.{NeuronData, ForgetTrait, HushValue}
 
 import scala.collection.mutable
 
@@ -14,9 +14,7 @@ class Net(val id: String) extends Actor {
   def receive: Receive = {
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
-    case CreateNeuron(id, threshold, slope, hushValue, forgetting) => createNeuron(id, threshold, slope, hushValue, forgetting)
-    case CreateDummy(id, hushValue) => createDummy(id, hushValue)
-    case CreateHushNeuron(id) => createHushNeuron(id)
+    case CreateNeuron(data) => createNeuron(data)
     case Shutdown => shutdown()
     case GetInputLayer => sender ! MsgNeurons(inputLayer.toList)
     case SetInputLayer(ids) => setInputLayer(ids)
@@ -57,18 +55,29 @@ class Net(val id: String) extends Actor {
     neurons += neuronRef
     sender ! neuronRef
   }
-  
-  private def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait){
-	val ref = context.actorOf(Props(new Neuron(id, treshold, slope, hushValue, forgetting)), name=id)
+
+  private def createNeuron(data:NeuronData) = data.neuronType match {
+    case NeuronType.STANDARD => createStandard(data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.tickTime)
+    case NeuronType.DUMMY => createDummy(data.id, data.hushValue, data.tickTime)
+    case NeuronType.HUSH => createHush(data.id)
+  }
+
+  private def createStandard(id: String,
+                           threshold: Double,
+                           slope: Double,
+                           hushValue: HushValue,
+                           forgetting: ForgetTrait,
+                           tickTime: Long){
+	val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTime)), name=id)
+    add(id, ref)
+  }
+
+  private def createDummy(id: String, hushValue: HushValue, tickTime: Long){
+	  val ref = context.actorOf(Props(new DummyNeuron(id, hushValue, tickTime)), name=id)
     add(id, ref)
   }
   
-  private def createDummy(id: String, hushValue: HushValue){
-	val ref = context.actorOf(Props(new DummyNeuron(id, hushValue)), name=id)
-    add(id, ref)
-  }
-  
-  private def createHushNeuron(id: String){
+  private def createHush(id: String){
     val ref = context.actorOf(Props(new HushNeuron(id)), name=id)
     add(id, ref)
   }

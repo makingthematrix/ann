@@ -1,7 +1,6 @@
 package anna.async
 
 import akka.actor._
-import anna.async.Context.tickTime
 import anna.async.Messages._
 import anna.async.logger.LOG
 import anna.async.logger.LOG._
@@ -17,6 +16,7 @@ class Neuron(
     val slope: Double, 
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
+    val tickTime: Long,
     protected var synapses: Seq[Synapse] = Seq[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
@@ -138,7 +138,7 @@ class Neuron(
    
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
-      case GetInput => sender ! Msg(input.toDouble, id)
+      case GetInput => sender ! Msg(input, id)
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses

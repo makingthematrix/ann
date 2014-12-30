@@ -17,6 +17,13 @@ case class NeuronChromosome(data: NeuronData) {
 }
 
 object NeuronChromosome {
-  def apply(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait, synapses: List[SynapseData], neuronType: NeuronType.Value) =
-    NeuronChromosome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, neuronType))
+  def apply(id: String,
+            threshold: Double,
+            slope: Double,
+            hushValue: HushValue,
+            forgetting: ForgetTrait,
+            synapses: List[SynapseData],
+            tickTime: Long,
+            neuronType: NeuronType.Value):NeuronChromosome =
+    NeuronChromosome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTime, neuronType))
 }

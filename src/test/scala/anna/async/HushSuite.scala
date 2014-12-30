@@ -1,6 +1,6 @@
 package anna.async
 
-import anna.async.Context._
+import anna.async.Context.{threshold, slope, hushValue, forgetting, tickTime, timeout}
 import anna.async.NetBuilderOps._
 import anna.async.logger.LOG
 import anna.data.Hush
@@ -13,8 +13,8 @@ class HushSuite extends MySuite {
   @Test def shouldSendHush(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting)
-    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting)
+    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime)
+    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
     
     n1.setSynapses(List(Synapse(n2,Hush)))
     net.setInputLayer(List(n1.id))
@@ -55,9 +55,9 @@ class HushSuite extends MySuite {
   @Test def shouldUseHushNeuron(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting)
+    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime)
     val hushNeuron = net.createHushNeuron("hushneuron")
-    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting)
+    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
     
     n1.setSynapses(List(Synapse(hushNeuron)))
     hushNeuron.setSynapses(List(Synapse(n2)))
@@ -72,7 +72,7 @@ class HushSuite extends MySuite {
     
     net.signal(List(1.0))
     
-    val hushReceived = Await.result(p.future, timeout.duration).asInstanceOf[Boolean]
+    val hushReceived = Await.result(p.future, timeout.duration)
     assertTrue(hushReceived)
   }
   

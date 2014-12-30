@@ -5,7 +5,7 @@ import akka.pattern.ask
 import anna.async.Context._
 import anna.async.Messages._
 import anna.async.logger.LOG._
-import anna.data.{ForgetTrait, HushValue}
+import anna.data.{NeuronData, ForgetTrait, HushValue}
 import anna.utils.Utils.await
 
 class NetRef(val id: String, val ref: ActorRef) {
@@ -25,10 +25,11 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, treshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait) = 
-    await[NeuronRef](ref, CreateNeuron(id, treshold, slope, hushValue, forgetting))
-  def createDummy(id: String, hushValue: HushValue) = await[NeuronRef](ref, CreateDummy(id, hushValue))
-  def createHushNeuron(id: String) = await[NeuronRef](ref, CreateHushNeuron(id)) 
+  def createNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait, tickTime: Long) =
+    await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, slope, hushValue, forgetting, tickTime)))
+  def createDummy(id: String, hushValue: HushValue, tickTime: Long) =
+    await[NeuronRef](ref, CreateNeuron(NeuronData(id, hushValue, tickTime)))
+  def createHushNeuron(id: String) = await[NeuronRef](ref, CreateNeuron(NeuronData(id)))
   
   def setInputLayer(seq: Seq[String]) = await[Answer](ref, SetInputLayer(seq))
   
