@@ -12,10 +12,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def input = await[Msg](ref, GetInput).d
   def lastOutput = await[Msg](ref, GetLastOutput).d
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
-  def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty){
-    synapses.foreach( s => println(s.toString()) )
-    ref ! SetSynapses(synapses)
-  }
+  def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
   
   def hush() = ref ! HushNow
   
