@@ -134,7 +134,7 @@ class NetBuilder {
     debug(this, s"build()")
     
     val net = NetRef(netName)
-    val nRefs = neurons.values.map{ nd => nd.id -> createNeuronInNet(net, nd) }.toMap
+    val nRefs = neurons.values.par.map{ nd => nd.id -> createNeuronInNet(net, nd.withoutSynapses) }.toMap
     nRefs.values.foreach(
       nRef => nRef.setSynapses(synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight)))
     )

@@ -32,6 +32,7 @@ case class NeuronData(
   def withHushValue(hushValue: HushValue) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTime, neuronType)
   def withForgetting(forgetting: ForgetTrait) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTime, neuronType)
   def withSynapses(synapses: List[SynapseData]) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTime, neuronType)
+  def withoutSynapses = withSynapses(Nil)
   def withNeuronType(neuronType: NeuronType.Value) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTime, neuronType)
 
   private def toRawJson = {
