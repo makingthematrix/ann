@@ -20,20 +20,29 @@ case class NeuronData(
     hushValue: HushValue,
     forgetting: ForgetTrait,
     synapses: List[SynapseData],
-    tickTimeMultiplicity: Double,
+    tickTimeMultiplier: Double,
     neuronType: NeuronType.Value
 ){
   def toJson = compact(toRawJson)
   def toPrettyJson = pretty(toRawJson) // for debugging purposes only
 
-  def withId(id: String) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
-  def withThreshold(threshold: Double) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
-  def withSlope(slope: Double) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
-  def withHushValue(hushValue: HushValue) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
-  def withForgetting(forgetting: ForgetTrait) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
-  def withSynapses(synapses: List[SynapseData]) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
+  def withId(id: String) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withThreshold(threshold: Double) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withSlope(slope: Double) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withHushValue(hushValue: HushValue) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withForgetting(forgetting: ForgetTrait) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withSynapses(synapses: List[SynapseData]) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
   def withoutSynapses = withSynapses(Nil)
-  def withNeuronType(neuronType: NeuronType.Value) = NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, neuronType)
+  def withTickTimeMultiplier(tickTimeMultiplier: Double) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withNeuronType(neuronType: NeuronType.Value) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
 
   private def toRawJson = {
     val synapsesJson = synapses.map{ _.toJson }
@@ -43,7 +52,7 @@ case class NeuronData(
                ("hushValue" -> hushValue.toString) ~
                ("forgetting" -> forgetting.toString) ~
                ("synapses" -> synapsesJson) ~
-               ("tickTimeMultiplicity" -> tickTimeMultiplicity) ~
+               ("tickTimeMultiplier" -> tickTimeMultiplier) ~
                ("neuronType" -> neuronType.toString)
     render(json)
   }
@@ -56,21 +65,21 @@ object NeuronData {
             hushValue: HushValue, 
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
-            tickTimeMultiplicity: Double):NeuronData
-    = apply(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplicity, NeuronType.STANDARD)
+            tickTimeMultiplier: Double):NeuronData
+    = apply(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, NeuronType.STANDARD)
 
   def apply(id: String, 
             threshold: Double, 
             slope: Double, 
             hushValue: HushValue,
             forgetting: ForgetTrait,
-            tickTimeMultiplicity: Double):NeuronData
-    = apply(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplicity, NeuronType.STANDARD)
+            tickTimeMultiplier: Double):NeuronData
+    = apply(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronType.STANDARD)
 
   def apply(id: String,  
             hushValue: HushValue,
-            tickTimeMultiplicity: Double):NeuronData
-    = apply(id, 0.0, 0.0, hushValue, ForgetAll, Nil, tickTimeMultiplicity, NeuronType.DUMMY)
+            tickTimeMultiplier: Double):NeuronData
+    = apply(id, 0.0, 0.0, hushValue, ForgetAll, Nil, tickTimeMultiplier, NeuronType.DUMMY)
   
   def apply(id: String):NeuronData
     = apply(id, 0.0, 0.0, HushValue(), ForgetAll, Nil, 1.0, NeuronType.HUSH)
@@ -86,10 +95,10 @@ object NeuronData {
       JField("hushValue", JString(hushStr)) <- data
       JField("forgetting", JString(forgetStr)) <- data
       JField("synapses", JArray(synapsesJson)) <- data
-      JField("tickTimeMultiplicity", JDouble(tickTimeMultiplicity)) <- data
+      JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
       JField("neuronType", JString(neuronTypeStr)) <- data
     } yield NeuronData(id, threshold, slope, parseHush(hushStr), parseForgetting(forgetStr),
-                       parseSynapses(synapsesJson), tickTimeMultiplicity, NeuronType.parse(neuronTypeStr))
+                       parseSynapses(synapsesJson), tickTimeMultiplier, NeuronType.parse(neuronTypeStr))
 
     if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
     parsed(0)

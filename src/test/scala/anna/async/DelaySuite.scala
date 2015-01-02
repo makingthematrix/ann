@@ -12,7 +12,7 @@ import scala.collection.mutable
 class DelaySuite extends MySuite {  
   
   @Test def shouldGiveConstantOutput(){
-	builder.inputTickMultiplicity = 2.0
+	builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     build()
     
@@ -27,11 +27,11 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(6, tolerance, (in.inputTickMultiplicity * tickTime).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(6, tolerance, (in.inputTickMultiplier * tickTime).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
-    builder.inputTickMultiplicity = 2
+    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).loop("osc",1.0,0.5,-1.0).chain("out1",1.0,0.75)
     build()
     LOG.debug(this,"here!")
@@ -47,11 +47,11 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, (in.inputTickMultiplicity * tickTime * 2).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(3, tolerance, (in.inputTickMultiplier * tickTime * 2).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod2(){
-    builder.inputTickMultiplicity = 2
+    builder.inputTickMultiplier = 2.0
     builder.addInput("in").chain("mi1",1.0).oscillator().chain("out1", 1.0, 0.75)
     build()
     
@@ -64,11 +64,11 @@ class DelaySuite extends MySuite {
     in.tickUntilCalm()
 
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, (in.inputTickMultiplicity * tickTime * 2).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(3, tolerance, (in.inputTickMultiplier * tickTime * 2).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillator2(){
-    builder.inputTickMultiplicity = 2
+    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).loop("osc",1.0,0.5,-1.0).chain("out1",1.0,0.75)
     builder.use("osc").chain("mi2",1.0).chain("out2",1.0,0.75)
     build()

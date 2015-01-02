@@ -11,7 +11,7 @@ class LineNetSuite extends MySuite {
   val o = "1,1,0,1,1,0,1,1,0"
 
   private def lineNet2() = {
-    builder.inputTickMultiplicity = 2.0
+    builder.inputTickMultiplier = 2.0
     // lines
     builder.addInput("in1")
            .chain("mi21",0.4,0.6,ForgetValue(0.05))
@@ -66,7 +66,7 @@ class LineNetSuite extends MySuite {
 
   private def lineNet3(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // lines
     builder.use("in")

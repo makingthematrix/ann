@@ -11,7 +11,7 @@ class DotNetSuite extends MySuite {
   val o = "1,1,0,1,1,0,1,1,0"
 
   private def dotNet2() = {
-    builder.inputTickMultiplicity = 2.0
+    builder.inputTickMultiplier = 2.0
     builder.addInput("in1")
     // dots
     builder.use("in1").chain("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chain("mi12",1.0,0.75).chain("out1",1.0)
@@ -50,7 +50,7 @@ class DotNetSuite extends MySuite {
 
   private def dotNet3(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
     builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")

@@ -18,15 +18,14 @@ class Neuron(
     val slope: Double, 
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
-    val tickTimeMultiplicity: Double,
+    val tickTimeMultiplier: Double,
     protected var synapses: Seq[Synapse] = Seq[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
   protected var buffer = 0.0
-  def input = buffer // only for debugging purposes
-  var lastOutput = 0.0 // only for debugging purposes
-  
+  protected var lastOutput = 0.0 // only for debugging purposes
+
   private def hushNow(){
     LOG += s"$id hushNow, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
@@ -36,11 +35,11 @@ class Neuron(
   
   private def makeSleep() = {
     context.become(sleep)
-    context.system.scheduler.scheduleOnce((tickTimeMultiplicity * tickTime).toLong millis){ self ! WakeUp }
+    context.system.scheduler.scheduleOnce((tickTimeMultiplier * tickTime).toLong millis){ self ! WakeUp }
   }
   
   private def makeHush() = {
-    val t = (tickTimeMultiplicity * tickTime).toLong * hushValue.iterations
+    val t = (tickTimeMultiplier * tickTime).toLong * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
     context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
@@ -78,8 +77,8 @@ class Neuron(
     case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = offset.toDouble/(tickTimeMultiplicity * tickTime) * forgetValue
-      LOG += s"forgetting, offset=$offset, sleepTime=${tickTimeMultiplicity * tickTime}, forgetValue=$forgetValue, so delta is $delta"
+      val delta = offset.toDouble/(tickTimeMultiplier * tickTime) * forgetValue
+      LOG += s"forgetting, offset=$offset, sleepTime=${tickTimeMultiplier * tickTime}, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>
@@ -140,7 +139,7 @@ class Neuron(
    
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
-      case GetInput => sender ! Msg(input, id)
+      case GetInput => sender ! Msg(buffer, id)
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses

@@ -44,7 +44,7 @@ class JsonSuite extends JUnitSuite {
 
   @Test def shouldMakeJsonFromNeuronData() = {
     val data1 = NeuronData("id1",0.0,5.0,HushValue(1),DontForget, 1.0)
-    assertEquals("{\"id\":\"id1\",\"threshold\":0.0,\"slope\":5.0,\"hushValue\":\"HushValue(1)\",\"forgetting\":\"DontForget\",\"synapses\":[],\"tickTimeMultiplicity\":1.0,\"neuronType\":\"STANDARD\"}", data1.toJson)
+    assertEquals("{\"id\":\"id1\",\"threshold\":0.0,\"slope\":5.0,\"hushValue\":\"HushValue(1)\",\"forgetting\":\"DontForget\",\"synapses\":[],\"tickTimeMultiplier\":1.0,\"neuronType\":\"STANDARD\"}", data1.toJson)
   }
 
   @Test def shouldMakeNeuronDataFromJson() = {

@@ -15,7 +15,7 @@ class SOSSuite extends MySuite {
 
   private def dotLineNet(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
     builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
@@ -106,7 +106,7 @@ class SOSSuite extends MySuite {
   
   private def SNet(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
     builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
@@ -144,7 +144,7 @@ class SOSSuite extends MySuite {
   
   private def ONet(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // lines
     builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
@@ -181,7 +181,7 @@ class SOSSuite extends MySuite {
   
   private def SOSNet(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
     builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
@@ -260,7 +260,7 @@ class SOSSuite extends MySuite {
   
   private def SOSNetWithHushNeuron(){
     val itm = 3.0
-    builder.inputTickMultiplicity = itm
+    builder.inputTickMultiplier = itm
     builder.defSlope = 5.0
     builder.addInput("in")
     // dots
