@@ -1,8 +1,9 @@
 package anna.async
 
-import anna.async.Context.tickTime
+import anna.Context
+import Context.tickTime
 import anna.async.NetBuilderOps._
-import anna.async.logger.LOG
+import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
 

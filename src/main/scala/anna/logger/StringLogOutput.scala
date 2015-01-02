@@ -1,4 +1,4 @@
-package anna.sync.logger
+package anna.logger
 
 class StringLogOutput(val id: String) extends LogOutput {
   private val sb = StringBuilder.newBuilder

@@ -1,8 +1,8 @@
 package anna.async
 
 import anna.async.NetBuilderOps._
-import anna.async.logger.LOG
-import anna.async.logger.LOG.debug
+import anna.logger.LOG
+import anna.logger.LOG.debug
 import anna.data.{ForgetValue, HushValue}
 import org.junit.Assert._
 import org.junit.Test

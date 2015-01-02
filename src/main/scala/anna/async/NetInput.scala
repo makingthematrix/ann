@@ -1,8 +1,9 @@
 package anna.async
 
-import anna.async.Context.tickTime
+import anna.Context
+import anna.Context.tickTime
 import anna.async.Messages._
-import anna.async.logger.LOG._
+import anna.logger.LOG._
 
 import scala.collection.mutable
 

@@ -1,7 +1,7 @@
 package anna.data
 
 import anna.async.NeuronType
-import anna.async.logger.LOG._
+import anna.logger.LOG._
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._

@@ -2,9 +2,9 @@ package anna.async
 
 import akka.actor._
 import anna.async.Messages._
-import anna.async.logger.LOG
-import anna.async.logger.LOG._
 import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
+import anna.logger.LOG
+import anna.logger.LOG._
 import anna.utils.Utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global

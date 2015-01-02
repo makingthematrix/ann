@@ -1,4 +1,4 @@
-package anna.async.logger
+package anna.logger
 
 import java.util.Calendar
 

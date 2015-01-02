@@ -1,8 +1,8 @@
 package test.async.epengine
 
-import anna.async.epengine.{Engine, TossType}
-import anna.async.logger.LOG
-import anna.async.logger.LOG._
+import anna.epengine.{Engine, TossType}
+import anna.logger.LOG
+import anna.logger.LOG._
 import anna.data.{Hush, SynapseWeight}
 import anna.utils.DoubleRange._
 import org.junit.Assert._

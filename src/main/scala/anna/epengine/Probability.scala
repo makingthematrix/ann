@@ -1,4 +1,4 @@
-package anna.async.epengine
+package anna.epengine
 
 case class Probability(value: Double) extends AnyVal 
 

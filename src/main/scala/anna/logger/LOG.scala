@@ -1,9 +1,11 @@
-package anna.sync.logger
+package anna.logger
 
-import scala.collection.mutable
-//import main.sync.Neuron
 import java.io.{PrintWriter, StringWriter}
 import java.util.Calendar
+
+import anna.async.Neuron
+
+import scala.collection.mutable
 
 object LogLevel extends Enumeration {
   type LogLevel = Value
@@ -53,16 +55,16 @@ object LOG {
   
   def allow(id: String):Unit = _allowedIds += id
   def allow(ids: String*):Unit = ids.foreach( allow(_) )
-  def allow[N <: anna.sync.Neuron](implicit n: N):Unit = allow(n.id)
+  def allow[N <: Neuron](implicit n: N):Unit = allow(n.id)
   
   def allowedIds = _allowedIds.toSet
   def clearAllowedIds() = _allowedIds.clear()
   def removeAllowedId(id: String) = _allowedIds -= id
   def allowed(id: String):Boolean = _allowedIds.contains(id)
-  def allowed[N <: anna.sync.Neuron](n: N):Boolean = allowed(n.id)
+  def allowed[N <: Neuron](n: N):Boolean = allowed(n.id)
   
-  def +=(str: String)(implicit n: anna.sync.Neuron) = log(str, n)
-  def log(str: String, n: anna.sync.Neuron):Unit = if(allowed(n)) log(str, logLevel)
+  def +=(str: String)(implicit n: Neuron) = log(str, n)
+  def log(str: String, n: Neuron):Unit = if(allowed(n)) log(str, logLevel)
   
   def removeOut(out: LogOutput) = findOut(out.id) match{
     case None => false;
@@ -167,10 +169,10 @@ object LOG {
 	throw new IllegalArgumentException(str)
   }
 
-  def error[N <: anna.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR, allowed(source))
-  def debug[N <: anna.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG, allowed(source))
-  def info[N <: anna.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.INFO, allowed(source))
-  def comment[N <: anna.sync.Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.COMMENT, allowed(source))
+  def error[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR, allowed(source))
+  def debug[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG, allowed(source))
+  def info[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.INFO, allowed(source))
+  def comment[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.COMMENT, allowed(source))
 
   def error(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR)
   def debug(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG)

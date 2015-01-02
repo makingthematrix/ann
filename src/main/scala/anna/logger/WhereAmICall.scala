@@ -1,4 +1,4 @@
-package anna.sync.logger
+package anna.logger
 
 import java.io.{PrintWriter, StringWriter}
 

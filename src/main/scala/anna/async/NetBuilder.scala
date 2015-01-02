@@ -1,5 +1,6 @@
 package anna.async
 
+import anna.Context
 import anna.async.Messages._
 import anna.async.NeuronType._
 import anna.data.{DontForget, ForgetTrait, Hush, HushValue, NeuronData, SynapseData, SynapseTrait, SynapseWeight}

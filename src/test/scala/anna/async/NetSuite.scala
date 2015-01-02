@@ -1,6 +1,7 @@
 package anna.async
 
-import anna.async.Context._
+import anna.Context
+import Context._
 import anna.async.Messages._
 import anna.async.NetBuilderOps._
 import anna.utils.Utils.await

@@ -1,4 +1,4 @@
-package anna.async.epengine
+package anna.epengine
 
 import anna.data.{SynapseData, SynapseTrait, SynapseWeight}
 

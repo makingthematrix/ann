@@ -1,6 +1,6 @@
 package anna.data
 
-import anna.async.logger.LOG
+import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite

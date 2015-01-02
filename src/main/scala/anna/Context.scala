@@ -1,4 +1,4 @@
-package anna.async
+package anna
 
 import akka.actor.ActorSystem
 import akka.util.Timeout

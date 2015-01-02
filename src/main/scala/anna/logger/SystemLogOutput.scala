@@ -1,4 +1,4 @@
-package anna.async.logger
+package anna.logger
 
 class SystemLogOutput extends LogOutput {
   override def log = ""
