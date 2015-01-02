@@ -12,7 +12,7 @@ import scala.collection.mutable
 class DelaySuite extends MySuite {  
   
   @Test def shouldGiveConstantOutput(){
-	builder.inputTickMultiplicity = 2
+	builder.inputTickMultiplicity = 2.0
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     build()
     
@@ -27,7 +27,7 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(6, tolerance, in.inputTickMultiplicity * tickTime), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(6, tolerance, (in.inputTickMultiplicity * tickTime).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
@@ -47,7 +47,7 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, in.inputTickMultiplicity * tickTime * 2), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(3, tolerance, (in.inputTickMultiplicity * tickTime * 2).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod2(){
@@ -64,7 +64,7 @@ class DelaySuite extends MySuite {
     in.tickUntilCalm()
 
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, in.inputTickMultiplicity * tickTime * 2), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(3, tolerance, (in.inputTickMultiplicity * tickTime * 2).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillator2(){

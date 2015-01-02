@@ -7,6 +7,8 @@ import anna.logger.LOG
 import anna.logger.LOG._
 import anna.utils.Utils._
 
+import anna.Context.tickTime
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
@@ -16,7 +18,7 @@ class Neuron(
     val slope: Double, 
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
-    val tickTime: Long,
+    val tickTimeMultiplicity: Double,
     protected var synapses: Seq[Synapse] = Seq[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
@@ -34,11 +36,11 @@ class Neuron(
   
   private def makeSleep() = {
     context.become(sleep)
-    context.system.scheduler.scheduleOnce(tickTime millis){ self ! WakeUp }
+    context.system.scheduler.scheduleOnce((tickTimeMultiplicity * tickTime).toLong millis){ self ! WakeUp }
   }
   
   private def makeHush() = {
-    val t = tickTime * hushValue.iterations
+    val t = (tickTimeMultiplicity * tickTime).toLong * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
     context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
@@ -76,8 +78,8 @@ class Neuron(
     case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = offset.toDouble/tickTime * forgetValue
-      LOG += s"forgetting, offset=$offset, sleepTime=$tickTime, forgetValue=$forgetValue, so delta is $delta"
+      val delta = offset.toDouble/(tickTimeMultiplicity * tickTime) * forgetValue
+      LOG += s"forgetting, offset=$offset, sleepTime=${tickTimeMultiplicity * tickTime}, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>

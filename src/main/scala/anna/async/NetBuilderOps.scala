@@ -9,8 +9,8 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
                   slope: Double =builder.defSlope,
                   hushValue: HushValue =builder.defHushValue, 
                   forgetting: ForgetTrait =builder.defForgetting,
-                  tickTime: Long =builder.defTickTime):NetBuilder =
-    builder.chain(id, weight, threshold, slope, hushValue, forgetting, tickTime)
+                  tickTimeMultiplicity: Double =builder.defTickTimeMultiplicity):NetBuilder =
+    builder.chain(id, weight, threshold, slope, hushValue, forgetting, tickTimeMultiplicity)
 
   def chain(id: String, 
             weight: Double,
@@ -26,29 +26,26 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
             slope: Double,
             hushValue: HushValue,
             forgetting: ForgetTrait):NetBuilder =
-    chainMiddle(id, weight, threshold, slope, hushValue, forgetting, builder.defTickTime)
+    chainMiddle(id, weight, threshold, slope, hushValue, forgetting)
   def chain(id: String,
             weight: Double,
             threshold: Double,
             hushValue: HushValue,
             forgetting: ForgetTrait):NetBuilder =
-    chainMiddle(id, weight, threshold, builder.defSlope, hushValue, forgetting, builder.defTickTime)
+    chainMiddle(id, weight, threshold, builder.defSlope, hushValue, forgetting)
   def chain(id: String,
             weight: Double,
             threshold: Double,
             hushValue: HushValue):NetBuilder =
-    chainMiddle(id, weight, threshold, builder.defSlope, hushValue, builder.defForgetting, builder.defTickTime)
+    chainMiddle(id, weight, threshold, builder.defSlope, hushValue)
   def chain(id: String,
             weight: Double,
             threshold: Double,
             forgetting: ForgetTrait):NetBuilder =
-    chainMiddle(id, weight, threshold, builder.defSlope, builder.defHushValue, forgetting, builder.defTickTime)
-  def chain(id: String):NetBuilder =
-    chainMiddle(id, builder.defWeight, builder.defThreshold, builder.defSlope, builder.defHushValue, builder.defForgetting, builder.defTickTime)
-  def chain(id: String, weight: Double):NetBuilder =
-    chainMiddle(id, weight, builder.defThreshold, builder.defSlope, builder.defHushValue, builder.defForgetting, builder.defTickTime)
-  def chain(id: String, weight: Double, threshold: Double):NetBuilder =
-    chainMiddle(id, weight, threshold, builder.defSlope, builder.defHushValue, builder.defForgetting, builder.defTickTime)
+    chainMiddle(id, weight, threshold, builder.defSlope, builder.defHushValue, forgetting)
+  def chain(id: String):NetBuilder = chainMiddle(id)
+  def chain(id: String, weight: Double):NetBuilder = chainMiddle(id, weight)
+  def chain(id: String, weight: Double, threshold: Double):NetBuilder = chainMiddle(id, weight, threshold)
 
   def loop(id: String, 
            w1: Double =builder.defWeight, 

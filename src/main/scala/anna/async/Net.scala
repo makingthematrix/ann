@@ -56,8 +56,8 @@ class Net(val id: String) extends Actor {
   }
 
   private def createNeuron(data:NeuronData) = data.neuronType match {
-    case NeuronType.STANDARD => createStandard(data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.tickTime)
-    case NeuronType.DUMMY => createDummy(data.id, data.hushValue, data.tickTime)
+    case NeuronType.STANDARD => createStandard(data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.tickTimeMultiplicity)
+    case NeuronType.DUMMY => createDummy(data.id, data.hushValue, data.tickTimeMultiplicity)
     case NeuronType.HUSH => createHush(data.id)
   }
 
@@ -66,13 +66,13 @@ class Net(val id: String) extends Actor {
                            slope: Double,
                            hushValue: HushValue,
                            forgetting: ForgetTrait,
-                           tickTime: Long){
-	val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTime)), name=id)
+                           tickTimeMultiplicity: Double){
+	val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTimeMultiplicity)), name=id)
     add(id, ref)
   }
 
-  private def createDummy(id: String, hushValue: HushValue, tickTime: Long){
-	  val ref = context.actorOf(Props(new DummyNeuron(id, tickTime)), name=id)
+  private def createDummy(id: String, hushValue: HushValue, tickTimeMultiplicity: Double){
+	  val ref = context.actorOf(Props(new DummyNeuron(id, tickTimeMultiplicity)), name=id)
     add(id, ref)
   }
   

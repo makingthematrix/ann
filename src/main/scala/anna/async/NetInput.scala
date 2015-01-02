@@ -7,7 +7,7 @@ import anna.logger.LOG._
 
 import scala.collection.mutable
 
-class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int) {
+class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Double) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   
@@ -46,7 +46,7 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int
     debug(this, s"-------- ITERATION ${_iteration} ---------")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
-    Thread.sleep(inputTickMultiplicity * tickTime)
+    Thread.sleep((inputTickMultiplicity * tickTime).toLong)
     _iteration = _iteration + 1
   }
   
@@ -75,7 +75,7 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplicity: Int
 }
 
 object NetInput {
-  def apply(name: String, net: NetRef, inputTickMultiplicity: Int) = {
+  def apply(name: String, net: NetRef, inputTickMultiplicity: Double) = {
     val ani = new NetInput(name, net, inputTickMultiplicity)
     ani.regSign('0',0.0)
     ani.regSign('1', 1.0)

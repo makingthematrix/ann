@@ -14,11 +14,11 @@ class SOSSuite extends MySuite {
   val o = "1,1,0,1,1,0,1,1,0"
 
   private def dotLineNet(){
-    val itm = 3
+    val itm = 3.0
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
                      .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
     // lines
@@ -105,11 +105,11 @@ class SOSSuite extends MySuite {
   }
   
   private def SNet(){
-    val itm = 3
+    val itm = 3.0
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue(2 * itm)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
                      .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
                      .chain("S",0.5,0.81)
@@ -143,7 +143,7 @@ class SOSSuite extends MySuite {
   }
   
   private def ONet(){
-    val itm = 3
+    val itm = 3.0
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // lines
@@ -180,11 +180,11 @@ class SOSSuite extends MySuite {
   }
   
   private def SOSNet(){
-    val itm = 3
+    val itm = 3.0
     builder.inputTickMultiplicity = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
                      .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
                      .chain("S",0.5,0.81)
@@ -259,12 +259,12 @@ class SOSSuite extends MySuite {
   }
   
   private def SOSNetWithHushNeuron(){
-    val itm = 3
+    val itm = 3.0
     builder.inputTickMultiplicity = itm
     builder.defSlope = 5.0
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue(iterations = 2 * itm)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
                      .chain("dot",0.6/(2.0*itm),0.6)
                      .chain("S",0.5,0.81)

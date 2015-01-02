@@ -13,14 +13,14 @@ class NetBuilder {
   var defSlope = Context.slope
   var defHushValue = Context.hushValue
   var defForgetting: ForgetTrait = Context.forgetting
-  val defTickTime: Long = Context.tickTime
+  val defTickTimeMultiplicity: Double = 1.0
 
   var defWeight = Context.weight
 
   var defPrefix = "mi"
   var netName = "net"
 
-  var inputTickMultiplicity = 1
+  var inputTickMultiplicity = 1.0
 
   private val neurons = mutable.Map[String,NeuronData]()
   private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
@@ -55,9 +55,9 @@ class NetBuilder {
   }
   
   def chain(id: String, weight: Double, threshold: Double, slope: Double,
-            hushValue: HushValue, forgetting: ForgetTrait, tickTime: Long) = {
+            hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplicity: Double) = {
     val n1 = current
-    addStandard(id, threshold, slope, hushValue, forgetting, tickTime)
+    addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplicity)
     addSynapse(n1.id, id, SynapseWeight(weight))
     this
   }
@@ -76,8 +76,8 @@ class NetBuilder {
     this
   }
   
-  def addInput(id: String, tickTime: Long = defTickTime):NetBuilder = {
-    addDummy(id, tickTime)
+  def addInput(id: String, tickTimeMultiplicity: Double = defTickTimeMultiplicity):NetBuilder = {
+    addDummy(id, tickTimeMultiplicity)
     ins += id
     this
   }
@@ -87,8 +87,8 @@ class NetBuilder {
                 slope: Double = defSlope,
                 hushValue: HushValue =defHushValue,
                 forgetting: ForgetTrait = DontForget,
-                tickTime: Long = defTickTime):NetBuilder =
-    addStandard(id, threshold, slope, hushValue, forgetting, tickTime)
+                tickTimeMultiplicity: Double = defTickTimeMultiplicity):NetBuilder =
+    addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplicity)
 
   
   def addMiddle():NetBuilder = addMiddle(generateId())
@@ -99,9 +99,9 @@ class NetBuilder {
     this
   }
 
-  def addDummy(id: String, tickTime: Long = defTickTime) = {
+  def addDummy(id: String, tickTimeMultiplicity: Double = defTickTimeMultiplicity) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(neuronType=DUMMY, id=id, tickTime=tickTime))
+    add(newNeuron(neuronType=DUMMY, id=id, tickTimeMultiplicity=tickTimeMultiplicity))
     this
   }
 
@@ -110,9 +110,9 @@ class NetBuilder {
                   slope:Double,
                   hushValue: HushValue,
                   forgetting: ForgetTrait,
-                  tickTime: Long) = {
+                  tickTimeMultiplicity: Double) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(STANDARD, id, threshold, slope, hushValue, forgetting, tickTime))
+    add(newNeuron(STANDARD, id, threshold, slope, hushValue, forgetting, tickTimeMultiplicity))
     this
   }
 
@@ -152,8 +152,8 @@ class NetBuilder {
   
   private def newNeuron(neuronType: NeuronType.Value, id: String, 
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
-      forgetting: ForgetTrait =defForgetting, tickTime: Long = defTickTime) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTime, neuronType)
+      forgetting: ForgetTrait =defForgetting, tickTimeMultiplicity: Double = defTickTimeMultiplicity) =
+    NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplicity, neuronType)
 
   private def connect(id: String, weight: SynapseTrait) = {
     addSynapse(current.id, id, weight)
