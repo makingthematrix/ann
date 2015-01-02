@@ -1,6 +1,6 @@
 package anna.async
 
-import anna.data.{ForgetTrait, HushValue, SynapseWeight}
+import anna.data.{ForgetTrait, HushValue}
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
@@ -57,7 +57,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     
     chainMiddle(id, w1, threshold, slope, builder.defHushValue, builder.defForgetting)
     
-    builder.addSynapse(id, n1.id, SynapseWeight(w2)).use(n1.id)
+    builder.connect(n1.id, w2).use(n1.id)
   }
     
   def loop(w1: Double, threshold: Double, w2: Double):NetBuilder = loop(builder.generateId(), w1, threshold, w2)
@@ -72,10 +72,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def chainOscillator(id: String, weight: Double) = chainMiddle(id, weight).oscillator(id+"_osc")
   def chainOscillator(weight: Double) = chainMiddle(builder.generateId(), weight).oscillator()
   
-  def self(weight: Double =builder.defWeight):NetBuilder = {
-    builder.addSynapse(builder.current.id, builder.current.id, SynapseWeight(weight))
-    builder
-  }
+  def self(weight: Double =builder.defWeight):NetBuilder = builder.connect(builder.current.id, weight)
   
   implicit private def fromNetBuilder(builder: NetBuilder):NetBuilderOps = NetBuilderOps.fromNetBuilder(builder)
 }

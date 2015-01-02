@@ -4,6 +4,7 @@ import anna.Context
 import anna.async.Messages._
 import anna.async.NeuronType._
 import anna.data.{DontForget, ForgetTrait, Hush, HushValue, NeuronData, SynapseData, SynapseTrait, SynapseWeight}
+import anna.data.SynapseData.fromDouble
 import anna.utils.Utils.{assert, await}
 
 import scala.collection.mutable
@@ -32,10 +33,8 @@ class NetBuilder {
 
   def generateId() = defPrefix + nextIndex()
   
-  def addSynapse(fromId: String, toId: String, weight: SynapseTrait) = {
+  private def addSynapse(fromId: String, toId: String, weight: SynapseTrait) =
     synapses.getOrElseUpdate(fromId, mutable.ListBuffer[SynapseData]()) += SynapseData(toId, weight)
-    this
-  }
     
   def contains(id: String) = neurons.contains(id)
   
@@ -58,14 +57,14 @@ class NetBuilder {
             hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplier: Double) = {
     val n1 = current
     addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)
-    addSynapse(n1.id, id, SynapseWeight(weight))
+    addSynapse(n1.id, id, weight)
     this
   }
   
   def chainDummy(id: String, weight: Double, hushValue: HushValue =defHushValue) = {
     val n1 = current
     addDummy(id)
-    addSynapse(n1.id, id, SynapseWeight(weight))
+    addSynapse(n1.id, id, weight)
     this
   }
   

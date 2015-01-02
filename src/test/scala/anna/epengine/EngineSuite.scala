@@ -31,7 +31,7 @@ class EngineSuite extends JUnitSuite {
       synapseChromosome.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) => 
-          assert(w >= -1.0 && w <= 1.0, s"weight outside range: $w")
+          assert(engine.synapseWeightRange.contains(w), s"weight outside range: $w")
       }
     }
     
@@ -51,7 +51,7 @@ class EngineSuite extends JUnitSuite {
       synapseChromosome.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) => 
-          assert(w >= -1.0 && w <= 1.0, s"weight outside range: $w")
+          assert(engine.synapseWeightRange.contains(w), s"weight outside range: $w")
       }
     }
     

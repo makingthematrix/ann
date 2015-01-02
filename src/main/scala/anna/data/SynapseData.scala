@@ -5,8 +5,12 @@ import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
+import anna.utils.DoubleRange._
+
 sealed trait SynapseTrait extends Any
-case class SynapseWeight(weight: Double) extends AnyVal with SynapseTrait
+case class SynapseWeight(weight: Double) extends AnyVal with SynapseTrait {
+  def check = assert((-1.0<=>1.0).contains(weight))
+}
 case object Hush extends SynapseTrait
 
 case class SynapseData(val neuronId: String, val weight: SynapseTrait){
@@ -42,4 +46,6 @@ object SynapseData {
     case `hushr` => Hush
     case weightr(w) => SynapseWeight(w.toDouble)
   }
+
+  implicit def fromDouble(weight: Double):SynapseWeight = SynapseWeight(weight)
 }
