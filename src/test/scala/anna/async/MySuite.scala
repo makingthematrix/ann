@@ -27,7 +27,7 @@ class MySuite extends JUnitSuite {
   }
   
   protected def build() = {
-    val triple = _builder.build("in1","out1")
+    val triple = _builder.build("in")
     _in = triple._1
     _net = triple._2
   }

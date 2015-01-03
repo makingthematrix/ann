@@ -3,7 +3,7 @@ package anna.async
 import anna.Context
 import anna.async.Messages._
 import anna.async.NeuronType._
-import anna.data.{DontForget, ForgetTrait, Hush, HushValue, NeuronData, SynapseData, SynapseTrait, SynapseWeight}
+import anna.data._
 import anna.data.SynapseData.fromDouble
 import anna.utils.Utils.{assert, await}
 
@@ -100,7 +100,7 @@ class NetBuilder {
 
   def addDummy(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(neuronType=DUMMY, id=id, tickTimeMultiplier=tickTimeMultiplier))
+    add(newNeuron(neuronType=DUMMY, id=id, threshold=0.0, forgetting=ForgetAll, tickTimeMultiplier=tickTimeMultiplier))
     this
   }
 
@@ -132,12 +132,29 @@ class NetBuilder {
     net
   }
   
-  def build(netInputName: String, netOutputName: String):(NetInput,NetRef) = {
+  def build(netInputName: String):(NetInput,NetRef) = {
     val net = build()
     val in = NetInput(netInputName, net, inputTickMultiplier)
     (in, net)
   }
-  
+
+  def data = NetData(netName, neurons.values.toList.sortBy( _.id ), ins.toList.sorted)
+
+  def set(data: NetData) = {
+    neurons.clear()
+    synapses.clear()
+    ins.clear()
+
+    data.neurons.foreach( n => {
+      neurons += (n.id -> n)
+      val buffer = mutable.ListBuffer[SynapseData]()
+      n.synapses.foreach( buffer += _ )
+      synapses += ( n.id -> buffer )
+    })
+
+    ins ++= data.inputs
+  }
+
   private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))
   
   private val nextIndex = {
