@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 class Net(val id: String) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
-  private val ins = mutable.ListBuffer[NeuronRef]()
+  private var ins = List[NeuronRef]()
   
   def receive: Receive = {
     case GetId => sender ! Msg(0.0, id)
@@ -32,6 +32,7 @@ class Net(val id: String) extends Actor {
   }
   
   private def inputs = ins.toList
+
   private def middles = {
     val inputIds = ins.map( _.id ).toSet
     neurons.filterNot( n => inputIds.contains(n.id) ).toList
@@ -41,8 +42,7 @@ class Net(val id: String) extends Actor {
     case Some(ref) => neurons -= ref
     case None => 
   }
-  
-  
+
   private def shutdown() = {
     debug(s"shutdown for $id")
     context.become( shutdowning(sender) )
@@ -67,7 +67,7 @@ class Net(val id: String) extends Actor {
                            hushValue: HushValue,
                            forgetting: ForgetTrait,
                            tickTimeMultiplier: Double){
-	val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)), name=id)
+	  val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)), name=id)
     add(id, ref)
   }
 
@@ -88,10 +88,15 @@ class Net(val id: String) extends Actor {
   }
   
   private def setInputs(ids: Seq[String]){
-    debug(Net.this, s"input layer set in $id: " + ids.mkString(", "))
-    ins.clear()
-    neurons.filter( n => ids.contains(n.id) ).foreach( ins += _ )
-    sender ! Success("setInputLayer_"+id)
+    debug(this, s"input layer set in $id: " + ids.mkString(", "))
+    ins = neurons.filter( n => ids.contains(n.id) ).toList
+    if(ins.size != ids.size){
+      val inIds = ins.map( _.id )
+      val notFound = ids.filterNot( inIds.contains(_) )
+      sender ! Failure(s"setInputs, unable to find neurons with ids: $notFound")
+    } else {
+      sender ! Success("setInputLayer_" + id)
+    }
   }
   
   private def findRef(id: String):Option[NeuronRef] = neurons.find(_.id == id)
