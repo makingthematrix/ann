@@ -25,9 +25,6 @@ case class NeuronData(
     tickTimeMultiplier: Double,
     neuronType: NeuronType.Value
 ){
-  def toJson = compact(toRawJson)
-  def toPrettyJson = pretty(toRawJson) // for debugging purposes only
-
   def withId(id: String) =
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
   def withThreshold(threshold: Double) =
@@ -46,7 +43,7 @@ case class NeuronData(
   def withNeuronType(neuronType: NeuronType.Value) =
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
 
-  private def toRawJson = {
+  def toJson = {
     val synapsesJson = synapses.map{ _.toJson }
     val json = ("id" -> id) ~
                ("threshold" -> threshold) ~
@@ -56,9 +53,24 @@ case class NeuronData(
                ("synapses" -> synapsesJson) ~
                ("tickTimeMultiplier" -> tickTimeMultiplier) ~
                ("neuronType" -> neuronType.toString)
-    render(json)
+    compact(render(json))
   }
-} 
+
+  // for debugging purposes only
+  def toPrettyJson = {
+    val synapsesJson = synapses.map{ _.toPrettyJson }
+    val json = ("id" -> id) ~
+      ("threshold" -> threshold) ~
+      ("slope" -> slope) ~
+      ("hushValue" -> hushValue.toString) ~
+      ("forgetting" -> forgetting.toString) ~
+      ("synapses" -> synapsesJson) ~
+      ("tickTimeMultiplier" -> tickTimeMultiplier) ~
+      ("neuronType" -> neuronType.toString)
+    pretty(render(json))
+  }
+
+}
 
 object NeuronData {
   def apply(id: String, 

@@ -20,9 +20,6 @@ case class NetData(id: String,
                    weight: SynapseTrait,
                    prefix: String,
                    inputTickMultiplier: Double){
-  def toJson = compact(toRawJson)
-  def toPrettyJson = pretty(toRawJson) // for debugging purposes only
-
   def withId(id: String) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, prefix, inputTickMultiplier)
   def withNeurons(neurons: List[NeuronData]) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, prefix, inputTickMultiplier)
   def withInputs(inputs: List[String]) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, prefix, inputTickMultiplier)
@@ -35,7 +32,7 @@ case class NetData(id: String,
   def withPrefix(prefix: String) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, prefix, inputTickMultiplier)
   def withInputTickMultiplier(inputTickMultiplier: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, prefix, inputTickMultiplier)
 
-  private def toRawJson = {
+  def toJson = {
     val neuronsJson = neurons.map{ _.toJson }
     val json = ("id" -> id) ~
       ("neurons" -> neuronsJson) ~
@@ -48,7 +45,24 @@ case class NetData(id: String,
       ("weight" -> weight.toString) ~
       ("prefix" -> prefix) ~
       ("inputTickMultiplier" -> inputTickMultiplier)
-    render(json)
+    compact(render(json))
+  }
+
+  // for debugging purposes only
+  def toPrettyJson = {
+    val neuronsJson = neurons.map{ _.toPrettyJson }
+    val json = ("id" -> id) ~
+      ("neurons" -> neuronsJson) ~
+      ("inputs" -> inputs) ~
+      ("threshold" -> threshold) ~
+      ("slope" -> slope) ~
+      ("hushValue" -> hushValue.toString) ~
+      ("forgetting" -> forgetting.toString) ~
+      ("tickTimeMultiplier" -> tickTimeMultiplier) ~
+      ("weight" -> weight.toString) ~
+      ("prefix" -> prefix) ~
+      ("inputTickMultiplier" -> inputTickMultiplier)
+    pretty(render(json))
   }
 }
 
