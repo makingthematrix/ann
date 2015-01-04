@@ -13,6 +13,7 @@ case class NeuronChromosome(data: NeuronData) {
   lazy val hushValue = data.hushValue
   lazy val forgetting = data.forgetting
   lazy val synapses = data.synapses
+  lazy val tickTimeMultiplier = data.tickTimeMultiplier
   lazy val neuronType = data.neuronType
 }
 
@@ -23,7 +24,7 @@ object NeuronChromosome {
             hushValue: HushValue,
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
-            tickTime: Long,
+            tickTimeMultiplier: Double,
             neuronType: NeuronType.Value):NeuronChromosome =
-    NeuronChromosome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTime, neuronType))
+    NeuronChromosome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
 }

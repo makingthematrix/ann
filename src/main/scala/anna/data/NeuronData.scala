@@ -108,7 +108,7 @@ object NeuronData {
 
   private val hushr = """HushValue\(([0-9]+)\)""".r
 
-  private def parseHush(hushStr: String) = hushStr match {
+  def parseHush(hushStr: String) = hushStr match {
     case hushr(h) => HushValue(h.toInt)
   }
 
@@ -116,7 +116,7 @@ object NeuronData {
   private val dontforgetr = DontForget.toString
   private val forgetallr = ForgetAll.toString
 
-  private def parseForgetting(forgetStr: String) = forgetStr match {
+  def parseForgetting(forgetStr: String) = forgetStr match {
     case `dontforgetr` => DontForget
     case `forgetallr` => ForgetAll
     case forgetr(f) => ForgetValue(f.toDouble)

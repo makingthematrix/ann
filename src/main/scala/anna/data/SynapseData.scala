@@ -42,7 +42,7 @@ object SynapseData {
   private val weightr = """SynapseWeight\(([0-9\.\-]+)\)""".r
   private val hushr = Hush.toString
 
-  private def parseWeight(weightStr: String):SynapseTrait = weightStr match {
+  def parseWeight(weightStr: String):SynapseTrait = weightStr match {
     case `hushr` => Hush
     case weightr(w) => SynapseWeight(w.toDouble)
   }

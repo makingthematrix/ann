@@ -1,6 +1,8 @@
 package anna.epengine
 
-case class Probability(value: Double) extends AnyVal 
+case class Probability(value: Double) extends AnyVal {
+  def +(other: Probability) = Probability(value + other.value)
+}
 
 object Probability{
   implicit def fromDouble(d: Double):Probability = {

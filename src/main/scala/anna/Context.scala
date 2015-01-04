@@ -2,7 +2,7 @@ package anna
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import anna.data.{DontForget, HushValue}
+import anna.data.{SynapseWeight, DontForget, HushValue}
 
 import scala.concurrent.duration._
 
@@ -13,7 +13,7 @@ object Context {
   // neuron
   val slope = 5.0
   val threshold = 0.5
-  val weight = 1.0
+  val weight = SynapseWeight(1.0)
   val hushValue = HushValue()
   val forgetting = DontForget
   val tickTime = 30L

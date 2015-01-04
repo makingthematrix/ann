@@ -10,17 +10,15 @@ import anna.utils.Utils.{assert, await}
 import scala.collection.mutable
 
 class NetBuilder {
+  var netName = "net"
+
   var defThreshold = Context.threshold
   var defSlope = Context.slope
   var defHushValue = Context.hushValue
   var defForgetting: ForgetTrait = Context.forgetting
-  val defTickTimeMultiplier: Double = 1.0
-
-  var defWeight = Context.weight
-
+  var defTickTimeMultiplier = 1.0
+  var defWeight:SynapseTrait = Context.weight
   var defPrefix = "mi"
-  var netName = "net"
-
   var inputTickMultiplier = 1.0
 
   private val neurons = mutable.Map[String,NeuronData]()
@@ -46,14 +44,18 @@ class NetBuilder {
   
   def hush(id: String) = connect(id, Hush)
 
-  def connect(id: String, weight: Double =defWeight):NetBuilder = connect(id, SynapseWeight(weight))
-   
+  def connect(id: String, weight: SynapseTrait) = {
+    assert(contains(id),s"There is no neuron with id $id")
+    addSynapse(current.id, id, weight)
+    this
+  }
+
   def current = currentNeuronId match {
     case Some(id) => neurons(id)
     case None => throw new IllegalArgumentException("There is no current neuron id set")
   }
   
-  def chain(id: String, weight: Double, threshold: Double, slope: Double,
+  def chain(id: String, weight: SynapseTrait, threshold: Double, slope: Double,
             hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplier: Double) = {
     val n1 = current
     addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)
@@ -126,9 +128,6 @@ class NetBuilder {
     )
     
     net.setInputs(ins.toSeq)
-    val sb = StringBuilder.newBuilder
-    ins.foreach( sb.append(_).append(',') )
-    sb.clear()
     net
   }
   
@@ -138,9 +137,16 @@ class NetBuilder {
     (in, net)
   }
 
-  def data = NetData(netName, neurons.values.toList.sortBy( _.id ), ins.toList.sorted)
+  def data = {
+    val ns = neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) )
+    NetData(netName, ns.toList.sortBy( _.id ), ins.toList.sorted,
+            defThreshold, defSlope, defHushValue, defForgetting,
+            defTickTimeMultiplier, defWeight, defPrefix, inputTickMultiplier)
+  }
 
   def set(data: NetData) = {
+    netName = data.id
+
     neurons.clear()
     synapses.clear()
     ins.clear()
@@ -153,6 +159,15 @@ class NetBuilder {
     })
 
     ins ++= data.inputs
+
+    defThreshold = data.threshold
+    defSlope = data.slope
+    defHushValue = data.hushValue
+    defForgetting = data.forgetting
+    defTickTimeMultiplier = data.tickTimeMultiplier
+    defWeight = data.weight
+    defPrefix = data.prefix
+    inputTickMultiplier = data.inputTickMultiplier
   }
 
   private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))
@@ -170,11 +185,6 @@ class NetBuilder {
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
       forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier) =
     NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType)
-
-  private def connect(id: String, weight: SynapseTrait) = {
-    addSynapse(current.id, id, weight)
-    this
-  }
 
   private def add(n: NeuronData){
     neurons.put(n.id, n)
