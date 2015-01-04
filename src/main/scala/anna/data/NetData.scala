@@ -70,6 +70,8 @@ object NetData {
   def apply(id: String):NetData = NetData(id, Nil, Nil)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
     NetData(id, neurons, inputs, Context.threshold, Context.slope, Context.hushValue, Context.forgetting, 1.0, Context.weight, "mi", 1.0)
+  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetData =
+    NetData(id, neurons, inputs, Context.threshold, Context.slope, Context.hushValue, Context.forgetting, 1.0, Context.weight, "mi", inputTickMultiplier)
 
   def fromJson(jsonStr: String):NetData = {
     val json = parse(jsonStr)
