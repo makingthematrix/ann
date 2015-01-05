@@ -110,8 +110,11 @@ class Neuron(
     context.stop(self)
   }
 
-  private def resetBuffer(): Unit ={
+  private def reset(): Unit ={
     buffer = 0.0
+    clearAfterFire()
+    clearHushRequested()
+    clearThresholdPassed()
     context.become(receive)
     answer(Success(id))
   }
@@ -162,7 +165,7 @@ class Neuron(
       case RemoveHushRequestedTrigger(triggerId) =>
         removeHushRequested(triggerId)
         sender ! Success(triggerId)
-      case ResetBuffer => resetBuffer()
+      case Reset => reset()
   }
   
   def otherBehaviour(state: String): Receive = {

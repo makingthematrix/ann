@@ -51,7 +51,7 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
   def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)
 
-  def reset() = await[Success](ref,ResetBuffer)
+  def reset() = await[Success](ref,Reset)
 
 }
 

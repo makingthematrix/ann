@@ -20,7 +20,7 @@ class Net(val id: String) extends Actor {
     case SetInputs(ids) => setInputs(ids)
     case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
     case SignalSeq(in) => signal(in)
-    case ResetBuffer => resetBuffer()
+    case Reset => resetBuffer()
   }
   
   def shutdowning(caller: ActorRef): Receive = {
@@ -63,7 +63,7 @@ class Net(val id: String) extends Actor {
   private def resetBuffer() = {
     debug(s"reset buffer for $id")
     context.become( resetting(sender, neurons.map(_.id).toSet) )
-    neurons.foreach(_ ! ResetBuffer)
+    neurons.foreach(_ ! Reset)
   }
   
   private def add(id: String, ref: ActorRef) = {

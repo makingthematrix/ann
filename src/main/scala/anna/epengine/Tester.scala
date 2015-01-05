@@ -11,9 +11,7 @@ class Tester(tests: List[NetTest]){
   def test(data: NetData):Double = {
     checkConditions(data)
 
-    val builder = NetBuilder()
-    builder.set(data)
-    val (in, net) = builder.build("in")
+    val (in, net) = NetBuilder().set(data).build("in")
 
     var result = 0.0
     tests.foreach( test => {

@@ -10,6 +10,16 @@ import org.junit.Assert._
  */
 class TesterSuite extends MySuite {
 
+  val f = (input: NetInput, netRef: NetRef, success: Double, failure: Double) => {
+    var counter = 0
+    netRef.addAfterFire("out1"){ counter += 1 }
+
+    input += "1,1,1,1,1,1"
+
+    input.tickUntilCalm()
+    if(counter == 6) success else failure
+  }
+
   @Test def shouldPassNetTest() = {
     // this is the net from DelaySuite.shouldGiveConstantOutput
     builder.inputTickMultiplier = 2.0
@@ -44,19 +54,22 @@ class TesterSuite extends MySuite {
     shutdown()
 
     // and now let's do the same through the Tester
-    val f = (input: NetInput, netRef: NetRef, success: Double, failure: Double) => {
-      var counter = 0
-      netRef.addAfterFire("out1"){ counter += 1 }
-
-      input += "1,1,1,1,1,1"
-
-      input.tickUntilCalm()
-      if(counter == 6) success else failure
-    }
-
     val test = NetTest(name = "constant output", inputLen = 1, outputIds = List("out1"), function = f)
     val tester = Tester(List(test))
     val result = tester.test(data)
     assertEquals(1.0, result, 0.01)
+  }
+
+  @Test def shouldPassConsecutiveTests() = {
+    builder.inputTickMultiplier = 2.0
+    builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
+    val data = builder.data
+
+    val test1 = NetTest(name = "constant output 1", inputLen = 1, outputIds = List("out1"), function = f)
+    val test2 = NetTest(name = "constant output 2", inputLen = 1, outputIds = List("out1"), function = f)
+    val test3 = NetTest(name = "constant output 3", inputLen = 1, outputIds = List("out1"), function = f)
+    val tester = Tester(List(test1, test2, test3))
+    val result = tester.test(data)
+    assertEquals(3.0, result, 0.01)
   }
 }

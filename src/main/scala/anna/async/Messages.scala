@@ -18,7 +18,7 @@ object Messages {
   case class SetInputs(ids: Seq[String])
   case object NeuronShutdown
   case object Shutdown // net shutdown
-  case object ResetBuffer
+  case object Reset
   case class SetSynapses(synapses: Seq[Synapse])
   
   // questions
