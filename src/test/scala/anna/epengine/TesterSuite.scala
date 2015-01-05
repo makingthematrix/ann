@@ -44,14 +44,14 @@ class TesterSuite extends MySuite {
     shutdown()
 
     // and now let's do the same through the Tester
-    val f = (input: NetInput, netRef: NetRef) => {
+    val f = (input: NetInput, netRef: NetRef, success: Double, failure: Double) => {
       var counter = 0
       netRef.addAfterFire("out1"){ counter += 1 }
 
       input += "1,1,1,1,1,1"
 
       input.tickUntilCalm()
-      if(counter == 6) 1.0 else 0.0
+      if(counter == 6) success else failure
     }
 
     val test = NetTest(name = "constant output", inputLen = 1, outputIds = List("out1"), function = f)

@@ -20,6 +20,7 @@ class Net(val id: String) extends Actor {
     case SetInputs(ids) => setInputs(ids)
     case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
     case SignalSeq(in) => signal(in)
+    case ResetBuffer => resetBuffer()
   }
   
   def shutdowning(caller: ActorRef): Receive = {
@@ -29,6 +30,16 @@ class Net(val id: String) extends Actor {
         caller ! NetShutdownDone(id) 
         context.stop(self)
       }
+  }
+
+  def resetting(caller: ActorRef, waitingFor: Set[String]): Receive = {
+    case Success(id) =>
+      debug(this, s"received Success in resetting from $id, still waitingFor: $waitingFor")
+      val newWaitingFor = waitingFor - id
+      if(newWaitingFor.isEmpty){
+        caller ! Success(id)
+        context.become(receive)
+      } else context.become(resetting(caller, newWaitingFor))
   }
   
   private def inputs = ins.toList
@@ -47,6 +58,12 @@ class Net(val id: String) extends Actor {
     debug(s"shutdown for $id")
     context.become( shutdowning(sender) )
     neurons.foreach(_ ! NeuronShutdown)
+  }
+
+  private def resetBuffer() = {
+    debug(s"reset buffer for $id")
+    context.become( resetting(sender, neurons.map(_.id).toSet) )
+    neurons.foreach(_ ! ResetBuffer)
   }
   
   private def add(id: String, ref: ActorRef) = {
@@ -100,5 +117,4 @@ class Net(val id: String) extends Actor {
   }
   
   private def findRef(id: String):Option[NeuronRef] = neurons.find(_.id == id)
-
 }

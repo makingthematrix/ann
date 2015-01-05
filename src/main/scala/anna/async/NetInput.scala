@@ -66,7 +66,7 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplier: Doubl
     
     debug(this, "tickUntilCalm completed")
     
-    neurons.foreach(_ ! ResetBuffer)
+    net.reset()
     neurons.foreach(_.removeAfterFire("tickUntilCalm"))
     counter
   }

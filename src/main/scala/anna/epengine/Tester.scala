@@ -16,7 +16,10 @@ class Tester(tests: List[NetTest]){
     val (in, net) = builder.build("in")
 
     var result = 0.0
-    tests.foreach{ result += _.run(in, net) }
+    tests.foreach( test => {
+      net.reset()
+      result += test.run(in, net)
+    })
 
     net.shutdown()
 

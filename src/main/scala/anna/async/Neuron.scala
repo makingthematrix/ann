@@ -109,6 +109,12 @@ class Neuron(
     answer(NeuronShutdownDone(id))
     context.stop(self)
   }
+
+  private def resetBuffer(): Unit ={
+    buffer = 0.0
+    context.become(receive)
+    answer(Success(id))
+  }
   
   def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
   
@@ -156,7 +162,7 @@ class Neuron(
       case RemoveHushRequestedTrigger(triggerId) =>
         removeHushRequested(triggerId)
         sender ! Success(triggerId)
-      case ResetBuffer => buffer = 0.0
+      case ResetBuffer => resetBuffer()
   }
   
   def otherBehaviour(state: String): Receive = {
