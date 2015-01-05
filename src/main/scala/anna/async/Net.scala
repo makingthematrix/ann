@@ -67,17 +67,17 @@ class Net(val id: String) extends Actor {
                            hushValue: HushValue,
                            forgetting: ForgetTrait,
                            tickTimeMultiplier: Double){
-	  val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)), name=id)
+	  val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)))
     add(id, ref)
   }
 
   private def createDummy(id: String, hushValue: HushValue, tickTimeMultiplier: Double){
-	  val ref = context.actorOf(Props(new DummyNeuron(id, tickTimeMultiplier)), name=id)
+	  val ref = context.actorOf(Props(new DummyNeuron(id, tickTimeMultiplier)))
     add(id, ref)
   }
   
   private def createHush(id: String){
-    val ref = context.actorOf(Props(new HushNeuron(id)), name=id)
+    val ref = context.actorOf(Props(new HushNeuron(id)))
     add(id, ref)
   }
   

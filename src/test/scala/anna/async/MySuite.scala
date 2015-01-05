@@ -25,6 +25,12 @@ class MySuite extends JUnitSuite {
     _net = null
     LOG.date()
   }
+
+  def shutdown(): Unit ={
+    if(_net != null) _net.shutdown()
+    _in = null
+    _net = null
+  }
   
   protected def build() = {
     val triple = _builder.build("in")

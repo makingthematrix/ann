@@ -147,9 +147,7 @@ class NetBuilder {
   def set(data: NetData) = {
     netName = data.id
 
-    neurons.clear()
-    synapses.clear()
-    ins.clear()
+    clear()
 
     data.neurons.foreach( n => {
       neurons += (n.id -> n)
@@ -168,6 +166,15 @@ class NetBuilder {
     defWeight = data.weight
     defPrefix = data.prefix
     inputTickMultiplier = data.inputTickMultiplier
+
+    this
+  }
+
+  def clear() = {
+    neurons.clear()
+    synapses.clear()
+    ins.clear()
+    this
   }
 
   private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))

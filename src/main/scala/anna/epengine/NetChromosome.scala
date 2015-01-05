@@ -13,6 +13,6 @@ case class NetChromosome(data: NetData){
 }
 
 object NetChromosome {
-  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double) =
+  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetChromosome =
     NetChromosome(NetData(id, neurons, inputs, inputTickMultiplier))
 }
