@@ -54,13 +54,13 @@ class NetSuite extends JUnitSuite {
   @Test def shouldConnectNeuronsWithBuilder(){
     val builder = NetBuilder()
     builder.addMiddle("id1", threshold,  slope, hushValue, forgetting)
-           .chain("id2", weight, slope, threshold, hushValue, forgetting)
+           .chain("id2", weight, threshold, slope, hushValue, forgetting, 1.0)
     val net = builder.build
     
     val neurons = net.getNeurons
     assertEquals(2, neurons.size)
     
-    val n1Opt = neurons.find(n => n.id == "id1")
+    val n1Opt = neurons.find(_.id == "id1")
     assertTrue(n1Opt != None)
     val n1 = n1Opt.get
     

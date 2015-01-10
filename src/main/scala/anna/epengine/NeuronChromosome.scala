@@ -6,18 +6,26 @@ import anna.data.{ForgetTrait, HushValue, NeuronData, SynapseData}
 /**
  * Created by gorywoda on 28.12.14.
  */
-case class NeuronChromosome(data: NeuronData) {
-  lazy val id = data.id
-  lazy val threshold = data.threshold
-  lazy val slope = data.slope
-  lazy val hushValue = data.hushValue
-  lazy val forgetting = data.forgetting
-  lazy val synapses = data.synapses
-  lazy val tickTimeMultiplier = data.tickTimeMultiplier
-  lazy val neuronType = data.neuronType
+class NeuronChromosome(private var data: NeuronData) {
+  def id = data.id
+  def threshold = data.threshold
+  def slope = data.slope
+  def hushValue = data.hushValue
+  def forgetting = data.forgetting
+  def synapses = data.synapses
+  def tickTimeMultiplier = data.tickTimeMultiplier
+  def neuronType = data.neuronType
+  def neuron = data
+
+  def addSynapse(synapseChromosome: SynapseChromosome): Unit ={
+    data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
+  }
+
+  def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 }
 
 object NeuronChromosome {
+  def apply(data: NeuronData):NeuronChromosome = new NeuronChromosome(data)
   def apply(id: String,
             threshold: Double,
             slope: Double,

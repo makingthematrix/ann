@@ -5,7 +5,7 @@ import anna.async.Messages._
 import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
 import anna.logger.LOG
 import anna.logger.LOG._
-import anna.utils.Utils._
+import anna.utils.Utils
 
 import anna.Context.tickTime
 
@@ -19,7 +19,8 @@ class Neuron(
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
     val tickTimeMultiplier: Double,
-    protected var synapses: Seq[Synapse] = Seq[Synapse]()
+    protected var synapses: Seq[Synapse] = Seq[Synapse](),
+    protected val f:(Double,Double)=>Double = Utils.f
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
@@ -63,7 +64,7 @@ class Neuron(
   }
   
   private def tick(){
-    buffer = minmax(-1.0, buffer, 1.0)
+    buffer = Utils.minmax(-1.0, buffer, 1.0)
     if(buffer > threshold){
       triggerThresholdPassed()
       run()

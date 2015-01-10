@@ -5,12 +5,14 @@ import anna.data.{SynapseData, SynapseTrait, SynapseWeight}
 /**
  * Created by gorywoda on 27.12.14.
  */
-case class SynapseChromosome(data: SynapseData){
-  lazy val neuronId = data.neuronId
-  lazy val weight = data.weight
+class SynapseChromosome(private var data: SynapseData){
+  def neuronId = data.neuronId
+  def weight = data.weight
+  def synapse = data
 }
 
 object SynapseChromosome {
+  def apply(data: SynapseData):SynapseChromosome = new SynapseChromosome(data)
   def apply(neuronId: String, weight: SynapseTrait):SynapseChromosome = SynapseChromosome(SynapseData(neuronId, weight))
   def apply(neuronId: String, weight: Double):SynapseChromosome = apply(neuronId, SynapseWeight(weight))
 }
