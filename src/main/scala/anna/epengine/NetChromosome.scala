@@ -1,6 +1,7 @@
 package anna.epengine
 
 import anna.data.{NeuronData, NetData}
+import anna.utils.DoubleRange._
 
 /**
  * Created by gorywoda on 04.01.15.
@@ -18,6 +19,12 @@ class NetChromosome(private var data: NetData, private var accessMap: Map[String
   def inputTickMultiplier = data.inputTickMultiplier
   def net = data
   def find(id: String) = data.neurons.find( _.id == id )
+
+  var addNeuronProbability = Probability(0.1)
+  var deleteNeuronProbability = Probability(0.1)
+  var mutateNeuronProbability = Probability(0.75)
+  var inputTickMultiplierProbability = Probability(0.05)
+  var inputTickMultiplierRange = 2.0 <=> 4.0
 }
 
 object NetChromosome {

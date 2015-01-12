@@ -11,4 +11,23 @@ object Probability{
   }
   
   implicit def toDouble(p: Probability):Double = p.value
+
+  def normalize(probs: Probability*) = {
+    val sum:Double = probs.sum
+    probs.map( _ / sum ).toList
+  }
+
+  // @todo: This is rather low level. I'd prefer something returning an enum.
+  def chooseOne(probs: Probability*):Int = {
+    val list = normalize(probs: _*)
+    val r = RandomNumber()
+
+    var d = 0.0
+    var index = 0
+    while(d < r){
+      d += list(index)
+      index += 1
+    }
+    index
+  }
 }

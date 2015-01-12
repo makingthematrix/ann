@@ -13,7 +13,7 @@ case class SynapseWeight(weight: Double) extends AnyVal with SynapseTrait {
 }
 case object Hush extends SynapseTrait
 
-case class SynapseData(val neuronId: String, val weight: SynapseTrait){
+case class SynapseData(neuronId: String, weight: SynapseTrait){
   def toJson = compact(toRawJson)
   def toPrettyJson = pretty(toRawJson) // for debug purposes only
 

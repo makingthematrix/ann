@@ -5,16 +5,10 @@ import anna.data._
 import anna.epengine.TossType._
 import anna.utils.DoubleRange
 import anna.utils.DoubleRange._
+import anna.utils.IntRange
 import anna.logger.LOG._
 
 import scala.util.Random
-
-case class IntRange(r: Range) extends AnyVal {
-  def choose(x: Double):Int = {
-    val end = if(r.isInclusive) r.end else r.end - 1
-    math.round(x *(end - r.start) + r.start).toInt
-  }
-}
 
 class Engine {
   var synapseWeightRange: DoubleRange = 0.0<=>1.0
@@ -34,29 +28,20 @@ class Engine {
   var outputIds = List[String]()
   var synapsesDensity:Double = 2.5
   var inputTickMultiplierRange:DoubleRange = 1.0<=>3.0
-
-  private var _rand: Option[Random] = None
-  private def rand = _rand match {
-    case None =>
-      val r = new Random()
-      _rand = Some(r)
-      r
-    case Some(r) => r
-  }
   
   private def synapseTraitToss() = {
     val weightProbability: Probability = 1.0 - synapseHushProbability
-    val toss = rand.nextDouble()
-    if(weightProbability > 0.0  && toss <= weightProbability) SynapseWeight(synapseWeightRange.choose(rand.nextDouble()))
+    val toss = RandomNumber()
+    if(weightProbability > 0.0  && toss <= weightProbability) SynapseWeight(synapseWeightRange.choose(RandomNumber()))
     else Hush
   }
 
   private def forgetTraitToss() = {
     val forgetValueProbability: Probability = 1.0 - dontForgetProbability - forgetAllProbability
     assert((0.0<=>1.0).contains(forgetValueProbability),s"The forget value probability does not add up. dontForgetProb=${dontForgetProbability}, forgetAllProb=${forgetAllProbability}")
-    val toss = rand.nextDouble()
+    val toss = RandomNumber()
     if(toss < dontForgetProbability) DontForget
-    else if(toss <= (dontForgetProbability + forgetValueProbability)) ForgetValue(forgettingRange.choose(rand.nextDouble()))
+    else if(toss <= (dontForgetProbability + forgetValueProbability)) ForgetValue(forgettingRange.choose(RandomNumber()))
     else ForgetAll
   }
 
@@ -68,11 +53,11 @@ class Engine {
   }
 
   def tossForNeuron(id: String) = {
-    val threshold = thresholdRange.choose(rand.nextDouble())
-    val slope = slopeRange.choose(rand.nextDouble())
-    val hushValue = HushValue(hushRange.choose(rand.nextDouble()))
+    val threshold = thresholdRange.choose(RandomNumber())
+    val slope = slopeRange.choose(RandomNumber())
+    val hushValue = HushValue(hushRange.choose(RandomNumber()))
     val forgetting = forgetTraitToss()
-    val tickTimeMultiplier = tickTimeMultiplierRange.choose(rand.nextDouble())
+    val tickTimeMultiplier = tickTimeMultiplierRange.choose(RandomNumber())
 
     NeuronChromosome(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronType.STANDARD)
   }
@@ -85,7 +70,7 @@ class Engine {
 
   private def chooseNeuron(neurons: List[NeuronChromosome], check:(NeuronChromosome)=>Boolean):Option[NeuronChromosome] = neurons match {
     case Nil => None
-    case list => val index = (0 until list.size).choose(rand.nextDouble())
+    case list => val index = (0 until list.size).choose(RandomNumber())
                  val n = list(index)
                  if(check(n)) Some(n) else chooseNeuron(list.filter(_.id != n.id), check)
   }
@@ -94,7 +79,7 @@ class Engine {
     assert(synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
     assert(inputIds.size + outputIds.size < neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${neuronsRange.end}")
     val r = if(inputIds.size + outputIds.size > neuronsRange.start) (inputIds.size + outputIds.size) to neuronsRange.end else neuronsRange
-    val neuronsSize = r.choose(rand.nextDouble())
+    val neuronsSize = r.choose(RandomNumber())
 
     val ins = inputIds.map( tossForNeuron(_) )
     val outs = outputIds.map( tossForNeuron(_) )
@@ -133,9 +118,9 @@ class Engine {
 
       var i = 0
       while(i < synapsesSize) {
-        val imIndex = (0 until im.size).choose(rand.nextDouble())
+        val imIndex = (0 until im.size).choose(RandomNumber())
         val imNeuronChromosome = im(imIndex)
-        val moIndex = (0 until mo.size).choose(rand.nextDouble())
+        val moIndex = (0 until mo.size).choose(RandomNumber())
         val moNeuronChromosome = mo(moIndex)
         connect(imNeuronChromosome, moNeuronChromosome)
         i += 1
@@ -143,7 +128,7 @@ class Engine {
     }
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
-    val inputTickMultiplier = inputTickMultiplierRange.choose(rand.nextDouble())
+    val inputTickMultiplier = inputTickMultiplierRange.choose(RandomNumber())
     NetChromosome(id, ns.map(_.neuron), inputIds, inputTickMultiplier)
   }
 }
