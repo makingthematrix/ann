@@ -10,6 +10,11 @@ import anna.logger.LOG._
 
 import scala.util.Random
 
+object MutationAccess extends Enumeration {
+  type MutationAccess = Value
+  val FULL, DONTDELETE, NONE = Value
+}
+
 class Engine {
   var synapseWeightRange: DoubleRange = 0.0<=>1.0
   var synapseHushProbability: Probability = 0.1
@@ -130,5 +135,14 @@ class Engine {
 
     val inputTickMultiplier = inputTickMultiplierRange.choose(RandomNumber())
     NetChromosome(id, ns.map(_.neuron), inputIds, inputTickMultiplier)
+  }
+}
+
+object Engine {
+  private var instance:Option[Engine] = None
+
+  def apply():Engine = instance match {
+    case None => val engine = new Engine(); instance = Some(engine); engine
+    case Some(engine) => engine
   }
 }

@@ -7,12 +7,7 @@ import anna.utils.DoubleRange._
  * Created by gorywoda on 04.01.15.
  */
 
-object MutationAccess extends Enumeration {
-  type MutationAccess = Value
-  val FULL, DONTDELETE, NONE = Value
-}
-
-class NetChromosome(private var data: NetData, private var accessMap: Map[String, MutationAccess.Value]){
+class NetChromosome(private var data: NetData, val neuronAccessMap: Map[String, MutationAccess.Value]){
   def id = data.id
   def neurons = data.neurons
   def inputs = data.inputs
