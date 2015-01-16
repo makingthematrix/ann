@@ -4,6 +4,7 @@ import anna.async.NeuronType
 import anna.data._
 import anna.utils.IntRange
 import anna.utils.DoubleRange._
+import anna.logger.LOG._
 
 
 /**
@@ -50,6 +51,10 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     this
   }
 
+  def addSynapse(synapseChromosome: SynapseChromosome) = {
+    data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
+  }
+
   private def mutateForgetting() = {
     val forgetValueProbability = 1.0 - dontForgetProbability - forgetAllProbability
     data.withForgetting(Probability.chooseOne(dontForgetProbability, forgetValueProbability, forgetAllProbability) match {
@@ -68,8 +73,10 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     val neuronIds = if(fullAccess){
       neuronAccessMap.filter( tuple => tuple._2 == MutationAccess.FULL ).map( _._1 ).toList
     } else neuronAccessMap.keys.toList
-    val randomIndex = (0 until neuronIds.size).choose(RandomNumber())
-    neuronIds(randomIndex)
+    if(neuronIds.nonEmpty) {
+      val randomIndex = (0 until neuronIds.size).choose(RandomNumber())
+      Some(neuronIds(randomIndex))
+    } else None
   }
 
   private def getRandomSynapse(fullAccess: Boolean) = {
@@ -83,10 +90,12 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
   private def mutateSynapse() = {
     val changeWeightProbability = 1.0 - addSynapseProbability - removeSynapseProbability
     Probability.chooseOne(addSynapseProbability, removeSynapseProbability, changeWeightProbability) match {
-      case 0 =>
-        val neuronId = getRandomNeuronId(true)
-        val synapseChromosome = Engine().tossForSynapse(neuronId)
-        data.withSynapses(synapseChromosome.synapse :: data.synapses)
+      case 0 => getRandomNeuronId(true) match {
+        case Some(neuronId) => val synapseChromosome = Engine().tossForSynapse(neuronId)
+                               data.withSynapses(synapseChromosome.synapse :: data.synapses)
+        case _ => exception(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
+                  data // unreachable code
+      }
       case 1 if data.synapses.nonEmpty =>
         val neuronId = getRandomSynapse(true).neuronId
         data.withSynapses(data.synapses.filterNot(_.neuronId == neuronId))

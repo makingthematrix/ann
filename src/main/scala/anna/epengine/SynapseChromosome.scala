@@ -19,7 +19,10 @@ class SynapseChromosome(private var data: SynapseData){
     val variedWeightProbability:Probability = 1.0 - fullWeightProbability - hushProbability
     data = Probability.chooseOne(hushProbability, variedWeightProbability, fullWeightProbability) match {
       case 0 => data.withWeight(Hush)
-      case 1 => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
+      case 1 => data.weight match {
+        case SynapseWeight(avoidWeight) => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
+        case _ => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
+      }
       case 2 => data.withWeight(SynapseWeight(1.0))
     }
     this

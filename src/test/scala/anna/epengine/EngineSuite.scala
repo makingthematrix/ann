@@ -1,7 +1,7 @@
 package test.async.epengine
 
 import anna.async.NetBuilder
-import anna.epengine.{NeuronChromosome, Engine, TossType}
+import anna.epengine.{Probability, NeuronChromosome, Engine, TossType}
 import anna.logger.LOG
 import anna.logger.LOG._
 import anna.data._
@@ -132,5 +132,41 @@ class EngineSuite extends JUnitSuite {
     in.tickUntilCalm()
     debug(this, "iterations: " + in.iteration)
     assertTrue(in.iteration > 0)
+  }
+
+  @Test def shouldMutateSynapse(): Unit ={
+    val sch = engine.tossForSynapse("id1")
+    val originalWeight = sch.weight
+    val mutatedWeight = sch.mutate().weight
+    assertNotEquals(originalWeight, mutatedWeight)
+  }
+
+
+  @Test def shouldMutateThreshold(): Unit ={
+    val nch = engine.tossForNeuron("id1")
+    val original = nch.threshold
+
+    nch.thresholdProbability = 1.0
+    nch.slopeProbability = 0.0
+    nch.forgettingProbability = 0.0
+    nch.hushProbability = 0.0
+    nch.synapseChangeProbability = 0.0
+
+    val mutated = nch.mutate().threshold
+    assertNotEquals(original, mutated)
+  }
+
+  @Test def shouldMutateSlope(): Unit ={
+    val nch = engine.tossForNeuron("id1")
+    val original = nch.slope
+
+    nch.thresholdProbability = 0.0
+    nch.slopeProbability = 1.0
+    nch.forgettingProbability = 0.0
+    nch.hushProbability = 0.0
+    nch.synapseChangeProbability = 0.0
+
+    val mutated = nch.mutate().slope
+    assertNotEquals(original, mutated)
   }
 }
