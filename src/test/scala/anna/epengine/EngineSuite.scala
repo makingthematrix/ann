@@ -137,7 +137,8 @@ class EngineSuite extends JUnitSuite {
   @Test def shouldMutateSynapse(): Unit ={
     val sch = engine.tossForSynapse("id1")
     val originalWeight = sch.weight
-    val mutatedWeight = sch.mutate().weight
+    sch.mutate()
+    val mutatedWeight = sch.weight
     assertNotEquals(originalWeight, mutatedWeight)
   }
 
@@ -152,7 +153,9 @@ class EngineSuite extends JUnitSuite {
     nch.hushProbability = 0.0
     nch.synapseChangeProbability = 0.0
 
-    val mutated = nch.mutate().threshold
+    nch.mutate()
+
+    val mutated = nch.threshold
     assertNotEquals(original, mutated)
   }
 
@@ -166,7 +169,45 @@ class EngineSuite extends JUnitSuite {
     nch.hushProbability = 0.0
     nch.synapseChangeProbability = 0.0
 
-    val mutated = nch.mutate().slope
+    nch.mutate()
+
+    val mutated = nch.slope
     assertNotEquals(original, mutated)
+  }
+
+  /*
+  @Test def shouldMutateForgetting(): Unit ={
+    val nch = engine.tossForNeuron("id1")
+    val original = nch.forgetting
+
+    nch.thresholdProbability = 0.0
+    nch.slopeProbability = 0.0
+    nch.forgettingProbability = 1.0
+    nch.hushProbability = 0.0
+    nch.synapseChangeProbability = 0.0
+
+    nch.mutate()
+
+    val mutated = nch.forgetting
+    assertNotEquals(original, mutated)
+  }*/
+
+  @Test def shouldPerformRandom(): Unit ={
+    var result = 0
+    val f1 = () => { result = 1 }
+    val f2 = () => { result = 2 }
+    val f3 = () => { result = 3 }
+
+    Probability.performRandom((1.0,f1), (0.0,f2), (0.0,f3))
+    assertEquals(1, result)
+
+    Probability.performRandom((0.0,f1), (1.0,f2), (0.0,f3))
+    assertEquals(2, result)
+
+    Probability.performRandom((0.0,f1), (0.0,f2), (1.0,f3))
+    assertEquals(3, result)
+
+    Probability.performRandom((0.0,f1), (0.0,f2), (0.0,f3))
+    assertEquals(1, result)
   }
 }

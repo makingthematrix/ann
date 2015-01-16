@@ -40,24 +40,33 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
 
   def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 
-  def mutate():NeuronChromosome = {
-    data = Probability.chooseOne(thresholdProbability, slopeProbability, forgettingProbability, hushProbability, synapseChangeProbability) match {
-      case 0 => data.withThreshold(thresholdRange.choose(RandomNumber()))
-      case 1 => data.withSlope(slopeRange.choose(RandomNumber()))
-      case 2 => mutateForgetting()
-      case 3 => data.withHushValue(HushValue(hushRange.choose(RandomNumber())))
-      case 4 => mutateSynapse()
-    }
-    this
-  }
+  def mutate() = Probability.performRandom(
+    (thresholdProbability, mutateThreshold _),
+    (slopeProbability, mutateSlope _),
+    (forgettingProbability, mutateForgetting _),
+    (hushProbability, mutateHushValue _),
+    (synapseChangeProbability, mutateSynapse _)
+  )
 
   def addSynapse(synapseChromosome: SynapseChromosome) = {
     data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
   }
 
-  private def mutateForgetting() = {
+  private def mutateThreshold():Unit = {
+    data = data.withThreshold(thresholdRange.choose(RandomNumber()))
+  }
+
+  private def mutateSlope():Unit = {
+    data = data.withSlope(slopeRange.choose(RandomNumber()))
+  }
+
+  private def mutateHushValue():Unit = {
+    data = data.withHushValue(HushValue(hushRange.choose(RandomNumber())))
+  }
+
+  private def mutateForgetting():Unit = {
     val forgetValueProbability = 1.0 - dontForgetProbability - forgetAllProbability
-    data.withForgetting(Probability.chooseOne(dontForgetProbability, forgetValueProbability, forgetAllProbability) match {
+    data = data.withForgetting(Probability.chooseOne(dontForgetProbability, forgetValueProbability, forgetAllProbability) match {
       case 0 => DontForget
       case 1 => ForgetValue(forgettingRange.choose(RandomNumber()))
       case 2 => ForgetAll
@@ -87,9 +96,9 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     synapses(randomIndex)
   }
 
-  private def mutateSynapse() = {
+  private def mutateSynapse():Unit = {
     val changeWeightProbability = 1.0 - addSynapseProbability - removeSynapseProbability
-    Probability.chooseOne(addSynapseProbability, removeSynapseProbability, changeWeightProbability) match {
+    data = Probability.chooseOne(addSynapseProbability, removeSynapseProbability, changeWeightProbability) match {
       case 0 => getRandomNeuronId(true) match {
         case Some(neuronId) => val synapseChromosome = Engine().tossForSynapse(neuronId)
                                data.withSynapses(synapseChromosome.synapse :: data.synapses)
@@ -101,7 +110,8 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
         data.withSynapses(data.synapses.filterNot(_.neuronId == neuronId))
       case 2 if data.synapses.nonEmpty =>
         val synapse = getRandomSynapse(false)
-        val synapseChromosome = SynapseChromosome(synapse).mutate()
+        val synapseChromosome = SynapseChromosome(synapse)
+        synapseChromosome.mutate()
         data.withSynapses(synapseChromosome.synapse :: data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case _ => data
     }

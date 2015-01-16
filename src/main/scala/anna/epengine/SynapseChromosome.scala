@@ -15,17 +15,25 @@ class SynapseChromosome(private var data: SynapseData){
   var hushProbability = Probability(0.05)
   var fullWeightProbability = Probability(0.2)
 
-  def mutate(): SynapseChromosome = {
-    val variedWeightProbability:Probability = 1.0 - fullWeightProbability - hushProbability
-    data = Probability.chooseOne(hushProbability, variedWeightProbability, fullWeightProbability) match {
-      case 0 => data.withWeight(Hush)
-      case 1 => data.weight match {
-        case SynapseWeight(avoidWeight) => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
-        case _ => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
-      }
-      case 2 => data.withWeight(SynapseWeight(1.0))
+  def mutate() = Probability.performRandom(
+    (hushProbability, setWeightToHush _),
+    (1.0 - fullWeightProbability - hushProbability, mutateWeight _),
+    (fullWeightProbability, setWeightToFull _)
+  )
+
+  private def setWeightToHush():Unit = {
+    data = data.withWeight(Hush)
+  }
+
+  private def setWeightToFull():Unit = {
+    data = data.withWeight(SynapseWeight(1.0))
+  }
+
+  private def mutateWeight():Unit = {
+    data = data.weight match {
+      case SynapseWeight(avoidWeight) => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
+      case _ => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
     }
-    this
   }
 }
 
