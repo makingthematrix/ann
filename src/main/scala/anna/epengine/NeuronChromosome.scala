@@ -64,13 +64,22 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     data = data.withHushValue(HushValue(hushRange.choose(RandomNumber())))
   }
 
-  private def mutateForgetting():Unit = {
-    val forgetValueProbability = 1.0 - dontForgetProbability - forgetAllProbability
-    data = data.withForgetting(Probability.chooseOne(dontForgetProbability, forgetValueProbability, forgetAllProbability) match {
-      case 0 => DontForget
-      case 1 => ForgetValue(forgettingRange.choose(RandomNumber()))
-      case 2 => ForgetAll
-    })
+  private def mutateForgetting():Unit = Probability.performRandom(
+    (dontForgetProbability, setDontForget _),
+    (1.0 - dontForgetProbability - forgetAllProbability, mutateForgetValue _),
+    (forgetAllProbability, setForgetAll _)
+  )
+
+  private def setDontForget(): Unit ={
+    data = data.withForgetting(DontForget)
+  }
+
+  private def mutateForgetValue(): Unit ={
+    data = data.withForgetting(ForgetValue(forgettingRange.choose(RandomNumber())))
+  }
+
+  private def setForgetAll(): Unit ={
+    data = data.withForgetting(ForgetAll)
   }
 
   private def access(neuronId: String) = neuronAccessMap.get(neuronId) match {
@@ -92,29 +101,34 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     val synapses = if(fullAccess)
       data.synapses.filter(sd => access(sd.neuronId) == MutationAccess.FULL)
     else data.synapses
-    val randomIndex = (0 until synapses.size).choose(RandomNumber())
-    synapses(randomIndex)
+    if(data.synapses.nonEmpty) {
+      val randomIndex = (0 until synapses.size).choose(RandomNumber())
+      Some(synapses(randomIndex))
+    } else None
   }
 
-  private def mutateSynapse():Unit = {
-    val changeWeightProbability = 1.0 - addSynapseProbability - removeSynapseProbability
-    data = Probability.chooseOne(addSynapseProbability, removeSynapseProbability, changeWeightProbability) match {
-      case 0 => getRandomNeuronId(true) match {
-        case Some(neuronId) => val synapseChromosome = Engine().tossForSynapse(neuronId)
-                               data.withSynapses(synapseChromosome.synapse :: data.synapses)
-        case _ => exception(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
-                  data // unreachable code
-      }
-      case 1 if data.synapses.nonEmpty =>
-        val neuronId = getRandomSynapse(true).neuronId
-        data.withSynapses(data.synapses.filterNot(_.neuronId == neuronId))
-      case 2 if data.synapses.nonEmpty =>
-        val synapse = getRandomSynapse(false)
-        val synapseChromosome = SynapseChromosome(synapse)
-        synapseChromosome.mutate()
-        data.withSynapses(synapseChromosome.synapse :: data.synapses.filterNot(_.neuronId == synapse.neuronId))
-      case _ => data
-    }
+  private def mutateSynapse():Unit = Probability.performRandom(
+    (addSynapseProbability, addRandomSynapse _),
+    (removeSynapseProbability, removeRandomSynapse _),
+    (1.0 - addSynapseProbability - removeSynapseProbability, mutateSynapseWeight _)
+  )
+
+  private def addRandomSynapse():Unit = getRandomNeuronId(true) match {
+    case Some(neuronId) => val synapseChromosome = Engine().tossForSynapse(neuronId)
+                           data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
+    case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
+  }
+
+  private def removeRandomSynapse():Unit = getRandomSynapse(true) match {
+    case Some(synapse) => data = data.withSynapses(data.synapses.filterNot(_.neuronId == synapse.neuronId))
+    case None => debug(this, s"Trying to remove a synapse from $id but it's not allowed")
+  }
+
+  private def mutateSynapseWeight():Unit = getRandomSynapse(false) match {
+      case Some(synapse) => val synapseChromosome = SynapseChromosome(synapse)
+                            synapseChromosome.mutate()
+                            data = data.withSynapses(synapseChromosome.synapse :: data.synapses.filterNot(_.neuronId == synapse.neuronId))
+      case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
   }
 
   implicit private def fromRange(r: Range):IntRange = IntRange(r)
