@@ -25,8 +25,8 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
   var slopeRange = 5.0<=>20.0
   var hushRange = 1 to 5
   var forgettingRange = 0.1<=>0.9
-  var dontForgetProbability = 0.75
-  var forgetAllProbability = 0.05
+  var dontForgetProbability = Probability(0.75)
+  var forgetAllProbability = Probability(0.05)
   var tickTimeMultiplierRange = 0.5<=>2.0
 
   var thresholdProbability = Probability(0.1)

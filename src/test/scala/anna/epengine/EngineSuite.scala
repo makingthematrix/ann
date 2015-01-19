@@ -175,7 +175,7 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(original, mutated)
   }
 
-  /*
+
   @Test def shouldMutateForgetting(): Unit ={
     val nch = engine.tossForNeuron("id1")
     val original = nch.forgetting
@@ -186,11 +186,43 @@ class EngineSuite extends JUnitSuite {
     nch.hushProbability = 0.0
     nch.synapseChangeProbability = 0.0
 
+    nch.forgetAllProbability = 1.0
+    nch.dontForgetProbability = 0.0
+
     nch.mutate()
 
-    val mutated = nch.forgetting
-    assertNotEquals(original, mutated)
-  }*/
+    var mutated = nch.forgetting
+    assertEquals(ForgetAll, mutated)
+
+    nch.forgetAllProbability = 0.0
+    nch.dontForgetProbability = 1.0
+
+    nch.mutate()
+
+    mutated = nch.forgetting
+    assertEquals(DontForget, mutated)
+
+    nch.forgetAllProbability = 0.0
+    nch.dontForgetProbability = 0.0
+
+    nch.mutate()
+
+    nch.forgetting match {
+      case ForgetValue(value) => println("ok")
+      case other => fail(s"The forgetting value should be some intermediate value, not $other")
+    }
+  }
+
+  @Test def shouldMutateHush(){
+    val nch = engine.tossForNeuron("id1")
+    val original = nch.forgetting
+
+    nch.thresholdProbability = 0.0
+    nch.slopeProbability = 0.0
+    nch.forgettingProbability = 1.0
+    nch.hushProbability = 0.0
+    nch.synapseChangeProbability = 0.0
+  }
 
   @Test def shouldPerformRandom(): Unit ={
     var result = 0
