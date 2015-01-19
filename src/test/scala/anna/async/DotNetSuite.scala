@@ -10,6 +10,7 @@ class DotNetSuite extends MySuite {
   val s = "1,0,0,1,0,0,1,0,0"
   val o = "1,1,0,1,1,0,1,1,0"
 
+/*
   private def dotNet2() = {
     builder.inputTickMultiplier = 2.0
     builder.addInput("in1")
@@ -46,7 +47,7 @@ class DotNetSuite extends MySuite {
     init()
     in.tickUntilCalm()
     assertEquals("...",sb.toString)
-  }
+  }*/
 
   private def dotNet3(){
     val itm = 3.0
@@ -62,20 +63,24 @@ class DotNetSuite extends MySuite {
   @Test def shouldHaveDotInterval3() = {
     dotNet3()
     debug("------------")
+
     var dots = 0
+    in += s
+
+    init()
     net.addAfterFire("in"){ println("INCOMING!") }
     net.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
 
-    in += s
-    init()
     val interval = in.tickUntilCalm()
     println(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
 
+
     dots = 0
     in += o
-    in.tickUntilCalm()
-    println(s"dots: $dots")
+
+    val interval2 = in.tickUntilCalm()
+    println(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
   }
 }

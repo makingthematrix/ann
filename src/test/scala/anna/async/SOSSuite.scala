@@ -41,13 +41,13 @@ class SOSSuite extends MySuite {
     var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
     var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
     init()
-    
+
     in += s
     in.tickUntilCalm()
     println(s"dots: $dots, lines: $lines")
     assertEquals(3, dots)
     assertEquals(0, lines)
-    
+
     dots = 0; lines = 0;
     in += o
     in.tickUntilCalm()

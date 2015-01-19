@@ -113,9 +113,6 @@ class Neuron(
 
   private def reset(): Unit ={
     buffer = 0.0
-    clearAfterFire()
-    clearHushRequested()
-    clearThresholdPassed()
     context.become(receive)
     answer(Success(id))
   }
