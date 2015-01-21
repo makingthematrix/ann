@@ -57,14 +57,17 @@ class Engine {
     SynapseChromosome(id, weight)
   }
 
-  def tossForNeuron(id: String) = {
+  def tossForNeuron(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
     val threshold = thresholdRange.choose(RandomNumber())
     val slope = slopeRange.choose(RandomNumber())
     val hushValue = HushValue(hushRange.choose(RandomNumber()))
     val forgetting = forgetTraitToss()
     val tickTimeMultiplier = tickTimeMultiplierRange.choose(RandomNumber())
 
-    NeuronChromosome(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronType.STANDARD)
+    NeuronChromosome(
+      NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronType.STANDARD),
+      accessMap
+    )
   }
 
   private def connect(from: NeuronChromosome, to:NeuronChromosome): Boolean = if(from.isConnectedTo(to.id)) false else {

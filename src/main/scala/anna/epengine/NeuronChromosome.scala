@@ -11,6 +11,8 @@ import anna.logger.LOG._
  * Created by gorywoda on 28.12.14.
  */
 class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[String, MutationAccess.Value]) {
+  import NeuronChromosome._
+
   def id = data.id
   def threshold = data.threshold
   def slope = data.slope
@@ -20,23 +22,6 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
   def tickTimeMultiplier = data.tickTimeMultiplier
   def neuronType = data.neuronType
   def neuron = data
-
-  var thresholdRange = 0.0<=>0.9
-  var slopeRange = 5.0<=>20.0
-  var hushRange = 1 to 5
-  var forgettingRange = 0.1<=>0.9
-  var dontForgetProbability = Probability(0.75)
-  var forgetAllProbability = Probability(0.05)
-  var tickTimeMultiplierRange = 0.5<=>2.0
-
-  var thresholdProbability = Probability(0.1)
-  var slopeProbability = Probability(0.1)
-  var forgettingProbability = Probability(0.1)
-  var hushProbability = Probability(0.05)
-  var synapseChangeProbability = Probability(0.65)
-
-  var addSynapseProbability = Probability(0.1)
-  var removeSynapseProbability = Probability(0.1)
 
   def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 
@@ -87,10 +72,16 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     case Some(value) => value
   }
 
-  private def getRandomNeuronId(fullAccess: Boolean) = {
-    val neuronIds = if(fullAccess){
+  private def getRandomNeuronId(fullAccess: Boolean =true, excludeAlreadyConnected: Boolean =true) = {
+    val t = if(fullAccess){
       neuronAccessMap.filter( tuple => tuple._2 == MutationAccess.FULL ).map( _._1 ).toList
     } else neuronAccessMap.keys.toList
+
+    val neuronIds = if(excludeAlreadyConnected){
+      val connectedSet = data.synapses.map(_.neuronId).toSet
+      t.filterNot(connectedSet.contains(_))
+    } else t
+
     if(neuronIds.nonEmpty) {
       val randomIndex = (0 until neuronIds.size).choose(RandomNumber())
       Some(neuronIds(randomIndex))
@@ -113,7 +104,7 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
     (1.0 - addSynapseProbability - removeSynapseProbability, mutateSynapseWeight _)
   )
 
-  private def addRandomSynapse():Unit = getRandomNeuronId(true) match {
+  private def addRandomSynapse():Unit = getRandomNeuronId() match {
     case Some(neuronId) => val synapseChromosome = Engine().tossForSynapse(neuronId)
                            data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
     case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
@@ -135,8 +126,26 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
 }
 
 object NeuronChromosome {
+  var thresholdRange = 0.0<=>0.9
+  var slopeRange = 5.0<=>20.0
+  var hushRange = 1 to 5
+  var forgettingRange = 0.1<=>0.9
+  var dontForgetProbability = Probability(0.75)
+  var forgetAllProbability = Probability(0.05)
+  var tickTimeMultiplierRange = 0.5<=>2.0
+
+  var thresholdProbability = Probability(0.1)
+  var slopeProbability = Probability(0.1)
+  var forgettingProbability = Probability(0.1)
+  var hushProbability = Probability(0.05)
+  var synapseChangeProbability = Probability(0.65)
+
+  var addSynapseProbability = Probability(0.1)
+  var removeSynapseProbability = Probability(0.1)
+
   def apply(data: NeuronData):NeuronChromosome = new NeuronChromosome(data, Map())
-  def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronChromosome = new NeuronChromosome(data, accessMap)
+  def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronChromosome
+    = new NeuronChromosome(data, accessMap)
   def apply(id: String,
             threshold: Double,
             slope: Double,

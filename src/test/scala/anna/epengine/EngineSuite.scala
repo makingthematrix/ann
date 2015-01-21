@@ -1,7 +1,7 @@
 package test.async.epengine
 
 import anna.async.NetBuilder
-import anna.epengine.{Probability, NeuronChromosome, Engine, TossType}
+import anna.epengine._
 import anna.logger.LOG
 import anna.logger.LOG._
 import anna.data._
@@ -147,11 +147,11 @@ class EngineSuite extends JUnitSuite {
     val nch = engine.tossForNeuron("id1")
     val original = nch.threshold
 
-    nch.thresholdProbability = 1.0
-    nch.slopeProbability = 0.0
-    nch.forgettingProbability = 0.0
-    nch.hushProbability = 0.0
-    nch.synapseChangeProbability = 0.0
+    NeuronChromosome.thresholdProbability = 1.0
+    NeuronChromosome.slopeProbability = 0.0
+    NeuronChromosome.forgettingProbability = 0.0
+    NeuronChromosome.hushProbability = 0.0
+    NeuronChromosome.synapseChangeProbability = 0.0
 
     nch.mutate()
 
@@ -163,11 +163,11 @@ class EngineSuite extends JUnitSuite {
     val nch = engine.tossForNeuron("id1")
     val original = nch.slope
 
-    nch.thresholdProbability = 0.0
-    nch.slopeProbability = 1.0
-    nch.forgettingProbability = 0.0
-    nch.hushProbability = 0.0
-    nch.synapseChangeProbability = 0.0
+    NeuronChromosome.thresholdProbability = 0.0
+    NeuronChromosome.slopeProbability = 1.0
+    NeuronChromosome.forgettingProbability = 0.0
+    NeuronChromosome.hushProbability = 0.0
+    NeuronChromosome.synapseChangeProbability = 0.0
 
     nch.mutate()
 
@@ -180,30 +180,30 @@ class EngineSuite extends JUnitSuite {
     val nch = engine.tossForNeuron("id1")
     val original = nch.forgetting
 
-    nch.thresholdProbability = 0.0
-    nch.slopeProbability = 0.0
-    nch.forgettingProbability = 1.0
-    nch.hushProbability = 0.0
-    nch.synapseChangeProbability = 0.0
+    NeuronChromosome.thresholdProbability = 0.0
+    NeuronChromosome.slopeProbability = 0.0
+    NeuronChromosome.forgettingProbability = 1.0
+    NeuronChromosome.hushProbability = 0.0
+    NeuronChromosome.synapseChangeProbability = 0.0
 
-    nch.forgetAllProbability = 1.0
-    nch.dontForgetProbability = 0.0
+    NeuronChromosome.forgetAllProbability = 1.0
+    NeuronChromosome.dontForgetProbability = 0.0
 
     nch.mutate()
 
     var mutated = nch.forgetting
     assertEquals(ForgetAll, mutated)
 
-    nch.forgetAllProbability = 0.0
-    nch.dontForgetProbability = 1.0
+    NeuronChromosome.forgetAllProbability = 0.0
+    NeuronChromosome.dontForgetProbability = 1.0
 
     nch.mutate()
 
     mutated = nch.forgetting
     assertEquals(DontForget, mutated)
 
-    nch.forgetAllProbability = 0.0
-    nch.dontForgetProbability = 0.0
+    NeuronChromosome.forgetAllProbability = 0.0
+    NeuronChromosome.dontForgetProbability = 0.0
 
     nch.mutate()
 
@@ -214,14 +214,77 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateHush(){
+    engine.hushRange = 1 to 1
     val nch = engine.tossForNeuron("id1")
-    val original = nch.forgetting
+    val original = nch.hushValue
+    assertEquals(HushValue(1), nch.hushValue)
 
-    nch.thresholdProbability = 0.0
-    nch.slopeProbability = 0.0
-    nch.forgettingProbability = 1.0
-    nch.hushProbability = 0.0
-    nch.synapseChangeProbability = 0.0
+    NeuronChromosome.thresholdProbability = 0.0
+    NeuronChromosome.slopeProbability = 0.0
+    NeuronChromosome.forgettingProbability = 0.0
+    NeuronChromosome.hushProbability = 1.0
+    NeuronChromosome.synapseChangeProbability = 0.0
+    NeuronChromosome.hushRange = 2 to 5
+
+    nch.mutate()
+    val mutated = nch.hushValue
+    assertNotEquals(original, mutated)
+    assertTrue(NeuronChromosome.hushRange.contains(mutated.iterations))
+  }
+
+  @Test def shouldAddSynapse(): Unit ={
+    val idSet = Set("id1","id2")
+    val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
+    val nch1 = engine.tossForNeuron("id1", accessMap)
+    val nch2 = engine.tossForNeuron("id2", accessMap)
+
+    assertEquals(0, nch1.synapses.size)
+
+    NeuronChromosome.thresholdProbability = 0.0
+    NeuronChromosome.slopeProbability = 0.0
+    NeuronChromosome.forgettingProbability = 0.0
+    NeuronChromosome.hushProbability = 0.0
+    NeuronChromosome.synapseChangeProbability = 1.0
+
+    NeuronChromosome.addSynapseProbability = 1.0
+    NeuronChromosome.removeSynapseProbability = 0.0
+
+    nch1.mutate()
+
+    assertEquals(1, nch1.synapses.size)
+    val s = nch1.synapses(0)
+    assertTrue(idSet.contains(s.neuronId))
+
+    // a mutation should not result in adding a second synapse pointing to an already connected neuron
+    // so if we mutate this neuron again, in 100% cases it should result in connections both to id1 and id2
+    nch1.mutate()
+
+    assertEquals(2, nch1.synapses.size)
+    assertEquals(idSet, nch1.synapses.map(_.neuronId).toSet)
+  }
+
+  @Test def shouldRemoveSynapse(): Unit ={
+    val idSet = Set("id1","id2")
+    val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
+    val nch1 = engine.tossForNeuron("id1", accessMap)
+    val nch2 = engine.tossForNeuron("id2", accessMap)
+
+    nch1.addSynapse(SynapseChromosome("id2",Hush))
+
+    assertEquals(1, nch1.synapses.size)
+
+    NeuronChromosome.thresholdProbability = 0.0
+    NeuronChromosome.slopeProbability = 0.0
+    NeuronChromosome.forgettingProbability = 0.0
+    NeuronChromosome.hushProbability = 0.0
+    NeuronChromosome.synapseChangeProbability = 1.0
+
+    NeuronChromosome.addSynapseProbability = 0.0
+    NeuronChromosome.removeSynapseProbability = 1.0
+
+    nch1.mutate()
+
+    assertEquals(0, nch1.synapses.size)
   }
 
   @Test def shouldPerformRandom(): Unit ={
