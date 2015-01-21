@@ -137,7 +137,7 @@ class Engine {
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
     val inputTickMultiplier = inputTickMultiplierRange.choose(RandomNumber())
-    NetChromosome(id, ns.map(_.neuron), inputIds, inputTickMultiplier)
+    NetChromosome(id, ns.map(_.data), inputIds, inputTickMultiplier)
   }
 }
 

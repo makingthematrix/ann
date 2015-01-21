@@ -10,18 +10,20 @@ import anna.logger.LOG._
 /**
  * Created by gorywoda on 28.12.14.
  */
-class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[String, MutationAccess.Value]) {
+class NeuronChromosome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess.Value]) {
   import NeuronChromosome._
 
-  def id = data.id
-  def threshold = data.threshold
-  def slope = data.slope
-  def hushValue = data.hushValue
-  def forgetting = data.forgetting
-  def synapses = data.synapses
-  def tickTimeMultiplier = data.tickTimeMultiplier
-  def neuronType = data.neuronType
-  def neuron = data
+  def id = _data.id
+  def threshold = _data.threshold
+  def slope = _data.slope
+  def hushValue = _data.hushValue
+  def forgetting = _data.forgetting
+  def synapses = _data.synapses
+  def tickTimeMultiplier = _data.tickTimeMultiplier
+  def neuronType = _data.neuronType
+  def data = _data
+
+  override def clone = NeuronChromosome(_data, accessMap)
 
   def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 
@@ -34,19 +36,24 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
   )
 
   def addSynapse(synapseChromosome: SynapseChromosome) = {
-    data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
+    _data = _data.withSynapses(synapseChromosome.data :: _data.synapses)
+  }
+
+  def getSynapse(neuronId: String) = _data.synapses.find( _.neuronId == neuronId ) match {
+    case Some(synapse) => synapse
+    case None => throw new IllegalArgumentException(s"There is no synapse connecting ${_data.id} with $neuronId")
   }
 
   private def mutateThreshold():Unit = {
-    data = data.withThreshold(thresholdRange.choose(RandomNumber()))
+    _data = _data.withThreshold(thresholdRange.choose(RandomNumber()))
   }
 
   private def mutateSlope():Unit = {
-    data = data.withSlope(slopeRange.choose(RandomNumber()))
+    _data = _data.withSlope(slopeRange.choose(RandomNumber()))
   }
 
   private def mutateHushValue():Unit = {
-    data = data.withHushValue(HushValue(hushRange.choose(RandomNumber())))
+    _data = _data.withHushValue(HushValue(hushRange.choose(RandomNumber())))
   }
 
   private def mutateForgetting():Unit = Probability.performRandom(
@@ -56,29 +63,29 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
   )
 
   private def setDontForget(): Unit ={
-    data = data.withForgetting(DontForget)
+    _data = _data.withForgetting(DontForget)
   }
 
   private def mutateForgetValue(): Unit ={
-    data = data.withForgetting(ForgetValue(forgettingRange.choose(RandomNumber())))
+    _data = _data.withForgetting(ForgetValue(forgettingRange.choose(RandomNumber())))
   }
 
   private def setForgetAll(): Unit ={
-    data = data.withForgetting(ForgetAll)
+    _data = _data.withForgetting(ForgetAll)
   }
 
-  private def access(neuronId: String) = neuronAccessMap.get(neuronId) match {
+  private def access(neuronId: String) = accessMap.get(neuronId) match {
     case None => MutationAccess.FULL
     case Some(value) => value
   }
 
   private def getRandomNeuronId(fullAccess: Boolean =true, excludeAlreadyConnected: Boolean =true) = {
     val t = if(fullAccess){
-      neuronAccessMap.filter( tuple => tuple._2 == MutationAccess.FULL ).map( _._1 ).toList
-    } else neuronAccessMap.keys.toList
+      accessMap.filter( tuple => tuple._2 == MutationAccess.FULL ).map( _._1 ).toList
+    } else accessMap.keys.toList
 
     val neuronIds = if(excludeAlreadyConnected){
-      val connectedSet = data.synapses.map(_.neuronId).toSet
+      val connectedSet = _data.synapses.map(_.neuronId).toSet
       t.filterNot(connectedSet.contains(_))
     } else t
 
@@ -90,9 +97,9 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
 
   private def getRandomSynapse(fullAccess: Boolean) = {
     val synapses = if(fullAccess)
-      data.synapses.filter(sd => access(sd.neuronId) == MutationAccess.FULL)
-    else data.synapses
-    if(data.synapses.nonEmpty) {
+      _data.synapses.filter(sd => access(sd.neuronId) == MutationAccess.FULL)
+    else _data.synapses
+    if(_data.synapses.nonEmpty) {
       val randomIndex = (0 until synapses.size).choose(RandomNumber())
       Some(synapses(randomIndex))
     } else None
@@ -105,20 +112,19 @@ class NeuronChromosome(private var data: NeuronData, val neuronAccessMap: Map[St
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
-    case Some(neuronId) => val synapseChromosome = Engine().tossForSynapse(neuronId)
-                           data = data.withSynapses(synapseChromosome.synapse :: data.synapses)
+    case Some(neuronId) => addSynapse(Engine().tossForSynapse(neuronId))
     case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
   }
 
   private def removeRandomSynapse():Unit = getRandomSynapse(true) match {
-    case Some(synapse) => data = data.withSynapses(data.synapses.filterNot(_.neuronId == synapse.neuronId))
+    case Some(synapse) => _data = _data.withSynapses(_data.synapses.filterNot(_.neuronId == synapse.neuronId))
     case None => debug(this, s"Trying to remove a synapse from $id but it's not allowed")
   }
 
   private def mutateSynapseWeight():Unit = getRandomSynapse(false) match {
       case Some(synapse) => val synapseChromosome = SynapseChromosome(synapse)
                             synapseChromosome.mutate()
-                            data = data.withSynapses(synapseChromosome.synapse :: data.synapses.filterNot(_.neuronId == synapse.neuronId))
+                            _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
   }
 

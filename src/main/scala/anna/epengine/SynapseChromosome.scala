@@ -6,12 +6,12 @@ import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 /**
  * Created by gorywoda on 27.12.14.
  */
-class SynapseChromosome(private var data: SynapseData){
+class SynapseChromosome(private var _data: SynapseData){
   import SynapseChromosome._
 
-  def neuronId = data.neuronId
-  def weight = data.weight
-  def synapse = data
+  def neuronId = _data.neuronId
+  def weight = _data.weight
+  def data = _data
 
   def mutate() = Probability.performRandom(
     (hushProbability, setWeightToHush _),
@@ -20,17 +20,17 @@ class SynapseChromosome(private var data: SynapseData){
   )
 
   private def setWeightToHush():Unit = {
-    data = data.withWeight(Hush)
+    _data = _data.withWeight(Hush)
   }
 
   private def setWeightToFull():Unit = {
-    data = data.withWeight(SynapseWeight(1.0))
+    _data = _data.withWeight(SynapseWeight(1.0))
   }
 
   private def mutateWeight():Unit = {
-    data = data.weight match {
-      case SynapseWeight(avoidWeight) => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
-      case _ => data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
+    _data = _data.weight match {
+      case SynapseWeight(avoidWeight) => _data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
+      case _ => _data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
     }
   }
 }

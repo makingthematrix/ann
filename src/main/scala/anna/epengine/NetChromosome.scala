@@ -7,13 +7,13 @@ import anna.utils.DoubleRange._
  * Created by gorywoda on 04.01.15.
  */
 
-class NetChromosome(private var data: NetData, val neuronAccessMap: Map[String, MutationAccess.Value]){
-  def id = data.id
-  def neurons = data.neurons
-  def inputs = data.inputs
-  def inputTickMultiplier = data.inputTickMultiplier
-  def net = data
-  def find(id: String) = data.neurons.find( _.id == id )
+class NetChromosome(private var _data: NetData, val accessMap: Map[String, MutationAccess.Value]){
+  def id = _data.id
+  def neurons = _data.neurons
+  def inputs = _data.inputs
+  def inputTickMultiplier = _data.inputTickMultiplier
+  def data = _data
+  def find(id: String) = _data.neurons.find( _.id == id )
 
   var addNeuronProbability = Probability(0.1)
   var deleteNeuronProbability = Probability(0.1)

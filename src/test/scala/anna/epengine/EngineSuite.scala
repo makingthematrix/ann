@@ -127,7 +127,7 @@ class EngineSuite extends JUnitSuite {
     assertTrue(netChromosome.inputTickMultiplier >= 2.0)
     assertTrue(netChromosome.inputTickMultiplier <= 3.0)
 
-    val (in, net) = NetBuilder().set(netChromosome.net).build("in")
+    val (in, net) = NetBuilder().set(netChromosome.data).build("in")
     in += "1,1,1"
     in.tickUntilCalm()
     debug(this, "iterations: " + in.iteration)
@@ -261,6 +261,16 @@ class EngineSuite extends JUnitSuite {
 
     assertEquals(2, nch1.synapses.size)
     assertEquals(idSet, nch1.synapses.map(_.neuronId).toSet)
+
+    val oldWayOfDoingCopy = NeuronChromosome(nch1.data, accessMap)
+    val clone = nch1.clone
+    assertEquals(oldWayOfDoingCopy.data, clone.data)
+    assertEquals(oldWayOfDoingCopy.accessMap, clone.accessMap)
+
+    // nothing should change as there is no way to add another synapse
+    nch1.mutate()
+
+    assertEquals(clone.data, nch1.data)
   }
 
   @Test def shouldRemoveSynapse(): Unit ={
@@ -283,8 +293,54 @@ class EngineSuite extends JUnitSuite {
     NeuronChromosome.removeSynapseProbability = 1.0
 
     nch1.mutate()
-
     assertEquals(0, nch1.synapses.size)
+
+    val clone = nch1.clone
+
+    // nothing should change as there is no more synapses to remove
+    nch1.mutate()
+    assertEquals(0, nch1.synapses.size)
+    assertEquals(clone.data, nch1.data)
+  }
+
+  @Test def shouldChangeSynapseWeight(): Unit ={
+    val idSet = Set("id1","id2")
+    val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
+    val nch1 = engine.tossForNeuron("id1", accessMap)
+    val nch2 = engine.tossForNeuron("id2", accessMap)
+
+    nch1.addSynapse(SynapseChromosome("id2",Hush))
+
+    assertEquals(1, nch1.synapses.size)
+
+    NeuronChromosome.thresholdProbability = 0.0
+    NeuronChromosome.slopeProbability = 0.0
+    NeuronChromosome.forgettingProbability = 0.0
+    NeuronChromosome.hushProbability = 0.0
+    NeuronChromosome.synapseChangeProbability = 1.0
+
+    NeuronChromosome.addSynapseProbability = 0.0
+    NeuronChromosome.removeSynapseProbability = 0.0
+
+    SynapseChromosome.fullWeightProbability = 1.0
+    SynapseChromosome.hushProbability = 0.0
+
+    nch1.mutate()
+    assertEquals(SynapseWeight(1.0), nch1.getSynapse("id2").weight)
+
+    SynapseChromosome.fullWeightProbability = 0.0
+    SynapseChromosome.hushProbability = 1.0
+
+    nch1.mutate()
+    assertEquals(Hush, nch1.getSynapse("id2").weight)
+
+    SynapseChromosome.fullWeightProbability = 0.0
+    SynapseChromosome.hushProbability = 0.0
+
+    nch1.mutate()
+    val weight = nch1.getSynapse("id2").weight
+    assertNotEquals(Hush, weight)
+    assertNotEquals(SynapseWeight(1.0), weight)
   }
 
   @Test def shouldPerformRandom(): Unit ={
