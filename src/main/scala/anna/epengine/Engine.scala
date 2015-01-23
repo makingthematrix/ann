@@ -85,7 +85,7 @@ class Engine {
 
   def tossForNet(id: String) = {
     assert(synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
-    assert(inputIds.size + outputIds.size < neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${neuronsRange.end}")
+    assert(inputIds.size + outputIds.size <= neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${neuronsRange.end}")
     val r = if(inputIds.size + outputIds.size > neuronsRange.start) (inputIds.size + outputIds.size) to neuronsRange.end else neuronsRange
     val neuronsSize = r.choose(RandomNumber())
 

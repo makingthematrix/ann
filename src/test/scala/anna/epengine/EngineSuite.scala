@@ -343,6 +343,42 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(SynapseWeight(1.0), weight)
   }
 
+  @Test def shouldAddNeuron(): Unit ={
+    engine.neuronsRange = 2 to 2
+    engine.inputIds = List("in1")
+    engine.outputIds = List("out1")
+    engine.synapsesDensity = 2.5
+    engine.inputTickMultiplierRange = 2.0 <=> 2.0
+
+    val netChromosome = engine.tossForNet("net")
+    assertEquals(2, netChromosome.data.neurons.size)
+    assertNotEquals(None, netChromosome.find("in1"))
+    assertNotEquals(None, netChromosome.find("out1"))
+
+    NetChromosome.addNeuronProbability = 1.0
+    NetChromosome.deleteNeuronProbability = 0.0
+    NetChromosome.mutateNeuronProbability = 0.0
+    NetChromosome.inputTickMultiplierProbability = 0.0
+
+    netChromosome.mutate()
+
+    val middle1Opt = netChromosome.find("net1")
+    assertNotEquals(None, middle1Opt)
+    assertNotEquals(None, netChromosome.findSynapse("in1","net1"))
+    assertNotEquals(None, netChromosome.findSynapse("net1","out1"))
+
+/*
+    netChromosome.mutate()
+
+    assertEquals(4, netChromosome.data.neurons.size)
+    val idSet = Set("in1","out1","net1")
+    val newNeuronList = netChromosome.data.neurons.filterNot( n => idSet.contains(n.id) )
+    assertEquals(1, newNeuronList.size)
+    val newNeuron = newNeuronList(0)
+*/
+
+  }
+
   @Test def shouldPerformRandom(): Unit ={
     var result = 0
     val f1 = () => { result = 1 }
