@@ -10,7 +10,7 @@ import anna.logger.LOG._
 /**
  * Created by gorywoda on 28.12.14.
  */
-class NeuronChromosome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess.Value]) {
+class NeuronChromosome(private var _data: NeuronData, private val accessMap: Map[String, MutationAccess.Value]) {
   import NeuronChromosome._
 
   def id = _data.id
@@ -24,6 +24,7 @@ class NeuronChromosome(private var _data: NeuronData, val accessMap: Map[String,
   def data = _data
 
   override def clone = NeuronChromosome(_data, accessMap)
+  def withAccessMap(accessMap: Map[String, MutationAccess.Value]) = NeuronChromosome(_data, accessMap)
 
   def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 
@@ -32,7 +33,8 @@ class NeuronChromosome(private var _data: NeuronData, val accessMap: Map[String,
     (slopeProbability, mutateSlope _),
     (forgettingProbability, mutateForgetting _),
     (hushProbability, mutateHushValue _),
-    (synapseChangeProbability, mutateSynapse _)
+    (synapseChangeProbability, mutateSynapse _),
+    (tickTimeMultiplierProbability, mutateTickTimeMultiplier _)
   )
 
   def addSynapse(synapseChromosome: SynapseChromosome) = {
@@ -61,6 +63,11 @@ class NeuronChromosome(private var _data: NeuronData, val accessMap: Map[String,
     (1.0 - dontForgetProbability - forgetAllProbability, mutateForgetValue _),
     (forgetAllProbability, setForgetAll _)
   )
+
+
+  private def mutateTickTimeMultiplier():Unit = {
+    _data = _data.withTickTimeMultiplier(tickTimeMultiplierRange.choose(RandomNumber()))
+  }
 
   private def setDontForget(): Unit ={
     _data = _data.withForgetting(DontForget)
@@ -127,8 +134,6 @@ class NeuronChromosome(private var _data: NeuronData, val accessMap: Map[String,
                             _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
   }
-
-  implicit private def fromRange(r: Range):IntRange = IntRange(r)
 }
 
 object NeuronChromosome {
@@ -138,13 +143,14 @@ object NeuronChromosome {
   var forgettingRange = 0.1<=>0.9
   var dontForgetProbability = Probability(0.75)
   var forgetAllProbability = Probability(0.05)
-  var tickTimeMultiplierRange = 0.5<=>2.0
+  var tickTimeMultiplierRange = 1.0<=>1.0
 
   var thresholdProbability = Probability(0.1)
   var slopeProbability = Probability(0.1)
   var forgettingProbability = Probability(0.1)
   var hushProbability = Probability(0.05)
-  var synapseChangeProbability = Probability(0.65)
+  var synapseChangeProbability = Probability(0.6)
+  var tickTimeMultiplierProbability = Probability(0.05)
 
   var addSynapseProbability = Probability(0.1)
   var removeSynapseProbability = Probability(0.1)
@@ -161,4 +167,19 @@ object NeuronChromosome {
             tickTimeMultiplier: Double,
             neuronType: NeuronType.Value):NeuronChromosome =
     NeuronChromosome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
+
+  def toss(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
+    val nch = NeuronChromosome(
+      NeuronData(id, thresholdRange.from, slopeRange.from, HushValue(), DontForget, Nil, tickTimeMultiplierRange.from, NeuronType.STANDARD),
+      accessMap
+    )
+    nch.mutateThreshold()
+    nch.mutateSlope()
+    nch.mutateHushValue()
+    nch.mutateForgetting()
+    nch.mutateTickTimeMultiplier()
+    nch
+  }
+
+  implicit private def fromRange(r: Range):IntRange = IntRange(r)
 }

@@ -43,4 +43,10 @@ object SynapseChromosome {
   def apply(data: SynapseData):SynapseChromosome = new SynapseChromosome(data)
   def apply(neuronId: String, weight: SynapseTrait):SynapseChromosome = SynapseChromosome(SynapseData(neuronId, weight))
   def apply(neuronId: String, weight: Double):SynapseChromosome = apply(neuronId, SynapseWeight(weight))
+
+  def toss(neuronId: String) = {
+    val nch = apply(neuronId, Hush)
+    nch.mutate()
+    nch
+  }
 }
