@@ -34,6 +34,12 @@ trait NeuronTriggers {
   def removeHushRequested(id: String) = remove(id, hushRequested)
   def clearHushRequested() = clear(hushRequested)
   def triggerHushRequested() = trigger(hushRequested)
+
+  def removeAllTriggers() = {
+    afterFire.clear()
+    thresholdPassed.clear()
+    hushRequested.clear()
+  }
 }
 
 object NeuronTriggers {

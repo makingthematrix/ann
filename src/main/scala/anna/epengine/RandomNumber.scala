@@ -1,5 +1,7 @@
 package anna.epengine
 
+import anna.utils.IntRange
+
 import scala.util.Random
 
 /**
@@ -15,5 +17,7 @@ object RandomNumber {
     case Some(r) => r
   }
 
-  def apply() = rand().nextDouble()
+  def apply():Double = rand().nextDouble()
+  def apply(start:Int, end: Int):Int = IntRange(start until end).choose(apply())
+  def apply(end: Int):Int = apply(0, end)
 }

@@ -12,7 +12,7 @@ import scala.util.Random
 
 object MutationAccess extends Enumeration {
   type MutationAccess = Value
-  val FULL, DONTDELETE, NONE = Value
+  val FULL, DONTDELETE, DONTMUTATE = Value
 }
 
 class Engine {
@@ -26,7 +26,7 @@ class Engine {
   var forgettingRange: DoubleRange = 0.1<=>0.9
   var dontForgetProbability: Probability = 0.75
   var forgetAllProbability: Probability = 0.05
-  var tickTimeMultiplierRange: DoubleRange = 0.5<=>2.0
+  var tickTimeMultiplierRange: DoubleRange = 2.0<=>2.0
 
   var neuronsRange:Range = 5 to 10
   var inputIds = List[String]()
@@ -78,8 +78,7 @@ class Engine {
 
   private def chooseNeuron(neurons: List[NeuronChromosome], check:(NeuronChromosome)=>Boolean):Option[NeuronChromosome] = neurons match {
     case Nil => None
-    case list => val index = (0 until list.size).choose(RandomNumber())
-                 val n = list(index)
+    case list => val n = list(RandomNumber(list.size))
                  if(check(n)) Some(n) else chooseNeuron(list.filter(_.id != n.id), check)
   }
 
@@ -137,7 +136,9 @@ class Engine {
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
     val inputTickMultiplier = inputTickMultiplierRange.choose(RandomNumber())
-    NetChromosome(id, ns.map(_.data), inputIds, inputTickMultiplier)
+    val netData = NetData(id, ns.map(_.data), inputIds, inputTickMultiplier)
+    val accessMap = (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ (outputIds.map(_ -> MutationAccess.DONTDELETE))).toMap
+    NetChromosome(netData, accessMap)
   }
 }
 

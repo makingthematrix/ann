@@ -247,7 +247,7 @@ class EngineSuite extends JUnitSuite {
     NeuronChromosome.synapseChangeProbability = 1.0
 
     NeuronChromosome.addSynapseProbability = 1.0
-    NeuronChromosome.removeSynapseProbability = 0.0
+    NeuronChromosome.deleteSynapseProbability = 0.0
 
     nch1.mutate()
 
@@ -273,7 +273,7 @@ class EngineSuite extends JUnitSuite {
     assertEquals(clone.data, nch1.data)
   }
 
-  @Test def shouldRemoveSynapse(): Unit ={
+  @Test def shoulDeleteSynapse(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
     val nch1 = engine.tossForNeuron("id1", accessMap)
@@ -290,7 +290,7 @@ class EngineSuite extends JUnitSuite {
     NeuronChromosome.synapseChangeProbability = 1.0
 
     NeuronChromosome.addSynapseProbability = 0.0
-    NeuronChromosome.removeSynapseProbability = 1.0
+    NeuronChromosome.deleteSynapseProbability = 1.0
 
     nch1.mutate()
     assertEquals(0, nch1.synapses.size)
@@ -320,7 +320,7 @@ class EngineSuite extends JUnitSuite {
     NeuronChromosome.synapseChangeProbability = 1.0
 
     NeuronChromosome.addSynapseProbability = 0.0
-    NeuronChromosome.removeSynapseProbability = 0.0
+    NeuronChromosome.deleteSynapseProbability = 0.0
 
     SynapseChromosome.fullWeightProbability = 1.0
     SynapseChromosome.hushProbability = 0.0
@@ -362,22 +362,36 @@ class EngineSuite extends JUnitSuite {
 
     netChromosome.mutate()
 
-    val middle1Opt = netChromosome.find("net1")
+    val middle1Opt = netChromosome.find("net2")
     assertNotEquals(None, middle1Opt)
-    assertNotEquals(None, netChromosome.findSynapse("in1","net1"))
-    assertNotEquals(None, netChromosome.findSynapse("net1","out1"))
+    assertTrue(netChromosome.findSynapse("in1","net2") != None || netChromosome.findSynapse("out1","net2") != None)
+    assertNotEquals(None, netChromosome.findSynapse("net2","out1"))
+  }
 
-/*
+  @Test def shouldDeleteNeuron(): Unit ={
+    engine.neuronsRange = 3 to 3
+    engine.inputIds = List("in1")
+    engine.outputIds = List("out1")
+    engine.synapsesDensity = 2.5
+    engine.inputTickMultiplierRange = 2.0 <=> 2.0
+
+    val netChromosome = engine.tossForNet("net")
+    assertEquals(3, netChromosome.data.neurons.size)
+    assertNotEquals(None, netChromosome.find("in1"))
+    assertNotEquals(None, netChromosome.find("out1"))
+
+    NetChromosome.addNeuronProbability = 0.0
+    NetChromosome.deleteNeuronProbability = 1.0
+    NetChromosome.mutateNeuronProbability = 0.0
+    NetChromosome.inputTickMultiplierProbability = 0.0
+
     netChromosome.mutate()
 
-    assertEquals(4, netChromosome.data.neurons.size)
-    val idSet = Set("in1","out1","net1")
-    val newNeuronList = netChromosome.data.neurons.filterNot( n => idSet.contains(n.id) )
-    assertEquals(1, newNeuronList.size)
-    val newNeuron = newNeuronList(0)
-*/
-
+    assertEquals(2, netChromosome.data.neurons.size)
+    assertNotEquals(None, netChromosome.find("in1"))
+    assertNotEquals(None, netChromosome.find("out1"))
   }
+
 
   @Test def shouldPerformRandom(): Unit ={
     var result = 0
@@ -397,4 +411,5 @@ class EngineSuite extends JUnitSuite {
     Probability.performRandom((0.0,f1), (0.0,f2), (0.0,f3))
     assertEquals(1, result)
   }
+
 }

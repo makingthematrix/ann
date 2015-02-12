@@ -19,6 +19,7 @@ object Messages {
   case object NeuronShutdown
   case object Shutdown // net shutdown
   case object Reset
+  case object RemoveAllTriggers
   case class SetSynapses(synapses: Seq[Synapse])
   
   // questions
