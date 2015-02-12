@@ -41,6 +41,12 @@ class Engine {
     else Hush
   }
 
+
+  def tossForSynapse(id: String) = {
+    val weight = synapseTraitToss()
+    SynapseChromosome(id, weight)
+  }
+
   private def forgetTraitToss() = {
     val forgetValueProbability: Probability = 1.0 - dontForgetProbability - forgetAllProbability
     assert((0.0<=>1.0).contains(forgetValueProbability),s"The forget value probability does not add up. dontForgetProb=${dontForgetProbability}, forgetAllProb=${forgetAllProbability}")
@@ -51,11 +57,7 @@ class Engine {
   }
 
   implicit private def fromRange(r: Range):IntRange = IntRange(r)
-  
-  def tossForSynapse(id: String) = {
-    val weight = synapseTraitToss()
-    SynapseChromosome(id, weight)
-  }
+
 
   def tossForNeuron(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
     val threshold = thresholdRange.choose(RandomNumber())

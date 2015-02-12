@@ -46,8 +46,8 @@ class EngineSuite extends JUnitSuite {
     }
 
     debug(this, s"hushCount: $hushCount")
-    assertTrue(hushCount > 80)
-    assertTrue(hushCount < 120)
+    assertTrue(hushCount > 70)
+    assertTrue(hushCount < 130)
   }
 
   @Test def shouldChangeHushProbability() {
