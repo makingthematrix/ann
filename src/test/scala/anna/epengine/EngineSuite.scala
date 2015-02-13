@@ -11,22 +11,20 @@ import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
 
 class EngineSuite extends JUnitSuite {
-  private var engine: Engine = _
 
   @Before def before() {
     LOG.addLogToStdout()
-    engine = new Engine()
-    engine.synapseWeightRange = -1.0 <=> 1.0
-    engine.synapseHushProbability = 0.1
-    engine.synapsesTossType = TossType.LINEAR
 
-    engine.thresholdRange = 0.0 <=> 0.9
-    engine.slopeRange = 1.0 <=> 20.0
-    engine.hushRange = 1 to 5
-    engine.forgettingRange = 0.1 <=> 0.9
-    engine.dontForgetProbability = 0.75
-    engine.forgetAllProbability = 0.05
-    engine.tickTimeMultiplierRange = 0.5 <=> 2.0
+    SynapseGenome.weightRange = -1.0 <=> 1.0
+    SynapseGenome.hushProbability = 0.1
+
+    NeuronGenome.thresholdRange = 0.0 <=> 0.9
+    NeuronGenome.slopeRange = 1.0 <=> 20.0
+    NeuronGenome.hushRange = 1 to 5
+    NeuronGenome.forgettingRange = 0.1 <=> 0.9
+    NeuronGenome.dontForgetProbability = 0.75
+    NeuronGenome.forgetAllProbability = 0.05
+    NeuronGenome.tickTimeMultiplierRange = 0.5 <=> 2.0
   }
 
   @After def after() {
@@ -36,12 +34,12 @@ class EngineSuite extends JUnitSuite {
     val totalCount = 1000
     var hushCount = 0
     for (i <- 1 to totalCount) {
-      val synapseChromosome = engine.tossForSynapse("id1")
-      assertEquals("id1", synapseChromosome.neuronId)
-      synapseChromosome.weight match {
+      val sg = SynapseGenome.toss("id1")
+      assertEquals("id1", sg.neuronId)
+      sg.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) =>
-          assert(engine.synapseWeightRange.contains(w), s"weight outside range: $w")
+          assert(SynapseGenome.weightRange.contains(w), s"weight outside range: $w")
       }
     }
 
@@ -51,17 +49,18 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldChangeHushProbability() {
-    engine.synapseHushProbability = 0.9
+    SynapseGenome.hushProbability = 1.0
+    SynapseGenome.fullWeightProbability = 0.0
 
     val totalCount = 1000
     var hushCount = 0
     for (i <- 1 to totalCount) {
-      val synapseChromosome = engine.tossForSynapse("id1")
-      assertEquals("id1", synapseChromosome.neuronId)
-      synapseChromosome.weight match {
+      val sg = SynapseGenome.toss("id1")
+      assertEquals("id1", sg.neuronId)
+      sg.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) =>
-          assert(engine.synapseWeightRange.contains(w), s"weight outside range: $w")
+          assert(SynapseGenome.weightRange.contains(w), s"weight outside range: $w")
       }
     }
 
@@ -70,27 +69,27 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldTossForNeuron(): Unit = {
-    engine.thresholdRange = 0.0 <=> 0.9
-    engine.slopeRange = 1.0 <=> 20.0
-    engine.hushRange = 1 to 5
-    engine.forgettingRange = 0.1 <=> 0.9
-    engine.dontForgetProbability = 0.75
-    engine.forgetAllProbability = 0.05
-    engine.tickTimeMultiplierRange = 0.5 <=> 2.0
+    NeuronGenome.thresholdRange = 0.0 <=> 0.9
+    NeuronGenome.slopeRange = 1.0 <=> 20.0
+    NeuronGenome.hushRange = 1 to 5
+    NeuronGenome.forgettingRange = 0.1 <=> 0.9
+    NeuronGenome.dontForgetProbability = 0.75
+    NeuronGenome.forgetAllProbability = 0.05
+    NeuronGenome.tickTimeMultiplierRange = 0.5 <=> 2.0
 
     val totalCount = 1000
     var dontForgetCount = 0
     var forgetAllCount = 0
     for (i <- 1 to totalCount) {
-      val neuronChromosome: NeuronGenome = engine.tossForNeuron("id1")
-      assertEquals("id1", neuronChromosome.id)
-      assertTrue(engine.thresholdRange.contains(neuronChromosome.threshold))
-      assertTrue(engine.slopeRange.contains(neuronChromosome.slope))
-      assertTrue(engine.hushRange.contains(neuronChromosome.hushValue.iterations))
-      neuronChromosome.forgetting match {
+      val ng = NeuronGenome.toss("id1")
+      assertEquals("id1", ng.id)
+      assertTrue(NeuronGenome.thresholdRange.contains(ng.threshold))
+      assertTrue(NeuronGenome.slopeRange.contains(ng.slope))
+      assertTrue(NeuronGenome.hushRange.contains(ng.hushValue.iterations))
+      ng.forgetting match {
         case DontForget => dontForgetCount += 1
         case ForgetAll => forgetAllCount += 1
-        case ForgetValue(value) => assertTrue(engine.forgettingRange.contains(value))
+        case ForgetValue(value) => assertTrue(NeuronGenome.forgettingRange.contains(value))
       }
     }
     assertTrue((600 to 800).contains(dontForgetCount))
@@ -98,36 +97,37 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldTossForNet(): Unit = {
-    engine.neuronsRange = 5 to 10
-    engine.inputIds = List("in1")
-    engine.outputIds = List("out1", "out2")
-    engine.synapsesDensity = 2.5
-    engine.inputTickMultiplierRange = 2.0 <=> 3.0
+    NetGenome.neuronsRange = 5 to 10
+    NetGenome.synapsesDensity = 2.5
+    NetGenome.inputTickMultiplierRange = 2.0 <=> 3.0
 
-    val netChromosome = engine.tossForNet("net")
-    assertEquals("net", netChromosome.id)
-    assertTrue(netChromosome.neurons.size >= 5)
-    assertTrue(netChromosome.neurons.size <= 10)
+    val inputIds = List("in1")
+    val outputIds = List("out1", "out2")
 
-    val inOpt = netChromosome.find("in1")
+    val ng = NetGenome.toss("net",inputIds,outputIds)
+    assertEquals("net", ng.id)
+    assertTrue(ng.neurons.size >= 5)
+    assertTrue(ng.neurons.size <= 10)
+
+    val inOpt = ng.find("in1")
     assertTrue(inOpt != None)
     val inN = inOpt.get
     assertTrue(inN.synapses.nonEmpty)
 
-    val out1Opt = netChromosome.find("out1")
+    val out1Opt = ng.find("out1")
     assertTrue(out1Opt != None)
     val out1N = out1Opt.get
     assertTrue(out1N.synapses.isEmpty)
 
-    val out2Opt = netChromosome.find("out2")
+    val out2Opt = ng.find("out2")
     assertTrue(out2Opt != None)
     val out2N = out2Opt.get
     assertTrue(out2N.synapses.isEmpty)
 
-    assertTrue(netChromosome.inputTickMultiplier >= 2.0)
-    assertTrue(netChromosome.inputTickMultiplier <= 3.0)
+    assertTrue(ng.inputTickMultiplier >= 2.0)
+    assertTrue(ng.inputTickMultiplier <= 3.0)
 
-    val (in, net) = NetBuilder().set(netChromosome.data).build("in")
+    val (in, net) = NetBuilder().set(ng.data).build("in")
     in += "1,1,1"
     in.tickUntilCalm()
     debug(this, "iterations: " + in.iteration)
@@ -135,17 +135,17 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateSynapse(): Unit ={
-    val sch = engine.tossForSynapse("id1")
-    val originalWeight = sch.weight
-    sch.mutate()
-    val mutatedWeight = sch.weight
+    val sg = SynapseGenome.toss("id1")
+    val originalWeight = sg.weight
+    sg.mutate()
+    val mutatedWeight = sg.weight
     assertNotEquals(originalWeight, mutatedWeight)
   }
 
 
   @Test def shouldMutateThreshold(): Unit ={
-    val nch = engine.tossForNeuron("id1")
-    val original = nch.threshold
+    val ng = NeuronGenome.toss("id1")
+    val original = ng.threshold
 
     NeuronGenome.thresholdProbability = 1.0
     NeuronGenome.slopeProbability = 0.0
@@ -153,15 +153,15 @@ class EngineSuite extends JUnitSuite {
     NeuronGenome.hushProbability = 0.0
     NeuronGenome.synapseChangeProbability = 0.0
 
-    nch.mutate()
+    ng.mutate()
 
-    val mutated = nch.threshold
+    val mutated = ng.threshold
     assertNotEquals(original, mutated)
   }
 
   @Test def shouldMutateSlope(): Unit ={
-    val nch = engine.tossForNeuron("id1")
-    val original = nch.slope
+    val ng = NeuronGenome.toss("id1")
+    val original = ng.slope
 
     NeuronGenome.thresholdProbability = 0.0
     NeuronGenome.slopeProbability = 1.0
@@ -169,65 +169,68 @@ class EngineSuite extends JUnitSuite {
     NeuronGenome.hushProbability = 0.0
     NeuronGenome.synapseChangeProbability = 0.0
 
-    nch.mutate()
+    ng.mutate()
 
-    val mutated = nch.slope
+    val mutated = ng.slope
     assertNotEquals(original, mutated)
   }
 
 
   @Test def shouldMutateForgetting(): Unit ={
-    val nch = engine.tossForNeuron("id1")
-    val original = nch.forgetting
+    val ng = NeuronGenome.toss("id1")
+    val original = ng.forgetting
 
     NeuronGenome.thresholdProbability = 0.0
     NeuronGenome.slopeProbability = 0.0
     NeuronGenome.forgettingProbability = 1.0
     NeuronGenome.hushProbability = 0.0
     NeuronGenome.synapseChangeProbability = 0.0
+    NeuronGenome.tickTimeMultiplierProbability = 0.0
 
     NeuronGenome.forgetAllProbability = 1.0
     NeuronGenome.dontForgetProbability = 0.0
 
-    nch.mutate()
+    ng.mutate()
 
-    var mutated = nch.forgetting
+    var mutated = ng.forgetting
     assertEquals(ForgetAll, mutated)
 
     NeuronGenome.forgetAllProbability = 0.0
     NeuronGenome.dontForgetProbability = 1.0
 
-    nch.mutate()
+    ng.mutate()
 
-    mutated = nch.forgetting
+    mutated = ng.forgetting
     assertEquals(DontForget, mutated)
 
     NeuronGenome.forgetAllProbability = 0.0
     NeuronGenome.dontForgetProbability = 0.0
 
-    nch.mutate()
+    ng.mutate()
 
-    nch.forgetting match {
+    ng.forgetting match {
       case ForgetValue(value) => println("ok")
       case other => fail(s"The forgetting value should be some intermediate value, not $other")
     }
   }
 
   @Test def shouldMutateHush(){
-    engine.hushRange = 1 to 1
-    val nch = engine.tossForNeuron("id1")
-    val original = nch.hushValue
-    assertEquals(HushValue(1), nch.hushValue)
+    NeuronGenome.hushRange = 1 to 1
+    val ng = NeuronGenome.toss("id1")
+    val original = ng.hushValue
+    assertEquals(HushValue(1), ng.hushValue)
 
     NeuronGenome.thresholdProbability = 0.0
     NeuronGenome.slopeProbability = 0.0
     NeuronGenome.forgettingProbability = 0.0
     NeuronGenome.hushProbability = 1.0
     NeuronGenome.synapseChangeProbability = 0.0
+    NeuronGenome.tickTimeMultiplierProbability = 0.0
+
     NeuronGenome.hushRange = 2 to 5
 
-    nch.mutate()
-    val mutated = nch.hushValue
+    ng.mutate()
+    val mutated = ng.hushValue
     assertNotEquals(original, mutated)
     assertTrue(NeuronGenome.hushRange.contains(mutated.iterations))
   }
@@ -235,79 +238,81 @@ class EngineSuite extends JUnitSuite {
   @Test def shouldAddSynapse(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
-    val nch1 = engine.tossForNeuron("id1", accessMap)
-    val nch2 = engine.tossForNeuron("id2", accessMap)
+    val ng1 = NeuronGenome.toss("id1", accessMap)
+    val ng2 = NeuronGenome.toss("id2", accessMap)
 
-    assertEquals(0, nch1.synapses.size)
+    assertEquals(0, ng1.synapses.size)
 
     NeuronGenome.thresholdProbability = 0.0
     NeuronGenome.slopeProbability = 0.0
     NeuronGenome.forgettingProbability = 0.0
     NeuronGenome.hushProbability = 0.0
     NeuronGenome.synapseChangeProbability = 1.0
+    NeuronGenome.tickTimeMultiplierProbability = 0.0
 
     NeuronGenome.addSynapseProbability = 1.0
     NeuronGenome.deleteSynapseProbability = 0.0
 
-    nch1.mutate()
+    ng1.mutate()
 
-    assertEquals(1, nch1.synapses.size)
-    val s = nch1.synapses(0)
+    assertEquals(1, ng1.synapses.size)
+    val s = ng1.synapses(0)
     assertTrue(idSet.contains(s.neuronId))
 
     // a mutation should not result in adding a second synapse pointing to an already connected neuron
     // so if we mutate this neuron again, in 100% cases it should result in connections both to id1 and id2
-    nch1.mutate()
+    ng1.mutate()
 
-    assertEquals(2, nch1.synapses.size)
-    assertEquals(idSet, nch1.synapses.map(_.neuronId).toSet)
+    assertEquals(2, ng1.synapses.size)
+    assertEquals(idSet, ng1.synapses.map(_.neuronId).toSet)
 
-    val oldWayOfDoingCopy = NeuronGenome(nch1.data, accessMap)
-    val clone = nch1.clone
+    val oldWayOfDoingCopy = NeuronGenome(ng1.data, accessMap)
+    val clone = ng1.clone
     assertEquals(oldWayOfDoingCopy.data, clone.data)
     assertEquals(oldWayOfDoingCopy.accessMap, clone.accessMap)
 
     // nothing should change as there is no way to add another synapse
-    nch1.mutate()
+    ng1.mutate()
 
-    assertEquals(clone.data, nch1.data)
+    assertEquals(clone.data, ng1.data)
   }
 
   @Test def shoulDeleteSynapse(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
-    val nch1 = engine.tossForNeuron("id1", accessMap)
-    val nch2 = engine.tossForNeuron("id2", accessMap)
+    val ng1 = NeuronGenome.toss("id1", accessMap)
+    val ng2 = NeuronGenome.toss("id2", accessMap)
 
-    nch1.addSynapse(SynapseGenome("id2",Hush))
+    ng1.addSynapse(SynapseGenome("id2",Hush))
 
-    assertEquals(1, nch1.synapses.size)
+    assertEquals(1, ng1.synapses.size)
 
     NeuronGenome.thresholdProbability = 0.0
     NeuronGenome.slopeProbability = 0.0
     NeuronGenome.forgettingProbability = 0.0
     NeuronGenome.hushProbability = 0.0
     NeuronGenome.synapseChangeProbability = 1.0
+    NeuronGenome.tickTimeMultiplierProbability = 0.0
 
     NeuronGenome.addSynapseProbability = 0.0
     NeuronGenome.deleteSynapseProbability = 1.0
 
-    nch1.mutate()
-    assertEquals(0, nch1.synapses.size)
+    ng1.mutate()
+    assertEquals(0, ng1.synapses.size)
 
-    val clone = nch1.clone
+    val clone = ng1.clone
 
     // nothing should change as there is no more synapses to remove
-    nch1.mutate()
-    assertEquals(0, nch1.synapses.size)
-    assertEquals(clone.data, nch1.data)
+    ng1.mutate()
+    assertEquals(0, ng1.synapses.size)
+    assertEquals(clone.data, ng1.data)
   }
 
   @Test def shouldChangeSynapseWeight(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
-    val nch1 = engine.tossForNeuron("id1", accessMap)
-    val nch2 = engine.tossForNeuron("id2", accessMap)
+    val nch1 = NeuronGenome.toss("id1", accessMap)
+    val nch2 = NeuronGenome.toss("id2", accessMap)
 
     nch1.addSynapse(SynapseGenome("id2",Hush))
 
@@ -318,6 +323,7 @@ class EngineSuite extends JUnitSuite {
     NeuronGenome.forgettingProbability = 0.0
     NeuronGenome.hushProbability = 0.0
     NeuronGenome.synapseChangeProbability = 1.0
+    NeuronGenome.tickTimeMultiplierProbability = 0.0
 
     NeuronGenome.addSynapseProbability = 0.0
     NeuronGenome.deleteSynapseProbability = 0.0
@@ -344,52 +350,54 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldAddNeuron(): Unit ={
-    engine.neuronsRange = 2 to 2
-    engine.inputIds = List("in1")
-    engine.outputIds = List("out1")
-    engine.synapsesDensity = 2.5
-    engine.inputTickMultiplierRange = 2.0 <=> 2.0
+    NetGenome.neuronsRange = 2 to 2
+    NetGenome.synapsesDensity = 2.5
+    NetGenome.inputTickMultiplierRange = 2.0 <=> 2.0
 
-    val netChromosome = engine.tossForNet("net")
-    assertEquals(2, netChromosome.data.neurons.size)
-    assertNotEquals(None, netChromosome.find("in1"))
-    assertNotEquals(None, netChromosome.find("out1"))
+    val inputIds = List("in1")
+    val outputIds = List("out1")
+
+    val ng = NetGenome.toss("net", inputIds, outputIds)
+    assertEquals(2, ng.data.neurons.size)
+    assertNotEquals(None, ng.find("in1"))
+    assertNotEquals(None, ng.find("out1"))
 
     NetGenome.addNeuronProbability = 1.0
     NetGenome.deleteNeuronProbability = 0.0
     NetGenome.mutateNeuronProbability = 0.0
     NetGenome.inputTickMultiplierProbability = 0.0
 
-    netChromosome.mutate()
+    ng.mutate()
 
-    val middle1Opt = netChromosome.find("net2")
+    val middle1Opt = ng.find("net2")
     assertNotEquals(None, middle1Opt)
-    assertTrue(netChromosome.findSynapse("in1","net2") != None || netChromosome.findSynapse("out1","net2") != None)
-    assertNotEquals(None, netChromosome.findSynapse("net2","out1"))
+    assertTrue(ng.findSynapse("in1","net2") != None || ng.findSynapse("out1","net2") != None)
+    assertNotEquals(None, ng.findSynapse("net2","out1"))
   }
 
   @Test def shouldDeleteNeuron(): Unit ={
-    engine.neuronsRange = 3 to 3
-    engine.inputIds = List("in1")
-    engine.outputIds = List("out1")
-    engine.synapsesDensity = 2.5
-    engine.inputTickMultiplierRange = 2.0 <=> 2.0
+    NetGenome.neuronsRange = 3 to 3
+    NetGenome.synapsesDensity = 2.5
+    NetGenome.inputTickMultiplierRange = 2.0 <=> 2.0
 
-    val netChromosome = engine.tossForNet("net")
-    assertEquals(3, netChromosome.data.neurons.size)
-    assertNotEquals(None, netChromosome.find("in1"))
-    assertNotEquals(None, netChromosome.find("out1"))
+    val inputIds = List("in1")
+    val outputIds = List("out1")
+
+    val ng = NetGenome.toss("net", inputIds, outputIds)
+    assertEquals(3, ng.data.neurons.size)
+    assertNotEquals(None, ng.find("in1"))
+    assertNotEquals(None, ng.find("out1"))
 
     NetGenome.addNeuronProbability = 0.0
     NetGenome.deleteNeuronProbability = 1.0
     NetGenome.mutateNeuronProbability = 0.0
     NetGenome.inputTickMultiplierProbability = 0.0
 
-    netChromosome.mutate()
+    ng.mutate()
 
-    assertEquals(2, netChromosome.data.neurons.size)
-    assertNotEquals(None, netChromosome.find("in1"))
-    assertNotEquals(None, netChromosome.find("out1"))
+    assertEquals(2, ng.data.neurons.size)
+    assertNotEquals(None, ng.find("in1"))
+    assertNotEquals(None, ng.find("out1"))
   }
 
 

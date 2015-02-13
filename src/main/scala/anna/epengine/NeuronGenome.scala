@@ -124,7 +124,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
-    case Some(neuronId) => addSynapse(Engine().tossForSynapse(neuronId))
+    case Some(neuronId) => addSynapse(SynapseGenome.toss(neuronId))
     case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
   }
 
@@ -174,16 +174,16 @@ object NeuronGenome {
     NeuronGenome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
 
   def toss(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
-    val nch = NeuronGenome(
+    val ng = NeuronGenome(
       NeuronData(id, thresholdRange.from, slopeRange.from, HushValue(), DontForget, Nil, tickTimeMultiplierRange.from, NeuronType.STANDARD),
       accessMap
     )
-    nch.mutateThreshold()
-    nch.mutateSlope()
-    nch.mutateHushValue()
-    nch.mutateForgetting()
-    nch.mutateTickTimeMultiplier()
-    nch
+    ng.mutateThreshold()
+    ng.mutateSlope()
+    ng.mutateHushValue()
+    ng.mutateForgetting()
+    ng.mutateTickTimeMultiplier()
+    ng
   }
 
   implicit private def fromRange(r: Range):IntRange = IntRange(r)
