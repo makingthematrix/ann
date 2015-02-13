@@ -7,10 +7,10 @@ import anna.utils.DoubleRange._
  * Created by gorywoda on 04.01.15.
  */
 
-class NetChromosome(private var _data: NetData, val accessMap: Map[String, MutationAccess.Value]){
-  import NetChromosome._
+class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationAccess.Value]){
+  import NetGenome._
 
-  override def clone = NetChromosome(_data, accessMap)
+  override def clone = NetGenome(_data, accessMap)
 
   def id = _data.id
   def neurons = _data.neurons
@@ -46,14 +46,14 @@ class NetChromosome(private var _data: NetData, val accessMap: Map[String, Mutat
   }
 }
 
-object NetChromosome {
+object NetGenome {
   var addNeuronProbability = Probability(0.1)
   var deleteNeuronProbability = Probability(0.1)
   var mutateNeuronProbability = Probability(0.75)
   var inputTickMultiplierProbability = Probability(0.05)
   var inputTickMultiplierRange = 2.0 <=> 4.0
 
-  def apply(data: NetData, accessMap: Map[String, MutationAccess.Value]) = new NetChromosome(data, accessMap)
-  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetChromosome =
-    NetChromosome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
+  def apply(data: NetData, accessMap: Map[String, MutationAccess.Value]) = new NetGenome(data, accessMap)
+  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
+    NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
 }

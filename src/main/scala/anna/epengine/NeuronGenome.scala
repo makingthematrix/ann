@@ -10,8 +10,8 @@ import anna.logger.LOG._
 /**
  * Created by gorywoda on 28.12.14.
  */
-class NeuronChromosome(private var _data: NeuronData, private val accessMap: Map[String, MutationAccess.Value]) {
-  import NeuronChromosome._
+class NeuronGenome(private var _data: NeuronData, private val accessMap: Map[String, MutationAccess.Value]) {
+  import NeuronGenome._
 
   def id = _data.id
   def threshold = _data.threshold
@@ -23,8 +23,8 @@ class NeuronChromosome(private var _data: NeuronData, private val accessMap: Map
   def neuronType = _data.neuronType
   def data = _data
 
-  override def clone = NeuronChromosome(_data, accessMap)
-  def withAccessMap(accessMap: Map[String, MutationAccess.Value]) = NeuronChromosome(_data, accessMap)
+  override def clone = NeuronGenome(_data, accessMap)
+  def withAccessMap(accessMap: Map[String, MutationAccess.Value]) = NeuronGenome(_data, accessMap)
 
   def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 
@@ -37,7 +37,7 @@ class NeuronChromosome(private var _data: NeuronData, private val accessMap: Map
     (tickTimeMultiplierProbability, mutateTickTimeMultiplier _)
   )
 
-  def addSynapse(synapseChromosome: SynapseChromosome) = {
+  def addSynapse(synapseChromosome: SynapseGenome) = {
     _data = _data.withSynapses(synapseChromosome.data :: _data.synapses)
   }
 
@@ -129,14 +129,14 @@ class NeuronChromosome(private var _data: NeuronData, private val accessMap: Map
   }
 
   private def mutateSynapseWeight():Unit = getRandomSynapse(false) match {
-      case Some(synapse) => val synapseChromosome = SynapseChromosome(synapse)
+      case Some(synapse) => val synapseChromosome = SynapseGenome(synapse)
                             synapseChromosome.mutate()
                             _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
   }
 }
 
-object NeuronChromosome {
+object NeuronGenome {
   var thresholdRange = 0.0<=>0.9
   var slopeRange = 5.0<=>20.0
   var hushRange = 1 to 5
@@ -155,9 +155,9 @@ object NeuronChromosome {
   var addSynapseProbability = Probability(0.1)
   var removeSynapseProbability = Probability(0.1)
 
-  def apply(data: NeuronData):NeuronChromosome = new NeuronChromosome(data, Map())
-  def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronChromosome
-    = new NeuronChromosome(data, accessMap)
+  def apply(data: NeuronData):NeuronGenome = new NeuronGenome(data, Map())
+  def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronGenome
+    = new NeuronGenome(data, accessMap)
   def apply(id: String,
             threshold: Double,
             slope: Double,
@@ -165,11 +165,11 @@ object NeuronChromosome {
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
             tickTimeMultiplier: Double,
-            neuronType: NeuronType.Value):NeuronChromosome =
-    NeuronChromosome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
+            neuronType: NeuronType.Value):NeuronGenome =
+    NeuronGenome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
 
   def toss(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
-    val nch = NeuronChromosome(
+    val nch = NeuronGenome(
       NeuronData(id, thresholdRange.from, slopeRange.from, HushValue(), DontForget, Nil, tickTimeMultiplierRange.from, NeuronType.STANDARD),
       accessMap
     )

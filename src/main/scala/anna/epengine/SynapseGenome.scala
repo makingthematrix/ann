@@ -6,8 +6,8 @@ import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 /**
  * Created by gorywoda on 27.12.14.
  */
-class SynapseChromosome(private var _data: SynapseData){
-  import SynapseChromosome._
+class SynapseGenome(private var _data: SynapseData){
+  import SynapseGenome._
 
   def neuronId = _data.neuronId
   def weight = _data.weight
@@ -35,14 +35,14 @@ class SynapseChromosome(private var _data: SynapseData){
   }
 }
 
-object SynapseChromosome {
+object SynapseGenome {
   var weightRange = 0.01<=>1.0
   var hushProbability = Probability(0.05)
   var fullWeightProbability = Probability(0.2)
 
-  def apply(data: SynapseData):SynapseChromosome = new SynapseChromosome(data)
-  def apply(neuronId: String, weight: SynapseTrait):SynapseChromosome = SynapseChromosome(SynapseData(neuronId, weight))
-  def apply(neuronId: String, weight: Double):SynapseChromosome = apply(neuronId, SynapseWeight(weight))
+  def apply(data: SynapseData):SynapseGenome = new SynapseGenome(data)
+  def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = SynapseGenome(SynapseData(neuronId, weight))
+  def apply(neuronId: String, weight: Double):SynapseGenome = apply(neuronId, SynapseWeight(weight))
 
   def toss(neuronId: String) = {
     val nch = apply(neuronId, Hush)

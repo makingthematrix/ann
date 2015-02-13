@@ -44,7 +44,7 @@ class Engine {
 
   def tossForSynapse(id: String) = {
     val weight = synapseTraitToss()
-    SynapseChromosome(id, weight)
+    SynapseGenome(id, weight)
   }
 
   private def forgetTraitToss() = {
@@ -66,19 +66,19 @@ class Engine {
     val forgetting = forgetTraitToss()
     val tickTimeMultiplier = tickTimeMultiplierRange.choose(RandomNumber())
 
-    NeuronChromosome(
+    NeuronGenome(
       NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronType.STANDARD),
       accessMap
     )
   }
 
-  private def connect(from: NeuronChromosome, to:NeuronChromosome): Boolean = if(from.isConnectedTo(to.id)) false else {
+  private def connect(from: NeuronGenome, to:NeuronGenome): Boolean = if(from.isConnectedTo(to.id)) false else {
     val synapseChromosome = tossForSynapse(to.id)
     from.addSynapse(synapseChromosome)
     true
   }
 
-  private def chooseNeuron(neurons: List[NeuronChromosome], check:(NeuronChromosome)=>Boolean):Option[NeuronChromosome] = neurons match {
+  private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {
     case Nil => None
     case list => val index = (0 until list.size).choose(RandomNumber())
                  val n = list(index)
@@ -99,7 +99,7 @@ class Engine {
     // at least one synapse from each "in" to one of "middles"
     var synapsesCounter = 0
     ins.foreach( in => {
-      val check:(NeuronChromosome)=>Boolean = (n: NeuronChromosome) => { !in.isConnectedTo(n.id) }
+      val check:(NeuronGenome)=>Boolean = (n: NeuronGenome) => { !in.isConnectedTo(n.id) }
       val middleOpt = chooseNeuron(middles, check)
       if(middleOpt != None) {
         connect(in, middleOpt.get)
@@ -109,7 +109,7 @@ class Engine {
 
     // at least one synapse to each "out" from one of "middles"
     outs.foreach( out => {
-      val check:(NeuronChromosome)=>Boolean = (n: NeuronChromosome) => { !n.isConnectedTo(out.id) }
+      val check:(NeuronGenome)=>Boolean = (n: NeuronGenome) => { !n.isConnectedTo(out.id) }
       val middleOpt = chooseNeuron(middles, check)
       if(middleOpt != None) {
         connect(middleOpt.get, out)
@@ -139,7 +139,7 @@ class Engine {
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
     val inputTickMultiplier = inputTickMultiplierRange.choose(RandomNumber())
-    NetChromosome(id, ns.map(_.data), inputIds, inputTickMultiplier)
+    NetGenome(id, ns.map(_.data), inputIds, inputTickMultiplier)
   }
 }
 

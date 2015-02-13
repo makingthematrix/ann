@@ -82,7 +82,7 @@ class EngineSuite extends JUnitSuite {
     var dontForgetCount = 0
     var forgetAllCount = 0
     for (i <- 1 to totalCount) {
-      val neuronChromosome: NeuronChromosome = engine.tossForNeuron("id1")
+      val neuronChromosome: NeuronGenome = engine.tossForNeuron("id1")
       assertEquals("id1", neuronChromosome.id)
       assertTrue(engine.thresholdRange.contains(neuronChromosome.threshold))
       assertTrue(engine.slopeRange.contains(neuronChromosome.slope))
@@ -147,11 +147,11 @@ class EngineSuite extends JUnitSuite {
     val nch = engine.tossForNeuron("id1")
     val original = nch.threshold
 
-    NeuronChromosome.thresholdProbability = 1.0
-    NeuronChromosome.slopeProbability = 0.0
-    NeuronChromosome.forgettingProbability = 0.0
-    NeuronChromosome.hushProbability = 0.0
-    NeuronChromosome.synapseChangeProbability = 0.0
+    NeuronGenome.thresholdProbability = 1.0
+    NeuronGenome.slopeProbability = 0.0
+    NeuronGenome.forgettingProbability = 0.0
+    NeuronGenome.hushProbability = 0.0
+    NeuronGenome.synapseChangeProbability = 0.0
 
     nch.mutate()
 
@@ -163,11 +163,11 @@ class EngineSuite extends JUnitSuite {
     val nch = engine.tossForNeuron("id1")
     val original = nch.slope
 
-    NeuronChromosome.thresholdProbability = 0.0
-    NeuronChromosome.slopeProbability = 1.0
-    NeuronChromosome.forgettingProbability = 0.0
-    NeuronChromosome.hushProbability = 0.0
-    NeuronChromosome.synapseChangeProbability = 0.0
+    NeuronGenome.thresholdProbability = 0.0
+    NeuronGenome.slopeProbability = 1.0
+    NeuronGenome.forgettingProbability = 0.0
+    NeuronGenome.hushProbability = 0.0
+    NeuronGenome.synapseChangeProbability = 0.0
 
     nch.mutate()
 
@@ -180,30 +180,30 @@ class EngineSuite extends JUnitSuite {
     val nch = engine.tossForNeuron("id1")
     val original = nch.forgetting
 
-    NeuronChromosome.thresholdProbability = 0.0
-    NeuronChromosome.slopeProbability = 0.0
-    NeuronChromosome.forgettingProbability = 1.0
-    NeuronChromosome.hushProbability = 0.0
-    NeuronChromosome.synapseChangeProbability = 0.0
+    NeuronGenome.thresholdProbability = 0.0
+    NeuronGenome.slopeProbability = 0.0
+    NeuronGenome.forgettingProbability = 1.0
+    NeuronGenome.hushProbability = 0.0
+    NeuronGenome.synapseChangeProbability = 0.0
 
-    NeuronChromosome.forgetAllProbability = 1.0
-    NeuronChromosome.dontForgetProbability = 0.0
+    NeuronGenome.forgetAllProbability = 1.0
+    NeuronGenome.dontForgetProbability = 0.0
 
     nch.mutate()
 
     var mutated = nch.forgetting
     assertEquals(ForgetAll, mutated)
 
-    NeuronChromosome.forgetAllProbability = 0.0
-    NeuronChromosome.dontForgetProbability = 1.0
+    NeuronGenome.forgetAllProbability = 0.0
+    NeuronGenome.dontForgetProbability = 1.0
 
     nch.mutate()
 
     mutated = nch.forgetting
     assertEquals(DontForget, mutated)
 
-    NeuronChromosome.forgetAllProbability = 0.0
-    NeuronChromosome.dontForgetProbability = 0.0
+    NeuronGenome.forgetAllProbability = 0.0
+    NeuronGenome.dontForgetProbability = 0.0
 
     nch.mutate()
 
@@ -219,17 +219,17 @@ class EngineSuite extends JUnitSuite {
     val original = nch.hushValue
     assertEquals(HushValue(1), nch.hushValue)
 
-    NeuronChromosome.thresholdProbability = 0.0
-    NeuronChromosome.slopeProbability = 0.0
-    NeuronChromosome.forgettingProbability = 0.0
-    NeuronChromosome.hushProbability = 1.0
-    NeuronChromosome.synapseChangeProbability = 0.0
-    NeuronChromosome.hushRange = 2 to 5
+    NeuronGenome.thresholdProbability = 0.0
+    NeuronGenome.slopeProbability = 0.0
+    NeuronGenome.forgettingProbability = 0.0
+    NeuronGenome.hushProbability = 1.0
+    NeuronGenome.synapseChangeProbability = 0.0
+    NeuronGenome.hushRange = 2 to 5
 
     nch.mutate()
     val mutated = nch.hushValue
     assertNotEquals(original, mutated)
-    assertTrue(NeuronChromosome.hushRange.contains(mutated.iterations))
+    assertTrue(NeuronGenome.hushRange.contains(mutated.iterations))
   }
 
   @Test def shouldAddSynapse(): Unit ={
@@ -240,14 +240,14 @@ class EngineSuite extends JUnitSuite {
 
     assertEquals(0, nch1.synapses.size)
 
-    NeuronChromosome.thresholdProbability = 0.0
-    NeuronChromosome.slopeProbability = 0.0
-    NeuronChromosome.forgettingProbability = 0.0
-    NeuronChromosome.hushProbability = 0.0
-    NeuronChromosome.synapseChangeProbability = 1.0
+    NeuronGenome.thresholdProbability = 0.0
+    NeuronGenome.slopeProbability = 0.0
+    NeuronGenome.forgettingProbability = 0.0
+    NeuronGenome.hushProbability = 0.0
+    NeuronGenome.synapseChangeProbability = 1.0
 
-    NeuronChromosome.addSynapseProbability = 1.0
-    NeuronChromosome.removeSynapseProbability = 0.0
+    NeuronGenome.addSynapseProbability = 1.0
+    NeuronGenome.removeSynapseProbability = 0.0
 
     nch1.mutate()
 
@@ -262,7 +262,7 @@ class EngineSuite extends JUnitSuite {
     assertEquals(2, nch1.synapses.size)
     assertEquals(idSet, nch1.synapses.map(_.neuronId).toSet)
 
-    val oldWayOfDoingCopy = NeuronChromosome(nch1.data, accessMap)
+    val oldWayOfDoingCopy = NeuronGenome(nch1.data, accessMap)
     val clone = nch1.clone
     assertEquals(oldWayOfDoingCopy.data, clone.data)
     assertEquals(oldWayOfDoingCopy.accessMap, clone.accessMap)
@@ -279,18 +279,18 @@ class EngineSuite extends JUnitSuite {
     val nch1 = engine.tossForNeuron("id1", accessMap)
     val nch2 = engine.tossForNeuron("id2", accessMap)
 
-    nch1.addSynapse(SynapseChromosome("id2",Hush))
+    nch1.addSynapse(SynapseGenome("id2",Hush))
 
     assertEquals(1, nch1.synapses.size)
 
-    NeuronChromosome.thresholdProbability = 0.0
-    NeuronChromosome.slopeProbability = 0.0
-    NeuronChromosome.forgettingProbability = 0.0
-    NeuronChromosome.hushProbability = 0.0
-    NeuronChromosome.synapseChangeProbability = 1.0
+    NeuronGenome.thresholdProbability = 0.0
+    NeuronGenome.slopeProbability = 0.0
+    NeuronGenome.forgettingProbability = 0.0
+    NeuronGenome.hushProbability = 0.0
+    NeuronGenome.synapseChangeProbability = 1.0
 
-    NeuronChromosome.addSynapseProbability = 0.0
-    NeuronChromosome.removeSynapseProbability = 1.0
+    NeuronGenome.addSynapseProbability = 0.0
+    NeuronGenome.removeSynapseProbability = 1.0
 
     nch1.mutate()
     assertEquals(0, nch1.synapses.size)
@@ -309,33 +309,33 @@ class EngineSuite extends JUnitSuite {
     val nch1 = engine.tossForNeuron("id1", accessMap)
     val nch2 = engine.tossForNeuron("id2", accessMap)
 
-    nch1.addSynapse(SynapseChromosome("id2",Hush))
+    nch1.addSynapse(SynapseGenome("id2",Hush))
 
     assertEquals(1, nch1.synapses.size)
 
-    NeuronChromosome.thresholdProbability = 0.0
-    NeuronChromosome.slopeProbability = 0.0
-    NeuronChromosome.forgettingProbability = 0.0
-    NeuronChromosome.hushProbability = 0.0
-    NeuronChromosome.synapseChangeProbability = 1.0
+    NeuronGenome.thresholdProbability = 0.0
+    NeuronGenome.slopeProbability = 0.0
+    NeuronGenome.forgettingProbability = 0.0
+    NeuronGenome.hushProbability = 0.0
+    NeuronGenome.synapseChangeProbability = 1.0
 
-    NeuronChromosome.addSynapseProbability = 0.0
-    NeuronChromosome.removeSynapseProbability = 0.0
+    NeuronGenome.addSynapseProbability = 0.0
+    NeuronGenome.removeSynapseProbability = 0.0
 
-    SynapseChromosome.fullWeightProbability = 1.0
-    SynapseChromosome.hushProbability = 0.0
+    SynapseGenome.fullWeightProbability = 1.0
+    SynapseGenome.hushProbability = 0.0
 
     nch1.mutate()
     assertEquals(SynapseWeight(1.0), nch1.getSynapse("id2").weight)
 
-    SynapseChromosome.fullWeightProbability = 0.0
-    SynapseChromosome.hushProbability = 1.0
+    SynapseGenome.fullWeightProbability = 0.0
+    SynapseGenome.hushProbability = 1.0
 
     nch1.mutate()
     assertEquals(Hush, nch1.getSynapse("id2").weight)
 
-    SynapseChromosome.fullWeightProbability = 0.0
-    SynapseChromosome.hushProbability = 0.0
+    SynapseGenome.fullWeightProbability = 0.0
+    SynapseGenome.hushProbability = 0.0
 
     nch1.mutate()
     val weight = nch1.getSynapse("id2").weight
@@ -355,10 +355,10 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(None, netChromosome.find("in1"))
     assertNotEquals(None, netChromosome.find("out1"))
 
-    NetChromosome.addNeuronProbability = 1.0
-    NetChromosome.deleteNeuronProbability = 0.0
-    NetChromosome.mutateNeuronProbability = 0.0
-    NetChromosome.inputTickMultiplierProbability = 0.0
+    NetGenome.addNeuronProbability = 1.0
+    NetGenome.deleteNeuronProbability = 0.0
+    NetGenome.mutateNeuronProbability = 0.0
+    NetGenome.inputTickMultiplierProbability = 0.0
 
     netChromosome.mutate()
 
