@@ -70,6 +70,7 @@ case class NeuronData(
     pretty(render(json))
   }
 
+  def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 }
 
 object NeuronData {

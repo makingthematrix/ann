@@ -15,6 +15,7 @@ class Tester(tests: List[NetTest]){
 
     var result = 0.0
     tests.foreach( test => {
+      net.removeAllTriggers()
       net.reset()
       result += test.run(in, net)
     })

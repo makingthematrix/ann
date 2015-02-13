@@ -21,6 +21,7 @@ class Net(val id: String) extends Actor {
     case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
     case SignalSeq(in) => signal(in)
     case Reset => resetBuffer()
+    case RemoveAllTriggers => removeTriggers()
   }
   
   def shutdowning(caller: ActorRef): Receive = {
@@ -32,14 +33,14 @@ class Net(val id: String) extends Actor {
       }
   }
 
-  def resetting(caller: ActorRef, waitingFor: Set[String]): Receive = {
+  def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
     case Success(id) =>
-      debug(this, s"received Success in resetting from $id, still waitingFor: $waitingFor")
+      if(title.nonEmpty) debug(this, s"received Success in $title from $id, still waitingFor: $waitingFor")
       val newWaitingFor = waitingFor - id
       if(newWaitingFor.isEmpty){
         caller ! Success(id)
         context.become(receive)
-      } else context.become(resetting(caller, newWaitingFor))
+      } else context.become(waiting(caller, newWaitingFor, title))
   }
   
   private def inputs = ins.toList
@@ -62,8 +63,14 @@ class Net(val id: String) extends Actor {
 
   private def resetBuffer() = {
     debug(s"reset buffer for $id")
-    context.become( resetting(sender, neurons.map(_.id).toSet) )
+    context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
+  }
+
+  private def removeTriggers() = {
+    debug(s"removing triggers for $id")
+    context.become( waiting(sender, neurons.map(_.id).toSet, "removing triggers") )
+    neurons.foreach(_ ! RemoveAllTriggers)
   }
   
   private def add(id: String, ref: ActorRef) = {

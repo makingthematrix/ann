@@ -8,11 +8,9 @@ import anna.utils.DoubleRange._
 import anna.utils.IntRange
 import anna.logger.LOG._
 
-import scala.util.Random
-
 object MutationAccess extends Enumeration {
   type MutationAccess = Value
-  val FULL, DONTDELETE, NONE = Value
+  val FULL, DONTDELETE, DONTMUTATE = Value
 }
 
 class Engine {
@@ -26,7 +24,7 @@ class Engine {
   var forgettingRange: DoubleRange = 0.1<=>0.9
   var dontForgetProbability: Probability = 0.75
   var forgetAllProbability: Probability = 0.05
-  var tickTimeMultiplierRange: DoubleRange = 0.5<=>2.0
+  var tickTimeMultiplierRange: DoubleRange = 2.0<=>2.0
 
   var neuronsRange:Range = 5 to 10
   var inputIds = List[String]()
@@ -49,7 +47,7 @@ class Engine {
 
   private def forgetTraitToss() = {
     val forgetValueProbability: Probability = 1.0 - dontForgetProbability - forgetAllProbability
-    assert((0.0<=>1.0).contains(forgetValueProbability),s"The forget value probability does not add up. dontForgetProb=${dontForgetProbability}, forgetAllProb=${forgetAllProbability}")
+    assert((0.0<=>1.0).contains(forgetValueProbability),s"The forget value probability does not add up. dontForgetProb=$dontForgetProbability, forgetAllProb=$forgetAllProbability")
     val toss = RandomNumber()
     if(toss < dontForgetProbability) DontForget
     else if(toss <= (dontForgetProbability + forgetValueProbability)) ForgetValue(forgettingRange.choose(RandomNumber()))
@@ -80,8 +78,7 @@ class Engine {
 
   private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {
     case Nil => None
-    case list => val index = (0 until list.size).choose(RandomNumber())
-                 val n = list(index)
+    case list => val n = list(RandomNumber(list.size))
                  if(check(n)) Some(n) else chooseNeuron(list.filter(_.id != n.id), check)
   }
 
@@ -93,7 +90,7 @@ class Engine {
 
     val ins = inputIds.map( tossForNeuron(_) )
     val outs = outputIds.map( tossForNeuron(_) )
-    val middles = (for(i <- 1 to neuronsSize - ins.size - outs.size) yield( tossForNeuron(id+"_"+i) )).toList
+    val middles = ( for(i <- 1 to neuronsSize - ins.size - outs.size) yield tossForNeuron(id+"_"+i) ).toList
     val ns = ins ++ middles ++ outs
 
     // at least one synapse from each "in" to one of "middles"
@@ -139,7 +136,10 @@ class Engine {
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
     val inputTickMultiplier = inputTickMultiplierRange.choose(RandomNumber())
-    NetGenome(id, ns.map(_.data), inputIds, inputTickMultiplier)
+
+    val netData = NetData(id, ns.map(_.data), inputIds, inputTickMultiplier)
+    val accessMap = (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ outputIds.map(_ -> MutationAccess.DONTDELETE)).toMap
+    NetGenome(netData, accessMap)
   }
 }
 

@@ -10,7 +10,7 @@ import anna.logger.LOG._
 /**
  * Created by gorywoda on 28.12.14.
  */
-class NeuronGenome(private var _data: NeuronData, private val accessMap: Map[String, MutationAccess.Value]) {
+class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess.Value]) {
   import NeuronGenome._
 
   def id = _data.id
@@ -26,7 +26,7 @@ class NeuronGenome(private var _data: NeuronData, private val accessMap: Map[Str
   override def clone = NeuronGenome(_data, accessMap)
   def withAccessMap(accessMap: Map[String, MutationAccess.Value]) = NeuronGenome(_data, accessMap)
 
-  def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
+  def isConnectedTo(id: String) = _data.isConnectedTo(id)
 
   def mutate() = Probability.performRandom(
     (thresholdProbability, mutateThreshold _),
@@ -41,6 +41,11 @@ class NeuronGenome(private var _data: NeuronData, private val accessMap: Map[Str
     _data = _data.withSynapses(synapseChromosome.data :: _data.synapses)
   }
 
+  def deleteSynapse(neuronId: String) = {
+    debug(this, s"deleteSynapse, neuronId: $neuronId")
+    _data = _data.withSynapses(_data.synapses.filterNot(_.neuronId == neuronId))
+  }
+  
   def getSynapse(neuronId: String) = _data.synapses.find( _.neuronId == neuronId ) match {
     case Some(synapse) => synapse
     case None => throw new IllegalArgumentException(s"There is no synapse connecting ${_data.id} with $neuronId")
@@ -103,19 +108,19 @@ class NeuronGenome(private var _data: NeuronData, private val accessMap: Map[Str
   }
 
   private def getRandomSynapse(fullAccess: Boolean) = {
+    debug(this,s"getRandomSynapses, fullAccess:$fullAccess")
     val synapses = if(fullAccess)
       _data.synapses.filter(sd => access(sd.neuronId) == MutationAccess.FULL)
     else _data.synapses
     if(_data.synapses.nonEmpty) {
-      val randomIndex = (0 until synapses.size).choose(RandomNumber())
-      Some(synapses(randomIndex))
+      Some(synapses(RandomNumber(synapses.size)))
     } else None
   }
 
   private def mutateSynapse():Unit = Probability.performRandom(
     (addSynapseProbability, addRandomSynapse _),
-    (removeSynapseProbability, removeRandomSynapse _),
-    (1.0 - addSynapseProbability - removeSynapseProbability, mutateSynapseWeight _)
+    (deleteSynapseProbability, deleteRandomSynapse _),
+    (1.0 - addSynapseProbability - deleteSynapseProbability, mutateSynapseWeight _)
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
@@ -123,8 +128,8 @@ class NeuronGenome(private var _data: NeuronData, private val accessMap: Map[Str
     case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
   }
 
-  private def removeRandomSynapse():Unit = getRandomSynapse(true) match {
-    case Some(synapse) => _data = _data.withSynapses(_data.synapses.filterNot(_.neuronId == synapse.neuronId))
+  private def deleteRandomSynapse():Unit = getRandomSynapse(true) match {
+    case Some(synapse) => deleteSynapse(synapse.neuronId)
     case None => debug(this, s"Trying to remove a synapse from $id but it's not allowed")
   }
 
@@ -153,7 +158,7 @@ object NeuronGenome {
   var tickTimeMultiplierProbability = Probability(0.05)
 
   var addSynapseProbability = Probability(0.1)
-  var removeSynapseProbability = Probability(0.1)
+  var deleteSynapseProbability = Probability(0.1)
 
   def apply(data: NeuronData):NeuronGenome = new NeuronGenome(data, Map())
   def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronGenome

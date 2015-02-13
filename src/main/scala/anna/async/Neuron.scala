@@ -116,6 +116,11 @@ class Neuron(
     context.become(receive)
     answer(Success(id))
   }
+
+  private def removeTriggers(): Unit ={
+    removeAllTriggers()
+    answer(Success(id))
+  }
   
   def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
   
@@ -163,6 +168,7 @@ class Neuron(
       case RemoveHushRequestedTrigger(triggerId) =>
         removeHushRequested(triggerId)
         sender ! Success(triggerId)
+      case RemoveAllTriggers => removeTriggers()
       case Reset => reset()
   }
   
