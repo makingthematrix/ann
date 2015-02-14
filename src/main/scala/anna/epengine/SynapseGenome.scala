@@ -30,7 +30,7 @@ class SynapseGenome(private var _data: SynapseData){
   private def mutateWeight():Unit = {
     _data = _data.weight match {
       case SynapseWeight(avoidWeight) => _data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
-      case _ => _data.withWeight(SynapseWeight(weightRange.choose(RandomNumber())))
+      case _ => _data.withWeight(SynapseWeight(RandomNumber(weightRange)))
     }
   }
 }

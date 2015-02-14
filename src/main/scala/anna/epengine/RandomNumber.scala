@@ -1,6 +1,6 @@
 package anna.epengine
 
-import anna.utils.IntRange
+import anna.utils.{DoubleRange, IntRange}
 
 import scala.util.Random
 
@@ -18,6 +18,9 @@ object RandomNumber {
   }
 
   def apply():Double = rand().nextDouble()
-  def apply(start:Int, end: Int):Int = IntRange(start until end).choose(apply())
+  def apply(start:Int, end: Int):Int = apply(IntRange(start until end))
+  def apply(range: IntRange):Int = range.choose(apply())
+  def apply(range: DoubleRange):Double = range.choose(apply())
   def apply(end: Int):Int = apply(0, end)
+  def apply[T](list: List[T]):T = list(apply(list.size))
 }

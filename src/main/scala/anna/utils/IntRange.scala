@@ -9,3 +9,7 @@ case class IntRange(r: Range) extends AnyVal {
     math.round(x *(end - r.start) + r.start).toInt
   }
 }
+
+object IntRange {
+  implicit def fromRange(r: Range):IntRange = IntRange(r)
+}

@@ -1,7 +1,5 @@
 package anna.epengine
 
-import anna.logger.LOG._
-
 class Probability private (val value: Double) extends AnyVal {
   def +(other: Probability) = Probability(value + other.value)
   def -(other: Probability) = Probability(value - other.value)

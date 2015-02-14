@@ -42,7 +42,6 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   def deleteSynapse(neuronId: String) = {
-    debug(this, s"deleteSynapse, neuronId: $neuronId")
     _data = _data.withSynapses(_data.synapses.filterNot(_.neuronId == neuronId))
   }
   
@@ -52,15 +51,15 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def mutateThreshold():Unit = {
-    _data = _data.withThreshold(thresholdRange.choose(RandomNumber()))
+    _data = _data.withThreshold(RandomNumber(thresholdRange))
   }
 
   private def mutateSlope():Unit = {
-    _data = _data.withSlope(slopeRange.choose(RandomNumber()))
+    _data = _data.withSlope(RandomNumber(slopeRange))
   }
 
   private def mutateHushValue():Unit = {
-    _data = _data.withHushValue(HushValue(hushRange.choose(RandomNumber())))
+    _data = _data.withHushValue(HushValue(RandomNumber(hushRange)))
   }
 
   private def mutateForgetting():Unit = Probability.performRandom(
@@ -71,7 +70,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
 
 
   private def mutateTickTimeMultiplier():Unit = {
-    _data = _data.withTickTimeMultiplier(tickTimeMultiplierRange.choose(RandomNumber()))
+    _data = _data.withTickTimeMultiplier(RandomNumber(tickTimeMultiplierRange))
   }
 
   private def setDontForget(): Unit ={
@@ -79,7 +78,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def mutateForgetValue(): Unit ={
-    _data = _data.withForgetting(ForgetValue(forgettingRange.choose(RandomNumber())))
+    _data = _data.withForgetting(ForgetValue(RandomNumber(forgettingRange)))
   }
 
   private def setForgetAll(): Unit ={
@@ -101,20 +100,14 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
       t.filterNot(connectedSet.contains(_))
     } else t
 
-    if(neuronIds.nonEmpty) {
-      val randomIndex = (0 until neuronIds.size).choose(RandomNumber())
-      Some(neuronIds(randomIndex))
-    } else None
+    if(neuronIds.nonEmpty) Some(RandomNumber(neuronIds)) else None
   }
 
   private def getRandomSynapse(fullAccess: Boolean) = {
-    debug(this,s"getRandomSynapses, fullAccess:$fullAccess")
     val synapses = if(fullAccess)
       _data.synapses.filter(sd => access(sd.neuronId) == MutationAccess.FULL)
     else _data.synapses
-    if(_data.synapses.nonEmpty) {
-      Some(synapses(RandomNumber(synapses.size)))
-    } else None
+    if(_data.synapses.nonEmpty) Some(RandomNumber(synapses)) else None
   }
 
   private def mutateSynapse():Unit = Probability.performRandom(
@@ -186,5 +179,4 @@ object NeuronGenome {
     ng
   }
 
-  implicit private def fromRange(r: Range):IntRange = IntRange(r)
 }
