@@ -56,19 +56,19 @@ class Net(val id: String) extends Actor {
   }
 
   private def shutdown() = {
-    debug(s"shutdown for $id")
+    debug(this, s"shutdown for $id")
     context.become( shutdowning(sender) )
     neurons.foreach(_ ! NeuronShutdown)
   }
 
   private def resetBuffer() = {
-    debug(s"reset buffer for $id")
+    debug(this, s"reset buffer for $id")
     context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
   }
 
   private def removeTriggers() = {
-    debug(s"removing triggers for $id")
+    debug(this, s"removing triggers for $id")
     context.become( waiting(sender, neurons.map(_.id).toSet, "removing triggers") )
     neurons.foreach(_ ! RemoveAllTriggers)
   }

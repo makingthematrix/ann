@@ -22,7 +22,8 @@ object LOG {
   private val trackedClasses = mutable.Set[String]()
   
   def track(c: Class[_]) = {
-    trackedClasses += c.getName
+    val className = c.getName()
+    trackedClasses += (if(className.endsWith("$")) className.substring(0,className.size-1) else className)
     trackAll = false
   }
   

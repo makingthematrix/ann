@@ -1,7 +1,8 @@
 package anna.epengine
 
+import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
+import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
 import anna.utils.DoubleRange._
 
@@ -9,6 +10,10 @@ import anna.utils.DoubleRange._
  * Created by gorywoda on 16.02.15.
  */
 class NetGenomeSuite extends JUnitSuite {
+  @Before def before() {
+    LOG.addLogToStdout()
+  }
+
   @Test def shouldAddNeuron(): Unit ={
     NetGenome.neuronsRange = 2 to 2
     NetGenome.synapsesDensity = 2.5
