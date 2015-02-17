@@ -64,6 +64,16 @@ case class NetData(id: String,
       ("inputTickMultiplier" -> inputTickMultiplier)
     pretty(render(json))
   }
+
+  def filter(ids: Seq[String]) = {
+    val idsSet = ids.toSet
+    neurons.filter( n => idsSet.contains(n.id) )
+  }
+
+  def filterNot(ids: Seq[String]) = {
+    val idsSet = ids.toSet
+    neurons.filterNot( n => idsSet.contains(n.id) )
+  }
 }
 
 object NetData {

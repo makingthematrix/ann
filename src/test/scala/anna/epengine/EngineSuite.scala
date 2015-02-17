@@ -37,4 +37,48 @@ class EngineSuite extends JUnitSuite {
     val results = Tester(List(t1)).test(poll)
     results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
   }
+
+  @Test def shouldCrossTwoGenomes(): Unit ={
+    val poll = GenomePoll("net", inputIds, outputIds, 2)
+    val net1G = poll.genomes(0)
+    println(s"net1G size: ${net1G.data.neurons.size}")
+    val net1Middle = net1G.filterNot(inputIds ++ outputIds)
+    assertTrue(net1Middle.nonEmpty)
+    val net2G = poll.genomes(1)
+    println(s"net2G size: ${net2G.data.neurons.size}")
+    val net2Middle = net2G.filterNot(inputIds ++ outputIds)
+    assertTrue(net2Middle.nonEmpty)
+
+    val (net12G, net21G) = NetGenome.cross(net1G, net2G)
+
+    // has the same input neurons
+    assertEquals(net12G.inputs, inputIds)
+    // has the same output neurons
+    assertFalse(outputIds.exists( net12G.find(_) == None ))
+    // has non-empty middle layer
+    val net12Middle = net12G.filterNot(inputIds ++ outputIds)
+    assertTrue(net12Middle.nonEmpty)
+
+    // has the same input neurons
+    assertEquals(net21G.inputs, inputIds)
+    // has the same output neurons
+    assertFalse(outputIds.exists( net21G.find(_) == None ))
+    // has non-empty middle layer
+    val net21Middle = net21G.filterNot(inputIds ++ outputIds)
+    assertTrue(net21Middle.nonEmpty)
+
+    // there should be no shared neurons
+    assertEquals(Nil, net12Middle.map(_.id).intersect(net21Middle.map(_.id)))
+
+    val net1xnet12 = net1Middle.map(_.id).intersect(net12Middle.map(_.id))
+    val net2xnet12 = net2Middle.map(_.id).intersect(net12Middle.map(_.id))
+    assertEquals(Nil, net1xnet12.intersect(net2xnet12))
+
+    val net1xnet21 = net1Middle.map(_.id).intersect(net21Middle.map(_.id))
+    val net2xnet21 = net2Middle.map(_.id).intersect(net21Middle.map(_.id))
+    assertEquals(Nil, net1xnet21.intersect(net2xnet21))
+
+    assertEquals(net1Middle.toSet, (net1xnet12 ++ net1xnet21).toSet)
+    assertEquals(net2Middle.toSet, (net2xnet12 ++ net2xnet21).toSet)
+  }
 }

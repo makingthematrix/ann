@@ -17,6 +17,7 @@ object Utils {
   def assert(condition: => Boolean, str: String) = if(!condition) fail(str)
   
   def minmax(min: Double, v: Double, max: Double) = Math.max(min,Math.min(max,v))
+  def minmax(min: Int, v: Int, max: Int) = Math.max(min,Math.min(max,v))
   
   /* @todo: This is weird, but it seems there has to be a sharp boundary ( <= and >= instead of < and >), 
   *  because it somehow rounds values >0.92 to 1.0 which is needed by the dotLineNet.

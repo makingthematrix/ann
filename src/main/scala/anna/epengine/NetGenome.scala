@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.data.{NeuronData, NetData}
-import anna.utils.IntRange
+import anna.utils.{Utils, IntRange}
 import anna.utils.DoubleRange._
 import anna.logger.LOG._
 
@@ -25,6 +25,8 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   def inputTickMultiplier = _data.inputTickMultiplier
   def data = _data
   def find(id: String) = _data.neurons.find( _.id == id )
+  def filter(ids: Seq[String]) = _data.filter(ids)
+  def filterNot(ids: Seq[String]) = _data.filterNot(ids)
 
   def findSynapse(from: String, to: String) = find(from) match {
     case Some(n) => n.synapses.find( _.neuronId == to )
@@ -159,6 +161,46 @@ object NetGenome {
     val accessMap = (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ outputIds.map(_ -> MutationAccess.DONTDELETE)).toMap
     NetGenome(netData, accessMap)
   }
+
+  def cross(gen1: NetGenome, gen2: NetGenome):(NetGenome, NetGenome) = {
+    val constants1 = gen1.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.FULL)
+    val constants2 = gen2.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.FULL)
+    assert(constants1.map(_.id).toSet == constants2.map(_.id).toSet, s"Unable to cross ${gen1.id} with ${gen2.id}: The list of constant neurons differ, they are respectively ${constants1.map(_.id).sorted} and ${constants2.map(_.id).sorted}")
+
+    if (constants1.size == gen1.neurons.size && constants2.size == gen2.neurons.size)
+      (gen1, gen2)
+    else
+      cross_p(gen1, gen2)
+  }
+
+  private def splitIdsRandomly(oldList: List[String], idsToDraw: Int, newList: List[String] = Nil):(List[String],List[String]) = idsToDraw match {
+    case 0 => (newList, oldList)
+    case n =>
+      val id = RandomNumber.apply(oldList)
+      (id :: newList, oldList - id)
+  }
+
+  private def cross_p(gen1: NetGenome, gen2: NetGenome):(NetGenome, NetGenome) = {
+    val variables1 = gen1.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
+    val variables2 = gen2.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
+
+    // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
+    // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
+    // 2. create a set of unique neuronIds
+    val neuronIds = (variables1.map(n => if(n.id.startsWith(gen1.id)) n.id.substring(gen1.id.length) else n.id) ++
+                     variables2.map(n => if(n.id.startsWith(gen2.id)) n.id.substring(gen2.id.length) else n.id)).toSet
+
+    // 3. choose the number of neuronIds to draw from that set: it's between 1 and the size of the smaller net - 1
+    val minPart = Math.min(variables1.size, variables2.size) - 1
+    val idsToDraw = if(minPart <= 1) 1 else RandomNumber(1, minPart)
+    // 4. draw randomly neuronIds, splitting the set into two
+    // 5. constants + neurons with ids matching the first set is the new net1, constants + neurons with ids matching the second set is the new net2
+    // 6. rename the variable neurons so their netId match their new nets
+
+    (gen1, gen2)
+  }
+
+
 
   private def connect(from: NeuronGenome, to:NeuronGenome): Boolean = if(from.isConnectedTo(to.id)) false else {
     from.addSynapse(SynapseGenome.toss(to.id))
