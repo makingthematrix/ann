@@ -1,9 +1,11 @@
 package anna.epengine
 
 import anna.data.{NeuronData, NetData}
-import anna.utils.{Utils, IntRange}
+import anna.utils.{RandomNumber, Utils, IntRange}
 import anna.utils.DoubleRange._
 import anna.logger.LOG._
+
+import scala.annotation.tailrec
 
 /**
  * Created by gorywoda on 04.01.15.
@@ -33,6 +35,10 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     case None => None
   }
 
+  def fullAccessNeurons() = neurons.filter(n => accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
+  def mutableNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.DONTMUTATE)
+  def notFullAccessNeurons() = neurons.filterNot(n => accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
+
   def mutate() = Probability.performRandom(
     (addNeuronProbability, addNeuron _),
     (deleteNeuronProbability, deleteNeuron _),
@@ -55,7 +61,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
   private def addNeuron(): Unit ={
     // 1. create a new neuron with name id+neurons.size and according to NeuronGenome specifications
-    val newNG = NeuronGenome.toss(id + neurons.size, accessMap)
+    val newNG = NeuronGenome.toss(neuronId(id,neurons.size), accessMap)
     // 2. create exactly one synapse from the set of all neurons (a synapse from an output neuron is also ok)
     val oldNG = NeuronGenome(RandomNumber(neurons), accessMap)
     oldNG.addSynapse(SynapseGenome.toss(newNG.id))
@@ -95,8 +101,6 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     _data = _data.withInputTickMultiplier(RandomNumber(inputTickMultiplierRange))
   }
 
-  private def fullAccessNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
-  private def mutableNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.DONTMUTATE)
 }
 
 object NetGenome {
@@ -116,12 +120,16 @@ object NetGenome {
   def toss(netId: String, inputIds: List[String], outputIds: List[String]) = {
     assert(synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
     assert(inputIds.size + outputIds.size <= neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${neuronsRange.end}")
-    val r = if(inputIds.size + outputIds.size > neuronsRange.start) (inputIds.size + outputIds.size) to neuronsRange.end else neuronsRange
+
+    val accessMap = (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ outputIds.map(_ -> MutationAccess.DONTDELETE)).toMap
+
+    val r = if(inputIds.size + outputIds.size > neuronsRange.start) (inputIds.size + outputIds.size) to neuronsRange.end
+            else neuronsRange
     val neuronsSize = RandomNumber(r)
 
     val ins = inputIds.map( NeuronGenome.toss(_) )
     val outs = outputIds.map( NeuronGenome.toss(_) )
-    val middles = ( for(i <- 1 to neuronsSize - ins.size - outs.size) yield NeuronGenome.toss(netId+"_"+i) ).toList
+    val middles = ( for(i <- 1 to neuronsSize - ins.size - outs.size) yield NeuronGenome.toss(neuronId(netId,i), accessMap)).toList
     val ns = ins ++ middles ++ outs
 
     // at least one synapse from each "in" to one of "middles"
@@ -158,13 +166,12 @@ object NetGenome {
     val inputTickMultiplier = RandomNumber(inputTickMultiplierRange)
 
     val netData = NetData(netId, ns.map(_.data), inputIds, inputTickMultiplier)
-    val accessMap = (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ outputIds.map(_ -> MutationAccess.DONTDELETE)).toMap
     NetGenome(netData, accessMap)
   }
 
   def cross(gen1: NetGenome, gen2: NetGenome):(NetGenome, NetGenome) = {
-    val constants1 = gen1.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.FULL)
-    val constants2 = gen2.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.FULL)
+    val constants1 = gen1.notFullAccessNeurons()
+    val constants2 = gen2.notFullAccessNeurons()
     assert(constants1.map(_.id).toSet == constants2.map(_.id).toSet, s"Unable to cross ${gen1.id} with ${gen2.id}: The list of constant neurons differ, they are respectively ${constants1.map(_.id).sorted} and ${constants2.map(_.id).sorted}")
 
     if (constants1.size == gen1.neurons.size && constants2.size == gen2.neurons.size)
@@ -173,34 +180,49 @@ object NetGenome {
       cross_p(gen1, gen2)
   }
 
-  private def splitIdsRandomly(oldList: List[String], idsToDraw: Int, newList: List[String] = Nil):(List[String],List[String]) = idsToDraw match {
-    case 0 => (newList, oldList)
-    case n =>
-      val id = RandomNumber.apply(oldList)
-      (id :: newList, oldList - id)
+  def neuronId(netId: String, index: Int): String = s"${netId}_$index"
+  def neuronId(id: String): String = if(id.contains("_")) id.substring(id.indexOf("_")+1) else id
+
+  def replaceNetId(oldNeuronId: String, newNetId: String): String =
+    if(oldNeuronId.contains("_")) newNetId + "_" + oldNeuronId.substring(oldNeuronId.indexOf("_")+1)
+    else oldNeuronId
+
+  def createNewGenome(oldGenome: NetGenome,
+                              variables: List[NeuronData],
+                              chosenIds: Set[String],
+                              netIds: List[String]) = {
+    // 5. constants + neurons with ids matching the first set is the new net1, constants + neurons with ids matching the second set is the new net2
+    val newVariables = variables.filter( n => chosenIds.contains(n.id) )
+    // 6. rename full access neurons so their netId match their new nets
+    val newNeurons = oldGenome.notFullAccessNeurons() ++ newVariables.map( n => n.withId(replaceNetId(n.id, oldGenome.id)) )
+    // 7. compose new NetData
+    val newNet = oldGenome.data.withNeurons(newNeurons)
+    // 8. "trim" the net, ie. remove synapses which lead to non-existing neurons and full access neurons which do not receive any input
+
+    NetGenome(newNet, oldGenome.accessMap)
   }
 
   private def cross_p(gen1: NetGenome, gen2: NetGenome):(NetGenome, NetGenome) = {
-    val variables1 = gen1.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
-    val variables2 = gen2.neurons.filter(n => gen1.accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
+    val variables1 = gen1.fullAccessNeurons()
+    val variables2 = gen2.fullAccessNeurons()
+    val allVariables = variables1 ++ variables2
+    val netIds = List(gen1.id, gen2.id)
 
     // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
     // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
     // 2. create a set of unique neuronIds
-    val neuronIds = (variables1.map(n => if(n.id.startsWith(gen1.id)) n.id.substring(gen1.id.length) else n.id) ++
-                     variables2.map(n => if(n.id.startsWith(gen2.id)) n.id.substring(gen2.id.length) else n.id)).toSet
+    val neuronIds = allVariables.map(n => neuronId(n.id)).toSet
 
     // 3. choose the number of neuronIds to draw from that set: it's between 1 and the size of the smaller net - 1
     val minPart = Math.min(variables1.size, variables2.size) - 1
     val idsToDraw = if(minPart <= 1) 1 else RandomNumber(1, minPart)
     // 4. draw randomly neuronIds, splitting the set into two
-    // 5. constants + neurons with ids matching the first set is the new net1, constants + neurons with ids matching the second set is the new net2
-    // 6. rename the variable neurons so their netId match their new nets
+    val (leftIds, rightIds) = Utils.splitIdsRandomly(neuronIds, idsToDraw)
 
-    (gen1, gen2)
+    val leftGenome = createNewGenome(gen1, allVariables, leftIds, netIds)
+    val rightGenome = createNewGenome(gen2, allVariables, rightIds, netIds)
+    (leftGenome, rightGenome)
   }
-
-
 
   private def connect(from: NeuronGenome, to:NeuronGenome): Boolean = if(from.isConnectedTo(to.id)) false else {
     from.addSynapse(SynapseGenome.toss(to.id))
@@ -210,7 +232,8 @@ object NetGenome {
   private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {
     case Nil => None
     case list => val n = RandomNumber(list)
-      if(check(n)) Some(n) else chooseNeuron(list.filter(_.id != n.id), check)
+                 if(check(n)) Some(n)
+                 else chooseNeuron(list.filter(_.id != n.id), check)
   }
 
 }

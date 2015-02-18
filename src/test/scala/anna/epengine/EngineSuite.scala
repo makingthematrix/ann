@@ -6,6 +6,7 @@ import anna.logger.LOG
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
 import org.junit.Assert._
+import anna.utils.Utils
 
 class EngineSuite extends JUnitSuite {
   @Before def before() {
@@ -30,14 +31,75 @@ class EngineSuite extends JUnitSuite {
 
   val t1 = NetTest("any response to any signal", 1, List("out1"), anySignalAnyResponse)
 
-  @Test def shouldTestGenomePoll(): Unit ={
+ /* @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 10)
     assertEquals(10, poll.genomes.size)
 
     val results = Tester(List(t1)).test(poll)
     results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
+  }*/
+
+  @Test def shouldSplitIdsRandomly(): Unit ={
+    val ids = "a, b, c, d, e".split(", ").toSet
+    assertEquals(Set("a","b","c","d","e"), ids)
+
+    val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
+    assertTrue(ids1.nonEmpty)
+    assertTrue(ids2.nonEmpty)
+    assertEquals(ids, ids1 ++ ids2)
   }
 
+  @Test def shouldSplitWithEmptyIds(): Unit = {
+    val ids = Set[String]()
+    val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
+    assertTrue(ids1.isEmpty)
+    assertTrue(ids2.isEmpty)
+  }
+
+  @Test def shouldCreateNonEmptyGenomes(): Unit ={
+    val poll = GenomePoll("net", inputIds, outputIds, 2)
+    assertEquals(2, poll.genomes.size)
+    val net1G = poll.genomes(0)
+    println(s"net1G size: ${net1G.data.neurons.size}")
+    val net1Middle = net1G.filterNot(inputIds ++ outputIds)
+    assertTrue(net1Middle.nonEmpty)
+    val net2G = poll.genomes(1)
+    println(s"net2G size: ${net2G.data.neurons.size}")
+    val net2Middle = net2G.filterNot(inputIds ++ outputIds)
+    assertTrue(net2Middle.nonEmpty)
+  }
+
+  @Test def shouldAssignFullAccessToMiddleNeurons(): Unit ={
+    val poll = GenomePoll("net", inputIds, outputIds, 1)
+    val netG = poll.genomes(0)
+    val net1Middle = netG.filterNot(inputIds ++ outputIds)
+    val net1FullAccess = netG.fullAccessNeurons()
+    assertEquals(net1Middle, net1FullAccess)
+  }
+
+  @Test def shouldCreateNewGenome(): Unit ={
+    val poll = GenomePoll("net", inputIds, outputIds, 2)
+    val net1G = poll.genomes(0)
+    val net2G = poll.genomes(1)
+
+    val variables = net1G.fullAccessNeurons() ++ net2G.fullAccessNeurons()
+
+    val ids = variables.map(_.id).toSet
+    println(s"ids: ${ids.mkString(", ")}")
+    val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
+    println(s"ids1: ${ids1.mkString(", ")}")
+    val newGen = NetGenome.createNewGenome(net1G, variables, ids1, List(net1G.id,net2G.id))
+
+    val expectedIds = (ids1.map(id => NetGenome.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
+    println(s"expectedIds: ${expectedIds.mkString(", ")}")
+    val newGenIds = newGen.neurons.map(_.id).toSet
+    println(s"newGenIds: ${newGenIds.mkString(", ")}")
+
+    assertEquals(expectedIds.size, newGenIds.size)
+    assertFalse(expectedIds.exists(!newGenIds.contains(_)))
+    assertFalse(newGenIds.exists(!expectedIds.contains(_)))
+  }
+/*
   @Test def shouldCrossTwoGenomes(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 2)
     val net1G = poll.genomes(0)
@@ -80,5 +142,5 @@ class EngineSuite extends JUnitSuite {
 
     assertEquals(net1Middle.toSet, (net1xnet12 ++ net1xnet21).toSet)
     assertEquals(net2Middle.toSet, (net2xnet12 ++ net2xnet21).toSet)
-  }
+  }*/
 }

@@ -2,7 +2,7 @@ package anna.epengine
 
 import anna.async.NeuronType
 import anna.data._
-import anna.utils.IntRange
+import anna.utils.{RandomNumber, IntRange}
 import anna.utils.DoubleRange._
 import anna.logger.LOG._
 

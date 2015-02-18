@@ -1,15 +1,15 @@
 package anna.utils
 
-import java.text.{NumberFormat, ParsePosition}
+import java.text.{ParsePosition, NumberFormat}
 import java.util.Locale
 
 import akka.actor.ActorRef
 import akka.pattern.ask
-import anna.Context
 import anna.Context.timeout
 import anna.async.{NetRef, NeuronRef}
 import anna.logger.LOG._
 
+import scala.annotation.tailrec
 import scala.concurrent.Await
 
 object Utils {
@@ -43,11 +43,18 @@ object Utils {
   def s(value: Double, slope: Double) = minmax(0.0, slope * (value - 0.5) + 0.5, 1.0)
 
   def parseDouble(s: String) = {
-    debug(this, s"parsing $s")
     val pp = new ParsePosition(0)
-    val nf = NumberFormat.getInstance(Locale.ENGLISH)
-    val d = nf.parse(s, pp)
+    val d = NumberFormat.getInstance(Locale.ENGLISH).parse(s, pp)
     if (pp.getErrorIndex == -1) Some(d.doubleValue) else None
+  }
+
+  @tailrec
+  def splitIdsRandomly(oldSet: Set[String], idsToDraw: Int, newSet: Set[String] = Set()):(Set[String],Set[String]) = idsToDraw match {
+    case 0 => (newSet, oldSet)
+    case n if oldSet.isEmpty => (Set(), newSet)
+    case n =>
+      val id = RandomNumber.apply(oldSet)
+      splitIdsRandomly(oldSet.toSet - id, idsToDraw - 1, newSet + id)
   }
 
 }
