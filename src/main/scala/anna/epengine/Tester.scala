@@ -9,6 +9,7 @@ import anna.logger.LOG._
  */
 class Tester(tests: List[NetTest]){
   def test(data: NetData):Double = {
+    debug(this, s"testing ${data.id}")
     checkConditions(data)
 
     val (in, net) = NetBuilder().set(data).build("in")
@@ -22,8 +23,11 @@ class Tester(tests: List[NetTest]){
 
     net.shutdown()
 
+    debug(this, s"the result is $result")
     result
   }
+
+  def test(poll: GenomePoll):List[(NetGenome, Double)] = poll.genomes.map( genome => (genome, test(genome.data)) ).sortBy(-_._2)
 
   private def checkConditions(data: NetData): Unit ={
     tests.foreach( test => {

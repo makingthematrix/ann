@@ -64,6 +64,17 @@ case class NetData(id: String,
       ("inputTickMultiplier" -> inputTickMultiplier)
     pretty(render(json))
   }
+
+  def filter(ids: Seq[String]) = {
+    val idsSet = ids.toSet
+    neurons.filter( n => idsSet.contains(n.id) )
+  }
+
+  def filterNot(ids: Seq[String]) = {
+    val idsSet = ids.toSet
+    neurons.filterNot( n => idsSet.contains(n.id) )
+  }
+
 }
 
 object NetData {
@@ -106,4 +117,11 @@ object NetData {
     case JString(in) => in
     case _ => throw new IllegalArgumentException(s"Unable to parse JSON $inputsJson")
   }
+
+  def neuronId(netId: String, index: Int): String = s"${netId}_$index"
+  def removeNetId(id: String): String = if(id.contains("_")) id.substring(id.indexOf("_")+1) else id
+
+  def replaceNetId(oldNeuronId: String, newNetId: String): String =
+    if(oldNeuronId.contains("_")) newNetId + "_" + oldNeuronId.substring(oldNeuronId.indexOf("_")+1)
+    else oldNeuronId
 }

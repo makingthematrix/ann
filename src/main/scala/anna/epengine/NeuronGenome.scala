@@ -2,7 +2,7 @@ package anna.epengine
 
 import anna.async.NeuronType
 import anna.data._
-import anna.utils.IntRange
+import anna.utils.{RandomNumber, IntRange}
 import anna.utils.DoubleRange._
 import anna.logger.LOG._
 
@@ -131,6 +131,11 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
                             synapseChromosome.mutate()
                             _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
+  }
+
+  def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {
+    addSynapse(SynapseGenome.toss(to.id))
+    true
   }
 }
 

@@ -2,6 +2,7 @@ package anna.epengine
 
 import anna.utils.DoubleRange._
 import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
+import anna.utils.RandomNumber
 
 /**
  * Created by gorywoda on 27.12.14.

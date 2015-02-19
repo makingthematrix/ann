@@ -50,8 +50,7 @@ class Neuron(
   
   protected def +=(signal: Double){
     forget()
-    //LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
-    debug(s"$id adding signal $signal to buffer $buffer, threshold is $threshold")
+    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
     buffer += signal
     tick()
   }
