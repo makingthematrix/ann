@@ -125,8 +125,8 @@ object NetGenome {
     // at least one synapse from each "in" to one of "middles"
     var synapsesCounter = 0
     ins.foreach( in => {
-      val check:(NeuronGenome)=>Boolean = (n: NeuronGenome) => { !in.isConnectedTo(n.id) }
-      val middleOpt = chooseNeuron(middles, check)
+      def check(n: NeuronGenome) = !in.isConnectedTo(n.id)
+      val middleOpt = chooseNeuron(middles, check _)
       if(middleOpt != None) {
         connect(in, middleOpt.get)
         synapsesCounter += 1
@@ -135,8 +135,8 @@ object NetGenome {
 
     // at least one synapse to each "out" from one of "middles"
     outs.foreach( out => {
-      val check:(NeuronGenome)=>Boolean = (n: NeuronGenome) => { !n.isConnectedTo(out.id) }
-      val middleOpt = chooseNeuron(middles, check)
+      def check(n: NeuronGenome) = !n.isConnectedTo(out.id)
+      val middleOpt = chooseNeuron(middles, check _)
       if(middleOpt != None) {
         connect(middleOpt.get, out)
         synapsesCounter += 1
