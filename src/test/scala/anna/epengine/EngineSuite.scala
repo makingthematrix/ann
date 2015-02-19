@@ -1,6 +1,7 @@
 package test.async.epengine
 
 import anna.async.{NetRef, NetInput, NetBuilder}
+import anna.data.NetData
 import anna.epengine._
 import anna.logger.LOG
 import org.junit.{Before, Test}
@@ -88,9 +89,9 @@ class EngineSuite extends JUnitSuite {
     println(s"ids: ${ids.mkString(", ")}")
     val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
     println(s"ids1: ${ids1.mkString(", ")}")
-    val newGen = NetGenome.createNewGenome(net1G, variables, ids1, List(net1G.id,net2G.id))
+    val newGen = NetGenome.createNewGenome(net1G, variables, ids1, List(net1G.id,net2G.id), false)
 
-    val expectedIds = (ids1.map(id => NetGenome.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
+    val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
     println(s"expectedIds: ${expectedIds.mkString(", ")}")
     val newGenIds = newGen.neurons.map(_.id).toSet
     println(s"newGenIds: ${newGenIds.mkString(", ")}")

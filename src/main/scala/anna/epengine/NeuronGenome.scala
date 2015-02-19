@@ -132,6 +132,11 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
                             _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
   }
+
+  def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {
+    addSynapse(SynapseGenome.toss(to.id))
+    true
+  }
 }
 
 object NeuronGenome {
