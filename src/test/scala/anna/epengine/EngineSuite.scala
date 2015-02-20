@@ -32,14 +32,14 @@ class EngineSuite extends JUnitSuite {
 
   val t1 = NetTest("any response to any signal", 1, List("out1"), anySignalAnyResponse)
 
- /* @Test def shouldTestGenomePoll(): Unit ={
+  @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 10)
     assertEquals(10, poll.genomes.size)
 
     val results = Tester(List(t1)).test(poll)
     results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
-  }*/
-/*
+  }
+
   @Test def shouldSplitIdsRandomly(): Unit ={
     val ids = "a, b, c, d, e".split(", ").toSet
     assertEquals(Set("a","b","c","d","e"), ids)
@@ -99,7 +99,7 @@ class EngineSuite extends JUnitSuite {
     assertEquals(expectedIds.size, newGenIds.size)
     assertFalse(expectedIds.exists(!newGenIds.contains(_)))
     assertFalse(newGenIds.exists(!expectedIds.contains(_)))
-  }*/
+  }
 
   @Test def shouldCrossTwoGenomes(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 2)
