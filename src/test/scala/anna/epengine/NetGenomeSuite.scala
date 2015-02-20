@@ -38,10 +38,10 @@ class NetGenomeSuite extends JUnitSuite {
 
     ng.mutate()
 
-    val middle1Opt = ng.find("net2")
+    val middle1Opt = ng.find("net_2")
     assertNotEquals(None, middle1Opt)
-    assertTrue(ng.findSynapse("in1","net2") != None || ng.findSynapse("out1","net2") != None)
-    assertNotEquals(None, ng.findSynapse("net2","out1"))
+    assertTrue(ng.findSynapse("in1","net_2") != None || ng.findSynapse("out1","net_2") != None)
+    assertNotEquals(None, ng.findSynapse("net_2","out1"))
   }
 
   @Test def shouldDeleteNeuron(): Unit ={
@@ -96,7 +96,8 @@ class NetGenomeSuite extends JUnitSuite {
 
     val gen = NetGenome(builder.data, Map("in" -> DONTMUTATE, "out" -> DONTDELETE))
     assertEquals(4, gen.neurons.size)
-    val trimmed = gen.trim()
+    val trimmed = gen.clone()
+    trimmed.trim()
     assertEquals(3, trimmed.neurons.size)
     val idSet = trimmed.neurons.map(_.id).toSet
     assertTrue(idSet.contains("in"))
@@ -111,7 +112,8 @@ class NetGenomeSuite extends JUnitSuite {
 
     val gen = NetGenome(builder.data, Map("in1" -> DONTMUTATE, "in2" -> DONTMUTATE, "out" -> DONTDELETE))
     assertEquals(5, gen.neurons.size)
-    val trimmed = gen.trim()
+    val trimmed = gen.clone()
+    trimmed.trim()
     assertEquals(4, trimmed.neurons.size)
     val idSet = trimmed.neurons.map(_.id).toSet
     assertFalse(idSet.contains("mi12"))
@@ -124,12 +126,26 @@ class NetGenomeSuite extends JUnitSuite {
 
     val gen = NetGenome(builder.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE, "out2" -> DONTDELETE))
     assertEquals(4, gen.neurons.size)
-    val trimmed = gen.trim()
+    val trimmed = gen.clone()
+    trimmed.trim()
     assertEquals(4, trimmed.neurons.size)
     assertTrue(trimmed.neurons.map(_.id).toSet.contains("out2"))
   }
 
-  private def sumSynapses(data: NetData) = data.neurons.foldLeft(0)((sum, neuron) => sum + neuron.synapses.size)
+  private def sumSynapses(data: NetData) = {
+    println("---")
+    data.neurons.foreach( n => n.synapses.foreach( s => println(s"synapse from ${n.id} to ${s.neuronId}")))
+    println("---")
+    data.neurons.foldLeft(0)((sum, neuron) => sum + neuron.synapses.size)
+  }
+
+  private def replaceSynapses(data: NetData, neuronId: String, synapses: List[SynapseData])
+  = data.neurons.find(_.id == neuronId) match {
+      case Some(neuron) =>
+        val synapsesChanged = neuron.withSynapses(synapses)
+        data.withNeurons(synapsesChanged :: data.neurons.filterNot(_.id == neuronId))
+      case None => data
+    }
 
   @Test def shouldTrimSynapseFromNet(): Unit ={
     val builder = NetBuilder()
@@ -140,12 +156,12 @@ class NetGenomeSuite extends JUnitSuite {
     val mi11 = netData.neurons.find(_.id == "mi11").get
     assertEquals(1, mi11.synapses.size)
     // adding a synapse to non-existing neuron
-    val mi11WithSynapse = mi11.withSynapses(SynapseData("mi12",Hush) :: mi11.synapses)
-    assertEquals(2, mi11WithSynapse.synapses.size)
-    val netDataWithSynapse = netData.withNeurons(mi11WithSynapse :: netData.neurons.filterNot(_.id == "mi11"))
+    val netDataWithSynapse = replaceSynapses(netData, "mi11", SynapseData("mi12",Hush) :: mi11.synapses)
     assertEquals(3, sumSynapses(netDataWithSynapse))
 
     val trimmed = NetGenome(netDataWithSynapse, Map("in" -> DONTMUTATE, "out" -> DONTDELETE))
+    trimmed.trim()
+    assertEquals(3, trimmed.neurons.size)
     assertEquals(2, sumSynapses(trimmed.data))
     val mi11Trimmed = trimmed.neurons.find(_.id == "mi11").get
     assertEquals(1, mi11Trimmed.synapses.size)

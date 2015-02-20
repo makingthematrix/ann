@@ -90,9 +90,9 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
     case Some(value) => value
   }
 
-  private def getRandomNeuronId(fullAccess: Boolean =true, excludeAlreadyConnected: Boolean =true) = {
-    val t = if(fullAccess){
-      accessMap.filter( tuple => tuple._2 == MutationAccess.FULL ).map( _._1 ).toList
+  private def getRandomNeuronId(onlyMutable: Boolean =true, excludeAlreadyConnected: Boolean =true) = {
+    val t = if(onlyMutable){
+      accessMap.filter( tuple => tuple._2 != MutationAccess.DONTMUTATE ).map( _._1 ).toList
     } else accessMap.keys.toList
 
     val neuronIds = if(excludeAlreadyConnected){
@@ -103,9 +103,9 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
     if(neuronIds.nonEmpty) Some(RandomNumber(neuronIds)) else None
   }
 
-  private def getRandomSynapse(fullAccess: Boolean) = {
-    val synapses = if(fullAccess)
-      _data.synapses.filter(sd => access(sd.neuronId) == MutationAccess.FULL)
+  private def getRandomSynapse(onlyMutable: Boolean) = {
+    val synapses = if(onlyMutable)
+      _data.synapses.filter(sd => access(sd.neuronId) != MutationAccess.DONTMUTATE)
     else _data.synapses
     if(_data.synapses.nonEmpty) Some(RandomNumber(synapses)) else None
   }

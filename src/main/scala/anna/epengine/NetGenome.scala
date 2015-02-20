@@ -1,11 +1,12 @@
 package anna.epengine
 
-import anna.data.{NeuronData, NetData}
+import anna.data.{SynapseData, NeuronData, NetData}
 import anna.utils.{RandomNumber, Utils, IntRange}
 import anna.utils.DoubleRange._
 import anna.data.NetData.neuronId
 import anna.data.NetData.removeNetId
 import anna.data.NetData.replaceNetId
+import anna.logger.LOG._
 
 /**
  * Created by gorywoda on 04.01.15.
@@ -46,7 +47,32 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     (inputTickMultiplierProbability, mutateInputTickMultiplier _)
   )
 
-  def trim() = this
+  def trim():Unit = {
+    val neuronIdSet = neurons.map(_.id).toSet
+    // identify synapses which lead to non-existing neurons
+    val list:List[(String,String)] = neurons.map(n => n.synapses.find(s => !neuronIdSet.contains(s.neuronId)) match {
+      case Some(synapse) =>
+        Some((n.id, synapse.neuronId))
+      case None => None
+    }).flatten
+    // for each such synapse, create a neuron without it and replace the original one with it in data
+    list.foreach( t => replaceSynapses(t._1, find(t._1).get.synapses.filterNot( _.neuronId == t._2 )) )
+    // identify full access neurons which have no synapses leading to them
+    val endPointNeuronIds = neurons.map( _.synapses.map(_.neuronId) ).flatten.toSet
+    val lonelyNeurons = neurons.filter( n => !endPointNeuronIds.contains(n.id) && accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL )
+    // delete these neurons from the data
+    lonelyNeurons.foreach( n => deleteNeuron(n.id) )
+  }
+
+  private def replaceSynapses(neuronId: String, synapses: List[SynapseData]): Unit = {
+    _data = _data.neurons.find(_.id == neuronId) match {
+      case Some(neuron) =>
+        val synapsesChanged = neuron.withSynapses(synapses)
+        _data = _data.withNeurons(synapsesChanged :: _data.neurons.filterNot(_.id == neuronId))
+        _data
+      case None => _data
+    }
+  }
 
   private def deleteNeuron(id: String): Unit = {
     _data = _data.withNeurons( neurons.filterNot( _.id == id ) )
@@ -195,7 +221,8 @@ object NetGenome {
     val newNet = oldGenome.data.withNeurons(newNeurons)
     // 8. "trim" the net, ie. remove synapses which lead to non-existing neurons and full access neurons which do not receive any input
     val newGen = NetGenome(newNet, oldGenome.accessMap)
-    if(trimEnabled) newGen.trim() else newGen
+    if(trimEnabled) newGen.trim()
+    newGen
   }
 
   private def cross_p(gen1: NetGenome, gen2: NetGenome):(NetGenome, NetGenome) = {
