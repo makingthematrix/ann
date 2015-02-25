@@ -117,6 +117,10 @@ class EngineSuite extends JUnitSuite {
     b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
     val net2G = NetGenome(b2.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
 
+    crossTest(net1G, net2G)
+  }
+
+  private def crossTest(net1G: NetGenome, net2G: NetGenome): Unit ={
     val net1Middle = net1G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net1Middle.nonEmpty)
     val net2Middle = net2G.filterNot(inputIds ++ outputIds).map(_.id)
