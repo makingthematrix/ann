@@ -4,17 +4,20 @@ import anna.async.{NetRef, NetInput, NetBuilder}
 import anna.data.NetData
 import anna.epengine._
 import anna.logger.LOG
+import anna.logger.LOG._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
 import org.junit.Assert._
 import anna.utils.Utils
+import anna.async.NetBuilderOps._
+import anna.epengine.MutationAccess._
 
 class EngineSuite extends JUnitSuite {
   @Before def before() {
     LOG.addLogToStdout()
 
-    LOG.track(Tester.getClass())
-    LOG.trackAll = false
+    //LOG.track(Tester.getClass())
+    //LOG.trackAll = false
   }
 
   val inputIds = List("in1")
@@ -89,7 +92,7 @@ class EngineSuite extends JUnitSuite {
     println(s"ids: ${ids.mkString(", ")}")
     val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
     println(s"ids1: ${ids1.mkString(", ")}")
-    val newGen = NetGenome.createNewGenome(net1G, variables, ids1, List(net1G.id,net2G.id), false)
+    val newGen = NetGenome.createNewGenome(net1G, variables, ids1, false)
 
     val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
     println(s"expectedIds: ${expectedIds.mkString(", ")}")
@@ -102,24 +105,36 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldCrossTwoGenomes(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 2)
-    val net1G = poll.genomes(0)
-    println(s"net1G size: ${net1G.data.neurons.size}")
-    val net1Middle = net1G.filterNot(inputIds ++ outputIds)
+    val b1 = NetBuilder()
+    b1.netName = "net1"
+    b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
+    b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
+    val net1G = NetGenome(b1.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    val b2 = NetBuilder()
+    b2.netName = "net2"
+    b2.addInput("in1").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out1",0.5,0.81)
+    b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
+    val net2G = NetGenome(b2.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    val net1Middle = net1G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net1Middle.nonEmpty)
-    val net2G = poll.genomes(1)
-    println(s"net2G size: ${net2G.data.neurons.size}")
-    val net2Middle = net2G.filterNot(inputIds ++ outputIds)
+    val net2Middle = net2G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net2Middle.nonEmpty)
 
-    val (net12G, net21G) = NetGenome.cross(net1G, net2G)
-
+    debug("---")
+    debug("net1G: " + net1G.neurons.map(_.id))
+    debug("net2G: " + net2G.neurons.map(_.id))
+    val (net12G, net21G) = NetGenome.cross(net1G, net2G, false, false)
+    debug("net12G: " + net12G.neurons.map(_.id))
+    debug("net21G: " + net21G.neurons.map(_.id))
+    debug("---")
     // has the same input neurons
     assertEquals(net12G.inputs, inputIds)
     // has the same output neurons
     assertFalse(outputIds.exists( net12G.find(_) == None ))
     // has non-empty middle layer
-    val net12Middle = net12G.filterNot(inputIds ++ outputIds)
+    val net12Middle = net12G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net12Middle.nonEmpty)
 
     // has the same input neurons
@@ -127,20 +142,26 @@ class EngineSuite extends JUnitSuite {
     // has the same output neurons
     assertFalse(outputIds.exists( net21G.find(_) == None ))
     // has non-empty middle layer
-    val net21Middle = net21G.filterNot(inputIds ++ outputIds)
+    val net21Middle = net21G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net21Middle.nonEmpty)
 
-    // there should be no shared neurons
-    assertEquals(Nil, net12Middle.map(_.id).intersect(net21Middle.map(_.id)))
 
-    val net1xnet12 = net1Middle.map(_.id).intersect(net12Middle.map(_.id))
-    val net2xnet12 = net2Middle.map(_.id).intersect(net12Middle.map(_.id))
+    // there should be no shared neurons
+    assertEquals(Nil, net12Middle.intersect(net21Middle))
+
+    val net1xnet12 = net1Middle.intersect(net12Middle)
+    val net2xnet12 = net2Middle.intersect(net12Middle)
     assertEquals(Nil, net1xnet12.intersect(net2xnet12))
 
-    val net1xnet21 = net1Middle.map(_.id).intersect(net21Middle.map(_.id))
-    val net2xnet21 = net2Middle.map(_.id).intersect(net21Middle.map(_.id))
+    val net1xnet21 = net1Middle.intersect(net21Middle)
+    val net2xnet21 = net2Middle.intersect(net21Middle)
     assertEquals(Nil, net1xnet21.intersect(net2xnet21))
 
+    debug(this,s"net1Middle: $net1Middle")
+    debug(this,s"net12Middle: $net12Middle")
+    debug(this,s"net21Middle: $net21Middle")
+    debug(this,s"net1xnet12: $net1xnet12")
+    debug(this,s"net1xnet21: $net1xnet21")
     assertEquals(net1Middle.toSet, (net1xnet12 ++ net1xnet21).toSet)
     assertEquals(net2Middle.toSet, (net2xnet12 ++ net2xnet21).toSet)
   }
