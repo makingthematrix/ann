@@ -3,11 +3,11 @@ package anna.epengine
 import anna.data.{SynapseData, NeuronData, NetData}
 import anna.utils.{RandomNumber, Utils}
 import anna.utils.DoubleRange._
-import anna.data.NetData.neuronId
-import anna.data.NetData.removeNetId
-import anna.data.NetData.replaceNetId
+import anna.data.NetData._
 
 import anna.logger.LOG._
+
+import scala.annotation.tailrec
 
 /**
  * Created by gorywoda on 04.01.15.
@@ -52,13 +52,11 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     // identify synapses which lead to non-existing neurons
     // for each such synapse, create a neuron without it and replace the original one with it in data
     val neuronIdSet = neurons.map(_.id).toSet
-    debug(this,s"neuronIdSet: $neuronIdSet")
-    val t1 = neurons.map(n => n.synapses.find(s => !neuronIdSet.contains(s.neuronId)) match {
+    neurons.map(n => n.synapses.find(s => !neuronIdSet.contains(s.neuronId)) match {
       case Some(synapse) => Some((n.id, synapse.neuronId))
       case None => None
-    }).flatten
-    debug(this,s"t1: $t1")
-    t1.foreach( t => replaceSynapses(t._1, find(t._1).get.synapses.filterNot( _.neuronId == t._2 )) )
+    }).flatten.foreach( t => replaceSynapses(t._1, find(t._1).get.synapses.filterNot( _.neuronId == t._2 )) )
+
     // identify full access neurons which have no synapses leading to them
     // delete these neurons from the data
     val endPointNeuronIds = neurons.map( _.synapses.map(_.neuronId) ).flatten.toSet
@@ -67,6 +65,48 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
        accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL
     ).foreach( n => deleteNeuron(n.id) )
   }
+
+  def crossable(genome: NetGenome) = {
+    val constants1 = notFullAccessNeurons()
+    val constants2 = genome.notFullAccessNeurons()
+
+    if(constants1.map(_.id).toSet == constants2.map(_.id).toSet){
+      val var1Ids = fullAccessNeurons().map(n => removeNetId(n.id)).toSet
+      val var2Ids = genome.fullAccessNeurons().map(n => removeNetId(n.id)).toSet
+      // if there is no common part then we cannot cross the genomes
+      var1Ids.intersect(var2Ids).nonEmpty
+    } else {
+      error(this, s"Unable to cross $id with ${genome.id}: The list of constant neurons differ, they are respectively ${constants1.map(_.id).sorted} and ${constants2.map(_.id).sorted}")
+      false
+    }
+  }
+
+  def cross(genome: NetGenome, trimEnabled: Boolean, renameEnabled: Boolean) = if(crossable(genome)) {
+    val var1 = fullAccessNeurons()
+    val var2 = genome.fullAccessNeurons()
+
+    // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
+    // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
+    val var1Ids = var1.map(n => removeNetId(n.id)).toSet
+    val var2Ids = var2.map(n => removeNetId(n.id)).toSet
+    val commonIds = var1Ids.intersect(var2Ids)
+
+    // if crossable is true it means that there is a common part which we can cross
+
+    // 2. choose the number of neuronIds to draw
+    val idsToDraw = if (commonIds.size > 1) RandomNumber(1, commonIds.size) else 1
+
+    // 3. draw randomly neuronIds, splitting the set into two
+    val (idsToSwitch, _) = Utils.splitIdsRandomly(commonIds, idsToDraw)
+    val leftIds = var1Ids.map(id => neuronId(if (idsToSwitch.contains(id)) genome.id else this.id, id))
+    val rightIds = var2Ids.map(id => neuronId(if (idsToSwitch.contains(id)) this.id else genome.id, id))
+
+    // 4. create genomes with switch neurons
+    val allVariables = var1 ++ var2
+    val leftGenome = breed(this, allVariables, leftIds, trimEnabled, renameEnabled)
+    val rightGenome = breed(genome, allVariables, rightIds, trimEnabled, renameEnabled)
+    (leftGenome, rightGenome)
+  } else (clone, genome.clone)
 
   private def replaceSynapses(neuronId: String, synapses: List[SynapseData]): Unit = {
     _data = _data.neurons.find(_.id == neuronId) match {
@@ -88,9 +128,15 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     addNeuron(neuronData)
   }
 
+  @tailrec
+  private def findFirstFreeId(index: Int = 1):Int = find(neuronId(id, index)) match {
+    case Some(n) => findFirstFreeId(index + 1)
+    case None => index
+  }
+
   private def addNeuron(): Unit ={
     // 1. create a new neuron with name id+neurons.size and according to NeuronGenome specifications
-    val newNG = NeuronGenome.toss(neuronId(id,neurons.size), accessMap)
+    val newNG = NeuronGenome.toss(neuronId(id,findFirstFreeId()), accessMap)
     // 2. create exactly one synapse from the set of all neurons (a synapse from an output neuron is also ok)
     val oldNG = NeuronGenome(RandomNumber(neurons), accessMap)
     oldNG.addSynapse(SynapseGenome.toss(newNG.id))
@@ -129,7 +175,6 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   private def mutateInputTickMultiplier(): Unit ={
     _data = _data.withInputTickMultiplier(RandomNumber(inputTickMultiplierRange))
   }
-
 }
 
 object NetGenome {
@@ -198,76 +243,22 @@ object NetGenome {
     NetGenome(netData, accessMap)
   }
 
-  def cross(gen1: NetGenome, gen2: NetGenome, trimEnabled: Boolean = true, renameEnabled: Boolean = true) = {
-    val constants1 = gen1.notFullAccessNeurons()
-    debug(this,s"contants in gen1: ${constants1.size}")
-    val constants2 = gen2.notFullAccessNeurons()
-    debug(this,s"contants in gen2: ${constants2.size}")
-    assert(constants1.map(_.id).toSet == constants2.map(_.id).toSet, s"Unable to cross ${gen1.id} with ${gen2.id}: The list of constant neurons differ, they are respectively ${constants1.map(_.id).sorted} and ${constants2.map(_.id).sorted}")
-
-    if (constants1.size == gen1.neurons.size && constants2.size == gen2.neurons.size)
-      (gen1, gen2)
-    else
-      cross_p(gen1, gen2, trimEnabled, renameEnabled)
-  }
-
-  def createNewGenome(oldGenome: NetGenome,
-                      variables: List[NeuronData],
-                      chosenIds: Set[String],
-                      trimEnabled: Boolean = true,
-                      renameEnabled: Boolean = true) = {
-    debug(this, s"creating new genome from ${oldGenome.id} with variables ${variables.size}, chosenIds: $chosenIds, trim enabled: $trimEnabled, and renameEnabled: $renameEnabled")
+  def breed(oldGenome: NetGenome,
+            variables: List[NeuronData],
+            chosenIds: Set[String],
+            trimEnabled: Boolean = true,
+            renameEnabled: Boolean = true) = {
     // 5. constants + neurons with ids matching the first set is the new net1, constants + neurons with ids matching the second set is the new net2
-    debug(this,s"all variables: " + variables.map(_.id))
-
     val newVariables = variables.filter( n => chosenIds.contains(n.id) )
-    debug(this,s"new variables: " + newVariables.map(_.id))
     // 6. rename full access neurons so their netId match their new nets
     val newNeurons = oldGenome.notFullAccessNeurons() ++
       (if(renameEnabled) newVariables.map( n => n.withId(replaceNetId(n.id, oldGenome.id)) ) else newVariables)
-    debug(this,"new neurons: " + newNeurons.map(_.id))
-    debug(this,"old genome access map: " + oldGenome.accessMap)
     // 7. compose new NetData
     val newNet = oldGenome.data.withNeurons(newNeurons)
     // 8. "trim" the net, ie. remove synapses which lead to non-existing neurons and full access neurons which do not receive any input
     val newGen = NetGenome(newNet, oldGenome.accessMap)
-    debug(this,"new gen ids before trim: " + newGen.neurons.map(_.id))
     if(trimEnabled) newGen.trim()
-    debug(this,"new gen ids after trim: " + newGen.neurons.map(_.id))
     newGen
-  }
-
-  private def cross_p(gen1: NetGenome, gen2: NetGenome, trimEnabled: Boolean, renameEnabled: Boolean):(NetGenome, NetGenome) = {
-    val variables1 = gen1.fullAccessNeurons()
-    val var1Ids = variables1.map(_.id).toSet
-    debug(this,s"full access neurons for gen1: ${variables1.size}")
-    val variables2 = gen2.fullAccessNeurons()
-    val var2Ids = variables2.map(_.id).toSet
-    debug(this,s"full access neurons for gen2: ${variables2.size}")
-    val allVariables = variables1 ++ variables2
-
-    debug(this,s"all variables: ${allVariables.size}")
-    val netIds = List(gen1.id, gen2.id)
-    debug(this,s"net ids: $netIds")
-    // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
-    // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
-    // 2. create a set of unique neuronIds
-    val neuronIds = allVariables.map(n => removeNetId(n.id)).toSet
-    debug(this,s"variable neuron ids: $neuronIds")
-    // 3. choose the number of neuronIds to draw from that set: it's between 1 and the size of the smaller net - 1
-    val minPart = Math.min(variables1.size, variables2.size) - 1
-    debug(this,s"min part: $minPart")
-    val idsToDraw = if(minPart <= 1) 1 else RandomNumber(1, minPart)
-    debug(this,s"ids to draw: $idsToDraw")
-    // 4. draw randomly neuronIds, splitting the set into two
-    val (l, r) = Utils.splitIdsRandomly(neuronIds, idsToDraw)
-    val leftIds = l.map(id => if(var1Ids.contains(gen1.id+"_"+id)) gen1.id+"_"+id else gen2.id+"_"+id).toSet
-    val rightIds = allVariables.map(_.id).filterNot(leftIds.contains(_)).toSet
-    debug(this,s"left ids: $leftIds")
-    val leftGenome = createNewGenome(gen1, allVariables, leftIds, trimEnabled, renameEnabled)
-    debug(this,s"right ids: $rightIds")
-    val rightGenome = createNewGenome(gen2, allVariables, rightIds, trimEnabled, renameEnabled)
-    (leftGenome, rightGenome)
   }
 
   private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {

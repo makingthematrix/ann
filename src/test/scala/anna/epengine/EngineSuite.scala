@@ -15,9 +15,6 @@ import anna.epengine.MutationAccess._
 class EngineSuite extends JUnitSuite {
   @Before def before() {
     LOG.addLogToStdout()
-
-    //LOG.track(Tester.getClass())
-    //LOG.trackAll = false
   }
 
   val inputIds = List("in1")
@@ -92,7 +89,7 @@ class EngineSuite extends JUnitSuite {
     println(s"ids: ${ids.mkString(", ")}")
     val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
     println(s"ids1: ${ids1.mkString(", ")}")
-    val newGen = NetGenome.createNewGenome(net1G, variables, ids1, false)
+    val newGen = NetGenome.breed(net1G, variables, ids1, false)
 
     val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
     println(s"expectedIds: ${expectedIds.mkString(", ")}")
@@ -104,7 +101,7 @@ class EngineSuite extends JUnitSuite {
     assertFalse(newGenIds.exists(!expectedIds.contains(_)))
   }
 
-  @Test def shouldCrossTwoGenomes(): Unit ={
+  @Test def shouldCrossTwoEvenGenomes(): Unit ={
     val b1 = NetBuilder()
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
@@ -120,6 +117,61 @@ class EngineSuite extends JUnitSuite {
     crossTest(net1G, net2G)
   }
 
+  @Test def shouldCrossTwoUnevenGenomes(): Unit ={
+    val b1 = NetBuilder()
+    b1.netName = "net1"
+    b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
+    val net1G = NetGenome(b1.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    val b2 = NetBuilder()
+    b2.netName = "net2"
+    b2.addInput("in1").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out1",0.5,0.81)
+    b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
+    val net2G = NetGenome(b2.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    crossTest(net1G, net2G)
+  }
+
+  @Test def shouldNotCrossGenomesWithoutCommonNeurons(): Unit = {
+    val b1 = NetBuilder()
+    b1.netName = "net1"
+    b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
+    b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
+    val net1G = NetGenome(b1.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    val b2 = NetBuilder()
+    b2.netName = "net2"
+    b2.addInput("in1").chain("net2_11",1.0,0.0).chain("net2_12",1.0,0.0).chain("out1",0.5,0.81)
+    b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).connect("out1",1.0)
+    val net2G = NetGenome(b2.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    assertFalse(net1G.crossable(net2G))
+
+    val (net12G, net21G) = net1G.cross(net2G, false, false)
+    assertEquals(net1G.data, net12G.data)
+    assertEquals(net2G.data, net21G.data)
+  }
+
+  @Test def shouldNotCrossGenomesWithDifferentIO(): Unit = {
+    val b1 = NetBuilder()
+    b1.netName = "net1"
+    b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
+    b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
+    val net1G = NetGenome(b1.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    val b2 = NetBuilder()
+    b2.netName = "net2"
+    b2.addInput("in2").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out2",0.5,0.81)
+    b2.use("in2").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out2",1.0)
+    val net2G = NetGenome(b2.data, Map("in2" -> DONTMUTATE, "out2" -> DONTDELETE))
+
+    assertFalse(net1G.crossable(net2G))
+
+    val (net12G, net21G) = net1G.cross(net2G, false, false)
+    assertEquals(net1G.data, net12G.data)
+    assertEquals(net2G.data, net21G.data)
+  }
+
   private def crossTest(net1G: NetGenome, net2G: NetGenome): Unit ={
     val net1Middle = net1G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net1Middle.nonEmpty)
@@ -129,7 +181,7 @@ class EngineSuite extends JUnitSuite {
     debug("---")
     debug("net1G: " + net1G.neurons.map(_.id))
     debug("net2G: " + net2G.neurons.map(_.id))
-    val (net12G, net21G) = NetGenome.cross(net1G, net2G, false, false)
+    val (net12G, net21G) = net1G.cross(net2G, false, false)
     debug("net12G: " + net12G.neurons.map(_.id))
     debug("net21G: " + net21G.neurons.map(_.id))
     debug("---")
@@ -148,7 +200,6 @@ class EngineSuite extends JUnitSuite {
     // has non-empty middle layer
     val net21Middle = net21G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net21Middle.nonEmpty)
-
 
     // there should be no shared neurons
     assertEquals(Nil, net12Middle.intersect(net21Middle))

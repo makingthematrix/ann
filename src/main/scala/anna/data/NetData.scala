@@ -118,6 +118,7 @@ object NetData {
     case _ => throw new IllegalArgumentException(s"Unable to parse JSON $inputsJson")
   }
 
+  def neuronId(netId: String, id: String): String = s"${netId}_$id"
   def neuronId(netId: String, index: Int): String = s"${netId}_$index"
   def removeNetId(id: String): String = if(id.contains("_")) id.substring(id.indexOf("_")+1) else id
 

@@ -35,7 +35,6 @@ class Net(val id: String) extends Actor {
 
   def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
     case Success(id) =>
-      if(title.nonEmpty) debug(this, s"received Success in $title from $id, still waitingFor: $waitingFor")
       val newWaitingFor = waitingFor - id
       if(newWaitingFor.isEmpty){
         caller ! Success(id)
@@ -56,19 +55,16 @@ class Net(val id: String) extends Actor {
   }
 
   private def shutdown() = {
-    debug(this, s"shutdown for $id")
     context.become( shutdowning(sender) )
     neurons.foreach(_ ! NeuronShutdown)
   }
 
   private def resetBuffer() = {
-    debug(this, s"reset buffer for $id")
     context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
   }
 
   private def removeTriggers() = {
-    debug(this, s"removing triggers for $id")
     context.become( waiting(sender, neurons.map(_.id).toSet, "removing triggers") )
     neurons.foreach(_ ! RemoveAllTriggers)
   }
@@ -107,12 +103,10 @@ class Net(val id: String) extends Actor {
   
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
-    debug(this, s"signal received in $id: " + in.mkString(", "))
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
   
   private def setInputs(ids: Seq[String]){
-    debug(this, s"input layer set in $id: " + ids.mkString(", "))
     ins = neurons.filter( n => ids.contains(n.id) ).toList
     if(ins.size != ids.size){
       val inIds = ins.map( _.id )

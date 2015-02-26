@@ -20,7 +20,7 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplier: Doubl
                          else throw new IllegalArgumentException(s"There is no output neuron with id $id")
     
   def add(input: Seq[Double]) = {
-	assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
+	  assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
     inputQueue += input
   }
   
@@ -43,7 +43,6 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplier: Doubl
 
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n) yield {
-    debug(this, s"-------- ITERATION ${_iteration} ---------")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
     Thread.sleep((inputTickMultiplier * tickTime).toLong)
@@ -64,9 +63,8 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplier: Doubl
       counter += 1
     }
     
-    debug(this, "tickUntilCalm completed")
-    
     net.reset()
+
     neurons.foreach(_.removeAfterFire("tickUntilCalm"))
     counter
   }

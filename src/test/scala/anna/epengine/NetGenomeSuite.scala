@@ -38,10 +38,10 @@ class NetGenomeSuite extends JUnitSuite {
 
     ng.mutate()
 
-    val middle1Opt = ng.find("net_2")
+    val middle1Opt = ng.find("net_1")
     assertNotEquals(None, middle1Opt)
-    assertTrue(ng.findSynapse("in1","net_2") != None || ng.findSynapse("out1","net_2") != None)
-    assertNotEquals(None, ng.findSynapse("net_2","out1"))
+    assertTrue(ng.findSynapse("in1","net_1") != None || ng.findSynapse("out1","net_1") != None)
+    assertNotEquals(None, ng.findSynapse("net_1","out1"))
   }
 
   @Test def shouldDeleteNeuron(): Unit ={
@@ -167,5 +167,14 @@ class NetGenomeSuite extends JUnitSuite {
     assertEquals(1, mi11Trimmed.synapses.size)
     assertEquals(Some(SynapseData("out",0.5)), mi11Trimmed.synapses.find(_.neuronId == "out"))
     assertEquals(None, mi11Trimmed.synapses.find(_.neuronId == "mi12"))
+  }
+
+  @Test def shouldCloneGenome(): Unit ={
+    val builder = NetBuilder()
+    builder.addInput("in").chain("mi11",1.0,0.0).chain("out",0.5,0.81)
+    val genome = NetGenome(builder.data, Map("in" -> DONTMUTATE, "out" -> DONTDELETE))
+    val cloned = genome.clone
+    assertEquals(genome.data, cloned.data)
+    assertEquals(genome.accessMap, cloned.accessMap)
   }
 }
