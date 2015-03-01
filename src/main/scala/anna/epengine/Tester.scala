@@ -12,16 +12,16 @@ class Tester(tests: List[NetTest]){
     debug(this, s"testing ${data.id}")
     checkConditions(data)
 
-    val (in, net) = NetBuilder().set(data).build("in")
+    val wrapper = NetBuilder().set(data).build("in")
 
     var result = 0.0
     tests.foreach( test => {
-      net.removeAllTriggers()
-      net.reset()
-      result += test.run(in, net)
+      wrapper.removeAllTriggers()
+      wrapper.reset()
+      result += test.run(wrapper)
     })
 
-    net.shutdown()
+    wrapper.shutdown()
 
     debug(this, s"the result is $result")
     result

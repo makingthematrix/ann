@@ -40,7 +40,7 @@ class NetSuite extends JUnitSuite {
     val builder = NetBuilder()
     builder.addMiddle("id1", threshold, slope, hushValue, forgetting)
            .addMiddle("id2", threshold, slope, hushValue, forgetting)
-    val net = builder.build
+    val net = builder.build("net").net
     
     val neurons = net.getNeurons
     assertEquals(2, neurons.size)
@@ -55,7 +55,7 @@ class NetSuite extends JUnitSuite {
     val builder = NetBuilder()
     builder.addMiddle("id1", threshold,  slope, hushValue, forgetting)
            .chain("id2", weight, threshold, slope, hushValue, forgetting, 1.0)
-    val net = builder.build
+    val net = builder.build("net").net
     
     val neurons = net.getNeurons
     assertEquals(2, neurons.size)

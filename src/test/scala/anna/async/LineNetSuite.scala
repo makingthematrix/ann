@@ -21,7 +21,7 @@ class LineNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("out2"){
+    netWrapper.addAfterFire("out2"){
       println("KRECHA!")
       sb.append('-')
     }
@@ -32,35 +32,35 @@ class LineNetSuite extends MySuite {
   @Test def shouldLineThenNothing1(){
     val sb = lineNet2()
     
-    in += "1,1,0,0,0,0"
+    netWrapper += "1,1,0,0,0,0"
     init()
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals("-",sb.toString)
   }
   
   @Test def shouldLine3Times(){
     val sb = lineNet2()
     
-    in += "1,1,0,1,1,0,1,1,0"
+    netWrapper += "1,1,0,1,1,0,1,1,0"
     init()
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals("---",sb.toString)
   }
   
   @Test def shouldLine2TimesWithSpace(){
     val sb = lineNet2()
     
-    in += "1,1,0,0,1,1,0,0"
+    netWrapper += "1,1,0,0,1,1,0,0"
     init()
-    in.tick(12)
+    netWrapper.tick(12)
     assertEquals("--",sb.toString)
   }
   
   @Test def shouldNotLine(){
     val sb = lineNet2()
-    in += "1,0,0,1,0,0"
+    netWrapper += "1,0,0,1,0,0"
     init()
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals("",sb.toString)
   }
 
@@ -81,18 +81,18 @@ class LineNetSuite extends MySuite {
     lineNet3()
     debug("------------")
     var lines = 0
-    net.addAfterFire("in"){ println("INCOMING!") }
-    net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
 
-    in += o
+    netWrapper += o
     init()
-    val interval = in.tickUntilCalm()
+    val interval = netWrapper.tickUntilCalm()
     println(s"interval: $interval, lines: $lines")
     assertEquals(3, lines)
 
     lines = 0
-    in += s
-    in.tickUntilCalm()
+    netWrapper += s
+    netWrapper.tickUntilCalm()
     println(s"dots: $lines")
     assertEquals(0, lines)
   }

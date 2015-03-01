@@ -1,6 +1,6 @@
 package test.async.epengine
 
-import anna.async.{NetRef, NetInput, NetBuilder}
+import anna.async.{NetRef, NetWrapper, NetBuilder}
 import anna.data.NetData
 import anna.epengine._
 import anna.logger.LOG
@@ -20,13 +20,13 @@ class EngineSuite extends JUnitSuite {
   val inputIds = List("in1")
   val outputIds = List("out1")
 
-  val anySignalAnyResponse = (ni: NetInput, ref: NetRef, good: Double, bad: Double) => {
+  val anySignalAnyResponse = (wrapper: NetWrapper, good: Double, bad: Double) => {
     var counter = 0
-    ref.addAfterFire("out1"){ counter += 1 }
+    wrapper.addAfterFire("out1"){ counter += 1 }
 
-    ni += "1"
+    wrapper += "1"
 
-    ni.tickUntilCalm()
+    wrapper.tickUntilCalm()
     if(counter > 0) good else bad
   }
 

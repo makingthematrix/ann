@@ -1,13 +1,10 @@
 package anna.async
 
-import anna.Context
 import anna.Context.tickTime
-import anna.async.Messages._
-import anna.logger.LOG._
-
+import anna.utils.Utils._
 import scala.collection.mutable
 
-class NetInput(val name: String, val net: NetRef, val inputTickMultiplier: Double) {
+class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   
@@ -68,13 +65,23 @@ class NetInput(val name: String, val net: NetRef, val inputTickMultiplier: Doubl
     neurons.foreach(_.removeAfterFire("tickUntilCalm"))
     counter
   }
-  
+
+  def addAfterFire(id: String, name: String)(f: => Any): Unit = net.addAfterFire(id, name)(f)
+  def addAfterFire(id: String)(f: => Any): Unit = addAfterFire(id, id)(f)
+
+  def addHushRequested(id: String, name: String)(f: => Any): Unit = net.addHushRequested(id, name)(f)
+  def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)
+
+  def shutdown() = net.shutdown()
+  def reset() = net.reset()
+  def removeAllTriggers() = net.removeAllTriggers()
+
   def empty = inputQueue.isEmpty
 }
 
-object NetInput {
-  def apply(name: String, net: NetRef, inputTickMultiplier: Double) = {
-    val ani = new NetInput(name, net, inputTickMultiplier)
+object NetWrapper {
+  def apply(net: NetRef, inputTickMultiplier: Double) = {
+    val ani = new NetWrapper(net, inputTickMultiplier)
     ani.regSign('0',0.0)
     ani.regSign('1', 1.0)
     ani

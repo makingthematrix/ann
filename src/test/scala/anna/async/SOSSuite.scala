@@ -31,26 +31,26 @@ class SOSSuite extends MySuite {
     
     build()
     
-    net.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
     
     debug("------------")
   }
   
   @Test def shouldHaveDotsAndLines() = {
     dotLineNet()
-    var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
-    var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    var dots = 0; netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
+    var lines = 0; netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
     init()
 
-    in += s
-    in.tickUntilCalm()
+    netWrapper += s
+    netWrapper.tickUntilCalm()
     println(s"dots: $dots, lines: $lines")
     assertEquals(3, dots)
     assertEquals(0, lines)
 
     dots = 0; lines = 0;
-    in += o
-    in.tickUntilCalm()
+    netWrapper += o
+    netWrapper.tickUntilCalm()
     println(s"dots: $dots, lines: $lines")
     assertEquals(0, dots)
     assertEquals(3, lines)
@@ -59,48 +59,48 @@ class SOSSuite extends MySuite {
   @Test def shouldGuessDotsAndLines() = {
     dotLineNet()
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("dot"){ sb.append('.') }
-    net.addAfterFire("line"){ sb.append('-') }
+    netWrapper.addAfterFire("dot"){ sb.append('.') }
+    netWrapper.addAfterFire("line"){ sb.append('-') }
     init()
     
-    in += "1,0,0"
-    in.tickUntilCalm()
+    netWrapper += "1,0,0"
+    netWrapper.tickUntilCalm()
     assertEquals(".",sb.toString)
     
     sb.clear()
     
-    in += "0,1,0"
-    in.tickUntilCalm()
+    netWrapper += "0,1,0"
+    netWrapper.tickUntilCalm()
     assertEquals(".",sb.toString)
     
     sb.clear()
     
-    in += "0,0,1"
-    in.tickUntilCalm()
+    netWrapper += "0,0,1"
+    netWrapper.tickUntilCalm()
     assertEquals(".",sb.toString)
     
     sb.clear()
     
-    in += "1,0,1"
-    in.tickUntilCalm()
+    netWrapper += "1,0,1"
+    netWrapper.tickUntilCalm()
     assertEquals(".",sb.toString)
     
     sb.clear()
     
-    in += "1,1,0"
-    in.tickUntilCalm()
+    netWrapper += "1,1,0"
+    netWrapper.tickUntilCalm()
     assertEquals("-",sb.toString)
     
     sb.clear()
     
-    in += "0,1,1"
-    in.tickUntilCalm()
+    netWrapper += "0,1,1"
+    netWrapper.tickUntilCalm()
     assertEquals("-",sb.toString)
     
     sb.clear()
     
-    in += "1,1,1"
-    in.tickUntilCalm()
+    netWrapper += "1,1,1"
+    netWrapper.tickUntilCalm()
     assertEquals("-",sb.toString)  
   }
   
@@ -115,7 +115,7 @@ class SOSSuite extends MySuite {
                      .chain("S",0.5,0.81)
     build()
     
-    net.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
 
     debug("------------")
   }
@@ -123,20 +123,20 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveSInterval3() = {
     SNet()
     
-    var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
-    var S = 0; net.addAfterFire("S"){ println("S!"); S += 1; }
+    var dots = 0; netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
+    var S = 0; netWrapper.addAfterFire("S"){ println("S!"); S += 1; }
     
-    in += s
+    netWrapper += s
     init()
-    val interval = in.tickUntilCalm()
+    val interval = netWrapper.tickUntilCalm()
     println(s"interval: $interval, dots: $dots, S: $S")
     assertEquals(3, dots)
     assertEquals(1, S)
     
     dots = 0
     S = 0
-    in += o
-    in.tickUntilCalm()
+    netWrapper += o
+    netWrapper.tickUntilCalm()
     println(s"dots: $dots, S: $S")
     assertEquals(3, dots)
     assertEquals(1, S)
@@ -152,7 +152,7 @@ class SOSSuite extends MySuite {
                      .chain("O",0.6,0.81)
     build()
     
-    net.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
 
     debug("------------")
   }
@@ -160,20 +160,20 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveOInterval3() = {
     ONet()
     
-    var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
-    var O = 0; net.addAfterFire("O"){ println("O!"); O += 1; }
+    var lines = 0; netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    var O = 0; netWrapper.addAfterFire("O"){ println("O!"); O += 1; }
     
-    in += o
+    netWrapper += o
     init()
-    val interval = in.tickUntilCalm()
+    val interval = netWrapper.tickUntilCalm()
     println(s"interval: $interval, lines: $lines, O: $O")
     assertEquals(3, lines)
     assertEquals(1, O)
     
     lines = 0
     O = 0
-    in += s
-    in.tickUntilCalm()
+    netWrapper += s
+    netWrapper.tickUntilCalm()
     println(s"lines: $lines, O: $O")
     assertEquals(0, lines)
     assertEquals(0, O)
@@ -198,7 +198,7 @@ class SOSSuite extends MySuite {
     
     build()
 
-    net.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
     
     debug("------------")
   }
@@ -206,15 +206,15 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveSOSInterval3() = {
     SOSNet()
     
-    var dots = 0; net.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
-    var S = 0; net.addAfterFire("S"){ println("S!"); S += 1; }
-    var lines = 0; net.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
-    var O = 0; net.addAfterFire("O"){ println("O!"); O += 1; }
+    var dots = 0; netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
+    var S = 0; netWrapper.addAfterFire("S"){ println("S!"); S += 1; }
+    var lines = 0; netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    var O = 0; netWrapper.addAfterFire("O"){ println("O!"); O += 1; }
     
     init()
 
-    in += s
-    in.tickUntilCalm()
+    netWrapper += s
+    netWrapper.tickUntilCalm()
     println(s"dots: $dots, S: $S, lines: $lines, O: $O")
     assertEquals(3, dots)
     assertEquals(1, S)
@@ -223,8 +223,8 @@ class SOSSuite extends MySuite {
     
     dots = 0; S = 0; lines = 0; O = 0;
     
-    in += o
-    in.tickUntilCalm()
+    netWrapper += o
+    netWrapper.tickUntilCalm()
     println(s"dots: $dots, S: $S, lines: $lines, O: $O")
     assertEquals(0, dots)
     assertEquals(0, S)
@@ -233,8 +233,8 @@ class SOSSuite extends MySuite {
     
     dots = 0; S = 0; lines = 0; O = 0;
     
-    in += s
-    in.tickUntilCalm()
+    netWrapper += s
+    netWrapper.tickUntilCalm()
     println(s"dots: $dots, S: $S, lines: $lines, O: $O")
     assertEquals(3, dots)
     assertEquals(1, S)
@@ -246,15 +246,15 @@ class SOSSuite extends MySuite {
     SOSNet()
     
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("S"){ sb.append('S') }
-    net.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S"){ sb.append('S') }
+    netWrapper.addAfterFire("O"){ sb.append('O') }
     
-    in += s
-    in += o
-    in += s
+    netWrapper += s
+    netWrapper += o
+    netWrapper += s
     
     init()
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals("SOS", sb.toString)
   }
   
@@ -285,9 +285,9 @@ class SOSSuite extends MySuite {
     
     build()
 
-    net.addAfterFire("in"){ println("INCOMING!") }
-    net.addAfterFire("dot"){ println("KROPA!") }
-    net.addAfterFire("line"){ println("KRECHA!") }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("dot"){ println("KROPA!") }
+    netWrapper.addAfterFire("line"){ println("KRECHA!") }
     
     debug("------------")
   }
@@ -296,15 +296,15 @@ class SOSSuite extends MySuite {
     SOSNetWithHushNeuron()
     
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("S"){ sb.append('S') }
-    net.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S"){ sb.append('S') }
+    netWrapper.addAfterFire("O"){ sb.append('O') }
     
-    in += s
-    in += o
-    in += s
+    netWrapper += s
+    netWrapper += o
+    netWrapper += s
     
     init()
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals("SOS", sb.toString)
   }
 
@@ -312,16 +312,16 @@ class SOSSuite extends MySuite {
     SOSNetWithHushNeuron()
 
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("S"){ sb.append('S') }
-    net.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S"){ sb.append('S') }
+    netWrapper.addAfterFire("O"){ sb.append('O') }
 
-    in.regSign('i',noised1)
-    in.regSign('_',noised0)
+    netWrapper.regSign('i',noised1)
+    netWrapper.regSign('_',noised0)
 
     LOG.timer()
 
-    in += noisedSignal
-    in.tickUntilCalm()
+    netWrapper += noisedSignal
+    netWrapper.tickUntilCalm()
     assertEquals(shouldBe, sb.toString)
 
     LOG.date()
@@ -354,13 +354,13 @@ class SOSSuite extends MySuite {
     SOSNetWithHushNeuron()
 
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("S"){ sb.append('S') }
-    net.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S"){ sb.append('S') }
+    netWrapper.addAfterFire("O"){ sb.append('O') }
 
     LOG.timer()
 
-    inputSignal.foreach( in += _ )
-    in.tickUntilCalm()
+    inputSignal.foreach( netWrapper += _ )
+    netWrapper.tickUntilCalm()
     assertEquals("SOS", sb.toString)
 
     LOG.date()

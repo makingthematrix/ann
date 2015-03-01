@@ -117,7 +117,7 @@ class NetBuilder {
     this
   }
 
-  def build() = {
+  def build(netName: String =netName) = {
     val net = NetRef(netName)
     val nRefs = neurons.values.par.map(
       nd => nd.id -> createNeuronInNet(net, nd.withoutSynapses)
@@ -128,13 +128,7 @@ class NetBuilder {
     )
     
     net.setInputs(ins.toSeq)
-    net
-  }
-  
-  def build(netInputName: String):(NetInput,NetRef) = {
-    val net = build()
-    val in = NetInput(netInputName, net, inputTickMultiplier)
-    (in, net)
+    NetWrapper(net, inputTickMultiplier)
   }
 
   def data = {
