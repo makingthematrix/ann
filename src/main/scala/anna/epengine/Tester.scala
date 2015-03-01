@@ -12,7 +12,7 @@ class Tester(tests: List[NetTest]){
     debug(this, s"testing ${data.id}")
     checkConditions(data)
 
-    val wrapper = NetBuilder().set(data).build("in")
+    val wrapper = NetBuilder().set(data).build()
 
     var result = 0.0
     tests.foreach( test => {

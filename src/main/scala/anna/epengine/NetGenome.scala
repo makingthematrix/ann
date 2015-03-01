@@ -1,11 +1,10 @@
 package anna.epengine
 
-import anna.data.{SynapseData, NeuronData, NetData}
-import anna.utils.{RandomNumber, Utils}
-import anna.utils.DoubleRange._
 import anna.data.NetData._
-
+import anna.data.{NetData, NeuronData, SynapseData}
 import anna.logger.LOG._
+import anna.utils.DoubleRange._
+import anna.utils.{RandomNumber, Utils}
 
 import scala.annotation.tailrec
 
@@ -19,7 +18,7 @@ object MutationAccess extends Enumeration {
 }
 
 class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationAccess.Value]){
-  import NetGenome._
+  import anna.epengine.NetGenome._
 
   override def clone = NetGenome(_data, accessMap)
 

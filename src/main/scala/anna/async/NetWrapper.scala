@@ -2,6 +2,7 @@ package anna.async
 
 import anna.Context.tickTime
 import anna.utils.Utils._
+
 import scala.collection.mutable
 
 class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {

@@ -1,13 +1,12 @@
 package anna.utils
 
-import java.text.{ParsePosition, NumberFormat}
+import java.text.{NumberFormat, ParsePosition}
 import java.util.Locale
 
 import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.Context.timeout
 import anna.async.{NetRef, NeuronRef}
-import anna.logger.LOG._
 
 import scala.annotation.tailrec
 import scala.concurrent.Await

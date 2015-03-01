@@ -2,7 +2,7 @@ package anna
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import anna.data.{SynapseWeight, DontForget, HushValue}
+import anna.data.{DontForget, HushValue, SynapseWeight}
 
 import scala.concurrent.duration._
 

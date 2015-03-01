@@ -1,13 +1,11 @@
 package anna.async
 
 import akka.actor._
+import anna.Context.tickTime
 import anna.async.Messages._
 import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
 import anna.logger.LOG
-import anna.logger.LOG._
 import anna.utils.Utils
-
-import anna.Context.tickTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

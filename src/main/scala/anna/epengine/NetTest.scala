@@ -1,6 +1,6 @@
 package anna.epengine
 
-import anna.async.{NetRef, NetWrapper}
+import anna.async.NetWrapper
 
 /**
  * Created by gorywoda on 05.01.15.

@@ -2,16 +2,16 @@ package anna.epengine
 
 import anna.async.NeuronType
 import anna.data._
-import anna.utils.{RandomNumber, IntRange}
-import anna.utils.DoubleRange._
 import anna.logger.LOG._
+import anna.utils.DoubleRange._
+import anna.utils.RandomNumber
 
 
 /**
  * Created by gorywoda on 28.12.14.
  */
 class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess.Value]) {
-  import NeuronGenome._
+  import anna.epengine.NeuronGenome._
 
   def id = _data.id
   def threshold = _data.threshold
