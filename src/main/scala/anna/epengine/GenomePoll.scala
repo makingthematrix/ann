@@ -4,7 +4,9 @@ package anna.epengine
  * Created by gorywoda on 13.02.15.
  */
 class GenomePoll(val genomes: List[NetGenome]){
-
+  private def toRawJson = {
+    val genomesJson = genomes.map{ _.data.toJson }
+  }
 }
 
 object GenomePoll {
