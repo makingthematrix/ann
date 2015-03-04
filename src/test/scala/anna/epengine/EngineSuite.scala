@@ -20,26 +20,6 @@ class EngineSuite extends JUnitSuite {
   val inputIds = List("in1")
   val outputIds = List("out1")
 
-  val anySignalAnyResponse = (wrapper: NetWrapper, good: Double, bad: Double) => {
-    var counter = 0
-    wrapper.addAfterFire("out1"){ counter += 1 }
-
-    wrapper += "1"
-
-    wrapper.tickUntilCalm()
-    if(counter > 0) good else bad
-  }
-
-  val t1 = NetTest("any response to any signal", 1, List("out1"), anySignalAnyResponse)
-
-  @Test def shouldTestGenomePoll(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 10)
-    assertEquals(10, poll.genomes.size)
-
-    val results = Tester(List(t1)).test(poll)
-    results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
-  }
-
   @Test def shouldSplitIdsRandomly(): Unit ={
     val ids = "a, b, c, d, e".split(", ").toSet
     assertEquals(Set("a","b","c","d","e"), ids)
@@ -219,5 +199,54 @@ class EngineSuite extends JUnitSuite {
     debug(this,s"net1xnet21: $net1xnet21")
     assertEquals(net1Middle.toSet, (net1xnet12 ++ net1xnet21).toSet)
     assertEquals(net2Middle.toSet, (net2xnet12 ++ net2xnet21).toSet)
+  }
+
+  val anySignalAnyResponse = (wrapper: NetWrapper, good: Double, bad: Double) => {
+    var counter = 0
+    wrapper.addAfterFire("out1"){ counter += 1 }
+
+    wrapper += "1"
+
+    wrapper.tickUntilCalm()
+    if(counter > 0) good else bad
+  }
+
+  val t1 = NetTest("any response to any signal", 1, List("out1"), anySignalAnyResponse)
+
+  val f = (wrapper: NetWrapper, success: Double, failure: Double) => {
+    var counter = 0
+    wrapper.addAfterFire("out1"){ counter += 1 }
+
+    wrapper += "1,1,1,1,1,1"
+
+    wrapper.tickUntilCalm()
+    if(counter == 6) success else failure
+  }
+
+  val t2 = NetTest("constant output", 1, List("out1"), f)
+
+  @Test def shouldTestGenomePoll(): Unit ={
+    val poll = GenomePoll("net", inputIds, outputIds, 10)
+    assertEquals(10, poll.genomes.size)
+
+    val results = Tester(List(t1)).test(poll)
+    results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
+  }
+
+
+  @Test def shouldPerformEvolutionIteration(): Unit ={
+    val poll = GenomePoll("net",List("in1"),List("out1"),10)
+    val tester = Tester(List(t1, t2))
+
+    val engine = Engine(poll, tester)
+    val best1:NetGenome = engine.best
+    val result1 = tester.test(best1.data)
+
+    engine.run()
+
+    val best2:NetGenome = engine.best
+    val result2 = tester.test(best2.data)
+
+    assertTrue(result2 >= result1)
   }
 }
