@@ -8,10 +8,8 @@ import org.scalatest.junit.JUnitSuite
 class MySuite extends JUnitSuite {
   private var _builder: NetBuilder = _
   def builder = _builder
-  private var _in: NetInput = _
-  def in = _in
-  private var _net: NetRef = _
-  def net = _net
+  private var _netWrapper: NetWrapper = _
+  def netWrapper = _netWrapper
   
   @Before def before(){
     LOG.addLogToStdout()
@@ -19,23 +17,19 @@ class MySuite extends JUnitSuite {
   }
   
   @After def after(){
-    if(_net != null) _net.shutdown()
+    if(_netWrapper != null) _netWrapper.shutdown()
     _builder = null
-    _in = null
-    _net = null
+    _netWrapper = null
     LOG.date()
   }
 
   def shutdown(): Unit ={
-    if(_net != null) _net.shutdown()
-    _in = null
-    _net = null
+    if(_netWrapper != null) _netWrapper.shutdown()
+    _netWrapper = null
   }
   
   protected def build() = {
-    val triple = _builder.build("in")
-    _in = triple._1
-    _net = triple._2
+    _netWrapper = _builder.build("net")
   }
   
   protected def assertEqualsWithTolerance(expected: Seq[Long], received: Seq[Long], tolerance: Long) = {

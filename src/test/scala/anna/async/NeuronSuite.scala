@@ -57,18 +57,18 @@ class NeuronSuite extends MySuite {
     
     var (goodLoops, badLoops) = (0, 0)
     var done = false
-    net.addAfterFire("in"){ println("INCOMING!") }
-    net.addAfterFire("loop"){ 
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("loop"){
       println("here") 
       if(!done) goodLoops += 1 else badLoops += 1
     }
-    net.addAfterFire("out"){
+    netWrapper.addAfterFire("out"){
       println("DONE") 
       done = true
     }
-    in += "1"
+    netWrapper += "1"
     init()
-    val interval = in.tickUntilCalm()
+    val interval = netWrapper.tickUntilCalm()
     println(s"interval: $interval, good loops: $goodLoops, bad loops: $badLoops")
     assertEquals(0, badLoops)
   }

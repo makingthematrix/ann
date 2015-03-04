@@ -3,8 +3,8 @@ package anna.async
 import anna.Context
 import anna.async.Messages._
 import anna.async.NeuronType._
-import anna.data._
 import anna.data.SynapseData.fromDouble
+import anna.data._
 import anna.utils.Utils.{assert, await}
 
 import scala.collection.mutable
@@ -117,7 +117,7 @@ class NetBuilder {
     this
   }
 
-  def build() = {
+  def build(netName: String =netName) = {
     val net = NetRef(netName)
     val nRefs = neurons.values.par.map(
       nd => nd.id -> createNeuronInNet(net, nd.withoutSynapses)
@@ -128,13 +128,7 @@ class NetBuilder {
     )
     
     net.setInputs(ins.toSeq)
-    net
-  }
-  
-  def build(netInputName: String):(NetInput,NetRef) = {
-    val net = build()
-    val in = NetInput(netInputName, net, inputTickMultiplier)
-    (in, net)
+    NetWrapper(net, inputTickMultiplier)
   }
 
   def data = {

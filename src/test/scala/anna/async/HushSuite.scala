@@ -40,16 +40,16 @@ class HushSuite extends MySuite {
     
     var hushReceived = false
 
-    net.addHushRequested("id2"){
+    netWrapper.addHushRequested("id2"){
       LOG.debug("received hush request in id2")
       hushReceived = true
     }
-    
-    in += "1"
+
+    netWrapper += "1"
 
     LOG.timer()
-    
-    in.tickUntilCalm()
+
+    netWrapper.tickUntilCalm()
     assertTrue(hushReceived)    
   }
   
@@ -84,16 +84,16 @@ class HushSuite extends MySuite {
     
     var hushReceived = false
 
-    net.addHushRequested("id2"){
+    netWrapper.addHushRequested("id2"){
       LOG.debug("received hush request in id2")
       hushReceived = true
     }
-    
-    in += "1"
+
+    netWrapper += "1"
      
     LOG.timer()
-    
-    in.tickUntilCalm()
+
+    netWrapper.tickUntilCalm()
     assertTrue(hushReceived)
   }
 }

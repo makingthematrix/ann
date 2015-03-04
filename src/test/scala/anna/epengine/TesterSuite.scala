@@ -10,13 +10,13 @@ import org.junit.Assert._
  */
 class TesterSuite extends MySuite {
 
-  val f = (input: NetInput, netRef: NetRef, success: Double, failure: Double) => {
+  val f = (wrapper: NetWrapper, success: Double, failure: Double) => {
     var counter = 0
-    netRef.addAfterFire("out1"){ counter += 1 }
+    wrapper.addAfterFire("out1"){ counter += 1 }
 
-    input += "1,1,1,1,1,1"
+    wrapper += "1,1,1,1,1,1"
 
-    input.tickUntilCalm()
+    wrapper.tickUntilCalm()
     if(counter == 6) success else failure
   }
 
@@ -28,11 +28,11 @@ class TesterSuite extends MySuite {
 
     // first we check if it works out of the box
     var counter = 0
-    net.addAfterFire("out1"){ counter += 1 }
+    netWrapper.addAfterFire("out1"){ counter += 1 }
 
-    in += "1,1,1,1,1,1"
+    netWrapper += "1,1,1,1,1,1"
 
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals(6, counter)
 
     shutdown()
@@ -44,11 +44,11 @@ class TesterSuite extends MySuite {
     build()
 
     counter = 0
-    net.addAfterFire("out1"){ counter += 1 }
+    netWrapper.addAfterFire("out1"){ counter += 1 }
 
-    in += "1,1,1,1,1,1"
+    netWrapper += "1,1,1,1,1,1"
 
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals(6, counter)
 
     shutdown()

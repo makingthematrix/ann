@@ -2,7 +2,6 @@ package anna.async
 
 import akka.actor.{ActorRef, Props, actorRef2Scala}
 import akka.pattern.ask
-import anna.Context
 import anna.Context._
 import anna.async.Messages._
 import anna.data.{ForgetTrait, HushValue}

@@ -1,6 +1,6 @@
 package anna.epengine
 
-import anna.async.{NetRef, NetInput}
+import anna.async.NetWrapper
 
 /**
  * Created by gorywoda on 05.01.15.
@@ -8,8 +8,8 @@ import anna.async.{NetRef, NetInput}
 case class NetTest(name: String,
                    inputLen: Int,
                    outputIds: List[String],
-                   function: (NetInput, NetRef, Double, Double) => Double,
+                   function: (NetWrapper, Double, Double) => Double,
                    success: Double =1.0,
                    failure: Double =0.0) {
-  def run(in: NetInput, net: NetRef) = function(in, net, success, failure)
+  def run(wrapper: NetWrapper) = function(wrapper, success, failure)
 }

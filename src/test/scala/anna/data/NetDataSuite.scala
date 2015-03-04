@@ -46,17 +46,17 @@ class NetDataSuite extends JUnitSuite {
     val builder = NetBuilder()
     builder.set(netData)
 
-    val (in, net) = builder.build("in")
-    val neurons = net.getNeurons
+    val netWrapper = builder.build("in")
+    val neurons = netWrapper.net.getNeurons
     assertEquals(2, neurons.size)
     assertEquals(List("id1","id2"), neurons.map(_.id).sorted)
 
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("id2"){ sb.append(".") }
+    netWrapper.addAfterFire("id2"){ sb.append(".") }
 
-    in += "1,1,1"
+    netWrapper += "1,1,1"
 
-    in.tick(20)
+    netWrapper.tick(20)
 
     assertEquals("...",sb.toString)
   }
@@ -99,24 +99,24 @@ class NetDataSuite extends JUnitSuite {
 
     println(netData2.toPrettyJson)
 
-    val (in, net) = builder2.build("in")
+    val netWrapper = builder2.build("in")
     val sb = StringBuilder.newBuilder
-    net.addAfterFire("S"){ sb.append('S') }
-    net.addAfterFire("O"){ sb.append('O') }
-    net.addAfterFire("in"){ println("INCOMING!") }
-    net.addAfterFire("dot"){ println("KROPA!") }
-    net.addAfterFire("line"){ println("KRECHA!") }
+    netWrapper.addAfterFire("S"){ sb.append('S') }
+    netWrapper.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("dot"){ println("KROPA!") }
+    netWrapper.addAfterFire("line"){ println("KRECHA!") }
 
 
     val s = "1,0,0,1,0,0,1,0,0"
     val o = "1,1,0,1,1,0,1,1,0"
 
-    in += s
-    in += o
-    in += s
+    netWrapper += s
+    netWrapper += o
+    netWrapper += s
 
     LOG.timer()
-    in.tickUntilCalm()
+    netWrapper.tickUntilCalm()
     assertEquals("SOS", sb.toString)
     LOG.date()
   }

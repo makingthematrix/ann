@@ -1,11 +1,10 @@
 package anna.data
 
 import anna.logger.LOG._
+import anna.utils.DoubleRange._
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
-
-import anna.utils.DoubleRange._
 
 sealed trait SynapseTrait extends Any
 case class SynapseWeight(weight: Double) extends AnyVal with SynapseTrait {

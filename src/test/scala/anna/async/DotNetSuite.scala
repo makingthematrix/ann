@@ -65,21 +65,21 @@ class DotNetSuite extends MySuite {
     debug("------------")
 
     var dots = 0
-    in += s
+    netWrapper += s
 
     init()
-    net.addAfterFire("in"){ println("INCOMING!") }
-    net.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
 
-    val interval = in.tickUntilCalm()
+    val interval = netWrapper.tickUntilCalm()
     println(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
 
 
     dots = 0
-    in += o
+    netWrapper += o
 
-    val interval2 = in.tickUntilCalm()
+    val interval2 = netWrapper.tickUntilCalm()
     println(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
   }

@@ -1,12 +1,11 @@
 package anna.data
 
+import anna.Context
 import anna.async.NeuronType
 import anna.logger.LOG._
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
-
-import anna.Context
 
 case class HushValue(iterations: Int = 1) extends AnyVal
   

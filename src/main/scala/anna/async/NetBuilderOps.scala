@@ -1,6 +1,6 @@
 package anna.async
 
-import anna.data.{SynapseTrait, SynapseWeight, ForgetTrait, HushValue}
+import anna.data.{ForgetTrait, HushValue, SynapseTrait, SynapseWeight}
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
