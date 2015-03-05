@@ -197,4 +197,8 @@ class NetBuilder {
 
 object NetBuilder {
   def apply() = new NetBuilder()
+  def apply(data: NetData) = {
+    val builder = new NetBuilder()
+    builder.set(data)
+  }
 }

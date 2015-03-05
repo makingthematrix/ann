@@ -80,7 +80,8 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     }
   }
 
-  def cross(genome: NetGenome, trimEnabled: Boolean, renameEnabled: Boolean) = if(crossable(genome)) {
+  def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
+    debug(this,s"crossing $id with ${genome.id}")
     val var1 = fullAccessNeurons()
     val var2 = genome.fullAccessNeurons()
 
@@ -194,15 +195,14 @@ object NetGenome {
     assert(synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
     assert(inputIds.size + outputIds.size <= neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${neuronsRange.end}")
 
-    val accessMap = accessMap(inputIds, outputIds)
-
     val r = if(inputIds.size + outputIds.size > neuronsRange.start) (inputIds.size + outputIds.size) to neuronsRange.end
             else neuronsRange
     val neuronsSize = RandomNumber(r)
 
     val ins = inputIds.map( NeuronGenome.toss(_) )
     val outs = outputIds.map( NeuronGenome.toss(_) )
-    val middles = ( for(i <- 1 to neuronsSize - ins.size - outs.size) yield NeuronGenome.toss(neuronId(netId,i), accessMap)).toList
+    val middles = ( for(i <- 1 to neuronsSize - ins.size - outs.size)
+      yield NeuronGenome.toss(neuronId(netId,i), accessMap(inputIds, outputIds))).toList
     val ns = ins ++ middles ++ outs
 
     // at least one synapse from each "in" to one of "middles"
@@ -239,7 +239,7 @@ object NetGenome {
     val inputTickMultiplier = RandomNumber(inputTickMultiplierRange)
 
     val netData = NetData(netId, ns.map(_.data), inputIds, inputTickMultiplier)
-    NetGenome(netData, accessMap)
+    NetGenome(netData, accessMap(inputIds, outputIds))
   }
 
   def breed(oldGenome: NetGenome,
