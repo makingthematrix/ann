@@ -40,6 +40,10 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   def mutableNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.DONTMUTATE)
   def notFullAccessNeurons() = neurons.filterNot(n => accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
 
+  def setNetId(newNetId: String): Unit = {
+    _data = _data.withNewNetId(newNetId)
+  }
+
   def mutate() = Probability.performRandom(
     (addNeuronProbability, addNeuron _),
     (deleteNeuronProbability, deleteNeuron _),

@@ -14,8 +14,10 @@ class Engine(val tester: Tester,
   assert(poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
   private var initialized = false
 
-  def run() = {
-    debug(this,"run")
+  def run() = iteration(1)
+  
+  def iteration(iterIndex: Int) = {
+    debug(this,s"iteration $iterIndex")
     if(!initialized){
       debug(this,"not initialized yet so calculating results for the same time")
       calculateResults()
@@ -41,6 +43,8 @@ class Engine(val tester: Tester,
       val genome1 = poll(drawId)
       val genome2Opt = Engine.drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id)
       val (g1, g2) = if(genome2Opt != null) genome1.cross(genome2Opt.get) else (genome1.clone, genome1.clone)
+      g1.setNetId(s"iter${iterIndex}Left")
+      g2.setNetId(s"iter${iterIndex}Right")
       List(g1, g2)
     }).flatten.toList ++ List(g1, g2)
     debug(this, "the whole list of new genomes: " + newGenomes.map(_.id))

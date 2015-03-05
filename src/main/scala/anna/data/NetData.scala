@@ -75,6 +75,8 @@ case class NetData(id: String,
     neurons.filterNot( n => idsSet.contains(n.id) )
   }
 
+  def withNewNetId(newNetId: String) = withNeurons(neurons.map(n => n.withId(NetData.replaceNetId(n.id, newNetId)))).
+                                       withId(newNetId)
 }
 
 object NetData {
