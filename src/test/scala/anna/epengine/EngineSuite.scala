@@ -43,14 +43,14 @@ class EngineSuite extends JUnitSuite {
   }
 
   val t2 = NetTest("constant output", 1, List("out1"), f)
-/*
+
   @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 5)
     assertEquals(5, poll.genomes.size)
 
     val results = Tester(List(t1)).test(poll)
     results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
-  }*/
+  }
 
   @Test def shouldPerformEvolutionIteration(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 5)

@@ -52,21 +52,33 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   )
 
   def trim():Unit = {
+    debug(this, s"trim $id")
     // identify synapses which lead to non-existing neurons
     // for each such synapse, create a neuron without it and replace the original one with it in data
     val neuronIdSet = neurons.map(_.id).toSet
-    neurons.map(n => n.synapses.find(s => !neuronIdSet.contains(s.neuronId)) match {
-      case Some(synapse) => Some((n.id, synapse.neuronId))
-      case None => None
-    }).flatten.foreach( t => replaceSynapses(t._1, find(t._1).get.synapses.filterNot( _.neuronId == t._2 )) )
+    debug(this, s"neurons: $neuronIdSet")
+    var replaceNeeded = false
+    val trimmedNeurons = neurons.map(n => {
+      val trimmedSynapses = n.synapses.filter( s => neuronIdSet.contains(s.neuronId))
+      if(trimmedSynapses.size == n.synapses.size) n else {
+        debug(this, s"synapses trim needed for neuron ${n.id} from ${n.synapses.map(_.neuronId)} to ${trimmedSynapses.map(_.neuronId)}")
+        replaceNeeded = true
+        n.withSynapses(trimmedSynapses)
+      }
+    })
+    if(replaceNeeded) _data = _data.withNeurons(trimmedNeurons)
 
     // identify full access neurons which have no synapses leading to them
     // delete these neurons from the data
     val endPointNeuronIds = neurons.map( _.synapses.map(_.neuronId) ).flatten.toSet
-    neurons.filter( n =>
-      !endPointNeuronIds.contains(n.id) &&
-       accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL
-    ).foreach( n => deleteNeuron(n.id) )
+    val endPointNeurons = neurons.filter( n =>
+      endPointNeuronIds.contains(n.id) ||
+       accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.FULL
+    )
+    if(endPointNeurons.size != neurons.size) {
+      debug(this, s"neurons list trimmed from ${neurons.map(_.id)} to ${endPointNeurons.map(_.id)}")
+      _data = _data.withNeurons(endPointNeurons)
+    }
   }
 
   def crossable(genome: NetGenome) = {
@@ -107,17 +119,10 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
     // 4. create genomes with switch neurons
     val allVariables = var1 ++ var2
-    val leftGenome = breed(this, allVariables, leftIds, trimEnabled, renameEnabled)
-    val rightGenome = breed(genome, allVariables, rightIds, trimEnabled, renameEnabled)
+    val leftGenome = breed(this, allVariables.filter( n => leftIds.contains(n.id)), trimEnabled, renameEnabled)
+    val rightGenome = breed(genome, allVariables.filter( n => rightIds.contains(n.id)), trimEnabled, renameEnabled)
     (leftGenome, rightGenome)
   } else (clone, genome.clone)
-
-  private def replaceSynapses(neuronId: String, synapses: List[SynapseData]): Unit = {
-    _data = _data.neurons.find(_.id == neuronId) match {
-      case Some(neuron) => _data.withNeurons(neuron.withSynapses(synapses) :: _data.neurons.filterNot(_.id == neuronId))
-      case None => _data
-    }
-  }
 
   private def deleteNeuron(id: String): Unit = {
     _data = _data.withNeurons( neurons.filterNot( _.id == id ) )
@@ -247,20 +252,21 @@ object NetGenome {
   }
 
   def breed(oldGenome: NetGenome,
-            variables: List[NeuronData],
-            chosenIds: Set[String],
+            newFullAccess: List[NeuronData],
             trimEnabled: Boolean = true,
             renameEnabled: Boolean = true) = {
-    // 5. constants + neurons with ids matching the first set is the new net1, constants + neurons with ids matching the second set is the new net2
-    val newVariables = variables.filter( n => chosenIds.contains(n.id) )
     // 6. rename full access neurons so their netId match their new nets
     val newNeurons = oldGenome.notFullAccessNeurons() ++
-      (if(renameEnabled) newVariables.map( n => n.withId(replaceNetId(n.id, oldGenome.id)) ) else newVariables)
+      (if(renameEnabled) newFullAccess.map( n => {
+        n.withSynapses(n.synapses.map( s => s.withId(replaceNetId(s.neuronId, oldGenome.id))))
+         .withId(replaceNetId(n.id, oldGenome.id))
+      } ) else newFullAccess)
     // 7. compose new NetData
     val newNet = oldGenome.data.withNeurons(newNeurons)
     // 8. "trim" the net, ie. remove synapses which lead to non-existing neurons and full access neurons which do not receive any input
     val newGen = NetGenome(newNet, oldGenome.accessMap)
     if(trimEnabled) newGen.trim()
+    if(trimEnabled && renameEnabled) newGen.data.validate()
     newGen
   }
 

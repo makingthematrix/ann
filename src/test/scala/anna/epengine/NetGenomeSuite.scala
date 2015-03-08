@@ -225,7 +225,7 @@ class NetGenomeSuite extends JUnitSuite {
     println(s"ids: ${ids.mkString(", ")}")
     val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
     println(s"ids1: ${ids1.mkString(", ")}")
-    val newGen = NetGenome.breed(net1G, variables, ids1, false)
+    val newGen = NetGenome.breed(net1G, variables.filter(n => ids.contains(n.id)), false)
 
     val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
     println(s"expectedIds: ${expectedIds.mkString(", ")}")
