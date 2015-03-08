@@ -8,7 +8,7 @@ import org.json4s.native.JsonMethods._
  */
 class GenomePoll(val genomes: List[NetGenome]){
   def apply(id: String) = genomes.find(_.id == id).get
-
+  def size = genomes.size
 
   def toPrettyJson = {
     val genomesJson = genomes.map{ g => JString(g.data.toPrettyJson) }

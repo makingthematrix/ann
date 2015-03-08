@@ -1,16 +1,11 @@
 package test.async.epengine
 
-import anna.async.{NetRef, NetWrapper, NetBuilder}
-import anna.data.NetData
+import anna.async.NetWrapper
 import anna.epengine._
 import anna.logger.LOG
-import anna.logger.LOG._
+import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
-import org.junit.Assert._
-import anna.utils.Utils
-import anna.async.NetBuilderOps._
-import anna.epengine.MutationAccess._
 
 class EngineSuite extends JUnitSuite {
   @Before def before() {
@@ -66,5 +61,6 @@ class EngineSuite extends JUnitSuite {
     val result2 = tester.test(best2.data)
 
     assertTrue(result2 >= result1)
+    println(s"new result: $result2, old result: $result1")
   }
 }
