@@ -301,11 +301,10 @@ class NetGenomeSuite extends JUnitSuite {
     b2.use("in2").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out2",1.0)
     val net2G = NetGenome(b2.data, Map("in2" -> DONTMUTATE, "out2" -> DONTDELETE))
 
-    assertFalse(net1G.crossable(net2G))
+    intercept[AssertionError] {
+      net1G.crossable(net2G)
+    }
 
-    val (net12G, net21G) = net1G.cross(net2G, false, false)
-    assertEquals(net1G.data, net12G.data)
-    assertEquals(net2G.data, net21G.data)
   }
 
   private def crossTest(net1G: NetGenome, net2G: NetGenome): Unit ={

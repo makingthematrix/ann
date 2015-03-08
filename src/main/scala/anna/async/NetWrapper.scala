@@ -40,7 +40,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   )).foreach( add )
 
   def tick():Unit = tick(1)
-  def tick(n: Int):Unit = for(i <- 1 to n) yield {
+  def tick(n: Int):Unit = for(i <- 1 to n) {
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
     Thread.sleep((inputTickMultiplier * tickTime).toLong)

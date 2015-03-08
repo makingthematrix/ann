@@ -47,15 +47,20 @@ class Engine(val tester: Tester,
     val (g1,g2) = if(higherHalfGenomeOpt != None) lowerHalfGenome.cross(higherHalfGenomeOpt.get)
                   else (lowerHalfGenome.clone, lowerHalfGenome.clone)
 
-    val newGenomes = (1 to results.size/2 - 1).map( i => {
-      val genome1 = poll(drawId)
-      val genome2Opt = drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id)
-      val (g1, g2) = if(genome2Opt != null) genome1.cross(genome2Opt.get)
-                     else (genome1.clone, genome1.clone)
+    val newGenomes = (for(i <- 1 to results.size/2 - 1) yield {
+      val (g1, g2) = crossTwoGenomes
       List(g1.netId(s"iter${iterIndex}Left"), g2.netId(s"iter${iterIndex}Right"))
     }).flatten.toList ++ List(g1, g2)
 
     if(newGenomes.size < poll.size) best :: newGenomes else newGenomes
+  }
+
+  def crossTwoGenomes = {
+    val genome1 = poll(drawId)
+    drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id) match {
+      case Some(genome2) => genome1.cross(genome2)
+      case None => (genome1.clone, genome1.clone)
+    }
   }
 
   def best = poll.genomes.find( _.id == results.maxBy(_._2)._1 ).get
