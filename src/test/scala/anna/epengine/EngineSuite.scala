@@ -25,7 +25,7 @@ class EngineSuite extends JUnitSuite {
     if(counter > 0) good else bad
   }
 
-  val t1 = NetTest("any response to any signal", 1, List("out1"), anySignalAnyResponse)
+  val t1 = Exercise("any response to any signal", 1, List("out1"), anySignalAnyResponse)
 
   val f = (wrapper: NetWrapper, success: Double, failure: Double) => {
     var counter = 0
@@ -37,19 +37,19 @@ class EngineSuite extends JUnitSuite {
     if(counter == 6) success else failure
   }
 
-  val t2 = NetTest("constant output", 1, List("out1"), f)
+  val t2 = Exercise("constant output", 1, List("out1"), f)
 
   @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 5)
     assertEquals(5, poll.genomes.size)
 
-    val results = Tester(List(t1)).test(poll)
+    val results = Coach(List(t1)).test(poll)
     results.foreach( tuple => println(s"${tuple._1.id}: ${tuple._2}"))
   }
 
   @Test def shouldPerformEvolutionIteration(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 5)
-    val tester = Tester(List(t1, t2))
+    val tester = Coach(List(t1, t2))
 
     val engine = Engine(tester, 0.5, poll)
     val best1 = engine.best

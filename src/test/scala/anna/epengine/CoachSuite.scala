@@ -8,7 +8,7 @@ import org.junit.Assert._
 /**
  * Created by gorywoda on 05.01.15.
  */
-class TesterSuite extends MySuite {
+class CoachSuite extends MySuite {
 
   val f = (wrapper: NetWrapper, success: Double, failure: Double) => {
     var counter = 0
@@ -54,8 +54,8 @@ class TesterSuite extends MySuite {
     shutdown()
 
     // and now let's do the same through the Tester
-    val test = NetTest(name = "constant output", inputLen = 1, outputIds = List("out1"), function = f)
-    val tester = Tester(List(test))
+    val test = Exercise(name = "constant output", inputLen = 1, outputIds = List("out1"), function = f)
+    val tester = Coach(List(test))
     val result = tester.test(data)
     assertEquals(1.0, result, 0.01)
   }
@@ -65,10 +65,10 @@ class TesterSuite extends MySuite {
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     val data = builder.data
 
-    val test1 = NetTest(name = "constant output 1", inputLen = 1, outputIds = List("out1"), function = f)
-    val test2 = NetTest(name = "constant output 2", inputLen = 1, outputIds = List("out1"), function = f)
-    val test3 = NetTest(name = "constant output 3", inputLen = 1, outputIds = List("out1"), function = f)
-    val tester = Tester(List(test1, test2, test3))
+    val test1 = Exercise(name = "constant output 1", inputLen = 1, outputIds = List("out1"), function = f)
+    val test2 = Exercise(name = "constant output 2", inputLen = 1, outputIds = List("out1"), function = f)
+    val test3 = Exercise(name = "constant output 3", inputLen = 1, outputIds = List("out1"), function = f)
+    val tester = Coach(List(test1, test2, test3))
     val result = tester.test(data)
     assertEquals(3.0, result, 0.01)
   }

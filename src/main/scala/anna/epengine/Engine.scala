@@ -5,7 +5,7 @@ import anna.utils.RandomNumber
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 
-class Engine(val tester: Tester,
+class Engine(val coach: Coach,
              val mutationProbability: Probability,
              private var poll: GenomePoll,
              private var results:Map[String,Double] = HashMap()) {
@@ -49,10 +49,10 @@ class Engine(val tester: Tester,
 
     val newGenomes = (for(i <- 1 to results.size/2 - 1) yield {
       val (g1, g2) = crossTwoGenomes
-      List(g1.netId(s"iter${iterIndex}Left"), g2.netId(s"iter${iterIndex}Right"))
-    }).flatten.toList ++ List(g1, g2)
+      List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
+    }).flatten.toList ++ List(g1.netId(s"iter${iterIndex}#0Left"), g2.netId(s"iter${iterIndex}#0Right"))
 
-    if(newGenomes.size < poll.size) best :: newGenomes else newGenomes
+    if(newGenomes.size < poll.size) best.netId(s"iter${iterIndex}Best") :: newGenomes else newGenomes
   }
 
   def crossTwoGenomes = {
@@ -66,7 +66,7 @@ class Engine(val tester: Tester,
   def best = poll.genomes.find( _.id == results.maxBy(_._2)._1 ).get
 
   private def calculateResults(): Unit ={
-    results = tester.test(poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    results = coach.test(poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
   }
 
   private def drawId = Engine.drawId(results)
@@ -74,7 +74,7 @@ class Engine(val tester: Tester,
 }
 
 object Engine {
-  def apply(tester: Tester, mutationProbability: Probability, poll: GenomePoll) =
+  def apply(tester: Coach, mutationProbability: Probability, poll: GenomePoll) =
     new Engine(tester, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
 
   @tailrec
