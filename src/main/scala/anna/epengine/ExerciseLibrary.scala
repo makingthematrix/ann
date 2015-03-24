@@ -25,11 +25,6 @@ object ExerciseLibrary {
     case Some(instance) => instance
   }
 
-  val map = Map[String, Exercise](
-    anyResponseToAnySignal.name -> anyResponseToAnySignal,
-    constantOutputForSixUnits.name -> constantOutputForSixUnits
-  )
-
   val anyResponseToAnySignal = Exercise("any response to any signal", 1, List("out1"),
                                         (wrapper: NetWrapper, good: Double, bad: Double) => {
     var counter = 0
@@ -51,4 +46,11 @@ object ExerciseLibrary {
     wrapper.tickUntilCalm()
     if(counter == 6) success else failure
   })
+
+
+  val map = Map[String, Exercise](
+    anyResponseToAnySignal.name -> anyResponseToAnySignal,
+    constantOutputForSixUnits.name -> constantOutputForSixUnits
+  )
+
 }

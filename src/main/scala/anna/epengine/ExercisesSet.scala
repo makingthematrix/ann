@@ -1,11 +1,9 @@
 package anna.epengine
 
-import anna.async.NeuronType
-import anna.data.{SynapseData, NeuronData}
-import anna.logger.LOG._
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.json4s.DefaultFormats
 
 /**
  * Created by gorywoda on 11.03.15.
@@ -23,8 +21,9 @@ case class ExercisesSet(name: String, exerciseNames: Set[String]){
 }
 
 object ExercisesSet {
-  def apply(name: String, exerciseNames: Set[String]):ExercisesSet = new ExercisesSet(name, exerciseNames)
   def apply(name: String, exerciseNames: List[String]):ExercisesSet = new ExercisesSet(name, exerciseNames.toSet)
+
+  implicit val formats = org.json4s.DefaultFormats
 
   def fromJson(jsonStr: String):ExercisesSet = parse(jsonStr).extract[ExercisesSet]
 }

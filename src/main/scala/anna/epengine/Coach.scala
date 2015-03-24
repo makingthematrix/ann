@@ -8,7 +8,7 @@ import anna.logger.LOG._
  * Created by gorywoda on 05.01.15.
  */
 class Coach(exercises: List[Exercise]){
-  def test(data: NetData) = {
+  def test(data: NetData):Double = {
     debug(this, s"testing ${data.id}")
     checkConditions(data)
 
@@ -27,7 +27,7 @@ class Coach(exercises: List[Exercise]){
     result
   }
 
-  def test(poll: GenomePoll) = poll.genomes.map( genome => (genome, test(genome.data)) ).sortBy(-_._2)
+  def test(poll: GenomePoll):List[(NetGenome,Double)] = poll.genomes.map( genome => (genome, test(genome.data)) ).sortBy(-_._2).toList
 
   private def checkConditions(data: NetData): Unit ={
     exercises.foreach( ex => {
