@@ -6,6 +6,7 @@ import org.junit.Assert._
 import org.junit.{Test, Before}
 import org.scalatest.junit.JUnitSuite
 import anna.utils.DoubleRange._
+import anna.Context
 
 /**
  * Created by gorywoda on 16.02.15.
@@ -237,20 +238,20 @@ class NeuronGenomeSuite extends JUnitSuite {
     NeuronGenome.addSynapseProbability = 0.0
     NeuronGenome.deleteSynapseProbability = 0.0
 
-    SynapseGenome.fullWeightProbability = 1.0
-    SynapseGenome.hushProbability = 0.0
+    Context.withFullWeightProbability(1.0)
+    Context.withHushProbability(0.0)
 
     nch1.mutate()
     assertEquals(SynapseWeight(1.0), nch1.getSynapse("id2").weight)
 
-    SynapseGenome.fullWeightProbability = 0.0
-    SynapseGenome.hushProbability = 1.0
+    Context.withFullWeightProbability(0.0)
+    Context.withHushProbability(1.0)
 
     nch1.mutate()
     assertEquals(Hush, nch1.getSynapse("id2").weight)
 
-    SynapseGenome.fullWeightProbability = 0.0
-    SynapseGenome.hushProbability = 0.0
+    Context.withFullWeightProbability(0.0)
+    Context.withHushProbability(0.0)
 
     nch1.mutate()
     val weight = nch1.getSynapse("id2").weight

@@ -1,23 +1,21 @@
 package anna.epengine
 
+import anna.Context
 import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
-import anna.utils.DoubleRange._
 import anna.utils.RandomNumber
 
 /**
  * Created by gorywoda on 27.12.14.
  */
 class SynapseGenome(private var _data: SynapseData){
-  import anna.epengine.SynapseGenome._
-
   def neuronId = _data.neuronId
   def weight = _data.weight
   def data = _data
 
   def mutate() = Probability.performRandom(
-    (hushProbability, setWeightToHush _),
-    (1.0 - fullWeightProbability - hushProbability, mutateWeight _),
-    (fullWeightProbability, setWeightToFull _)
+    (Context().hushProbability, setWeightToHush _),
+    (1.0 - Context().fullWeightProbability - Context().hushProbability, mutateWeight _),
+    (Context().fullWeightProbability, setWeightToFull _)
   )
 
   private def setWeightToHush():Unit = {
@@ -30,17 +28,13 @@ class SynapseGenome(private var _data: SynapseData){
 
   private def mutateWeight():Unit = {
     _data = _data.weight match {
-      case SynapseWeight(avoidWeight) => _data.withWeight(SynapseWeight(weightRange.choose(RandomNumber(), avoidWeight)))
-      case _ => _data.withWeight(SynapseWeight(RandomNumber(weightRange)))
+      case SynapseWeight(avoidWeight) => _data.withWeight(SynapseWeight(Context().weightRange.choose(RandomNumber(), avoidWeight)))
+      case _ => _data.withWeight(SynapseWeight(RandomNumber(Context().weightRange)))
     }
   }
 }
 
 object SynapseGenome {
-  var weightRange = 0.01<=>1.0
-  var hushProbability = Probability(0.05)
-  var fullWeightProbability = Probability(0.2)
-
   def apply(data: SynapseData):SynapseGenome = new SynapseGenome(data)
   def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = SynapseGenome(SynapseData(neuronId, weight))
   def apply(neuronId: String, weight: Double):SynapseGenome = apply(neuronId, SynapseWeight(weight))

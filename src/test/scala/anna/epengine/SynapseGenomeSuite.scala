@@ -1,10 +1,11 @@
 package anna.epengine
 
+import anna.Context
 import anna.data.{SynapseWeight, Hush}
 import anna.logger.LOG
 import anna.logger.LOG._
 import org.junit.Assert._
-import org.junit.{Test, After, Before}
+import org.junit.{Test, Before}
 import org.scalatest.junit.JUnitSuite
 import anna.utils.DoubleRange._
 
@@ -15,8 +16,8 @@ class SynapseGenomeSuite extends JUnitSuite {
   @Before def before() {
     LOG.addLogToStdout()
 
-    SynapseGenome.weightRange = -1.0 <=> 1.0
-    SynapseGenome.hushProbability = 0.1
+    Context.withWeightRange(-1.0 <=> 1.0)
+    Context.withHushProbability(0.1)
   }
 
   @Test def shouldTossForSynapse() {
@@ -28,7 +29,7 @@ class SynapseGenomeSuite extends JUnitSuite {
       sg.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) =>
-          assert(SynapseGenome.weightRange.contains(w), s"weight outside range: $w")
+          assert(Context().weightRange.contains(w), s"weight outside range: $w")
       }
     }
 
@@ -38,8 +39,8 @@ class SynapseGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldChangeHushProbability() {
-    SynapseGenome.hushProbability = 1.0
-    SynapseGenome.fullWeightProbability = 0.0
+    Context.withHushProbability(1.0)
+    Context.withFullWeightProbability(0.0)
 
     val totalCount = 1000
     var hushCount = 0
@@ -49,7 +50,7 @@ class SynapseGenomeSuite extends JUnitSuite {
       sg.weight match {
         case Hush => hushCount = hushCount + 1
         case SynapseWeight(w) =>
-          assert(SynapseGenome.weightRange.contains(w), s"weight outside range: $w")
+          assert(Context().weightRange.contains(w), s"weight outside range: $w")
       }
     }
 
