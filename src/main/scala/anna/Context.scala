@@ -9,25 +9,54 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 
+case class Context(
+  timeout: Timeout,
+  system: ActorSystem,
+  slope: Double,
+  threshold: Double,
+  weight: SynapseWeight,
+  hushValue: HushValue,
+  forgetting: ForgetTrait,
+  tickTime: Long
+)
+
 object Context {
-  private val config = ConfigFactory.load()
-  private val root = config.getConfig("context")
+  private var instance:Option[Context] = None
 
-  implicit val timeout = Timeout(FiniteDuration.apply(root.getInt("awaitTimeout"), TimeUnit.SECONDS))
-
-  lazy val system = ActorSystem("system")
-  
-  // neuron
-  var slope = root.getDouble("defaultSlope")
-  var threshold = root.getDouble("defaultThreshold")
-  var weight = SynapseWeight(root.getDouble("defaultWeight"))
-  var hushValue = HushValue(root.getInt("defaultHushValue"))
-  var forgetting = root.getString("defaultForgetting") match {
-    case "DontForget" => DontForget
-    case "ForgetAll" => ForgetAll
-    case str => ForgetValue(str.toDouble)
+  def apply(): Context = {
+    if(instance == None) init()
+    instance.get
   }
-  var tickTime = root.getLong("defaultTickTime")
 
+  def set(newInstance: Context): Unit ={
+    instance = Some(newInstance)
+  }
+
+  def reset(): Unit ={
+    instance = None
+  }
+
+  private def init(): Unit ={
+    val config = ConfigFactory.load()
+    val root = config.getConfig("context")
+
+    implicit val timeout = Timeout(FiniteDuration.apply(root.getInt("awaitTimeout"), TimeUnit.SECONDS))
+
+    lazy val system = ActorSystem("system")
+
+    // neuron
+    val slope = root.getDouble("defaultSlope")
+    val threshold = root.getDouble("defaultThreshold")
+    val weight = SynapseWeight(root.getDouble("defaultWeight"))
+    val hushValue = HushValue(root.getInt("defaultHushValue"))
+    val forgetting = root.getString("defaultForgetting") match {
+      case "DontForget" => DontForget
+      case "ForgetAll" => ForgetAll
+      case str => ForgetValue(str.toDouble)
+    }
+    val tickTime = root.getLong("defaultTickTime")
+
+    instance = Some(Context(timeout, system, slope, threshold, weight, hushValue, forgetting, tickTime))
+  }
 
 }

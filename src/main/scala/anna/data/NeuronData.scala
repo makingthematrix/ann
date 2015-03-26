@@ -93,10 +93,10 @@ object NeuronData {
   def apply(id: String,  
             hushValue: HushValue,
             tickTimeMultiplier: Double):NeuronData
-    = apply(id, 0.0, Context.slope, hushValue, ForgetAll, Nil, tickTimeMultiplier, NeuronType.DUMMY)
+    = apply(id, 0.0, Context().slope, hushValue, ForgetAll, Nil, tickTimeMultiplier, NeuronType.DUMMY)
   
   def apply(id: String):NeuronData
-    = apply(id, 0.0, Context.slope, Context.hushValue, ForgetAll, Nil, 1.0, NeuronType.HUSH)
+    = apply(id, 0.0, Context().slope, Context().hushValue, ForgetAll, Nil, 1.0, NeuronType.HUSH)
 
   def fromJson(jsonStr: String):NeuronData = {
     val json = parse(jsonStr)

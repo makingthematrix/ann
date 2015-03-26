@@ -1,6 +1,6 @@
 package anna.async
 
-import anna.Context.tickTime
+import anna.Context
 import anna.utils.Utils._
 
 import scala.collection.mutable
@@ -43,7 +43,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   def tick(n: Int):Unit = for(i <- 1 to n) {
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
-    Thread.sleep((inputTickMultiplier * tickTime).toLong)
+    Thread.sleep((inputTickMultiplier * Context().tickTime).toLong)
     _iteration = _iteration + 1
   }
   

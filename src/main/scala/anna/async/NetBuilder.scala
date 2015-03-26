@@ -13,12 +13,12 @@ import scala.collection.mutable
 class NetBuilder {
   var netName = "net"
 
-  var defThreshold = Context.threshold
-  var defSlope = Context.slope
-  var defHushValue = Context.hushValue
-  var defForgetting: ForgetTrait = Context.forgetting
+  var defThreshold = Context().threshold
+  var defSlope = Context().slope
+  var defHushValue = Context().hushValue
+  var defForgetting: ForgetTrait = Context().forgetting
   var defTickTimeMultiplier = 1.0
-  var defWeight:SynapseTrait = Context.weight
+  var defWeight:SynapseTrait = Context().weight
   var inputTickMultiplier = 1.0
 
   private val neurons = mutable.Map[String,NeuronData]()

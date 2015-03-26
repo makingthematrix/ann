@@ -1,15 +1,21 @@
 package anna.async
 
 import anna.Context
-import Context._
 import anna.async.Messages._
-import anna.async.NetBuilderOps._
 import anna.utils.Utils.await
 import org.junit.Assert._
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
 
-class NetSuite extends JUnitSuite {     
+class NetSuite extends JUnitSuite {
+  val threshold = Context().threshold
+  val slope = Context().slope
+  val weight = Context().weight
+  val hushValue = Context().hushValue
+  val forgetting = Context().forgetting
+  val tickTime = Context().tickTime
+  val timeout = Context().timeout
+
   @Test def shouldCreateNet(){
     val net = NetRef("net1")
 

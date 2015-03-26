@@ -2,13 +2,15 @@ package anna.async
 
 import akka.actor.{ActorRef, Props, actorRef2Scala}
 import akka.pattern.ask
-import anna.Context._
+import anna.Context
 import anna.async.Messages._
 import anna.data.{ForgetTrait, HushValue}
 import anna.logger.LOG._
 import anna.utils.Utils.await
 
 class NeuronRef(val id: String, val ref: ActorRef) {
+  implicit val timeout = Context().timeout
+
   def input = await[Msg](ref, GetInput).d
   def lastOutput = await[Msg](ref, GetLastOutput).d
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
@@ -48,7 +50,7 @@ object NeuronRef {
             forgetting: ForgetTrait,
             tickTime: Long):NeuronRef = {
     debug(this,s"new neuronref $id with threshold $threshold and slope $slope")
-    val ref = system.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTime)), name=id)
+    val ref = Context().system.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTime)), name=id)
     new NeuronRef(id, ref)
   }
 }

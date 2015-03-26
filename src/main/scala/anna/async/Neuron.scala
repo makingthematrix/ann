@@ -1,7 +1,7 @@
 package anna.async
 
 import akka.actor._
-import anna.Context.tickTime
+import anna.Context
 import anna.async.Messages._
 import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
 import anna.logger.LOG
@@ -34,11 +34,11 @@ class Neuron(
   
   private def makeSleep() = {
     context.become(sleep)
-    context.system.scheduler.scheduleOnce((tickTimeMultiplier * tickTime).toLong millis){ self ! WakeUp }
+    context.system.scheduler.scheduleOnce((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
   }
   
   private def makeHush() = {
-    val t = (tickTimeMultiplier * tickTime).toLong * hushValue.iterations
+    val t = (tickTimeMultiplier * Context().tickTime).toLong * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
     context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
@@ -75,8 +75,8 @@ class Neuron(
     case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = offset.toDouble/(tickTimeMultiplier * tickTime) * forgetValue
-      LOG += s"forgetting, offset=$offset, sleepTime=${tickTimeMultiplier * tickTime}, forgetValue=$forgetValue, so delta is $delta"
+      val delta = offset.toDouble/(tickTimeMultiplier * Context().tickTime) * forgetValue
+      LOG += s"forgetting, offset=$offset, sleepTime=${tickTimeMultiplier * Context().tickTime}, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>

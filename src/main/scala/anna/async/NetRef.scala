@@ -2,13 +2,15 @@ package anna.async
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
-import anna.Context._
+import anna.Context
 import anna.async.Messages._
 import anna.data.{ForgetTrait, HushValue, NeuronData}
 import anna.logger.LOG._
 import anna.utils.Utils.await
 
 class NetRef(val id: String, val ref: ActorRef) {
+  implicit val timeout = Context().timeout
+
   private var _iteration = 0L
   
   def iteration = _iteration
@@ -60,7 +62,7 @@ object NetRef {
   private var netRefOpt: Option[NetRef] = None
   
   def apply(id: String):NetRef = {
-    val ref = system.actorOf(Props(new Net(id)))
+    val ref = Context().system.actorOf(Props(new Net(id)))
     val netRef = new NetRef(id, ref)
     netRefOpt = Some(netRef)
     netRef

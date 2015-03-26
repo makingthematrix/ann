@@ -115,16 +115,17 @@ case class NetData(id: String,
     //val idLeft = neurons.foldLeft(nIdSet)( (idSet: Set[String], n: NeuronData) => idSet -- n.synapses.map(_.neuronId)) -- inputs
     //assert(idLeft.isEmpty, s"There are neurons with no synapses leading to them: $idLeft in the net $id")
   }
-
-
 }
 
 object NetData {
   def apply(id: String):NetData = NetData(id, Nil, Nil)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
-    NetData(id, neurons, inputs, Context.threshold, Context.slope, Context.hushValue, Context.forgetting, 1.0, Context.weight, 1.0)
+    NetData(id, neurons, inputs, Context().threshold, Context().slope,
+            Context().hushValue, Context().forgetting, 1.0, Context().weight, 1.0)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetData =
-    NetData(id, neurons, inputs, Context.threshold, Context.slope, Context.hushValue, Context.forgetting, 1.0, Context.weight, inputTickMultiplier)
+    NetData(id, neurons, inputs, Context().threshold, Context().slope,
+            Context().hushValue, Context().forgetting, 1.0, Context().weight,
+            inputTickMultiplier)
 
   def fromJson(jsonStr: String):NetData = {
     val json = parse(jsonStr)

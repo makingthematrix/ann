@@ -1,7 +1,6 @@
 package anna.async
 
 import anna.Context
-import Context.tickTime
 import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
@@ -27,7 +26,7 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(6, tolerance, (netWrapper.inputTickMultiplier * tickTime).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(6, tolerance, (netWrapper.inputTickMultiplier * Context().tickTime).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
@@ -47,7 +46,7 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, (netWrapper.inputTickMultiplier * tickTime * 2).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(3, tolerance, (netWrapper.inputTickMultiplier * Context().tickTime * 2).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod2(){
@@ -64,7 +63,7 @@ class DelaySuite extends MySuite {
     netWrapper.tickUntilCalm()
 
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, (netWrapper.inputTickMultiplier * tickTime * 2).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(3, tolerance, (netWrapper.inputTickMultiplier * Context().tickTime * 2).toLong), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillator2(){

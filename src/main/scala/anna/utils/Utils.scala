@@ -5,7 +5,7 @@ import java.util.Locale
 
 import akka.actor.ActorRef
 import akka.pattern.ask
-import anna.Context.timeout
+import anna.Context
 import anna.async.{NetRef, NeuronRef}
 
 import scala.annotation.tailrec
@@ -33,6 +33,8 @@ object Utils {
     case _ if x > max => max
     case _ => d
   }
+
+  implicit val timeout = Context().timeout
 
   def await[T](ref: ActorRef, msg: Any): T = Await.result(ref ? msg, timeout.duration).asInstanceOf[T]
   def await[T](net: NetRef, msg: Any): T = await[T](net.ref, msg)

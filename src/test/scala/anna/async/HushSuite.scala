@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.Context
-import Context.{forgetting, hushValue, slope, threshold, tickTime, timeout}
+
 import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import anna.data.Hush
@@ -11,6 +11,13 @@ import org.junit.Test
 import scala.concurrent.{Await, Promise}
 
 class HushSuite extends MySuite {
+  val threshold = Context().threshold
+  val slope = Context().slope
+  val hushValue = Context().hushValue
+  val forgetting = Context().forgetting
+  val tickTime = Context().tickTime
+  val timeout = Context().timeout
+
   @Test def shouldSendHush(){
     val net = NetRef("net1")
 
