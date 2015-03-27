@@ -16,23 +16,23 @@ class NeuronGenomeSuite extends JUnitSuite {
   @Before def before() {
     LOG.addLogToStdout()
 
-    NeuronGenome.thresholdRange = 0.0 <=> 0.9
-    NeuronGenome.slopeRange = 1.0 <=> 20.0
-    NeuronGenome.hushRange = 1 to 5
-    NeuronGenome.forgettingRange = 0.1 <=> 0.9
-    NeuronGenome.dontForgetProbability = 0.75
-    NeuronGenome.forgetAllProbability = 0.05
-    NeuronGenome.tickTimeMultiplierRange = 0.5 <=> 2.0
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withSlopeRange(1.0 <=> 20.0)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+    Context.withTickTimeMultiplierRange(0.5 <=> 2.0)
   }
 
   @Test def shouldTossForNeuron(): Unit = {
-    NeuronGenome.thresholdRange = 0.0 <=> 0.9
-    NeuronGenome.slopeRange = 1.0 <=> 20.0
-    NeuronGenome.hushRange = 1 to 5
-    NeuronGenome.forgettingRange = 0.1 <=> 0.9
-    NeuronGenome.dontForgetProbability = 0.75
-    NeuronGenome.forgetAllProbability = 0.05
-    NeuronGenome.tickTimeMultiplierRange = 0.5 <=> 2.0
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withSlopeRange(1.0 <=> 20.0)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+    Context.withTickTimeMultiplierRange(0.5 <=> 2.0)
 
     val totalCount = 1000
     var dontForgetCount = 0
@@ -40,13 +40,13 @@ class NeuronGenomeSuite extends JUnitSuite {
     for (i <- 1 to totalCount) {
       val ng = NeuronGenome.toss("id1")
       assertEquals("id1", ng.id)
-      assertTrue(NeuronGenome.thresholdRange.contains(ng.threshold))
-      assertTrue(NeuronGenome.slopeRange.contains(ng.slope))
-      assertTrue(NeuronGenome.hushRange.contains(ng.hushValue.iterations))
+      assertTrue(Context().thresholdRange.contains(ng.threshold))
+      assertTrue(Context().slopeRange.contains(ng.slope))
+      assertTrue(Context().hushRange.contains(ng.hushValue.iterations))
       ng.forgetting match {
         case DontForget => dontForgetCount += 1
         case ForgetAll => forgetAllCount += 1
-        case ForgetValue(value) => assertTrue(NeuronGenome.forgettingRange.contains(value))
+        case ForgetValue(value) => assertTrue(Context().forgettingRange.contains(value))
       }
     }
     assertTrue((600 to 800).contains(dontForgetCount))
@@ -57,11 +57,12 @@ class NeuronGenomeSuite extends JUnitSuite {
     val ng = NeuronGenome.toss("id1")
     val original = ng.threshold
 
-    NeuronGenome.thresholdProbability = 1.0
-    NeuronGenome.slopeProbability = 0.0
-    NeuronGenome.forgettingProbability = 0.0
-    NeuronGenome.hushProbability = 0.0
-    NeuronGenome.synapseChangeProbability = 0.0
+    Context.withThresholdProbability(1.0)
+    Context.withSlopeProbability(0.0)
+    Context.withForgettingProbability(0.0)
+    Context.withHushValueProbability(0.0)
+    Context.withSynapseChangeProbability(0.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
     ng.mutate()
 
@@ -73,11 +74,12 @@ class NeuronGenomeSuite extends JUnitSuite {
     val ng = NeuronGenome.toss("id1")
     val original = ng.slope
 
-    NeuronGenome.thresholdProbability = 0.0
-    NeuronGenome.slopeProbability = 1.0
-    NeuronGenome.forgettingProbability = 0.0
-    NeuronGenome.hushProbability = 0.0
-    NeuronGenome.synapseChangeProbability = 0.0
+    Context.withThresholdProbability(0.0)
+    Context.withSlopeProbability(1.0)
+    Context.withForgettingProbability(0.0)
+    Context.withHushValueProbability(0.0)
+    Context.withSynapseChangeProbability(0.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
     ng.mutate()
 
@@ -90,31 +92,31 @@ class NeuronGenomeSuite extends JUnitSuite {
     val ng = NeuronGenome.toss("id1")
     val original = ng.forgetting
 
-    NeuronGenome.thresholdProbability = 0.0
-    NeuronGenome.slopeProbability = 0.0
-    NeuronGenome.forgettingProbability = 1.0
-    NeuronGenome.hushProbability = 0.0
-    NeuronGenome.synapseChangeProbability = 0.0
-    NeuronGenome.tickTimeMultiplierProbability = 0.0
+    Context.withThresholdProbability(0.0)
+    Context.withSlopeProbability(0.0)
+    Context.withForgettingProbability(1.0)
+    Context.withHushValueProbability(0.0)
+    Context.withSynapseChangeProbability(0.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
-    NeuronGenome.forgetAllProbability = 1.0
-    NeuronGenome.dontForgetProbability = 0.0
+    Context.withForgetAllProbability(1.0)
+    Context.withDontForgetProbability(0.0)
 
     ng.mutate()
 
     var mutated = ng.forgetting
     assertEquals(ForgetAll, mutated)
 
-    NeuronGenome.forgetAllProbability = 0.0
-    NeuronGenome.dontForgetProbability = 1.0
+    Context.withForgetAllProbability(0.0)
+    Context.withDontForgetProbability(1.0)
 
     ng.mutate()
 
     mutated = ng.forgetting
     assertEquals(DontForget, mutated)
 
-    NeuronGenome.forgetAllProbability = 0.0
-    NeuronGenome.dontForgetProbability = 0.0
+    Context.withForgetAllProbability(0.0)
+    Context.withDontForgetProbability(0.0)
 
     ng.mutate()
 
@@ -125,24 +127,24 @@ class NeuronGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateHush(){
-    NeuronGenome.hushRange = 1 to 1
+    Context.withHushRange(1 to 1)
     val ng = NeuronGenome.toss("id1")
     val original = ng.hushValue
     assertEquals(HushValue(1), ng.hushValue)
 
-    NeuronGenome.thresholdProbability = 0.0
-    NeuronGenome.slopeProbability = 0.0
-    NeuronGenome.forgettingProbability = 0.0
-    NeuronGenome.hushProbability = 1.0
-    NeuronGenome.synapseChangeProbability = 0.0
-    NeuronGenome.tickTimeMultiplierProbability = 0.0
+    Context.withThresholdProbability(0.0)
+    Context.withSlopeProbability(0.0)
+    Context.withForgettingProbability(0.0)
+    Context.withHushValueProbability(1.0)
+    Context.withSynapseChangeProbability(0.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
-    NeuronGenome.hushRange = 2 to 5
+    Context.withHushRange(2 to 5)
 
     ng.mutate()
     val mutated = ng.hushValue
     assertNotEquals(original, mutated)
-    assertTrue(NeuronGenome.hushRange.contains(mutated.iterations))
+    assertTrue(Context().hushRange.contains(mutated.iterations))
   }
 
   @Test def shouldAddSynapse(): Unit ={
@@ -153,15 +155,15 @@ class NeuronGenomeSuite extends JUnitSuite {
 
     assertEquals(0, ng1.synapses.size)
 
-    NeuronGenome.thresholdProbability = 0.0
-    NeuronGenome.slopeProbability = 0.0
-    NeuronGenome.forgettingProbability = 0.0
-    NeuronGenome.hushProbability = 0.0
-    NeuronGenome.synapseChangeProbability = 1.0
-    NeuronGenome.tickTimeMultiplierProbability = 0.0
+    Context.withThresholdProbability(0.0)
+    Context.withSlopeProbability(0.0)
+    Context.withForgettingProbability(0.0)
+    Context.withHushValueProbability(0.0)
+    Context.withSynapseChangeProbability(1.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
-    NeuronGenome.addSynapseProbability = 1.0
-    NeuronGenome.deleteSynapseProbability = 0.0
+    Context.withAddSynapseProbability(1.0)
+    Context.withDeleteSynapseProbability(0.0)
 
     ng1.mutate()
 
@@ -197,15 +199,15 @@ class NeuronGenomeSuite extends JUnitSuite {
 
     assertEquals(1, ng1.synapses.size)
 
-    NeuronGenome.thresholdProbability = 0.0
-    NeuronGenome.slopeProbability = 0.0
-    NeuronGenome.forgettingProbability = 0.0
-    NeuronGenome.hushProbability = 0.0
-    NeuronGenome.synapseChangeProbability = 1.0
-    NeuronGenome.tickTimeMultiplierProbability = 0.0
+    Context.withThresholdProbability(0.0)
+    Context.withSlopeProbability(0.0)
+    Context.withForgettingProbability(0.0)
+    Context.withHushValueProbability(0.0)
+    Context.withSynapseChangeProbability(1.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
-    NeuronGenome.addSynapseProbability = 0.0
-    NeuronGenome.deleteSynapseProbability = 1.0
+    Context.withAddSynapseProbability(0.0)
+    Context.withDeleteSynapseProbability(1.0)
 
     ng1.mutate()
     assertEquals(0, ng1.synapses.size)
@@ -228,15 +230,15 @@ class NeuronGenomeSuite extends JUnitSuite {
 
     assertEquals(1, nch1.synapses.size)
 
-    NeuronGenome.thresholdProbability = 0.0
-    NeuronGenome.slopeProbability = 0.0
-    NeuronGenome.forgettingProbability = 0.0
-    NeuronGenome.hushProbability = 0.0
-    NeuronGenome.synapseChangeProbability = 1.0
-    NeuronGenome.tickTimeMultiplierProbability = 0.0
+    Context.withThresholdProbability(0.0)
+    Context.withSlopeProbability(0.0)
+    Context.withForgettingProbability(0.0)
+    Context.withHushValueProbability(0.0)
+    Context.withSynapseChangeProbability(1.0)
+    Context.withTickTimeMultiplierProbability(0.0)
 
-    NeuronGenome.addSynapseProbability = 0.0
-    NeuronGenome.deleteSynapseProbability = 0.0
+    Context.withAddSynapseProbability(0.0)
+    Context.withDeleteSynapseProbability(0.0)
 
     Context.withFullWeightProbability(1.0)
     Context.withHushProbability(0.0)

@@ -1,18 +1,15 @@
 package anna.epengine
 
+import anna.Context
 import anna.async.NeuronType
 import anna.data._
 import anna.logger.LOG._
-import anna.utils.DoubleRange._
 import anna.utils.RandomNumber
-
 
 /**
  * Created by gorywoda on 28.12.14.
  */
 class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess.Value]) {
-  import anna.epengine.NeuronGenome._
-
   def id = _data.id
   def threshold = _data.threshold
   def slope = _data.slope
@@ -29,12 +26,12 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   def isConnectedTo(id: String) = _data.isConnectedTo(id)
 
   def mutate() = Probability.performRandom(
-    (thresholdProbability, mutateThreshold _),
-    (slopeProbability, mutateSlope _),
-    (forgettingProbability, mutateForgetting _),
-    (hushProbability, mutateHushValue _),
-    (synapseChangeProbability, mutateSynapse _),
-    (tickTimeMultiplierProbability, mutateTickTimeMultiplier _)
+    (Context().thresholdProbability, mutateThreshold _),
+    (Context().slopeProbability, mutateSlope _),
+    (Context().forgettingProbability, mutateForgetting _),
+    (Context().hushValueProbability, mutateHushValue _),
+    (Context().synapseChangeProbability, mutateSynapse _),
+    (Context().tickTimeMultiplierProbability, mutateTickTimeMultiplier _)
   )
 
   def addSynapse(synapseChromosome: SynapseGenome) = {
@@ -51,26 +48,25 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def mutateThreshold():Unit = {
-    _data = _data.withThreshold(RandomNumber(thresholdRange))
+    _data = _data.withThreshold(RandomNumber(Context().thresholdRange))
   }
 
   private def mutateSlope():Unit = {
-    _data = _data.withSlope(RandomNumber(slopeRange))
+    _data = _data.withSlope(RandomNumber(Context().slopeRange))
   }
 
   private def mutateHushValue():Unit = {
-    _data = _data.withHushValue(HushValue(RandomNumber(hushRange)))
+    _data = _data.withHushValue(HushValue(RandomNumber(Context().hushRange)))
   }
 
   private def mutateForgetting():Unit = Probability.performRandom(
-    (dontForgetProbability, setDontForget _),
-    (1.0 - dontForgetProbability - forgetAllProbability, mutateForgetValue _),
-    (forgetAllProbability, setForgetAll _)
+    (Context().dontForgetProbability, setDontForget _),
+    (1.0 - Context().dontForgetProbability - Context().forgetAllProbability, mutateForgetValue _),
+    (Context().forgetAllProbability, setForgetAll _)
   )
 
-
   private def mutateTickTimeMultiplier():Unit = {
-    _data = _data.withTickTimeMultiplier(RandomNumber(tickTimeMultiplierRange))
+    _data = _data.withTickTimeMultiplier(RandomNumber(Context().tickTimeMultiplierRange))
   }
 
   private def setDontForget(): Unit ={
@@ -78,7 +74,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def mutateForgetValue(): Unit ={
-    _data = _data.withForgetting(ForgetValue(RandomNumber(forgettingRange)))
+    _data = _data.withForgetting(ForgetValue(RandomNumber(Context().forgettingRange)))
   }
 
   private def setForgetAll(): Unit ={
@@ -111,9 +107,9 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def mutateSynapse():Unit = Probability.performRandom(
-    (addSynapseProbability, addRandomSynapse _),
-    (deleteSynapseProbability, deleteRandomSynapse _),
-    (1.0 - addSynapseProbability - deleteSynapseProbability, mutateSynapseWeight _)
+    (Context().addSynapseProbability, addRandomSynapse _),
+    (Context().deleteSynapseProbability, deleteRandomSynapse _),
+    (1.0 - Context().addSynapseProbability - Context().deleteSynapseProbability, mutateSynapseWeight _)
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
@@ -140,24 +136,6 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
 }
 
 object NeuronGenome {
-  var thresholdRange = 0.0<=>0.9
-  var slopeRange = 5.0<=>20.0
-  var hushRange = 1 to 5
-  var forgettingRange = 0.1<=>0.9
-  var dontForgetProbability = Probability(0.75)
-  var forgetAllProbability = Probability(0.05)
-  var tickTimeMultiplierRange = 1.0<=>1.0
-
-  var thresholdProbability = Probability(0.1)
-  var slopeProbability = Probability(0.1)
-  var forgettingProbability = Probability(0.1)
-  var hushProbability = Probability(0.05)
-  var synapseChangeProbability = Probability(0.6)
-  var tickTimeMultiplierProbability = Probability(0.05)
-
-  var addSynapseProbability = Probability(0.1)
-  var deleteSynapseProbability = Probability(0.1)
-
   def apply(data: NeuronData):NeuronGenome = new NeuronGenome(data, Map())
   def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronGenome
     = new NeuronGenome(data, accessMap)
@@ -173,7 +151,8 @@ object NeuronGenome {
 
   def toss(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
     val ng = NeuronGenome(
-      NeuronData(id, thresholdRange.from, slopeRange.from, HushValue(), DontForget, Nil, tickTimeMultiplierRange.from, NeuronType.STANDARD),
+      NeuronData(id, Context().thresholdRange.from, Context().slopeRange.from, HushValue(),
+                 DontForget, Nil, Context().tickTimeMultiplierRange.from, NeuronType.STANDARD),
       accessMap
     )
     ng.mutateThreshold()
@@ -183,5 +162,4 @@ object NeuronGenome {
     ng.mutateTickTimeMultiplier()
     ng
   }
-
 }

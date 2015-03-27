@@ -264,5 +264,4 @@ object NetGenome {
 
   def accessMap(inputIds: List[String], outputIds: List[String]) =
     (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ outputIds.map(_ -> MutationAccess.DONTDELETE)).toMap
-
 }
