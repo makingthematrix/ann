@@ -1,5 +1,6 @@
 package anna.epengine
 
+import anna.Context
 import anna.async.NetBuilder
 import anna.data.{NetData, SynapseData, Hush}
 import anna.logger.LOG
@@ -24,19 +25,19 @@ class NetGenomeSuite extends JUnitSuite {
   val outputIds = List("out1")
 
   @Test def shouldAddNeuron(): Unit ={
-    NetGenome.neuronsRange = 2 to 2
-    NetGenome.synapsesDensity = 2.5
-    NetGenome.inputTickMultiplierRange = 2.0 <=> 2.0
+    Context.withNeuronsRange(2 to 2)
+    Context.withSynapsesDensity(2.5)
+    Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome.toss("net", inputIds, outputIds)
     assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
 
-    NetGenome.addNeuronProbability = 1.0
-    NetGenome.deleteNeuronProbability = 0.0
-    NetGenome.mutateNeuronProbability = 0.0
-    NetGenome.inputTickMultiplierProbability = 0.0
+    Context.withAddNeuronProbability(1.0)
+    Context.withDeleteNeuronProbability(0.0)
+    Context.withMutateNeuronProbability(0.0)
+    Context.withInputTickMultiplierProbability(0.0)
 
     ng.mutate()
 
@@ -47,19 +48,19 @@ class NetGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldDeleteNeuron(): Unit ={
-    NetGenome.neuronsRange = 3 to 3
-    NetGenome.synapsesDensity = 2.5
-    NetGenome.inputTickMultiplierRange = 2.0 <=> 2.0
+    Context.withNeuronsRange (3 to 3)
+    Context.withSynapsesDensity (2.5)
+    Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome.toss("net", inputIds, outputIds)
     assertEquals(3, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
 
-    NetGenome.addNeuronProbability = 0.0
-    NetGenome.deleteNeuronProbability = 1.0
-    NetGenome.mutateNeuronProbability = 0.0
-    NetGenome.inputTickMultiplierProbability = 0.0
+    Context.withAddNeuronProbability(0.0)
+    Context.withDeleteNeuronProbability(1.0)
+    Context.withMutateNeuronProbability(0.0)
+    Context.withInputTickMultiplierProbability(0.0)
 
     ng.mutate()
 

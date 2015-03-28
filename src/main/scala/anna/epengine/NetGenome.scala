@@ -1,5 +1,6 @@
 package anna.epengine
 
+import anna.Context
 import anna.data.NetData._
 import anna.data.{NetData, NeuronData}
 import anna.utils.DoubleRange._
@@ -12,8 +13,6 @@ import scala.annotation.tailrec
  */
 
 class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationAccess.Value]){
-  import NetGenome._
-
   override def clone = NetGenome(_data, accessMap)
 
   def id = _data.id
@@ -40,10 +39,10 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   def mutate() = Probability.performRandom(
-    (addNeuronProbability, addNeuron _),
-    (deleteNeuronProbability, deleteNeuron _),
-    (mutateNeuronProbability, mutateNeuron _),
-    (inputTickMultiplierProbability, mutateInputTickMultiplier _)
+    (Context().addNeuronProbability, addNeuron _),
+    (Context().deleteNeuronProbability, deleteNeuron _),
+    (Context().mutateNeuronProbability, mutateNeuron _),
+    (Context().inputTickMultiplierProbability, mutateInputTickMultiplier _)
   )
 
   def trim():Unit = {
@@ -108,8 +107,8 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
     // 4. create genomes with switch neurons
     val allVariables = var1 ++ var2
-    val leftGenome = breed(this, allVariables.filter( n => leftIds.contains(n.id)), trimEnabled, renameEnabled)
-    val rightGenome = breed(genome, allVariables.filter( n => rightIds.contains(n.id)), trimEnabled, renameEnabled)
+    val leftGenome = NetGenome.breed(this, allVariables.filter( n => leftIds.contains(n.id)), trimEnabled, renameEnabled)
+    val rightGenome = NetGenome.breed(genome, allVariables.filter( n => rightIds.contains(n.id)), trimEnabled, renameEnabled)
     (leftGenome, rightGenome)
   } else (clone, genome.clone)
 
@@ -171,32 +170,23 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   private def mutateInputTickMultiplier(): Unit ={
-    _data = _data.withInputTickMultiplier(RandomNumber(inputTickMultiplierRange))
+    _data = _data.withInputTickMultiplier(RandomNumber(Context().inputTickMultiplierRange))
   }
 }
 
 object NetGenome {
-  var addNeuronProbability = Probability(0.1)
-  var deleteNeuronProbability = Probability(0.1)
-  var mutateNeuronProbability = Probability(0.75)
-  var inputTickMultiplierProbability = Probability(0.05)
-  var inputTickMultiplierRange = 2.0 <=> 2.0
-
-  var neuronsRange:Range = 5 to 10
-  var synapsesDensity:Double = 2.5
-
   def apply(data: NetData, accessMap: Map[String, MutationAccess.Value] = Map()) = new NetGenome(data, accessMap)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
     NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
 
   def toss(netId: String, inputIds: List[String], outputIds: List[String]) = {
-    assert(synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
-    assert(inputIds.size + outputIds.size <= neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${neuronsRange.end}")
+    assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
+    assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
     val neuronsSize = RandomNumber(
-      if(inputIds.size + outputIds.size > neuronsRange.start)
-        (inputIds.size + outputIds.size) to neuronsRange.end
-      else neuronsRange
+      if(inputIds.size + outputIds.size > Context().neuronsRange.start)
+        (inputIds.size + outputIds.size) to Context().neuronsRange.end
+      else Context().neuronsRange
     )
 
     val ins = inputIds.map( NeuronGenome.toss(_) )
@@ -220,7 +210,7 @@ object NetGenome {
       case None =>
     })
 
-    val synapsesSize = Math.round(synapsesDensity * neuronsSize).toInt - synapsesCounter
+    val synapsesSize = Math.round(Context().synapsesDensity * neuronsSize).toInt - synapsesCounter
 
     if(synapsesSize > 0) {
       val im = ins ++ middles
@@ -231,7 +221,7 @@ object NetGenome {
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
     NetGenome(
-      NetData(netId, ns.map(_.data), inputIds, RandomNumber(inputTickMultiplierRange)),
+      NetData(netId, ns.map(_.data), inputIds, RandomNumber(Context().inputTickMultiplierRange)),
       accessMap(inputIds, outputIds)
     )
   }
