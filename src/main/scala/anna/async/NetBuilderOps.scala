@@ -1,6 +1,7 @@
 package anna.async
 
-import anna.data.{ForgetTrait, HushValue, SynapseTrait, SynapseWeight}
+import anna.data._
+import anna.logger.LOG._
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
@@ -81,6 +82,40 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def connect(id: String, weight: Double) = builder.connect(id, SynapseWeight(weight))
   
   implicit private def fromNetBuilder(builder: NetBuilder):NetBuilderOps = NetBuilderOps.fromNetBuilder(builder)
+
+  def SOSNetWithHushNeuron() = {
+    val itm = 3.0
+    builder.inputTickMultiplier = itm
+    builder.defSlope = 5.0
+    builder.addInput("in")
+    // dots
+    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
+      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
+      .chain("dot",0.6/(2.0*itm),0.6)
+      .chain("S",0.5,0.81)
+    builder.addHushNeuron("dot_hush").hush("mi12").hush("loop").hush("dot")
+    builder.use("dot").hush("dot_hush")
+
+    // lines
+    builder.use("in").chain("mi21",0.55,0.58,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+      .chain("line",1.0,0.0).hush("line")
+      .chain("O",0.6,0.81)
+
+    // if line then not dot
+    builder.use("line").hush("dot_hush")
+
+    // if S then not O, if O then not S...
+    builder.use("S").chainHushNeuron("hush_letters").hush("S").hush("O")
+    builder.use("O").hush("hush_letters")
+
+    val netWrapper = builder.build("net")
+
+    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("dot"){ println("KROPA!") }
+    netWrapper.addAfterFire("line"){ println("KRECHA!") }
+
+    netWrapper
+  }
 }
 
 object NetBuilderOps {

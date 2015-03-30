@@ -21,8 +21,6 @@ case class ExercisesSet(name: String, exerciseNames: Set[String]){
 }
 
 object ExercisesSet {
-  def apply(name: String, exerciseNames: List[String]):ExercisesSet = new ExercisesSet(name, exerciseNames.toSet)
-
   implicit val formats = org.json4s.DefaultFormats
 
   def fromJson(jsonStr: String):ExercisesSet = parse(jsonStr).extract[ExercisesSet]

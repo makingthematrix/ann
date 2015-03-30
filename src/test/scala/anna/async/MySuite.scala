@@ -31,7 +31,11 @@ class MySuite extends JUnitSuite {
   protected def build() = {
     _netWrapper = _builder.build("net")
   }
-  
+
+  protected def setNetWrapper(netWrapper: NetWrapper): Unit ={
+    _netWrapper = netWrapper
+  }
+
   protected def assertEqualsWithTolerance(expected: Seq[Long], received: Seq[Long], tolerance: Long) = {
     assertEquals(expected.size, received.size)
     expected.zip(received).foreach( tuple => if(math.abs(tuple._1 - tuple._2) > tolerance) fail(s"""

@@ -10,6 +10,7 @@ import anna.async.{NetRef, NeuronRef}
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
+import scala.util.Random
 
 object Utils {
   def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)
@@ -57,6 +58,10 @@ object Utils {
       val id = RandomNumber.apply(oldSet)
       splitIdsRandomly(oldSet.toSet - id, idsToDraw - 1, newSet + id)
   }
+
+  def vary(d: Double) = d + (Random.nextDouble() * 0.1 - 0.05)
+  def V = vary(0.95)
+  def v = vary(0.05)
 
 }
 
