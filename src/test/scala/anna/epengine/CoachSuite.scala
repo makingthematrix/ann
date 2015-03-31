@@ -1,7 +1,9 @@
 package anna.epengine
 
+import anna.Context
 import anna.async._
 import anna.logger.LOG._
+import anna.utils.Utils
 import org.junit.Test
 import anna.async.NetBuilderOps._
 import org.junit.Assert._
@@ -38,7 +40,7 @@ class CoachSuite extends MySuite {
 
     shutdown()
 
-    // now let's create a NetData and check if it's valid*/
+    // now let's create a NetData and check if it's valid
     val data = builder.data
     builder.clear()
     builder.set(data)
@@ -85,7 +87,7 @@ class CoachSuite extends MySuite {
     assertEquals(1.0, result, 0.01)
   }
 
-  val dotSet = ExercisesSet("dot set", Set(
+  val dotSet = ExercisesSet("dotset", Set(
     "one signal gives dot",
     "one signal gives exactly one dot",
     "two signals give nothing",
@@ -96,15 +98,31 @@ class CoachSuite extends MySuite {
     "one varied signal gives exactly one dot",
     "two varied signals give nothing",
     "one varied signal with noise gives dot",
-    "one signal with noise gives exactly one dot",
-    "two signals with noise give nothing"
+    "one varied signal with noise gives exactly one dot",
+    "two varied signals with noise give nothing"
   ))
 
-  @Test def shouldPassSOSWithHushNeuron(): Unit ={
+  /**
+   * This is actually pretty cool: I already know that 'SOSNetWithHushNeuron' generates a valid net which should pass
+   * all those exercises. So I can use it to test if the exercises are correct :D
+   */
+  @Test def shouldPassSOSWithHushNeuron(): Unit = {
+    val set = dotSet
+
+    set.validate
+
     builder.SOSNetWithHushNeuron()
     val data = builder.data
-    val coach = Coach(dotSet)
-    val result = coach.test(data)
-    debug(this, s"the result is $result")
+    val result = Coach(set).test(data)
+
+    debug(this, s"the result of ${set.name} is $result")
+    assertEquals(set.resultForAllPassed, result, 0.001)
+  }
+
+  @Test def shouldSaveAndLoadDotSet(): Unit ={
+    val set = dotSet
+    set.save
+    val loadedSet = ExercisesSet.load(set.name)
+    assertEquals(dotSet, loadedSet)
   }
 }

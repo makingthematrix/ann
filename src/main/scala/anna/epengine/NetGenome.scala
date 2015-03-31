@@ -3,7 +3,6 @@ package anna.epengine
 import anna.Context
 import anna.data.NetData._
 import anna.data.{NetData, NeuronData}
-import anna.utils.DoubleRange._
 import anna.utils.{RandomNumber, Utils}
 
 import scala.annotation.tailrec

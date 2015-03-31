@@ -1,5 +1,6 @@
 package anna.utils
 
+import java.io.{IOException, FileWriter, File, BufferedWriter}
 import java.text.{NumberFormat, ParsePosition}
 import java.util.Locale
 
@@ -7,6 +8,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.Context
 import anna.async.{NetRef, NeuronRef}
+import anna.logger.LOG
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
@@ -63,5 +65,33 @@ object Utils {
   def V = vary(0.95)
   def v = vary(0.05)
 
+  def save(filePath: String, body: String) = {
+    var writer:BufferedWriter = null // I blame Java
+    try {
+      val file = new File(filePath)
+      if(file.exists()) file.delete()
+
+      file.createNewFile()
+      file.setReadable(true)
+      file.setWritable(true)
+
+      writer = new BufferedWriter(new FileWriter(file, true))
+      writer.write(body)
+      writer.newLine()
+      writer.flush()
+    } catch {
+      case ex: IOException => LOG.exception(ex)
+    } finally {
+      if(writer != null) writer.close()
+    }
+
+  }
+
+  def load(filePath: String) = {
+    val source = scala.io.Source.fromFile(filePath)
+    val lines = source.getLines().mkString("\n")
+    source.close()
+    lines
+  }
 }
 

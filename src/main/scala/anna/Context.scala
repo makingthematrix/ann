@@ -62,6 +62,8 @@ case class Context(
   timeout: Timeout,
   system: ActorSystem,
 
+  exercisesSetDir: String,
+
   neuronDefaults: NeuronDefaults,
   synapseGenomeDefaults: SynapseGenomeDefaults,
   neuronGenomeDefaults: NeuronGenomeDefaults,
@@ -185,8 +187,8 @@ object Context {
     val root = config.getConfig("context")
 
     implicit val timeout = Timeout(FiniteDuration.apply(root.getInt("awaitTimeout"), TimeUnit.SECONDS))
-
-    lazy val system = ActorSystem("system")
+    val system = ActorSystem("system")
+    val exercisesSetDir = root.getString("exercisesSetDir")
 
     // neuron defaults
     val neuronRoot = root.getConfig("neuronDefaults")
@@ -259,7 +261,7 @@ object Context {
       inputTickMultiplierRange, neuronsRange, synapseChangeProbability
     )
 
-    set(Context(timeout, system, neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
+    set(Context(timeout, system, exercisesSetDir, neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
   }
 
 }

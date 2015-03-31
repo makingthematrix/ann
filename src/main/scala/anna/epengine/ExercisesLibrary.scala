@@ -7,22 +7,22 @@ import scala.util.Random
 /**
  * Created by gorywoda on 11.03.15.
  */
-class ExerciseLibrary(map: Map[String, Exercise]){
+class ExercisesLibrary(map: Map[String, Exercise]){
   def apply(name: String) = map(name)
   def get(name: String) = map.get(name)
   def run(name: String, netWrapper: NetWrapper) = map(name).run(netWrapper)
 }
 
-object ExerciseLibrary {
-  private var instanceOpt:Option[ExerciseLibrary] = None
+object ExercisesLibrary {
+  private var instanceOpt:Option[ExercisesLibrary] = None
 
-  def apply(map: Map[String, Exercise]):ExerciseLibrary = {
-    val library = new ExerciseLibrary(map)
+  def apply(map: Map[String, Exercise]):ExercisesLibrary = {
+    val library = new ExercisesLibrary(map)
     instanceOpt = Some(library)
     library
   }
 
-  def apply():ExerciseLibrary = instanceOpt match {
+  def apply():ExercisesLibrary = instanceOpt match {
     case None => apply(map)
     case Some(instance) => instance
   }
@@ -143,7 +143,7 @@ object ExerciseLibrary {
       if(counter > 0) success else failure
     })
 
-  val oneVariedSignalWithNoiseGivesExactlyOneDot = Exercise("one signal with noise gives exactly one dot", 1, List("dot"),
+  val oneVariedSignalWithNoiseGivesExactlyOneDot = Exercise("one varied signal with noise gives exactly one dot", 1, List("dot"),
     (wrapper: NetWrapper, success: Double, failure: Double) => {
       import anna.utils.Utils.{V, v}
       var counter = 0
@@ -153,7 +153,7 @@ object ExerciseLibrary {
       if(counter == 1) success else failure
     })
 
-  val twoVariedSignalsWithNoiseGiveNothing = Exercise("two signals with noise give nothing", 1, List("dot"),
+  val twoVariedSignalsWithNoiseGiveNothing = Exercise("two varied signals with noise give nothing", 1, List("dot"),
     (wrapper: NetWrapper, success: Double, failure: Double) => {
       import anna.utils.Utils.V
       var counter = 0

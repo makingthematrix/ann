@@ -105,7 +105,7 @@ class Neuron(
   
   private def shutdown(){
     answer(NeuronShutdownDone(id))
-    context.stop(self)
+    self ! PoisonPill
   }
 
   private def reset(): Unit ={

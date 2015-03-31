@@ -27,8 +27,8 @@ class Net(val id: String) extends Actor {
     case NeuronShutdownDone(id) =>
       remove(id)
       if(neurons.isEmpty){
-        caller ! NetShutdownDone(id) 
-        context.stop(self)
+        caller ! NetShutdownDone(id)
+        self ! PoisonPill
       }
   }
 

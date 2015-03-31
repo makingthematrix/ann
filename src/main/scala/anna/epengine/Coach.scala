@@ -2,6 +2,7 @@ package anna.epengine
 
 import anna.async.NetBuilder
 import anna.data.NetData
+import anna.logger.LOG
 import anna.logger.LOG._
 
 /**
@@ -12,18 +13,19 @@ class Coach(exercises: List[Exercise]){
     debug(this, s"testing ${data.id}")
     checkConditions(data)
 
-    val wrapper = NetBuilder().set(data).build()
-
     var result = 0.0
     exercises.foreach( ex => {
-      wrapper.removeAllTriggers()
-      wrapper.reset()
-      result += ex.run(wrapper)
+      LOG.resetTimer()
+
+      val wrapper = NetBuilder().set(data).build()
+      val t = ex.run(wrapper)
+      wrapper.shutdown()
+
+      LOG.timer(this, s"running ${ex.name} finished with result $t")
+
+      result += t
     })
 
-    wrapper.shutdown()
-
-    debug(this, s"the result is $result")
     result
   }
 
