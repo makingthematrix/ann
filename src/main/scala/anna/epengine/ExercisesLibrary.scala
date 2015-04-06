@@ -1,7 +1,6 @@
 package anna.epengine
 
 import anna.async.NetWrapper
-
 import scala.util.Random
 
 /**
@@ -47,6 +46,11 @@ object ExercisesLibrary {
 
     wrapper.tickUntilCalm()
     if(counter == 6) success else failure
+  })
+
+  val randomResult01 = Exercise("random result 0-1", 1, List("out1"),
+                                (wrapper: NetWrapper, success: Double, failure: Double) => {
+    if(Random.nextBoolean()) success else failure
   })
 
   val oneSignalGivesDot = Exercise("one signal gives dot", 1, List("dot"),
@@ -166,6 +170,7 @@ object ExercisesLibrary {
   val map = Map[String, Exercise](
     anyResponseToAnySignal.name -> anyResponseToAnySignal,
     constantOutputForSixUnits.name -> constantOutputForSixUnits,
+    randomResult01.name -> randomResult01,
     oneSignalGivesDot.name -> oneSignalGivesDot,
     oneSignalGivesExactlyOneDot.name -> oneSignalGivesExactlyOneDot,
     twoSignalsGiveNothing.name -> twoSignalsGiveNothing,

@@ -43,27 +43,12 @@ case class NeuronData(
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
 
   def toJson = {
-    val synapsesJson = synapses.map{ _.toJson }
-    val json = ("id" -> id) ~
-               ("threshold" -> threshold) ~
-               ("slope" -> slope) ~
-               ("hushValue" -> hushValue.toString) ~
-               ("forgetting" -> forgetting.toString) ~
-               ("synapses" -> synapsesJson) ~
-               ("tickTimeMultiplier" -> tickTimeMultiplier) ~
-               ("neuronType" -> neuronType.toString)
-    compact(render(json))
-  }
-
-  // for debugging purposes only
-  def toPrettyJson = {
-    val synapsesJson = synapses.map{ _.toPrettyJson }
     val json = ("id" -> id) ~
       ("threshold" -> threshold) ~
       ("slope" -> slope) ~
       ("hushValue" -> hushValue.toString) ~
       ("forgetting" -> forgetting.toString) ~
-      ("synapses" -> synapsesJson) ~
+      ("synapses" -> synapses.map{ _.toJson }) ~
       ("tickTimeMultiplier" -> tickTimeMultiplier) ~
       ("neuronType" -> neuronType.toString)
     pretty(render(json))

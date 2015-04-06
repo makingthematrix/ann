@@ -10,22 +10,24 @@ import anna.logger.LOG._
  */
 class Coach(exercises: List[Exercise]){
   def test(data: NetData):Double = {
-    debug(this, s"testing ${data.id}")
+    debug(this, s" -------------- testing ${data.id} ------------------")
     checkConditions(data)
 
+    val wrapper = NetBuilder().set(data).build()
     var result = 0.0
     exercises.foreach( ex => {
       LOG.resetTimer()
+      wrapper.removeAllTriggers()
 
-      val wrapper = NetBuilder().set(data).build()
       val t = ex.run(wrapper)
-      wrapper.shutdown()
 
       LOG.timer(this, s"running ${ex.name} finished with result $t")
 
       result += t
     })
+    wrapper.shutdown()
 
+    debug(this, s" -------------- done testing ${data.id} ------------------")
     result
   }
 

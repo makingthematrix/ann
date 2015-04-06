@@ -97,7 +97,7 @@ class NetDataSuite extends JUnitSuite {
     val netData2 = builder2.data
     assertEquals(netData1, netData2)
 
-    println(netData2.toPrettyJson)
+    println(netData2.toJson)
 
     val netWrapper = builder2.build("in")
     val sb = StringBuilder.newBuilder

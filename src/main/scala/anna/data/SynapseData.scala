@@ -13,13 +13,10 @@ case class SynapseWeight(weight: Double) extends AnyVal with SynapseTrait {
 case object Hush extends SynapseTrait
 
 case class SynapseData(neuronId: String, weight: SynapseTrait){
-  def toJson = compact(toRawJson)
-  def toPrettyJson = pretty(toRawJson) // for debug purposes only
-
   def withId(neuronId: String) = SynapseData(neuronId, weight)
   def withWeight(weight: SynapseTrait) = SynapseData(neuronId, weight)
 
-  private def toRawJson = render(("neuronId" -> neuronId) ~ ("weight" -> weight.toString))
+  def toJson = pretty(render(("neuronId" -> neuronId) ~ ("weight" -> weight.toString)))
 }
 
 object SynapseData {

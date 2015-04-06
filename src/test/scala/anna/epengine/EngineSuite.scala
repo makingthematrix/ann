@@ -40,7 +40,7 @@ class EngineSuite extends JUnitSuite {
   val t2 = Exercise("constant output", 1, List("out1"), f)
 
   @Test def shouldTestGenomePoll(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 5)
+    val poll = GenomePoll("net", inputIds, outputIds, 3)
     assertEquals(5, poll.genomes.size)
 
     val results = Coach(List(t1)).test(poll)
@@ -48,7 +48,7 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldPerformEvolutionIteration(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 5)
+    val poll = GenomePoll("net", inputIds, outputIds, 3)
     val tester = Coach(List(t1, t2))
 
     val engine = Engine(tester, 0.5, poll)
@@ -62,5 +62,40 @@ class EngineSuite extends JUnitSuite {
 
     assertTrue(result2 >= result1)
     println(s"new result: $result2, old result: $result1")
+  }
+
+  @Test def shouldPerformIterationWithFakeResults(): Unit ={
+    val inputIds = List("in")
+    val outputIds = List("out1")
+
+    val poll = GenomePoll("net", inputIds, outputIds, 3)
+    val set = ExercisesSet("randomset", List(
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1",
+      "random result 0-1"
+    ))
+
+    val coach = Coach(set)
+
+    val engine = Engine(coach, 0.5, poll)
+    engine.calculateResults()
+    val best1 = engine.best
+    val result1 = coach.test(best1.data)
+
+    engine.run()
+
+    val best2 = engine.best
+    val result2 = coach.test(best2.data)
+
+    assertTrue(result2 >= result1)
+    println(s"new result: $result2, old result: $result1")
+
   }
 }

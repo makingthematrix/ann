@@ -5,6 +5,8 @@ import anna.utils.RandomNumber
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 
+import anna.logger.LOG._
+
 class Engine(val coach: Coach,
              val mutationProbability: Probability,
              private var poll: GenomePoll,
@@ -24,17 +26,28 @@ class Engine(val coach: Coach,
 
     iterIndex += 1
 
+    debug(this,s" ------------------------ Iteration $iterIndex of the engine ------------------------ ")
+
     poll = GenomePoll(mutate(newGeneration))
 
     calculateResults()
+
+    debug(this,s" ------------------------ done iteration $iterIndex of the engine ------------------------ ")
   }
 
   def mutate(genomes: List[NetGenome]) = {
-    genomes.foreach( g => if(mutationProbability.toss) g.mutate())
+    debug(this, s" --- mutating --- ")
+    genomes.foreach( g => if(mutationProbability.toss) {
+      g.mutate()
+      g.data.validate()
+    })
+    debug(this, s" --- done mutating --- ")
     genomes
   }
 
   def newGeneration = {
+    debug(this, " --- new generation --- ")
+
     val resultsNormalized = {
       val sum = results.values.sum
       results.map( tuple => tuple._1 -> tuple._2/sum ).toList.sortBy(-_._2).toMap
@@ -46,9 +59,11 @@ class Engine(val coach: Coach,
     val higherHalfGenomeOpt = drawCrossableGenome(lowerHalfGenome, poll.genomes, results)
     val (g1,g2) = if(higherHalfGenomeOpt != None) lowerHalfGenome.cross(higherHalfGenomeOpt.get)
                   else (lowerHalfGenome.clone, lowerHalfGenome.clone)
+    debug(this,s"new names: ${g1.id} -> iter${iterIndex}#0Left, ${g2.id} -> iter${iterIndex}#0Right")
 
     val newGenomes = (for(i <- 1 to results.size/2 - 1) yield {
       val (g1, g2) = crossTwoGenomes
+      debug(this,s"new names: ${g1.id} -> iter${iterIndex}#${i}Left, ${g2.id} -> iter${iterIndex}#${i}Right")
       List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
     }).flatten.toList ++ List(g1.netId(s"iter${iterIndex}#0Left"), g2.netId(s"iter${iterIndex}#0Right"))
 
@@ -65,8 +80,13 @@ class Engine(val coach: Coach,
 
   def best = poll.genomes.find( _.id == results.maxBy(_._2)._1 ).get
 
-  private def calculateResults(): Unit ={
+  def getResult(netId: String) = results.get(netId)
+
+  def calculateResults(): Unit ={
+    debug(this,"------------------------------ calculate results ------------------------------")
     results = coach.test(poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    if(iterIndex == 0) iterIndex = 1
+    debug(this,"------------------------------ done calculating results ------------------------------")
   }
 
   private def drawId = Engine.drawId(results)

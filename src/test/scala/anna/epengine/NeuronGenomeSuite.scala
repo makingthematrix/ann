@@ -38,7 +38,7 @@ class NeuronGenomeSuite extends JUnitSuite {
     var dontForgetCount = 0
     var forgetAllCount = 0
     for (i <- 1 to totalCount) {
-      val ng = NeuronGenome.toss("id1")
+      val ng = NeuronGenome.build("id1")
       assertEquals("id1", ng.id)
       assertTrue(Context().thresholdRange.contains(ng.threshold))
       assertTrue(Context().slopeRange.contains(ng.slope))
@@ -54,7 +54,7 @@ class NeuronGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateThreshold(): Unit ={
-    val ng = NeuronGenome.toss("id1")
+    val ng = NeuronGenome.build("id1")
     val original = ng.threshold
 
     Context.withThresholdProbability(1.0)
@@ -71,7 +71,7 @@ class NeuronGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateSlope(): Unit ={
-    val ng = NeuronGenome.toss("id1")
+    val ng = NeuronGenome.build("id1")
     val original = ng.slope
 
     Context.withThresholdProbability(0.0)
@@ -89,7 +89,7 @@ class NeuronGenomeSuite extends JUnitSuite {
 
 
   @Test def shouldMutateForgetting(): Unit ={
-    val ng = NeuronGenome.toss("id1")
+    val ng = NeuronGenome.build("id1")
     val original = ng.forgetting
 
     Context.withThresholdProbability(0.0)
@@ -128,7 +128,7 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shouldMutateHush(){
     Context.withHushRange(1 to 1)
-    val ng = NeuronGenome.toss("id1")
+    val ng = NeuronGenome.build("id1")
     val original = ng.hushValue
     assertEquals(HushValue(1), ng.hushValue)
 
@@ -150,8 +150,8 @@ class NeuronGenomeSuite extends JUnitSuite {
   @Test def shouldAddSynapse(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
-    val ng1 = NeuronGenome.toss("id1", accessMap)
-    val ng2 = NeuronGenome.toss("id2", accessMap)
+    val ng1 = NeuronGenome.build("id1", accessMap)
+    val ng2 = NeuronGenome.build("id2", accessMap)
 
     assertEquals(0, ng1.synapses.size)
 
@@ -192,8 +192,8 @@ class NeuronGenomeSuite extends JUnitSuite {
   @Test def shoulDeleteSynapse(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
-    val ng1 = NeuronGenome.toss("id1", accessMap)
-    val ng2 = NeuronGenome.toss("id2", accessMap)
+    val ng1 = NeuronGenome.build("id1", accessMap)
+    val ng2 = NeuronGenome.build("id2", accessMap)
 
     ng1.addSynapse(SynapseGenome("id2",Hush))
 
@@ -223,8 +223,8 @@ class NeuronGenomeSuite extends JUnitSuite {
   @Test def shouldChangeSynapseWeight(): Unit ={
     val idSet = Set("id1","id2")
     val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
-    val nch1 = NeuronGenome.toss("id1", accessMap)
-    val nch2 = NeuronGenome.toss("id2", accessMap)
+    val nch1 = NeuronGenome.build("id1", accessMap)
+    val nch2 = NeuronGenome.build("id2", accessMap)
 
     nch1.addSynapse(SynapseGenome("id2",Hush))
 

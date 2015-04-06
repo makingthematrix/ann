@@ -32,25 +32,8 @@ case class NetData(id: String,
   def withInputTickMultiplier(inputTickMultiplier: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
 
   def toJson = {
-    val neuronsJson = neurons.map{ _.toJson }
     val json = ("id" -> id) ~
-      ("neurons" -> neuronsJson) ~
-      ("inputs" -> inputs) ~
-      ("threshold" -> threshold) ~
-      ("slope" -> slope) ~
-      ("hushValue" -> hushValue.toString) ~
-      ("forgetting" -> forgetting.toString) ~
-      ("tickTimeMultiplier" -> tickTimeMultiplier) ~
-      ("weight" -> weight.toString) ~
-      ("inputTickMultiplier" -> inputTickMultiplier)
-    compact(render(json))
-  }
-
-  // for debugging purposes only
-  def toPrettyJson = {
-    val neuronsJson = neurons.map{ _.toPrettyJson }
-    val json = ("id" -> id) ~
-      ("neurons" -> neuronsJson) ~
+      ("neurons" -> neurons.map{ _.toJson }) ~
       ("inputs" -> inputs) ~
       ("threshold" -> threshold) ~
       ("slope" -> slope) ~

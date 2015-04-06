@@ -7,6 +7,8 @@ import anna.utils.{RandomNumber, Utils}
 
 import scala.annotation.tailrec
 
+import anna.logger.LOG._
+
 /**
  * Created by gorywoda on 04.01.15.
  */
@@ -85,6 +87,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
+    debug(this, s"--- crossing ${this.id} with ${genome.id}")
     val var1 = fullAccessNeurons()
     val var2 = genome.fullAccessNeurons()
 
@@ -111,8 +114,10 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     (leftGenome, rightGenome)
   } else (clone, genome.clone)
 
-  private def deleteNeuron(id: String): Unit = {
+  def deleteNeuron(id: String): Unit = {
+    debug(this,s"delete neuron $id. was ${_data.neurons.size}")
     _data = _data.withNeurons( neurons.filterNot( _.id == id ) )
+    debug(this,s"is ${_data.neurons.size}")
   }
 
   private def addNeuron(n: NeuronData) = {
@@ -131,29 +136,39 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   private def addNeuron(): Unit ={
+    val newId = neuronId(id,findFirstFreeId())
+    debug(this,s"adding a neuron to $id -> $newId")
     // 1. create a new neuron with name id+neurons.size and according to NeuronGenome specifications
-    val newNG = NeuronGenome.toss(neuronId(id,findFirstFreeId()), accessMap)
+    val newNG = NeuronGenome.build(newId, accessMap)
     // 2. create exactly one synapse from the set of all neurons (a synapse from an output neuron is also ok)
     val oldNG = NeuronGenome(RandomNumber(neurons), accessMap)
-    oldNG.addSynapse(SynapseGenome.toss(newNG.id))
+    oldNG.addSynapse(SynapseGenome.build(newNG.id))
     updateNeuron(oldNG.data)
     // 3. create exactly one synapse from the new neuron to the set of not-input neurons
     val mutNs = mutableNeurons()
-    if(mutNs.nonEmpty) newNG.addSynapse(SynapseGenome.toss(RandomNumber(mutNs).id))
+    if(mutNs.nonEmpty) newNG.addSynapse(SynapseGenome.build(RandomNumber(mutNs).id))
 
     addNeuron(newNG.data)
   }
 
-  private def deleteSynapsesTo(neuronId: String) = neurons.map( n => if(n.isConnectedTo(id)){
-    val nCh = NeuronGenome(n)
-    nCh.deleteSynapse(id)
-    Some(nCh.data)
-  } else None).flatten.foreach( n => updateNeuron(n) )
+  def deleteSynapsesTo(neuronId: String) = {
+    debug(this, s"deleting synapses leading to $neuronId")
+    val (neuronsToChange, neuronsToLeave) = neurons.partition( _.isConnectedTo(neuronId) )
+    val changedNeurons = neuronsToChange.map( n => {
+      debug(this, s"deleting synapse ${n.id}->$neuronId")
+      val ng = NeuronGenome(n)
+      ng.deleteSynapse(neuronId)
+      ng.data
+    })
+
+    _data = _data.withNeurons(changedNeurons ++ neuronsToLeave)
+  }
 
   private def deleteNeuron(): Unit ={
     val faN = fullAccessNeurons()
     if(faN.nonEmpty){
       val id = RandomNumber(faN).id
+      debug(this,s"deleting a neuron from ${data.id} -> $id")
       deleteNeuron(id)
       deleteSynapsesTo(id)
     }
@@ -163,6 +178,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     val mutNs = mutableNeurons()
     if(mutNs.nonEmpty){
       val nCh = NeuronGenome(RandomNumber(mutNs))
+      debug(this,s"mutating a neuron in $id -> ${nCh.id}")
       nCh.mutate()
       updateNeuron(nCh.data)
     }
@@ -178,7 +194,11 @@ object NetGenome {
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
     NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
 
-  def toss(netId: String, inputIds: List[String], outputIds: List[String]) = {
+  def build(netId: String, inputIds: List[String], outputIds: List[String]) = {
+    debug(this, "---------------------------------------------------------------------")
+    debug(this, s"building $netId with input ids: $inputIds and output ids: $outputIds")
+    debug(this, "")
+    
     assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
     assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
@@ -187,16 +207,24 @@ object NetGenome {
         (inputIds.size + outputIds.size) to Context().neuronsRange.end
       else Context().neuronsRange
     )
+    
+    debug(this,s"There will be $neuronsSize neurons")
 
-    val ins = inputIds.map( NeuronGenome.toss(_) )
-    val outs = outputIds.map( NeuronGenome.toss(_) )
+    debug(this,"* building inputs")
+    val ins = inputIds.map( NeuronGenome.build(_) )
+    debug(this,"* building outputs")
+    val outs = outputIds.map( NeuronGenome.build(_) )
+    debug(this,"* building middles")
     val middles = (
       for(i <- 1 to neuronsSize - ins.size - outs.size)
-        yield NeuronGenome.toss(neuronId(netId,i), accessMap(inputIds, outputIds))
+        yield NeuronGenome.build(neuronId(netId,i), accessMap(inputIds, outputIds))
     ).toList
     val ns = ins ++ middles ++ outs
 
+    debug(this,"* creating synapses")
+
     // at least one synapse from each "in" to one of "middles"
+    debug(this, "at least one synapse from each \"in\" to one of \"middles\"")
     var synapsesCounter = 0
     ins.foreach(in => chooseNeuron(middles, (n: NeuronGenome) => !in.isConnectedTo(n.id)) match {
       case Some(n) => in.connect(n); synapsesCounter += 1
@@ -204,12 +232,14 @@ object NetGenome {
     })
 
     // at least one synapse to each "out" from one of "middles"
+    debug(this, "at least one synapse to each \"out\" from one of \"middles\"")
     outs.foreach(out => chooseNeuron(middles, (n: NeuronGenome) => !n.isConnectedTo(out.id)) match {
       case Some(n) => n.connect(out); synapsesCounter += 1
       case None =>
     })
 
     val synapsesSize = Math.round(Context().synapsesDensity * neuronsSize).toInt - synapsesCounter
+    debug(this,s"$synapsesCounter created, $synapsesSize left to create")
 
     if(synapsesSize > 0) {
       val im = ins ++ middles
@@ -219,10 +249,16 @@ object NetGenome {
     }
     // @todo: it still doesn't ensure that there is a valid connection from ins to outs
 
-    NetGenome(
+    val ng = NetGenome(
       NetData(netId, ns.map(_.data), inputIds, RandomNumber(Context().inputTickMultiplierRange)),
       accessMap(inputIds, outputIds)
     )
+
+    debug(this, s"done building $netId")
+    debug(this, ng.data.toJson)
+    debug(this, "---------------------------------------------------------------------")
+
+    ng
   }
 
   def breed(oldGenome: NetGenome,
@@ -241,6 +277,9 @@ object NetGenome {
     val newGen = NetGenome(newNet, oldGenome.accessMap)
     if(trimEnabled) newGen.trim()
     if(trimEnabled && renameEnabled) newGen.data.validate()
+
+    debug(this,s"new genome bred: ${newGen.id}")
+    debug(this, newGen.data.toJson)
     newGen
   }
 

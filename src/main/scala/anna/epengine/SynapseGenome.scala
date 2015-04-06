@@ -39,7 +39,7 @@ object SynapseGenome {
   def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = SynapseGenome(SynapseData(neuronId, weight))
   def apply(neuronId: String, weight: Double):SynapseGenome = apply(neuronId, SynapseWeight(weight))
 
-  def toss(neuronId: String) = {
+  def build(neuronId: String) = {
     val nch = apply(neuronId, Hush)
     nch.mutate()
     nch

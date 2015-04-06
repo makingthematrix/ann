@@ -258,7 +258,7 @@ object Context {
 
     val netGenomeDefaults = NetGenomeDefaults(
       addNeuronProbability, deleteNeuronProbability, mutateNeuronProbability, inputTickMultiplierProbability,
-      inputTickMultiplierRange, neuronsRange, synapseChangeProbability
+      inputTickMultiplierRange, neuronsRange, synapsesDensity
     )
 
     set(Context(timeout, system, exercisesSetDir, neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))

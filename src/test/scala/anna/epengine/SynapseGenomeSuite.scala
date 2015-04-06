@@ -24,7 +24,7 @@ class SynapseGenomeSuite extends JUnitSuite {
     val totalCount = 1000
     var hushCount = 0
     for (i <- 1 to totalCount) {
-      val sg = SynapseGenome.toss("id1")
+      val sg = SynapseGenome.build("id1")
       assertEquals("id1", sg.neuronId)
       sg.weight match {
         case Hush => hushCount = hushCount + 1
@@ -45,7 +45,7 @@ class SynapseGenomeSuite extends JUnitSuite {
     val totalCount = 1000
     var hushCount = 0
     for (i <- 1 to totalCount) {
-      val sg = SynapseGenome.toss("id1")
+      val sg = SynapseGenome.build("id1")
       assertEquals("id1", sg.neuronId)
       sg.weight match {
         case Hush => hushCount = hushCount + 1
@@ -59,7 +59,7 @@ class SynapseGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateSynapse(): Unit ={
-    val sg = SynapseGenome.toss("id1")
+    val sg = SynapseGenome.build("id1")
     val originalWeight = sg.weight
     sg.mutate()
     val mutatedWeight = sg.weight

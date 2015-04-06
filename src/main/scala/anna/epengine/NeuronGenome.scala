@@ -6,6 +6,8 @@ import anna.data._
 import anna.logger.LOG._
 import anna.utils.RandomNumber
 
+import anna.logger.LOG._
+
 /**
  * Created by gorywoda on 28.12.14.
  */
@@ -113,7 +115,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
-    case Some(neuronId) => addSynapse(SynapseGenome.toss(neuronId))
+    case Some(neuronId) => addSynapse(SynapseGenome.build(neuronId))
     case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
   }
 
@@ -130,7 +132,9 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {
-    addSynapse(SynapseGenome.toss(to.id))
+    val sg = SynapseGenome.build(to.id)
+    debug(this, s"connecting $id to ${to.id} with ${sg.weight}")
+    addSynapse(sg)
     true
   }
 }
@@ -149,7 +153,9 @@ object NeuronGenome {
             neuronType: NeuronType.Value):NeuronGenome =
     NeuronGenome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
 
-  def toss(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
+  def build(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
+    debug(this,s" --- building neuron $id --- ")
+
     val ng = NeuronGenome(
       NeuronData(id, Context().thresholdRange.from, Context().slopeRange.from, HushValue(),
                  DontForget, Nil, Context().tickTimeMultiplierRange.from, NeuronType.STANDARD),
@@ -160,6 +166,10 @@ object NeuronGenome {
     ng.mutateHushValue()
     ng.mutateForgetting()
     ng.mutateTickTimeMultiplier()
+
+    debug(this,ng.data.toJson)
+    debug(this,s" --- done building neuron $id --- ")
+
     ng
   }
 }

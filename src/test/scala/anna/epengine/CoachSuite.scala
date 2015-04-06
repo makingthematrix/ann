@@ -81,13 +81,13 @@ class CoachSuite extends MySuite {
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     val data = builder.data
 
-    val set = ExercisesSet("dummy set", Set("constant output for six units") )
+    val set = ExercisesSet("dummy set", List("constant output for six units") )
     val coach = Coach(set)
     val result = coach.test(data)
     assertEquals(1.0, result, 0.01)
   }
 
-  val dotSet = ExercisesSet("dotset", Set(
+  val dotSet = ExercisesSet("dotset", List(
     "one signal gives dot",
     "one signal gives exactly one dot",
     "two signals give nothing",

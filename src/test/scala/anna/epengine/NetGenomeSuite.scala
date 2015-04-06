@@ -29,7 +29,7 @@ class NetGenomeSuite extends JUnitSuite {
     Context.withSynapsesDensity(2.5)
     Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
-    val ng = NetGenome.toss("net", inputIds, outputIds)
+    val ng = NetGenome.build("net", inputIds, outputIds)
     assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
@@ -52,7 +52,7 @@ class NetGenomeSuite extends JUnitSuite {
     Context.withSynapsesDensity (2.5)
     Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
-    val ng = NetGenome.toss("net", inputIds, outputIds)
+    val ng = NetGenome.build("net", inputIds, outputIds)
     assertEquals(3, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
@@ -397,5 +397,21 @@ class NetGenomeSuite extends JUnitSuite {
     val b3 = NetBuilder(net12G.data)
     val wrapper = b3.build()
     assertNotNull(wrapper)
+  }
+
+  @Test def shouldDeleteNeuronFromGenome(): Unit ={
+    val b1 = NetBuilder()
+    b1.netName = "net1"
+    b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
+    b1.use("in1").chain("net1_3",1.0,0.0).connect("out1",0.81)
+    val net1G = NetGenome(b1.data, Map("in1" -> DONTMUTATE, "out1" -> DONTDELETE))
+
+    net1G.deleteNeuron("net1_3")
+    intercept[AssertionError] {
+      net1G.data.validate()
+    }
+
+    net1G.deleteSynapsesTo("net1_3")
+    net1G.data.validate()
   }
 }
