@@ -61,6 +61,7 @@ case class NetGenomeDefaults(
 case class Context(
   timeout: Timeout,
   system: ActorSystem,
+  initialMutationsNumber: Int,
 
   exercisesSetDir: String,
 
@@ -190,6 +191,8 @@ object Context {
     val system = ActorSystem("system")
     val exercisesSetDir = root.getString("exercisesSetDir")
 
+    val initialMutationsNumber = root.getInt("initialMutationsNumber")
+
     // neuron defaults
     val neuronRoot = root.getConfig("neuronDefaults")
     val slope = neuronRoot.getDouble("defaultSlope")
@@ -261,7 +264,10 @@ object Context {
       inputTickMultiplierRange, neuronsRange, synapsesDensity
     )
 
-    set(Context(timeout, system, exercisesSetDir, neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
+    set(Context(timeout, system, initialMutationsNumber, exercisesSetDir,
+                neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults,
+                netGenomeDefaults
+    ))
   }
 
 }

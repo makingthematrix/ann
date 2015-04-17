@@ -31,7 +31,8 @@ class Coach(exercises: List[Exercise]){
     result
   }
 
-  def test(poll: GenomePoll):List[(NetGenome,Double)] = poll.genomes.map( genome => (genome, test(genome.data)) ).sortBy(-_._2).toList
+  def test(poll: GenomePoll):List[(NetGenome,Double)] =
+    poll.genomes.map( genome => (genome, test(genome.data)) ).sortBy(-_._2).toList
 
   private def checkConditions(data: NetData): Unit ={
     exercises.foreach( ex => {

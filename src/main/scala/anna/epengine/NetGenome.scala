@@ -39,12 +39,15 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     this
   }
 
-  def mutate() = Probability.performRandom(
-    (Context().addNeuronProbability, addNeuron _),
-    (Context().deleteNeuronProbability, deleteNeuron _),
-    (Context().mutateNeuronProbability, mutateNeuron _),
-    (Context().inputTickMultiplierProbability, mutateInputTickMultiplier _)
-  )
+  def mutate(repetitions: Int = 1) = {
+    for(i <- 0 to repetitions) Probability.performRandom(
+      (Context().addNeuronProbability, addNeuron _),
+      (Context().deleteNeuronProbability, deleteNeuron _),
+      (Context().mutateNeuronProbability, mutateNeuron _),
+      (Context().inputTickMultiplierProbability, mutateInputTickMultiplier _)
+    )
+    this
+  }
 
   def trim():Unit = {
     // identify synapses which lead to non-existing neurons

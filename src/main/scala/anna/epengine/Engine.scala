@@ -9,12 +9,14 @@ import anna.logger.LOG._
 
 class Engine(val coach: Coach,
              val mutationProbability: Probability,
-             private var poll: GenomePoll,
+             private var _poll: GenomePoll,
              private var results:Map[String,Double] = HashMap()) {
   import Engine._
 
-  assert(poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
+  assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
   private var iterIndex = 0
+
+  def poll = _poll
 
   def run(iterations: Int =1) = {
     val end = iterIndex + iterations
@@ -28,7 +30,7 @@ class Engine(val coach: Coach,
 
     debug(this,s" ------------------------ Iteration $iterIndex of the engine ------------------------ ")
 
-    poll = GenomePoll(mutate(newGeneration))
+    _poll = GenomePoll(mutate(newGeneration))
 
     calculateResults()
 
@@ -47,6 +49,7 @@ class Engine(val coach: Coach,
 
   def newGeneration = {
     debug(this, " --- new generation --- ")
+    debug(this,s"Poll size ${_poll.size}, results: ${results.size}")
 
     val resultsNormalized = {
       val sum = results.values.sum
@@ -55,8 +58,11 @@ class Engine(val coach: Coach,
 
     // single out one genome from the lower half and cross it
     // this is to ensure that the new poll will be at least a bit diversified
-    val lowerHalfGenome = poll(resultsNormalized.toList(RandomNumber(results.size/2) + results.size/2)._1)
-    val higherHalfGenomeOpt = drawCrossableGenome(lowerHalfGenome, poll.genomes, results)
+    val randomNumber = RandomNumber(results.size/2) + results.size/2
+    debug(this,s"random number: $randomNumber")
+
+    val lowerHalfGenome = _poll(resultsNormalized.toList(RandomNumber(results.size/2) + results.size/2)._1)
+    val higherHalfGenomeOpt = drawCrossableGenome(lowerHalfGenome, _poll.genomes, results)
     val (g1,g2) = if(higherHalfGenomeOpt != None) lowerHalfGenome.cross(higherHalfGenomeOpt.get)
                   else (lowerHalfGenome.clone, lowerHalfGenome.clone)
     debug(this,s"new names: ${g1.id} -> iter${iterIndex}#0Left, ${g2.id} -> iter${iterIndex}#0Right")
@@ -67,30 +73,33 @@ class Engine(val coach: Coach,
       List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
     }).flatten.toList ++ List(g1.netId(s"iter${iterIndex}#0Left"), g2.netId(s"iter${iterIndex}#0Right"))
 
-    if(newGenomes.size < poll.size) best.netId(s"iter${iterIndex}Best") :: newGenomes else newGenomes
+    if(newGenomes.size < _poll.size) best.netId(s"iter${iterIndex}Best") :: newGenomes else newGenomes
   }
 
   def crossTwoGenomes = {
-    val genome1 = poll(drawId)
+    val genome1 = _poll(drawId)
     drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id) match {
       case Some(genome2) => genome1.cross(genome2)
       case None => (genome1.clone, genome1.clone)
     }
   }
 
-  def best = poll.genomes.find( _.id == results.maxBy(_._2)._1 ).get
+  def best = _poll.genomes.find( _.id == results.maxBy(_._2)._1 ).get
 
   def getResult(netId: String) = results.get(netId)
 
   def calculateResults(): Unit ={
     debug(this,"------------------------------ calculate results ------------------------------")
-    results = coach.test(poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    debug(this,s"There are ${poll.size} genomes in the poll")
+    debug(this,poll.ids.toString())
+    results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    debug(this,s"And there ${results.size} results")
     if(iterIndex == 0) iterIndex = 1
     debug(this,"------------------------------ done calculating results ------------------------------")
   }
 
   private def drawId = Engine.drawId(results)
-  private def drop(id: String) = Engine.drop(poll.genomes, id)
+  private def drop(id: String) = Engine.drop(_poll.genomes, id)
 }
 
 object Engine {
@@ -103,6 +112,7 @@ object Engine {
                                   results: Map[String, Double]):Option[NetGenome] = genomes match {
     case Nil => None
     case list =>
+      debug(this,s"drawCrossableGenome(${firstGenome.id},${genomes.size},${results.size})")
       val id = drawId(results)
       val index = genomes.indexWhere(_.id == id)
       val genome = genomes(index)
