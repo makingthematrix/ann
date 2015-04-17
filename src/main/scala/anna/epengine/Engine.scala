@@ -58,9 +58,6 @@ class Engine(val coach: Coach,
 
     // single out one genome from the lower half and cross it
     // this is to ensure that the new poll will be at least a bit diversified
-    val randomNumber = RandomNumber(results.size/2) + results.size/2
-    debug(this,s"random number: $randomNumber")
-
     val lowerHalfGenome = _poll(resultsNormalized.toList(RandomNumber(results.size/2) + results.size/2)._1)
     val higherHalfGenomeOpt = drawCrossableGenome(lowerHalfGenome, _poll.genomes, results)
     val (g1,g2) = if(higherHalfGenomeOpt != None) lowerHalfGenome.cross(higherHalfGenomeOpt.get)
