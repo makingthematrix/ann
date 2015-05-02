@@ -1,5 +1,7 @@
 package test.async.epengine
 
+import java.io.{IOException, File}
+
 import anna.Context
 import anna.async.{NetBuilder, NetWrapper}
 import anna.epengine._
@@ -15,9 +17,17 @@ class EngineSuite extends JUnitSuite {
     LOG.addLogToStdout()
   }
 
-  val inputIds = List("in1")
-  val outputIds = List("out1")
+  private lazy val inputIds = List("in1")
+  private lazy val outputIds = List("out1")
 
+  private lazy val netTemplate = {
+    val builder = NetBuilder()
+    builder.netName = "net"
+    builder.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
+    builder.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
+    builder.data
+  }
+/*
   val anySignalAnyResponse = (wrapper: NetWrapper, good: Double, bad: Double) => {
     var counter = 0
     wrapper.addAfterFire("out1"){ counter += 1 }
@@ -67,7 +77,7 @@ class EngineSuite extends JUnitSuite {
     println(s"new result: $result2, old result: $result1")
   }
 
-  @Test def shouldPerformIterationWithFakeResults(): Unit ={
+  @Test def shouldPerformIterationWithFakeResults(): Unit = {
     val inputIds = List("in")
     val outputIds = List("out1")
 
@@ -169,5 +179,75 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(n2, d1)
     assertNotEquals(n2, d2)
 
+  }*/
+
+  @Test def shouldCreateEngineDirectory(): Unit ={
+    // for that we need:
+    // 1. name of the directory
+    println("1")
+    val dirName = "test-shouldCreateEngineDirectory"
+    // 2. inputIds
+    println("2")
+    val inputIds = this.inputIds
+    // 3. outputIds
+    println("3")
+    val outputIds = this.outputIds
+    // 4. net template
+    println("4")
+    val netTemplate = this.netTemplate
+    // 5. exercises set
+    println("5")
+    val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
+    // 6. context
+    println("6")
+    val context = Context()
+
+    // create the engine
+    println("7")
+    Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet, context)
+    // check if the directory exists
+    println("8")
+    val evolutionDirs = new File(Context().evolutionDir).listFiles.filter(_.isDirectory)
+    println("9")
+    assertTrue(evolutionDirs.map(_.getName).toSet.contains(dirName))
+    println("10")
+    // delete directory
+    val dir = evolutionDirs.find(_.getName == dirName).get
+    println("11")
+    try {
+      assertTrue(dir.delete())
+    } catch {
+      case ex: IOException => println(ex.getMessage)
+    }
+    println("12")
   }
+/*
+  @Test def shouldLogEvolutionAndSaveResults(): Unit ={
+    // tworzę engine z podaną nazwą procesu
+    // tworzę, lub otwieram katalog o danej nazwie
+    // 1. jeśli tworzę:
+    // - podaję listę inputIds i outputIds
+    // - podaję kontekst
+    // - podaję szablon inicjalizacyjny
+    // - podaję exercises set
+    // - na podstawie inputIds, outputIds, Context i szablonu tworzę poll
+    // - zapisuję poll jako iteration 0
+    // 2. jeśli otwieram istniejący:
+    // - wczytuję kontekst z jsona
+    // - wczytuję excercises set z jsona
+    // - odnajduję ostatnią iterację i wczytuję ją, tworząc poll
+
+
+    // 3. podstawie exercises set tworzę coacha
+
+    // 4. puszczam jedną iterację
+    // - otwieram (lub tworzę) log iteracji z katalogu i dopisuję do niego logi działania engine
+    // - otwieram (lub tworzę) log mutacji z katalogu i dopisuję do niego jakie mutacje zostały przeprowadzone na jakim genomie
+
+    // 5. po zakończeniu iteracji
+    // - zapisuję poll i listę wyników jako iterację N (będzie ją można wczytać i od niej rozpocząć kolejną iterację)
+    // - w osobnym pliku zapisuję najlepszy genom
+
+  }
+  */
 }

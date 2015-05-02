@@ -1,5 +1,7 @@
 package anna.epengine
 
+import anna.Context
+import anna.data.NetData
 import anna.utils.RandomNumber
 
 import scala.annotation.tailrec
@@ -100,8 +102,15 @@ class Engine(val coach: Coach,
 }
 
 object Engine {
-  def apply(tester: Coach, mutationProbability: Probability, poll: GenomePoll) =
-    new Engine(tester, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
+  def apply(coach: Coach, mutationProbability: Probability, poll: GenomePoll):Engine =
+    new Engine(coach, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
+
+  def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet, context: Context = Context()): Engine = {
+    val coach = Coach(exercisesSet)
+    val mutationProbability = context.mutationProbability
+    val poll = GenomePoll(netTemplate, inputIds, outputIds, context.genomePollSize)
+    apply(coach, mutationProbability, poll)
+  }
 
   @tailrec
   private def drawCrossableGenome(firstGenome: NetGenome,

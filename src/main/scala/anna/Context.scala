@@ -62,8 +62,10 @@ case class Context(
   timeout: Timeout,
   system: ActorSystem,
   initialMutationsNumber: Int,
-
+  genomePollSize: Int,
   exercisesSetDir: String,
+  mutationProbability: Double,
+  evolutionDir: String,
 
   neuronDefaults: NeuronDefaults,
   synapseGenomeDefaults: SynapseGenomeDefaults,
@@ -189,9 +191,12 @@ object Context {
 
     implicit val timeout = Timeout(FiniteDuration.apply(root.getInt("awaitTimeout"), TimeUnit.SECONDS))
     val system = ActorSystem("system")
-    val exercisesSetDir = root.getString("exercisesSetDir")
 
+    val exercisesSetDir = root.getString("exercisesSetDir")
+    val genomePollSize = root.getInt("genomePollSize")
     val initialMutationsNumber = root.getInt("initialMutationsNumber")
+    val mutationProbability = root.getDouble("mutationProbability")
+    val evolutionDir = root.getString("evolutionDir")
 
     // neuron defaults
     val neuronRoot = root.getConfig("neuronDefaults")
@@ -264,10 +269,8 @@ object Context {
       inputTickMultiplierRange, neuronsRange, synapsesDensity
     )
 
-    set(Context(timeout, system, initialMutationsNumber, exercisesSetDir,
-                neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults,
-                netGenomeDefaults
-    ))
+    set(Context(timeout, system, initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir,
+                neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
   }
 
 }
