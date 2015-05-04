@@ -93,5 +93,17 @@ object Utils {
     source.close()
     lines
   }
+
+  def createDir(filePath: String, deleteIfExists: Boolean =false) = {
+    val dir = new File(filePath)
+
+    if(dir.exists() && deleteIfExists) dir.delete()
+
+    if(!dir.exists()){
+      if(!dir.mkdir()) throw new IOException(s"Failed to create a directory: $filePath")
+    }
+
+    dir
+  }
 }
 

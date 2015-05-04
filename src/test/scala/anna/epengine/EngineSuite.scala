@@ -181,45 +181,32 @@ class EngineSuite extends JUnitSuite {
 
   }*/
 
-  @Test def shouldCreateEngineDirectory(): Unit ={
+  @Test def shouldCreateEvolutionDirectory(): Unit ={
     // for that we need:
     // 1. name of the directory
-    println("1")
-    val dirName = "test-shouldCreateEngineDirectory"
+    val dirName = "test-shouldCreateEvolutionDirectory"
     // 2. inputIds
-    println("2")
     val inputIds = this.inputIds
     // 3. outputIds
-    println("3")
     val outputIds = this.outputIds
     // 4. net template
-    println("4")
     val netTemplate = this.netTemplate
     // 5. exercises set
-    println("5")
     val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
-    // 6. context
-    println("6")
-    val context = Context()
 
     // create the engine
-    println("7")
-    Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet, context)
+    Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
     // check if the directory exists
-    println("8")
     val evolutionDirs = new File(Context().evolutionDir).listFiles.filter(_.isDirectory)
-    println("9")
     assertTrue(evolutionDirs.map(_.getName).toSet.contains(dirName))
-    println("10")
+
     // delete directory
     val dir = evolutionDirs.find(_.getName == dirName).get
-    println("11")
     try {
       assertTrue(dir.delete())
     } catch {
       case ex: IOException => println(ex.getMessage)
     }
-    println("12")
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

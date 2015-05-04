@@ -8,6 +8,7 @@ import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 
 import anna.logger.LOG._
+import anna.utils.Utils
 
 class Engine(val coach: Coach,
              val mutationProbability: Probability,
@@ -105,10 +106,12 @@ object Engine {
   def apply(coach: Coach, mutationProbability: Probability, poll: GenomePoll):Engine =
     new Engine(coach, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
 
-  def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet, context: Context = Context()): Engine = {
+  def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
+    Utils.createDir(Context().evolutionDir + "/" + dirName)
+
     val coach = Coach(exercisesSet)
-    val mutationProbability = context.mutationProbability
-    val poll = GenomePoll(netTemplate, inputIds, outputIds, context.genomePollSize)
+    val mutationProbability = Context().mutationProbability
+    val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
     apply(coach, mutationProbability, poll)
   }
 
