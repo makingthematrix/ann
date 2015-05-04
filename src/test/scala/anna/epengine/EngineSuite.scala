@@ -181,6 +181,8 @@ class EngineSuite extends JUnitSuite {
 
   }*/
 
+  val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
+
   @Test def shouldCreateEvolutionDirectory(): Unit ={
     // for that we need:
     // 1. name of the directory
@@ -192,7 +194,7 @@ class EngineSuite extends JUnitSuite {
     // 4. net template
     val netTemplate = this.netTemplate
     // 5. exercises set
-    val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
+    val exercisesSet = this.exercisesSet
 
     // create the engine
     Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
@@ -202,6 +204,21 @@ class EngineSuite extends JUnitSuite {
 
     // delete directory
     val dir = evolutionDirs.find(_.getName == dirName).get
+    try {
+      assertTrue(dir.delete())
+    } catch {
+      case ex: IOException => println(ex.getMessage)
+    }
+  }
+
+  @Test def shouldSaveContextSetAndPoll(): Unit ={
+    val dirName = "test-shouldSaveContextSetAndPoll"
+    Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    val dir = new File(Context().evolutionDir).listFiles.find(f => f.getName == dirName && f.isDirectory).get
+    val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')) , f)).toMap
+    filesInDir.foreach( tuple => println(tuple._1))
+    assertTrue(filesInDir.contains("context.json"))
+
     try {
       assertTrue(dir.delete())
     } catch {

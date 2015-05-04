@@ -107,7 +107,9 @@ object Engine {
     new Engine(coach, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
 
   def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
-    Utils.createDir(Context().evolutionDir + "/" + dirName)
+    val dirPath = Context().evolutionDir + "/" + dirName
+    Utils.createDir(dirPath)
+    Utils.save(dirPath + "/context.json", Context().toJson)
 
     val coach = Coach(exercisesSet)
     val mutationProbability = Context().mutationProbability

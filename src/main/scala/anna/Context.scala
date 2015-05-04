@@ -10,6 +10,11 @@ import anna.utils.DoubleRange
 import com.typesafe.config.ConfigFactory
 import anna.utils.DoubleRange._
 
+import org.json4s.JsonDSL._
+import org.json4s._
+import org.json4s.native.JsonMethods._
+
+
 import scala.concurrent.duration._
 
 case class NeuronDefaults(
@@ -19,13 +24,32 @@ case class NeuronDefaults(
   hushValue: HushValue,
   forgetting: ForgetTrait,
   tickTime: Long
-)
+){
+  def toJson = {
+    val json =
+      ("slope" -> slope) ~
+      ("threshold" -> threshold) ~
+      ("weight" -> weight.toString)
+      ("hushValue" -> hushValue.toString) ~
+      ("forgetting" -> forgetting.toString) ~
+      ("tickTime" -> tickTime)
+    pretty(render(json))
+  }
+}
 
 case class SynapseGenomeDefaults(
   weightRange: DoubleRange,
   hushProbability: Probability,
   fullWeightProbability: Probability
-)
+){
+  def toJson = {
+    val json =
+      ("weightRange" -> weightRange.toJson) ~
+      ("hushProbability" -> hushProbability.value) ~
+      ("fullWeightProbability" -> fullWeightProbability.value)
+    pretty(render(json))
+  }
+}
 
 case class NeuronGenomeDefaults(
   thresholdRange: DoubleRange,
@@ -45,7 +69,31 @@ case class NeuronGenomeDefaults(
   synapseChangeProbability: Probability,
   addSynapseProbability: Probability,
   deleteSynapseProbability: Probability
-)
+){
+  def toJson = {
+    val json =
+      ("thresholdRange" -> thresholdRange.toJson) ~
+      ("slopeRange" -> slopeRange.toJson) ~
+      ("hushRange" -> hushRangeJson) ~
+      ("forgettingRange" -> forgettingRange.toJson) ~
+      ("tickTimeMultiplierRange" -> tickTimeMultiplierRange.toJson) ~
+      ("dontForgetProbability" -> dontForgetProbability.value) ~
+      ("thresholdProbability" -> thresholdProbability.value) ~
+      ("slopeProbability" -> slopeProbability.value) ~
+      ("forgettingProbability" -> forgettingProbability.value) ~
+      ("hushValueProbability" -> hushValueProbability.value) ~
+      ("tickTimeMultiplierProbability" -> tickTimeMultiplierProbability.value) ~
+      ("synapseChangeProbability" -> synapseChangeProbability.value) ~
+      ("addSynapseProbability" -> addSynapseProbability.value) ~
+      ("deleteSynapseProbability" -> deleteSynapseProbability.value)
+    pretty(render(json))
+  }
+
+  private def hushRangeJson = pretty(render(
+    ("start" -> hushRange.start) ~
+    ("end" -> hushRange.end)
+  ))
+}
 
 case class NetGenomeDefaults(
   addNeuronProbability: Probability,
@@ -56,7 +104,23 @@ case class NetGenomeDefaults(
 
   neuronsRange: Range,
   synapsesDensity: Double
-)
+){
+  def toJson = {
+    val json =
+      ("addNeuronProbability" -> addNeuronProbability.value) ~
+      ("deleteNeuronProbability" -> deleteNeuronProbability.value) ~
+      ("mutateNeuronProbability" -> mutateNeuronProbability.value) ~
+      ("inputTickMultiplierProbability" -> inputTickMultiplierProbability.value) ~
+      ("inputTickMultiplierRange" -> inputTickMultiplierRange.toJson) ~
+      ("synapsesDensity" -> synapsesDensity)
+    pretty(render(json))
+  }
+
+  private def neuronRangeJson = pretty(render(
+    ("start" -> neuronsRange.start) ~
+    ("end" -> neuronsRange.end)
+  ))
+}
 
 case class Context(
   timeout: Timeout,
@@ -72,6 +136,20 @@ case class Context(
   neuronGenomeDefaults: NeuronGenomeDefaults,
   netGenomeDefaults: NetGenomeDefaults
 ){
+  def toJson = {
+    val json = ("timeout" -> timeout.duration.toSeconds) ~
+      ("initialMutationsNumber" -> initialMutationsNumber) ~
+      ("genomePollSize" -> genomePollSize) ~
+      ("exercisesSetDir" -> exercisesSetDir) ~
+      ("mutationProbability" -> mutationProbability) ~
+      ("evolutionDir" -> evolutionDir) ~
+      ("neuronDefaults" -> neuronDefaults.toJson) ~
+      ("synapseGenomeDefaults" -> synapseGenomeDefaults.toJson) ~
+      ("neuronGenomeDefaults" -> neuronGenomeDefaults.toJson) ~
+      ("netGenomeDefaults" -> netGenomeDefaults.toJson)
+    pretty(render(json))
+  }
+
   def slope = neuronDefaults.slope
   def threshold = neuronDefaults.threshold
   def weight = neuronDefaults.weight
