@@ -6,6 +6,7 @@ import anna.Context
 import anna.async.{NetBuilder, NetWrapper}
 import anna.epengine._
 import anna.logger.LOG
+import anna.utils.Utils
 import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
@@ -204,26 +205,23 @@ class EngineSuite extends JUnitSuite {
 
     // delete directory
     val dir = evolutionDirs.find(_.getName == dirName).get
-    try {
-      assertTrue(dir.delete())
-    } catch {
-      case ex: IOException => println(ex.getMessage)
-    }
+
+    assertTrue(Utils.deleteDir(dir.getAbsolutePath))
   }
 
   @Test def shouldSaveContextSetAndPoll(): Unit ={
     val dirName = "test-shouldSaveContextSetAndPoll"
     Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
     val dir = new File(Context().evolutionDir).listFiles.find(f => f.getName == dirName && f.isDirectory).get
-    val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')) , f)).toMap
+    val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')+1) , f)).toMap
     filesInDir.foreach( tuple => println(tuple._1))
     assertTrue(filesInDir.contains("context.json"))
 
-    try {
-      assertTrue(dir.delete())
-    } catch {
-      case ex: IOException => println(ex.getMessage)
-    }
+    assertTrue(Utils.deleteDir(dir.getAbsolutePath))
+  }
+
+  @Test def shouldSaveAndRestoreContextFromJson(): Unit ={
+    
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

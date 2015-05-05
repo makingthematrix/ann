@@ -14,6 +14,8 @@ import scala.annotation.tailrec
 import scala.concurrent.Await
 import scala.util.Random
 
+import org.apache.commons.io.FileUtils
+
 object Utils {
   def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)
   def assert(condition: => Boolean, str: String) = if(!condition) fail(str)
@@ -97,7 +99,7 @@ object Utils {
   def createDir(filePath: String, deleteIfExists: Boolean =false) = {
     val dir = new File(filePath)
 
-    if(dir.exists() && deleteIfExists) dir.delete()
+    if(dir.exists() && deleteIfExists) deleteDir(filePath)
 
     if(!dir.exists()){
       if(!dir.mkdir()) throw new IOException(s"Failed to create a directory: $filePath")
@@ -105,5 +107,12 @@ object Utils {
 
     dir
   }
+
+  def deleteDir(filePath: String) = {
+    val dir = new File(filePath)
+    FileUtils.deleteDirectory(dir)
+    !dir.exists()
+  }
+
 }
 
