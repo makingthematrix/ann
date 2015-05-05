@@ -24,7 +24,7 @@ class HushSuite extends MySuite {
     val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime)
     val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
     
-    n1.setSynapses(List(Synapse(n2,Hush)))
+    n1.setSynapses(List(Synapse(n2,Hush())))
     net.setInputs(List(n1.id))
     
     val p = Promise[Boolean]()

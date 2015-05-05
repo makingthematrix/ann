@@ -155,7 +155,7 @@ class NetGenomeSuite extends JUnitSuite {
     val mi11 = netData.neurons.find(_.id == "mi11").get
     assertEquals(1, mi11.synapses.size)
     // adding a synapse to non-existing neuron
-    val netDataWithSynapse = replaceSynapses(netData, "mi11", SynapseData("mi12",Hush) :: mi11.synapses)
+    val netDataWithSynapse = replaceSynapses(netData, "mi11", SynapseData("mi12",Hush()) :: mi11.synapses)
     assertEquals(3, sumSynapses(netDataWithSynapse))
 
     val trimmed = NetGenome(netDataWithSynapse, Map("in" -> DONTMUTATE, "out" -> DONTDELETE))

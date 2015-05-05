@@ -5,7 +5,7 @@ import anna.data.{Hush, SynapseTrait, SynapseWeight}
 
 class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
   private def msg(signal: Double) = weight match {
-    case Hush => HushNow
+    case Hush() => HushNow
     case w: SynapseWeight => Signal(signal * w.weight) 
   }
   

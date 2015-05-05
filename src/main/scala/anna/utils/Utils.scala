@@ -8,7 +8,10 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.Context
 import anna.async.{NetRef, NeuronRef}
+import anna.data.{Hush, SynapseWeight}
 import anna.logger.LOG
+import org.json4s.ShortTypeHints
+import org.json4s.native.Serialization
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
@@ -114,5 +117,13 @@ object Utils {
     !dir.exists()
   }
 
+  implicit val formats = Serialization.formats(
+    ShortTypeHints(
+      List(
+        classOf[SynapseWeight],
+        classOf[Hush]
+      )
+    )
+  )
 }
 

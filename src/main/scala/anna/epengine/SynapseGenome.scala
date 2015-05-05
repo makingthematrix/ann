@@ -19,7 +19,7 @@ class SynapseGenome(private var _data: SynapseData){
   )
 
   private def setWeightToHush():Unit = {
-    _data = _data.withWeight(Hush)
+    _data = _data.withWeight(Hush())
   }
 
   private def setWeightToFull():Unit = {
@@ -40,7 +40,7 @@ object SynapseGenome {
   def apply(neuronId: String, weight: Double):SynapseGenome = apply(neuronId, SynapseWeight(weight))
 
   def build(neuronId: String) = {
-    val nch = apply(neuronId, Hush)
+    val nch = apply(neuronId, Hush())
     nch.mutate()
     nch
   }

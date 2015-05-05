@@ -27,7 +27,7 @@ class SynapseGenomeSuite extends JUnitSuite {
       val sg = SynapseGenome.build("id1")
       assertEquals("id1", sg.neuronId)
       sg.weight match {
-        case Hush => hushCount = hushCount + 1
+        case Hush() => hushCount = hushCount + 1
         case SynapseWeight(w) =>
           assert(Context().weightRange.contains(w), s"weight outside range: $w")
       }
@@ -48,7 +48,7 @@ class SynapseGenomeSuite extends JUnitSuite {
       val sg = SynapseGenome.build("id1")
       assertEquals("id1", sg.neuronId)
       sg.weight match {
-        case Hush => hushCount = hushCount + 1
+        case Hush() => hushCount = hushCount + 1
         case SynapseWeight(w) =>
           assert(Context().weightRange.contains(w), s"weight outside range: $w")
       }

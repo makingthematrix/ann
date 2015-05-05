@@ -42,7 +42,7 @@ class NetBuilder {
     this
   }
   
-  def hush(id: String) = connect(id, Hush)
+  def hush(id: String) = connect(id, Hush())
 
   def connect(id: String, weight: SynapseTrait) = {
     assert(contains(id),s"There is no neuron with id $id")
@@ -73,7 +73,7 @@ class NetBuilder {
   def chainHushNeuron(id: String) = {
     val n1 = current
     addHushNeuron(id)
-    addSynapse(n1.id, id, Hush)
+    addSynapse(n1.id, id, Hush())
     this
   }
   

@@ -227,8 +227,8 @@ class EngineSuite extends JUnitSuite {
 
     val origWeight = Context().weight
     origWeight match {
-      case Hush => Context.withWeight(SynapseWeight(1.0))
-      case SynapseWeight(_) => Context.withWeight(Hush)
+      case Hush() => Context.withWeight(SynapseWeight(1.0))
+      case SynapseWeight(_) => Context.withWeight(Hush())
     }
     assertFalse(origWeight == Context().weight)
 

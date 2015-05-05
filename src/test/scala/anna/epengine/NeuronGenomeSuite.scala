@@ -195,7 +195,7 @@ class NeuronGenomeSuite extends JUnitSuite {
     val ng1 = NeuronGenome.build("id1", accessMap)
     val ng2 = NeuronGenome.build("id2", accessMap)
 
-    ng1.addSynapse(SynapseGenome("id2",Hush))
+    ng1.addSynapse(SynapseGenome("id2",Hush()))
 
     assertEquals(1, ng1.synapses.size)
 
@@ -226,7 +226,7 @@ class NeuronGenomeSuite extends JUnitSuite {
     val nch1 = NeuronGenome.build("id1", accessMap)
     val nch2 = NeuronGenome.build("id2", accessMap)
 
-    nch1.addSynapse(SynapseGenome("id2",Hush))
+    nch1.addSynapse(SynapseGenome("id2",Hush()))
 
     assertEquals(1, nch1.synapses.size)
 
