@@ -8,7 +8,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.Context
 import anna.async.{NetRef, NeuronRef}
-import anna.data.{Hush, SynapseWeight}
+import anna.data._
 import anna.logger.LOG
 import org.json4s.ShortTypeHints
 import org.json4s.native.Serialization
@@ -121,7 +121,10 @@ object Utils {
     ShortTypeHints(
       List(
         classOf[SynapseWeight],
-        classOf[Hush]
+        classOf[Hush],
+        classOf[DontForget],
+        classOf[ForgetAll],
+        classOf[ForgetValue]
       )
     )
   )

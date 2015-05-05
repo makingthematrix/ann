@@ -44,8 +44,8 @@ class NeuronGenomeSuite extends JUnitSuite {
       assertTrue(Context().slopeRange.contains(ng.slope))
       assertTrue(Context().hushRange.contains(ng.hushValue.iterations))
       ng.forgetting match {
-        case DontForget => dontForgetCount += 1
-        case ForgetAll => forgetAllCount += 1
+        case DontForget() => dontForgetCount += 1
+        case ForgetAll() => forgetAllCount += 1
         case ForgetValue(value) => assertTrue(Context().forgettingRange.contains(value))
       }
     }
@@ -105,7 +105,7 @@ class NeuronGenomeSuite extends JUnitSuite {
     ng.mutate()
 
     var mutated = ng.forgetting
-    assertEquals(ForgetAll, mutated)
+    assertEquals(ForgetAll(), mutated)
 
     Context.withForgetAllProbability(0.0)
     Context.withDontForgetProbability(1.0)
@@ -113,7 +113,7 @@ class NeuronGenomeSuite extends JUnitSuite {
     ng.mutate()
 
     mutated = ng.forgetting
-    assertEquals(DontForget, mutated)
+    assertEquals(DontForget(), mutated)
 
     Context.withForgetAllProbability(0.0)
     Context.withDontForgetProbability(0.0)
@@ -250,7 +250,7 @@ class NeuronGenomeSuite extends JUnitSuite {
     Context.withHushProbability(1.0)
 
     nch1.mutate()
-    assertEquals(Hush, nch1.getSynapse("id2").weight)
+    assertEquals(Hush(), nch1.getSynapse("id2").weight)
 
     Context.withFullWeightProbability(0.0)
     Context.withHushProbability(0.0)

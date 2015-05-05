@@ -66,7 +66,7 @@ class Neuron(
       triggerThresholdPassed()
       run()
     }
-    if(forgetting == ForgetAll) buffer = 0.0
+    if(forgetting == ForgetAll()) buffer = 0.0
   }
   
   private var lastForgetting:Option[Long] = None

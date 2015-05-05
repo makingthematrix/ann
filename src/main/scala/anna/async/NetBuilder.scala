@@ -87,7 +87,7 @@ class NetBuilder {
                 threshold: Double =defThreshold,
                 slope: Double = defSlope,
                 hushValue: HushValue =defHushValue,
-                forgetting: ForgetTrait = DontForget,
+                forgetting: ForgetTrait = DontForget(),
                 tickTimeMultiplier: Double = defTickTimeMultiplier):NetBuilder =
     addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)
 
@@ -102,7 +102,7 @@ class NetBuilder {
 
   def addDummy(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(neuronType=DUMMY, id=id, threshold=0.0, forgetting=ForgetAll, tickTimeMultiplier=tickTimeMultiplier))
+    add(newNeuron(neuronType=DUMMY, id=id, threshold=0.0, forgetting=ForgetAll(), tickTimeMultiplier=tickTimeMultiplier))
     this
   }
 

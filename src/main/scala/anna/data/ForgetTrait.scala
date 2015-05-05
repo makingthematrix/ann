@@ -1,25 +1,31 @@
 package anna.data
 
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
+
 /**
  * Created by gorywoda on 05.05.15.
  */
 sealed trait ForgetTrait extends Any
 
-case class ForgetValue(value: Double) extends AnyVal with ForgetTrait {
-  override def toString = value.toString
+case class ForgetValue(value: Double) extends ForgetTrait {
+  def toJson = writePretty(this)
 }
 
-case object ForgetAll extends ForgetTrait {
-  override def toString = "ForgetAll"
+case class ForgetAll() extends ForgetTrait {
+  def toJson = writePretty(this)
 }
-case object DontForget extends ForgetTrait {
-  override def toString = "DontForget"
+
+case class DontForget() extends ForgetTrait {
+  def toJson = writePretty(this)
 }
 
 object ForgetTrait {
   def apply(str: String) = str match {
-    case "DontForget" => DontForget
-    case "ForgetAll" => ForgetAll
+    case "DontForget" => DontForget()
+    case "ForgetAll" => ForgetAll()
     case str => ForgetValue(str.toDouble)
   }
+
+  def fromJson(str: String) = read[ForgetTrait](str)
 }

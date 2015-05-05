@@ -72,7 +72,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def setDontForget(): Unit ={
-    _data = _data.withForgetting(DontForget)
+    _data = _data.withForgetting(DontForget())
   }
 
   private def mutateForgetValue(): Unit ={
@@ -80,7 +80,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def setForgetAll(): Unit ={
-    _data = _data.withForgetting(ForgetAll)
+    _data = _data.withForgetting(ForgetAll())
   }
 
   private def access(neuronId: String) = accessMap.get(neuronId) match {
@@ -158,7 +158,7 @@ object NeuronGenome {
 
     val ng = NeuronGenome(
       NeuronData(id, Context().thresholdRange.from, Context().slopeRange.from, HushValue(),
-                 DontForget, Nil, Context().tickTimeMultiplierRange.from, NeuronType.STANDARD),
+                 DontForget(), Nil, Context().tickTimeMultiplierRange.from, NeuronType.STANDARD),
       accessMap
     )
     ng.mutateThreshold()
