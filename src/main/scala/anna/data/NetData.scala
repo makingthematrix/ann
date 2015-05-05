@@ -110,7 +110,7 @@ object NetData {
             Context().hushValue, Context().forgetting, 1.0, Context().weight,
             inputTickMultiplier)
 
-  def fromJson(jsonStr: String):NetData = {
+  def fromJson(jsonStr: String) = {
     val json = parse(jsonStr)
     val parsed:List[NetData] = for {
       JObject(data) <- json
@@ -119,15 +119,15 @@ object NetData {
       JField("inputs", JArray(inputsJson)) <- data
       JField("threshold", JDouble(threshold)) <- data
       JField("slope", JDouble(slope)) <- data
-      JField("hushValue", JString(hushStr)) <- data
+      JField("hushValue", JInt(hush)) <- data
       JField("forgetting", JString(forgettingStr)) <- data
       JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
       JField("weight", JString(weightStr)) <- data
       JField("inputTickMultiplier", JDouble(inputTickMultiplier)) <- data
     } yield NetData(id, parseNeurons(neuronsJson), parseInputs(inputsJson),
-                    threshold, slope, NeuronData.parseHush(hushStr),
-                    NeuronData.parseForgetting(forgettingStr), tickTimeMultiplier,
-                    SynapseData.parseWeight(weightStr),  inputTickMultiplier)
+                    threshold, slope, HushValue(hush.toInt),
+                    ForgetTrait(forgettingStr), tickTimeMultiplier,
+                    SynapseTrait(weightStr),  inputTickMultiplier)
 
     if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
     parsed(0)

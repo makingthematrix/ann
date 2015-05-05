@@ -4,6 +4,7 @@ import java.io.{IOException, File}
 
 import anna.Context
 import anna.async.{NetBuilder, NetWrapper}
+import anna.data.{SynapseWeight, Hush}
 import anna.epengine._
 import anna.logger.LOG
 import anna.utils.Utils
@@ -221,7 +222,18 @@ class EngineSuite extends JUnitSuite {
   }
 
   @Test def shouldSaveAndRestoreContextFromJson(): Unit ={
-    
+    val json = Context().toJson
+    println(json)
+
+    val origWeight = Context().weight
+    origWeight match {
+      case Hush => Context.withWeight(SynapseWeight(1.0))
+      case SynapseWeight(_) => Context.withWeight(Hush)
+    }
+    assertFalse(origWeight == Context().weight)
+
+    //Context.fromJson(json)
+    assertTrue(origWeight == Context().weight)
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

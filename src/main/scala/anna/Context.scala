@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import anna.data._
 import anna.epengine.Probability
+import anna.logger.LOG._
 import anna.utils.DoubleRange
 import com.typesafe.config.ConfigFactory
 import anna.utils.DoubleRange._
@@ -20,7 +21,7 @@ import scala.concurrent.duration._
 case class NeuronDefaults(
   slope: Double,
   threshold: Double,
-  weight: SynapseWeight,
+  weight: SynapseTrait,
   hushValue: HushValue,
   forgetting: ForgetTrait,
   tickTime: Long
@@ -115,11 +116,6 @@ case class NetGenomeDefaults(
       ("synapsesDensity" -> synapsesDensity)
     pretty(render(json))
   }
-
-  private def neuronRangeJson = pretty(render(
-    ("start" -> neuronsRange.start) ~
-    ("end" -> neuronsRange.end)
-  ))
 }
 
 case class Context(
@@ -263,6 +259,19 @@ object Context {
   def withSynapsesDensity(synapsesDensity: Double) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(synapsesDensity = synapsesDensity)))
 
+  def withSlope(slope: Double) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(slope = slope)))
+  def withThreshold(threshold: Double) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
+  def withWeight(weight: SynapseTrait) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(weight = weight)))
+  def withHushValue(hushValue: HushValue) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(hushValue = hushValue)))
+  def withForgetting(forgetting: ForgetTrait) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(forgetting = forgetting)))
+  def withTickTime(tickTime: Long) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(tickTime = tickTime)))
+
   private def init(): Unit ={
     val config = ConfigFactory.load()
     val root = config.getConfig("context")
@@ -280,13 +289,9 @@ object Context {
     val neuronRoot = root.getConfig("neuronDefaults")
     val slope = neuronRoot.getDouble("defaultSlope")
     val threshold = neuronRoot.getDouble("defaultThreshold")
-    val weight = SynapseWeight(neuronRoot.getDouble("defaultWeight"))
+    val weight = SynapseTrait(neuronRoot.getString("defaultWeight"))
     val hushValue = HushValue(neuronRoot.getInt("defaultHushValue"))
-    val forgetting:ForgetTrait = neuronRoot.getString("defaultForgetting") match {
-      case "DontForget" => DontForget
-      case "ForgetAll" => ForgetAll
-      case str => ForgetValue(str.toDouble)
-    }
+    val forgetting = ForgetTrait(neuronRoot.getString("defaultForgetting"))
     val tickTime = neuronRoot.getLong("defaultTickTime")
 
     val neuronDefaults = NeuronDefaults(slope, threshold, weight, hushValue, forgetting, tickTime)
@@ -351,4 +356,36 @@ object Context {
                 neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
   }
 
+  /*def fromJson(jsonStr: String) = {
+    val json = parse(jsonStr)
+    val parsed:List[NetData] = for {
+      JObject(data) <- json
+      JField("timeout", JInt(timeout)) <- data
+      JField("initialMutationsNumber", JInt(initialMutationsNumber)) <- data
+      JField("genomePollSize", JInt(genomePollSize)) <- data
+      JField("exercisesSetDir", JString(exercisesSetDir)) <- data
+      JField("mutationProbability", JDouble(mutationProbability)) <- data
+      JField("evolutionDir", JString(evolutionDir)) <- data
+      JField("neuronDefaults", JObject(neuronDefaults)) <- data
+      JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
+      JField("weight", JString(weightStr)) <- data
+      JField("inputTickMultiplier", JDouble(inputTickMultiplier)) <- data
+    } yield NetData(id, parseNeurons(neuronsJson), parseInputs(inputsJson),
+        threshold, slope, HushValue(hush.toInt),
+        ForgetTrait(forgettingStr), tickTimeMultiplier,
+        SynapseTrait(weightStr),  inputTickMultiplier)
+
+    if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
+    parsed(0)
+  }
+  ("timeout" -> timeout.duration.toSeconds) ~
+    ("initialMutationsNumber" -> initialMutationsNumber) ~
+    ("genomePollSize" -> genomePollSize) ~
+    ("exercisesSetDir" -> exercisesSetDir) ~
+    ("mutationProbability" -> mutationProbability) ~
+    ("evolutionDir" -> evolutionDir) ~
+    ("neuronDefaults" -> neuronDefaults.toJson) ~
+    ("synapseGenomeDefaults" -> synapseGenomeDefaults.toJson) ~
+    ("neuronGenomeDefaults" -> neuronGenomeDefaults.toJson) ~
+    ("netGenomeDefaults" -> netGenomeDefaults.toJson)*/
 }

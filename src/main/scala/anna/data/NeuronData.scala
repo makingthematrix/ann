@@ -7,13 +7,6 @@ import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
-case class HushValue(iterations: Int = 1) extends AnyVal
-  
-sealed trait ForgetTrait extends Any
-case class ForgetValue(value: Double) extends AnyVal with ForgetTrait 
-case object ForgetAll extends ForgetTrait
-case object DontForget extends ForgetTrait
-
 case class NeuronData(
     id: String,
     threshold: Double,
@@ -96,27 +89,11 @@ object NeuronData {
       JField("synapses", JArray(synapsesJson)) <- data
       JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
       JField("neuronType", JString(neuronTypeStr)) <- data
-    } yield NeuronData(id, threshold, slope, parseHush(hushStr), parseForgetting(forgetStr),
+    } yield NeuronData(id, threshold, slope, HushValue(hushStr), ForgetTrait(forgetStr),
                        parseSynapses(synapsesJson), tickTimeMultiplier, NeuronType.parse(neuronTypeStr))
 
     if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
     parsed(0)
-  }
-
-  private val hushr = """HushValue\(([0-9]+)\)""".r
-
-  def parseHush(hushStr: String) = hushStr match {
-    case hushr(h) => HushValue(h.toInt)
-  }
-
-  private val forgetr = """ForgetValue\(([0-9\.\-]+)\)""".r
-  private val dontforgetr = DontForget.toString
-  private val forgetallr = ForgetAll.toString
-
-  def parseForgetting(forgetStr: String) = forgetStr match {
-    case `dontforgetr` => DontForget
-    case `forgetallr` => ForgetAll
-    case forgetr(f) => ForgetValue(f.toDouble)
   }
 
   private def parseSynapses(synapsesJson: List[JValue]) = synapsesJson.map {
