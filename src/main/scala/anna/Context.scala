@@ -6,15 +6,12 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import anna.data._
 import anna.epengine.Probability
-import anna.logger.LOG._
-import anna.utils.DoubleRange
+import anna.utils.{IntRange, DoubleRange}
 import com.typesafe.config.ConfigFactory
 import anna.utils.DoubleRange._
 
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.native.JsonMethods._
-
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
 
 import scala.concurrent.duration._
 
@@ -26,16 +23,7 @@ case class NeuronDefaults(
   forgetting: ForgetTrait,
   tickTime: Long
 ){
-  def toJson = {
-    val json =
-      ("slope" -> slope) ~
-      ("threshold" -> threshold) ~
-      ("weight" -> weight.toString)
-      ("hushValue" -> hushValue.toString) ~
-      ("forgetting" -> forgetting.toString) ~
-      ("tickTime" -> tickTime)
-    pretty(render(json))
-  }
+  def toJson = writePretty(this)
 }
 
 case class SynapseGenomeDefaults(
@@ -43,19 +31,13 @@ case class SynapseGenomeDefaults(
   hushProbability: Probability,
   fullWeightProbability: Probability
 ){
-  def toJson = {
-    val json =
-      ("weightRange" -> weightRange.toJson) ~
-      ("hushProbability" -> hushProbability.value) ~
-      ("fullWeightProbability" -> fullWeightProbability.value)
-    pretty(render(json))
-  }
+  def toJson = writePretty(this)
 }
 
 case class NeuronGenomeDefaults(
   thresholdRange: DoubleRange,
   slopeRange: DoubleRange,
-  hushRange: Range,
+  hushRange: IntRange,
   forgettingRange: DoubleRange,
   tickTimeMultiplierRange: DoubleRange,
 
@@ -71,29 +53,7 @@ case class NeuronGenomeDefaults(
   addSynapseProbability: Probability,
   deleteSynapseProbability: Probability
 ){
-  def toJson = {
-    val json =
-      ("thresholdRange" -> thresholdRange.toJson) ~
-      ("slopeRange" -> slopeRange.toJson) ~
-      ("hushRange" -> hushRangeJson) ~
-      ("forgettingRange" -> forgettingRange.toJson) ~
-      ("tickTimeMultiplierRange" -> tickTimeMultiplierRange.toJson) ~
-      ("dontForgetProbability" -> dontForgetProbability.value) ~
-      ("thresholdProbability" -> thresholdProbability.value) ~
-      ("slopeProbability" -> slopeProbability.value) ~
-      ("forgettingProbability" -> forgettingProbability.value) ~
-      ("hushValueProbability" -> hushValueProbability.value) ~
-      ("tickTimeMultiplierProbability" -> tickTimeMultiplierProbability.value) ~
-      ("synapseChangeProbability" -> synapseChangeProbability.value) ~
-      ("addSynapseProbability" -> addSynapseProbability.value) ~
-      ("deleteSynapseProbability" -> deleteSynapseProbability.value)
-    pretty(render(json))
-  }
-
-  private def hushRangeJson = pretty(render(
-    ("start" -> hushRange.start) ~
-    ("end" -> hushRange.end)
-  ))
+  def toJson = writePretty(this)
 }
 
 case class NetGenomeDefaults(
@@ -102,25 +62,14 @@ case class NetGenomeDefaults(
   mutateNeuronProbability: Probability,
   inputTickMultiplierProbability: Probability,
   inputTickMultiplierRange: DoubleRange,
-
-  neuronsRange: Range,
+  neuronsRange: IntRange,
   synapsesDensity: Double
 ){
-  def toJson = {
-    val json =
-      ("addNeuronProbability" -> addNeuronProbability.value) ~
-      ("deleteNeuronProbability" -> deleteNeuronProbability.value) ~
-      ("mutateNeuronProbability" -> mutateNeuronProbability.value) ~
-      ("inputTickMultiplierProbability" -> inputTickMultiplierProbability.value) ~
-      ("inputTickMultiplierRange" -> inputTickMultiplierRange.toJson) ~
-      ("synapsesDensity" -> synapsesDensity)
-    pretty(render(json))
-  }
+  def toJson = writePretty(this)
 }
 
 case class Context(
-  timeout: Timeout,
-  system: ActorSystem,
+  awaitTimeout: Long,
   initialMutationsNumber: Int,
   genomePollSize: Int,
   exercisesSetDir: String,
@@ -132,19 +81,16 @@ case class Context(
   neuronGenomeDefaults: NeuronGenomeDefaults,
   netGenomeDefaults: NetGenomeDefaults
 ){
-  def toJson = {
-    val json = ("timeout" -> timeout.duration.toSeconds) ~
-      ("initialMutationsNumber" -> initialMutationsNumber) ~
-      ("genomePollSize" -> genomePollSize) ~
-      ("exercisesSetDir" -> exercisesSetDir) ~
-      ("mutationProbability" -> mutationProbability) ~
-      ("evolutionDir" -> evolutionDir) ~
-      ("neuronDefaults" -> neuronDefaults.toJson) ~
-      ("synapseGenomeDefaults" -> synapseGenomeDefaults.toJson) ~
-      ("neuronGenomeDefaults" -> neuronGenomeDefaults.toJson) ~
-      ("netGenomeDefaults" -> netGenomeDefaults.toJson)
-    pretty(render(json))
+  def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
+
+  def system:ActorSystem = {
+    implicit lazy val t = timeout
+    lazy val s = ActorSystem("system")
+    val p = () => s
+    p()
   }
+
+  def toJson = writePretty(this)
 
   def slope = neuronDefaults.slope
   def threshold = neuronDefaults.threshold
@@ -214,7 +160,7 @@ object Context {
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(thresholdRange = thresholdRange)))
   def withSlopeRange(slopeRange: DoubleRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(slopeRange = slopeRange)))
-  def withHushRange(hushRange: Range) =
+  def withHushRange(hushRange: IntRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(hushRange = hushRange)))
   def withForgettingRange(forgettingRange: DoubleRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(forgettingRange = forgettingRange)))
@@ -254,7 +200,7 @@ object Context {
   def withInputTickMultiplierRange(inputTickMultiplierRange: DoubleRange) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(inputTickMultiplierRange = inputTickMultiplierRange)))
 
-  def withNeuronsRange(neuronsRange: Range) =
+  def withNeuronsRange(neuronsRange: IntRange) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(neuronsRange = neuronsRange)))
   def withSynapsesDensity(synapsesDensity: Double) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(synapsesDensity = synapsesDensity)))
@@ -276,8 +222,8 @@ object Context {
     val config = ConfigFactory.load()
     val root = config.getConfig("context")
 
-    implicit val timeout = Timeout(FiniteDuration.apply(root.getInt("awaitTimeout"), TimeUnit.SECONDS))
-    val system = ActorSystem("system")
+    val awaitTimeout = root.getInt("awaitTimeout")
+    //val system = ActorSystem("system")
 
     val exercisesSetDir = root.getString("exercisesSetDir")
     val genomePollSize = root.getInt("genomePollSize")
@@ -352,40 +298,10 @@ object Context {
       inputTickMultiplierRange, neuronsRange, synapsesDensity
     )
 
-    set(Context(timeout, system, initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir,
+    set(Context(awaitTimeout, initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir,
                 neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
   }
 
-  /*def fromJson(jsonStr: String) = {
-    val json = parse(jsonStr)
-    val parsed:List[NetData] = for {
-      JObject(data) <- json
-      JField("timeout", JInt(timeout)) <- data
-      JField("initialMutationsNumber", JInt(initialMutationsNumber)) <- data
-      JField("genomePollSize", JInt(genomePollSize)) <- data
-      JField("exercisesSetDir", JString(exercisesSetDir)) <- data
-      JField("mutationProbability", JDouble(mutationProbability)) <- data
-      JField("evolutionDir", JString(evolutionDir)) <- data
-      JField("neuronDefaults", JObject(neuronDefaults)) <- data
-      JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
-      JField("weight", JString(weightStr)) <- data
-      JField("inputTickMultiplier", JDouble(inputTickMultiplier)) <- data
-    } yield NetData(id, parseNeurons(neuronsJson), parseInputs(inputsJson),
-        threshold, slope, HushValue(hush.toInt),
-        ForgetTrait(forgettingStr), tickTimeMultiplier,
-        SynapseTrait(weightStr),  inputTickMultiplier)
-
-    if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
-    parsed(0)
-  }
-  ("timeout" -> timeout.duration.toSeconds) ~
-    ("initialMutationsNumber" -> initialMutationsNumber) ~
-    ("genomePollSize" -> genomePollSize) ~
-    ("exercisesSetDir" -> exercisesSetDir) ~
-    ("mutationProbability" -> mutationProbability) ~
-    ("evolutionDir" -> evolutionDir) ~
-    ("neuronDefaults" -> neuronDefaults.toJson) ~
-    ("synapseGenomeDefaults" -> synapseGenomeDefaults.toJson) ~
-    ("neuronGenomeDefaults" -> neuronGenomeDefaults.toJson) ~
-    ("netGenomeDefaults" -> netGenomeDefaults.toJson)*/
+  def fromJson(jsonStr: String) = read[Context](jsonStr)
+  def withJson(jsonStr: String) = set(fromJson(jsonStr))
 }

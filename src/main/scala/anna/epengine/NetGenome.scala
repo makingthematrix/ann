@@ -3,7 +3,7 @@ package anna.epengine
 import anna.Context
 import anna.data.NetData._
 import anna.data.{NetData, NeuronData}
-import anna.utils.{RandomNumber, Utils}
+import anna.utils.{IntRange, RandomNumber, Utils}
 
 import scala.annotation.tailrec
 
@@ -212,7 +212,7 @@ object NetGenome {
 
     val neuronsSize = RandomNumber(
       if(inputIds.size + outputIds.size > Context().neuronsRange.start)
-        (inputIds.size + outputIds.size) to Context().neuronsRange.end
+        IntRange(inputIds.size + outputIds.size, Context().neuronsRange.end)
       else Context().neuronsRange
     )
     

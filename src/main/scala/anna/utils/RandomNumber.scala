@@ -16,7 +16,7 @@ object RandomNumber {
   }
 
   def apply():Double = rand().nextDouble()
-  def apply(start:Int, end: Int):Int = apply(IntRange(start until end))
+  def apply(start:Int, end: Int):Int = apply(IntRange(start, end))
   def apply(range: IntRange):Int = range.choose(apply())
   def apply(range: DoubleRange):Double = range.choose(apply())
   def apply(end: Int):Int = apply(0, end)

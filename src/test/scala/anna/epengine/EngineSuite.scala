@@ -232,7 +232,7 @@ class EngineSuite extends JUnitSuite {
     }
     assertFalse(origWeight == Context().weight)
 
-    //Context.fromJson(json)
+    Context.withJson(json)
     assertTrue(origWeight == Context().weight)
   }
 /*
