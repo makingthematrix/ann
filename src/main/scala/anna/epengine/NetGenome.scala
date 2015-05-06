@@ -13,7 +13,7 @@ import anna.logger.LOG._
  * Created by gorywoda on 04.01.15.
  */
 
-class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationAccess.Value]){
+class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationAccess]){
   override def clone = NetGenome(_data, accessMap)
 
   def id = _data.id
@@ -30,9 +30,9 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     case None => None
   }
 
-  def fullAccessNeurons() = neurons.filter(n => accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
-  def mutableNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.DONTMUTATE)
-  def notFullAccessNeurons() = neurons.filterNot(n => accessMap.getOrElse(n.id, MutationAccess.FULL) == MutationAccess.FULL)
+  def fullAccessNeurons() = neurons.filter(n => accessMap.getOrElse(n.id, MutationAccessFull()) == MutationAccessFull())
+  def mutableNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccessFull()) != MutationAccessDontMutate())
+  def notFullAccessNeurons() = neurons.filterNot(n => accessMap.getOrElse(n.id, MutationAccessFull()) == MutationAccessFull())
 
   def netId(newNetId: String) = {
     _data = _data.withNewNetId(newNetId)
@@ -69,7 +69,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     val endPointNeuronIds = neurons.map( _.synapses.map(_.neuronId) ).flatten.toSet
     val endPointNeurons = neurons.filter( n =>
       endPointNeuronIds.contains(n.id) ||
-       accessMap.getOrElse(n.id, MutationAccess.FULL) != MutationAccess.FULL
+       accessMap.getOrElse(n.id, MutationAccessFull()) != MutationAccessFull()
     )
     if(endPointNeurons.size != neurons.size) _data = _data.withNeurons(endPointNeurons)
   }
@@ -193,7 +193,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 }
 
 object NetGenome {
-  def apply(data: NetData, accessMap: Map[String, MutationAccess.Value] = Map()) = new NetGenome(data, accessMap)
+  def apply(data: NetData, accessMap: Map[String, MutationAccess] = Map()) = new NetGenome(data, accessMap)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
     NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
 
@@ -294,5 +294,5 @@ object NetGenome {
   }
 
   def accessMap(inputIds: List[String], outputIds: List[String]) =
-    (inputIds.map(_ -> MutationAccess.DONTMUTATE) ++ outputIds.map(_ -> MutationAccess.DONTDELETE)).toMap
+    (inputIds.map(_ -> MutationAccessDontMutate()) ++ outputIds.map(_ -> MutationAccessDontDelete())).toMap
 }

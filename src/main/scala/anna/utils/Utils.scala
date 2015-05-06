@@ -7,10 +7,11 @@ import java.util.Locale
 import akka.actor.ActorRef
 import akka.pattern.ask
 import anna.Context
-import anna.async.{NetRef, NeuronRef}
+import anna.async._
 import anna.data._
+import anna.epengine.{MutationAccessFull, MutationAccessDontDelete, MutationAccessDontMutate}
 import anna.logger.LOG
-import org.json4s.ShortTypeHints
+import org.json4s._
 import org.json4s.native.Serialization
 
 import scala.annotation.tailrec
@@ -117,6 +118,7 @@ object Utils {
     !dir.exists()
   }
 
+  //implicit val formats = Serialization.formats(NoTypeHints)
   implicit val formats = Serialization.formats(
     ShortTypeHints(
       List(
@@ -124,7 +126,13 @@ object Utils {
         classOf[Hush],
         classOf[DontForget],
         classOf[ForgetAll],
-        classOf[ForgetValue]
+        classOf[ForgetValue],
+        classOf[NeuronTypeStandard],
+        classOf[NeuronTypeDummy],
+        classOf[NeuronTypeHush],
+        classOf[MutationAccessFull],
+        classOf[MutationAccessDontDelete],
+        classOf[MutationAccessDontMutate]
       )
     )
   )

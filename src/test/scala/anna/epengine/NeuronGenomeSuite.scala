@@ -149,7 +149,7 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shouldAddSynapse(): Unit ={
     val idSet = Set("id1","id2")
-    val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
+    val accessMap = Map("id1" -> MutationAccessFull(), "id2" -> MutationAccessFull())
     val ng1 = NeuronGenome.build("id1", accessMap)
     val ng2 = NeuronGenome.build("id2", accessMap)
 
@@ -191,7 +191,7 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shoulDeleteSynapse(): Unit ={
     val idSet = Set("id1","id2")
-    val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
+    val accessMap = Map("id1" -> MutationAccessFull(), "id2" -> MutationAccessFull())
     val ng1 = NeuronGenome.build("id1", accessMap)
     val ng2 = NeuronGenome.build("id2", accessMap)
 
@@ -222,7 +222,7 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shouldChangeSynapseWeight(): Unit ={
     val idSet = Set("id1","id2")
-    val accessMap = Map("id1" -> MutationAccess.FULL, "id2" -> MutationAccess.FULL)
+    val accessMap = Map("id1" -> MutationAccessFull(), "id2" -> MutationAccessFull())
     val nch1 = NeuronGenome.build("id1", accessMap)
     val nch2 = NeuronGenome.build("id2", accessMap)
 

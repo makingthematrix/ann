@@ -1,13 +1,16 @@
 package anna.async
 
-object NeuronType extends Enumeration {
-  type NeuronType = Value
-  val STANDARD, DUMMY, HUSH = Value
+sealed trait NeuronType extends Any
 
+case class NeuronTypeStandard() extends NeuronType
+case class NeuronTypeDummy() extends NeuronType
+case class NeuronTypeHush() extends NeuronType
+
+object NeuronType {
   def parse(str: String) = str match {
-    case "STANDARD" => STANDARD
-    case "DUMMY" => DUMMY
-    case "HUSH" => HUSH
+    case "STANDARD" => NeuronTypeStandard()
+    case "DUMMY" => NeuronTypeDummy()
+    case "HUSH" => NeuronTypeHush()
   }
 }
 

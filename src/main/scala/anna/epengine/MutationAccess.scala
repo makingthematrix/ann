@@ -3,7 +3,17 @@ package anna.epengine
 /**
  * Created by gorywoda on 08.03.15.
  */
-object MutationAccess extends Enumeration {
-  type MutationAccess = Value
-  val FULL, DONTDELETE, DONTMUTATE = Value
+
+sealed trait MutationAccess extends Any
+
+case class MutationAccessFull() extends MutationAccess
+case class MutationAccessDontDelete() extends MutationAccess
+case class MutationAccessDontMutate() extends MutationAccess
+
+object MutationAccess {
+  def parse(str: String) = str match {
+    case "FULL" => MutationAccessFull()
+    case "DONTDELETE" => MutationAccessDontDelete()
+    case "DONTMUTATE" => MutationAccessDontMutate()
+  }
 }

@@ -1,9 +1,9 @@
 package anna.utils
 
 import scala.annotation.tailrec
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.native.JsonMethods._
+
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
 
 case class RichD(val d: Double) extends AnyVal {
   def <=>(other: Double) = DoubleRange(d, other)
@@ -24,11 +24,10 @@ case class DoubleRange(from: Double, to: Double){
   def intersects(r: DoubleRange) = !contains(r) && !r.contains(this)
   def univalue: Option[Double] = if(from == to) Some(from) else None
 
-  def toJson = pretty(render(
-    ("from" -> from) ~ ("to" -> to)
-  ))
+  def toJson = writePretty(this)
 }
 
 object DoubleRange {  
   implicit def fromDouble(d: Double) = new RichD(d)
+  def fromJson(jsonStr: String) = read[DoubleRange](jsonStr)
 }

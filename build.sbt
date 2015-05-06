@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.11" % "test",
   "com.novocode" % "junit-interface" % "0.10" % "test",
   "org.apache.commons" % "commons-io" % "1.3.2",
-  "org.json4s" %% "json4s-native" % "3.2.10"
+  "org.json4s" %% "json4s-native" % "3.2.11"
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")

@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.NeuronType
+import anna.async.{NeuronTypeStandard, NeuronType}
 import anna.data._
 import anna.logger.LOG._
 import anna.utils.RandomNumber
@@ -11,7 +11,7 @@ import anna.logger.LOG._
 /**
  * Created by gorywoda on 28.12.14.
  */
-class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess.Value]) {
+class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, MutationAccess]) {
   def id = _data.id
   def threshold = _data.threshold
   def slope = _data.slope
@@ -23,7 +23,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   def data = _data
 
   override def clone = NeuronGenome(_data, accessMap)
-  def withAccessMap(accessMap: Map[String, MutationAccess.Value]) = NeuronGenome(_data, accessMap)
+  def withAccessMap(accessMap: Map[String, MutationAccess]) = NeuronGenome(_data, accessMap)
 
   def isConnectedTo(id: String) = _data.isConnectedTo(id)
 
@@ -84,13 +84,13 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def access(neuronId: String) = accessMap.get(neuronId) match {
-    case None => MutationAccess.FULL
+    case None => MutationAccessFull()
     case Some(value) => value
   }
 
   private def getRandomNeuronId(onlyMutable: Boolean =true, excludeAlreadyConnected: Boolean =true) = {
     val t = if(onlyMutable){
-      accessMap.filter( tuple => tuple._2 != MutationAccess.DONTMUTATE ).map( _._1 ).toList
+      accessMap.filter( tuple => tuple._2 != MutationAccessDontMutate() ).map( _._1 ).toList
     } else accessMap.keys.toList
 
     val neuronIds = if(excludeAlreadyConnected){
@@ -103,7 +103,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
 
   private def getRandomSynapse(onlyMutable: Boolean) = {
     val synapses = if(onlyMutable)
-      _data.synapses.filter(sd => access(sd.neuronId) != MutationAccess.DONTMUTATE)
+      _data.synapses.filter(sd => access(sd.neuronId) != MutationAccessDontMutate())
     else _data.synapses
     if(_data.synapses.nonEmpty) Some(RandomNumber(synapses)) else None
   }
@@ -141,7 +141,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
 
 object NeuronGenome {
   def apply(data: NeuronData):NeuronGenome = new NeuronGenome(data, Map())
-  def apply(data: NeuronData, accessMap: Map[String, MutationAccess.Value]):NeuronGenome
+  def apply(data: NeuronData, accessMap: Map[String, MutationAccess]):NeuronGenome
     = new NeuronGenome(data, accessMap)
   def apply(id: String,
             threshold: Double,
@@ -150,15 +150,15 @@ object NeuronGenome {
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
             tickTimeMultiplier: Double,
-            neuronType: NeuronType.Value):NeuronGenome =
+            neuronType: NeuronType):NeuronGenome =
     NeuronGenome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
 
-  def build(id: String, accessMap: Map[String, MutationAccess.Value] = Map()) = {
+  def build(id: String, accessMap: Map[String, MutationAccess] = Map()) = {
     debug(this,s" --- building neuron $id --- ")
 
     val ng = NeuronGenome(
       NeuronData(id, Context().thresholdRange.from, Context().slopeRange.from, HushValue(),
-                 DontForget(), Nil, Context().tickTimeMultiplierRange.from, NeuronType.STANDARD),
+                 DontForget(), Nil, Context().tickTimeMultiplierRange.from, NeuronTypeStandard()),
       accessMap
     )
     ng.mutateThreshold()

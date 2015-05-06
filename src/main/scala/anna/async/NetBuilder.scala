@@ -96,13 +96,13 @@ class NetBuilder {
 
   def addHushNeuron(id: String) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(HUSH, id))
+    add(newNeuron(NeuronTypeHush(), id))
     this
   }
 
   def addDummy(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(neuronType=DUMMY, id=id, threshold=0.0, forgetting=ForgetAll(), tickTimeMultiplier=tickTimeMultiplier))
+    add(newNeuron(neuronType=NeuronTypeDummy(), id=id, threshold=0.0, forgetting=ForgetAll(), tickTimeMultiplier=tickTimeMultiplier))
     this
   }
 
@@ -113,7 +113,7 @@ class NetBuilder {
                   forgetting: ForgetTrait,
                   tickTimeMultiplier: Double) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(STANDARD, id, threshold, slope, hushValue, forgetting, tickTimeMultiplier))
+    add(newNeuron(NeuronTypeStandard(), id, threshold, slope, hushValue, forgetting, tickTimeMultiplier))
     this
   }
 
@@ -186,7 +186,7 @@ class NetBuilder {
     }
   }
   
-  private def newNeuron(neuronType: NeuronType.Value, id: String, 
+  private def newNeuron(neuronType: NeuronType, id: String,
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
       forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier) =
     NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType)

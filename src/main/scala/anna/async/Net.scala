@@ -75,9 +75,9 @@ class Net(val id: String) extends Actor {
   }
 
   private def createNeuron(data:NeuronData) = data.neuronType match {
-    case NeuronType.STANDARD => createStandard(data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.tickTimeMultiplier)
-    case NeuronType.DUMMY => createDummy(data.id, data.hushValue, data.tickTimeMultiplier)
-    case NeuronType.HUSH => createHush(data.id)
+    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.tickTimeMultiplier)
+    case NeuronTypeDummy() => createDummy(data.id, data.hushValue, data.tickTimeMultiplier)
+    case NeuronTypeHush() => createHush(data.id)
   }
 
   private def createStandard(id: String,

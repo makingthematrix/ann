@@ -1,11 +1,13 @@
 package anna.data
 
 import anna.Context
-import anna.async.NeuronType
+import anna.async.{NeuronTypeDummy, NeuronTypeHush, NeuronTypeStandard, NeuronType}
 import anna.logger.LOG._
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
 
 case class NeuronData(
     id: String,
@@ -15,7 +17,7 @@ case class NeuronData(
     forgetting: ForgetTrait,
     synapses: List[SynapseData],
     tickTimeMultiplier: Double,
-    neuronType: NeuronType.Value
+    neuronType: NeuronType
 ){
   def withId(id: String) =
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
@@ -32,7 +34,7 @@ case class NeuronData(
   def withoutSynapses = withSynapses(Nil)
   def withTickTimeMultiplier(tickTimeMultiplier: Double) =
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withNeuronType(neuronType: NeuronType.Value) =
+  def withNeuronType(neuronType: NeuronType) =
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
 
   def toJson = {
@@ -58,7 +60,7 @@ object NeuronData {
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
             tickTimeMultiplier: Double):NeuronData
-    = apply(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, NeuronType.STANDARD)
+    = apply(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, NeuronTypeStandard())
 
   def apply(id: String, 
             threshold: Double, 
@@ -66,15 +68,15 @@ object NeuronData {
             hushValue: HushValue,
             forgetting: ForgetTrait,
             tickTimeMultiplier: Double):NeuronData
-    = apply(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronType.STANDARD)
+    = apply(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronTypeStandard())
 
   def apply(id: String,  
             hushValue: HushValue,
             tickTimeMultiplier: Double):NeuronData
-    = apply(id, 0.0, Context().slope, hushValue, ForgetAll(), Nil, tickTimeMultiplier, NeuronType.DUMMY)
+    = apply(id, 0.0, Context().slope, hushValue, ForgetAll(), Nil, tickTimeMultiplier, NeuronTypeDummy())
   
   def apply(id: String):NeuronData
-    = apply(id, 0.0, Context().slope, Context().hushValue, ForgetAll(), Nil, 1.0, NeuronType.HUSH)
+    = apply(id, 0.0, Context().slope, Context().hushValue, ForgetAll(), Nil, 1.0, NeuronTypeHush())
 
   def fromJson(jsonStr: String):NeuronData = {
     val json = parse(jsonStr)
