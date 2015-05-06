@@ -8,7 +8,7 @@ import anna.logger.LOG._
 /**
  * Created by gorywoda on 05.01.15.
  */
-class Coach(exercises: List[Exercise]){
+class Coach(val exercises: List[Exercise]){
   def test(data: NetData):Double = {
     debug(this, s" -------------- testing ${data.id} ------------------")
     checkConditions(data)

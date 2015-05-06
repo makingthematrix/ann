@@ -66,7 +66,7 @@ class EngineSuite extends JUnitSuite {
     val poll = GenomePoll("net", inputIds, outputIds, 3)
     val tester = Coach(List(t1, t2))
 
-    val engine = Engine(tester, 0.5, poll)
+    val engine = Engine("engine",tester, 0.5, poll)
     val best1 = engine.best
     val result1 = tester.test(best1.data)
 
@@ -99,7 +99,7 @@ class EngineSuite extends JUnitSuite {
 
     val coach = Coach(set)
 
-    val engine = Engine(coach, 0.5, poll)
+    val engine = Engine("engine", coach, 0.5, poll)
     engine.calculateResults()
     val best1 = engine.best
     val result1 = coach.test(best1.data)
@@ -153,7 +153,7 @@ class EngineSuite extends JUnitSuite {
 
     val coach = Coach(set)
 
-    val engine = Engine(coach, 0.5, poll)
+    val engine = Engine("engine", coach, 0.5, poll)
     engine.calculateResults()
     val best1 = engine.best
     val result1 = coach.test(best1.data)
@@ -237,6 +237,21 @@ class EngineSuite extends JUnitSuite {
 
     Context.withJson(json)
     assertTrue(origWeight == Context().weight)
+  }
+
+  @Test def shouldReadEngineFromDir(): Unit ={
+    val dirName = "test-shouldReadEngineFromDir"
+    val engine1 = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+
+    val genomeId = engine1.poll.ids(0)
+    println(s"genomeId: $genomeId")
+
+    val engine2 = Engine(dirName)
+
+    assertEquals(engine1.coach.exercises, engine2.coach.exercises)
+    assertEquals(engine1.poll(genomeId), engine2.poll(genomeId))
+
+    assertTrue(Utils.deleteDir(engine1.dirPath))
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

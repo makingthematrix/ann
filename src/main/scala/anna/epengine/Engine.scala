@@ -8,7 +8,11 @@ import anna.utils.{RandomNumber, Utils}
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 
-class Engine(val coach: Coach,
+import anna.utils.Utils.formats
+import org.json4s.native.Serialization.writePretty
+
+class Engine(val dirName: String,
+             val coach: Coach,
              val mutationProbability: Probability,
              private var _poll: GenomePoll,
              private var results:Map[String,Double] = HashMap()) {
@@ -96,17 +100,21 @@ class Engine(val coach: Coach,
     debug(this,"------------------------------ done calculating results ------------------------------")
   }
 
+  def dirPath = Context().evolutionDir + "/" + dirName
+
   private def drawId = Engine.drawId(results)
   private def drop(id: String) = Engine.drop(_poll.genomes, id)
 }
 
 object Engine {
-  def apply(coach: Coach, mutationProbability: Probability, poll: GenomePoll):Engine =
-    new Engine(coach, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
+  def apply(dirName: String, coach: Coach, mutationProbability: Probability, poll: GenomePoll):Engine =
+    new Engine(dirName, coach, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
 
   def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
     val dirPath = Context().evolutionDir + "/" + dirName
     Utils.createDir(dirPath)
+    Utils.save(dirPath + "/inputIds.json", writePretty(inputIds))
+    Utils.save(dirPath + "/outputIds.json", writePretty(outputIds))
     Utils.save(dirPath + "/context.json", Context().toJson)
     Utils.save(dirPath + "/netTemplate.json", netTemplate.toJson)
     Utils.save(dirPath + "/exercisesSet.json", exercisesSet.toJson)
@@ -115,8 +123,10 @@ object Engine {
     val mutationProbability = Context().mutationProbability
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
     Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
-    apply(coach, mutationProbability, poll)
+    apply(dirName, coach, mutationProbability, poll)
   }
+
+  def apply(dirName: String):Engine = ???
 
   @tailrec
   private def drawCrossableGenome(firstGenome: NetGenome,
