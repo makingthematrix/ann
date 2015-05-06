@@ -1,7 +1,7 @@
 package anna.data
 
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 case class SynapseData(neuronId: String, weight: SynapseTrait){
   def withId(neuronId: String) = SynapseData(neuronId, weight)

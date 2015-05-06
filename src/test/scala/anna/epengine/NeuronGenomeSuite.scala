@@ -1,12 +1,12 @@
 package anna.epengine
 
+import anna.Context
 import anna.data._
 import anna.logger.LOG
-import org.junit.Assert._
-import org.junit.{Test, Before}
-import org.scalatest.junit.JUnitSuite
 import anna.utils.DoubleRange._
-import anna.Context
+import org.junit.Assert._
+import org.junit.{Before, Test}
+import org.scalatest.junit.JUnitSuite
 
 /**
  * Created by gorywoda on 16.02.15.

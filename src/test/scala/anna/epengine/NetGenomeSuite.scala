@@ -2,16 +2,15 @@ package anna.epengine
 
 import anna.Context
 import anna.async.NetBuilder
-import anna.data.{NetData, SynapseData, Hush}
+import anna.async.NetBuilderOps._
+import anna.data.{Hush, NetData, SynapseData}
 import anna.logger.LOG
 import anna.logger.LOG._
+import anna.utils.DoubleRange._
 import anna.utils.Utils
 import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
-import anna.utils.DoubleRange._
-import anna.async.NetBuilderOps._
-import anna.epengine.MutationAccess._
 
 /**
  * Created by gorywoda on 16.02.15.

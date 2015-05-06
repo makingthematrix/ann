@@ -1,9 +1,9 @@
 package anna.data
 
 import anna.Context
-import anna.async.{NeuronTypeDummy, NeuronTypeHush, NeuronTypeStandard, NeuronType}
-import org.json4s.native.Serialization.{ read, writePretty }
+import anna.async.{NeuronType, NeuronTypeDummy, NeuronTypeHush, NeuronTypeStandard}
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 case class NeuronData(
     id: String,

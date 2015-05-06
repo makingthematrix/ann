@@ -1,11 +1,11 @@
 package anna.data
 
-import anna.async.{NeuronTypeStandard, NeuronTypeDummy, NetBuilder, NeuronType}
+import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NeuronTypeDummy, NeuronTypeStandard}
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{Test, Before}
+import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
-import anna.async.NetBuilderOps._
 
 /**
  * Created by gorywoda on 03.01.15.

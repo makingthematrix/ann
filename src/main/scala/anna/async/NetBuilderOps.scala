@@ -1,7 +1,6 @@
 package anna.async
 
 import anna.data._
-import anna.logger.LOG._
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,

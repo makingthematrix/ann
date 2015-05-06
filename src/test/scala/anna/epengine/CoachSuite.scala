@@ -1,12 +1,10 @@
 package anna.epengine
 
-import anna.Context
+import anna.async.NetBuilderOps._
 import anna.async._
 import anna.logger.LOG._
-import anna.utils.Utils
-import org.junit.Test
-import anna.async.NetBuilderOps._
 import org.junit.Assert._
+import org.junit.Test
 
 /**
  * Created by gorywoda on 05.01.15.

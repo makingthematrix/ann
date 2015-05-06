@@ -3,14 +3,12 @@ package anna.epengine
 import anna.Context
 import anna.data.NetData._
 import anna.data.{NetData, NeuronData}
+import anna.logger.LOG._
+import anna.utils.Utils.formats
 import anna.utils.{IntRange, RandomNumber, Utils}
+import org.json4s.native.Serialization.{read, writePretty}
 
 import scala.annotation.tailrec
-
-import anna.logger.LOG._
-
-import org.json4s.native.Serialization.{ read, writePretty }
-import anna.utils.Utils.formats
 
 /**
  * Created by gorywoda on 04.01.15.

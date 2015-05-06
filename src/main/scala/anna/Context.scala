@@ -6,12 +6,11 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import anna.data._
 import anna.epengine.Probability
-import anna.utils.{IntRange, DoubleRange}
-import com.typesafe.config.ConfigFactory
 import anna.utils.DoubleRange._
-
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import anna.utils.{DoubleRange, IntRange}
+import com.typesafe.config.ConfigFactory
+import org.json4s.native.Serialization.{read, writePretty}
 
 import scala.concurrent.duration._
 

@@ -1,9 +1,9 @@
 package anna.utils
 
-import scala.annotation.tailrec
-
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
+
+import scala.annotation.tailrec
 
 case class RichD(val d: Double) extends AnyVal {
   def <=>(other: Double) = DoubleRange(d, other)

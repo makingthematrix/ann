@@ -1,7 +1,7 @@
 package anna.utils
 
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 /**
  * Created by gorywoda on 12.01.15.

@@ -2,19 +2,17 @@ package anna.epengine
 
 import anna.Context
 import anna.data.NetData
-import anna.utils.RandomNumber
+import anna.logger.LOG._
+import anna.utils.{RandomNumber, Utils}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
-
-import anna.logger.LOG._
-import anna.utils.Utils
 
 class Engine(val coach: Coach,
              val mutationProbability: Probability,
              private var _poll: GenomePoll,
              private var results:Map[String,Double] = HashMap()) {
-  import Engine._
+  import anna.epengine.Engine._
 
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
   private var iterIndex = 0
@@ -110,10 +108,13 @@ object Engine {
     val dirPath = Context().evolutionDir + "/" + dirName
     Utils.createDir(dirPath)
     Utils.save(dirPath + "/context.json", Context().toJson)
+    Utils.save(dirPath + "/netTemplate.json", netTemplate.toJson)
+    Utils.save(dirPath + "/exercisesSet.json", exercisesSet.toJson)
 
     val coach = Coach(exercisesSet)
     val mutationProbability = Context().mutationProbability
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
+    Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
     apply(coach, mutationProbability, poll)
   }
 

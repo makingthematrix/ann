@@ -2,12 +2,8 @@ package anna.data
 
 import anna.Context
 import anna.data.NetData._
-import anna.logger.LOG._
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 /**
  * Created by gorywoda on 03.01.15.

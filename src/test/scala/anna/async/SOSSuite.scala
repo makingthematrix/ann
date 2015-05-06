@@ -1,13 +1,11 @@
 package anna.async
 
 import anna.async.NetBuilderOps._
+import anna.data.{ForgetValue, HushValue}
 import anna.logger.LOG
 import anna.logger.LOG.debug
-import anna.data.{ForgetValue, HushValue}
 import org.junit.Assert._
 import org.junit.Test
-
-import scala.util.Random
 
 class SOSSuite extends MySuite {
   val s = "1,0,0,1,0,0,1,0,0"

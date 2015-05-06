@@ -3,9 +3,8 @@ package anna.epengine
 import anna.Context
 import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 import anna.utils.RandomNumber
-
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 /**
  * Created by gorywoda on 27.12.14.

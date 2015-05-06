@@ -1,17 +1,17 @@
 package test.async.epengine
 
-import java.io.{IOException, File}
+import java.io.File
 
 import anna.Context
-import anna.async.{NetBuilder, NetWrapper}
-import anna.data.{SynapseWeight, Hush}
+import anna.async.{NetWrapper, NetBuilder}
+import anna.async.NetBuilderOps._
+import anna.data.{Hush, SynapseWeight}
 import anna.epengine._
 import anna.logger.LOG
 import anna.utils.Utils
 import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
-import anna.async.NetBuilderOps._
 
 
 class EngineSuite extends JUnitSuite {
@@ -29,7 +29,7 @@ class EngineSuite extends JUnitSuite {
     builder.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
     builder.data
   }
-/*
+
   val anySignalAnyResponse = (wrapper: NetWrapper, good: Double, bad: Double) => {
     var counter = 0
     wrapper.addAfterFire("out1"){ counter += 1 }
@@ -181,7 +181,7 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(n2, d1)
     assertNotEquals(n2, d2)
 
-  }*/
+  }
 
   val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
 
@@ -210,13 +210,16 @@ class EngineSuite extends JUnitSuite {
     assertTrue(Utils.deleteDir(dir.getAbsolutePath))
   }
 
-  @Test def shouldSaveContextSetAndPoll(): Unit ={
+  @Test def shouldSaveContextSetTemplateAndPoll(): Unit ={
     val dirName = "test-shouldSaveContextSetAndPoll"
     Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
     val dir = new File(Context().evolutionDir).listFiles.find(f => f.getName == dirName && f.isDirectory).get
     val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')+1) , f)).toMap
     filesInDir.foreach( tuple => println(tuple._1))
     assertTrue(filesInDir.contains("context.json"))
+    assertTrue(filesInDir.contains("netTemplate.json"))
+    assertTrue(filesInDir.contains("exercisesSet.json"))
+    assertTrue(filesInDir.contains("poll_iteration0.json"))
 
     assertTrue(Utils.deleteDir(dir.getAbsolutePath))
   }

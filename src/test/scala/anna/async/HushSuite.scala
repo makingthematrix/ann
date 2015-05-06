@@ -1,10 +1,9 @@
 package anna.async
 
 import anna.Context
-
 import anna.async.NetBuilderOps._
-import anna.logger.LOG
 import anna.data.Hush
+import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
 

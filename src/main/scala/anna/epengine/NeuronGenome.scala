@@ -1,14 +1,12 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.{NeuronTypeStandard, NeuronType}
+import anna.async.{NeuronType, NeuronTypeStandard}
 import anna.data._
-import anna.utils.RandomNumber
-
 import anna.logger.LOG._
-
-import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.RandomNumber
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 
 /**

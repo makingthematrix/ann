@@ -2,11 +2,9 @@ package anna.async
 
 import anna.Context
 import anna.async.Messages._
-import anna.async.NeuronType._
 import anna.data.SynapseData.fromDouble
 import anna.data._
 import anna.utils.Utils.{assert, await}
-import anna.logger.LOG._
 
 import scala.collection.mutable
 

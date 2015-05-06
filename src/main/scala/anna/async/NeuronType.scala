@@ -1,7 +1,7 @@
 package anna.async
 
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 sealed trait NeuronType extends Any
 

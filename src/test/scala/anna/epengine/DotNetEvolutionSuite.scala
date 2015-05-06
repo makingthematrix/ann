@@ -3,7 +3,7 @@ package anna.epengine
 import anna.logger.LOG
 import anna.logger.LOG._
 import org.junit.Assert._
-import org.junit.{Test, Before}
+import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
 
 /**

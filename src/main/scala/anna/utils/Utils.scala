@@ -1,6 +1,6 @@
 package anna.utils
 
-import java.io.{IOException, FileWriter, File, BufferedWriter}
+import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.text.{NumberFormat, ParsePosition}
 import java.util.Locale
 
@@ -9,16 +9,15 @@ import akka.pattern.ask
 import anna.Context
 import anna.async._
 import anna.data._
-import anna.epengine.{MutationAccessFull, MutationAccessDontDelete, MutationAccessDontMutate}
+import anna.epengine.{MutationAccessDontDelete, MutationAccessDontMutate, MutationAccessFull}
 import anna.logger.LOG
+import org.apache.commons.io.FileUtils
 import org.json4s._
 import org.json4s.native.Serialization
 
 import scala.annotation.tailrec
 import scala.concurrent.Await
 import scala.util.Random
-
-import org.apache.commons.io.FileUtils
 
 object Utils {
   def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)

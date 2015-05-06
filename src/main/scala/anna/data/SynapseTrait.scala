@@ -1,9 +1,8 @@
 package anna.data
 
 import anna.utils.DoubleRange._
-
-import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 
 /**
  * Created by gorywoda on 05.05.15.
