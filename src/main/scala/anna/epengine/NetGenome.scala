@@ -9,6 +9,9 @@ import scala.annotation.tailrec
 
 import anna.logger.LOG._
 
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
+
 /**
  * Created by gorywoda on 04.01.15.
  */
@@ -190,6 +193,8 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   private def mutateInputTickMultiplier(): Unit ={
     _data = _data.withInputTickMultiplier(RandomNumber(Context().inputTickMultiplierRange))
   }
+
+  def toJson = writePretty(this)
 }
 
 object NetGenome {
@@ -295,4 +300,6 @@ object NetGenome {
 
   def accessMap(inputIds: List[String], outputIds: List[String]) =
     (inputIds.map(_ -> MutationAccessDontMutate()) ++ outputIds.map(_ -> MutationAccessDontDelete())).toMap
+
+  def fromJson(jsonStr: String) = read[NetGenome](jsonStr)
 }

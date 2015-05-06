@@ -6,6 +6,8 @@ import anna.logger.LOG._
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
 
 /**
  * Created by gorywoda on 03.01.15.
@@ -31,19 +33,7 @@ case class NetData(id: String,
   def withWeight(weight: SynapseWeight) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
   def withInputTickMultiplier(inputTickMultiplier: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
 
-  def toJson = {
-    val json = ("id" -> id) ~
-      ("neurons" -> neurons.map{ _.toJson }) ~
-      ("inputs" -> inputs) ~
-      ("threshold" -> threshold) ~
-      ("slope" -> slope) ~
-      ("hushValue" -> hushValue.toString) ~
-      ("forgetting" -> forgetting.toString) ~
-      ("tickTimeMultiplier" -> tickTimeMultiplier) ~
-      ("weight" -> weight.toString) ~
-      ("inputTickMultiplier" -> inputTickMultiplier)
-    pretty(render(json))
-  }
+  def toJson = writePretty(this)
 
   def filter(ids: Seq[String]) = {
     val idsSet = ids.toSet
@@ -110,38 +100,7 @@ object NetData {
             Context().hushValue, Context().forgetting, 1.0, Context().weight,
             inputTickMultiplier)
 
-  def fromJson(jsonStr: String) = {
-    val json = parse(jsonStr)
-    val parsed:List[NetData] = for {
-      JObject(data) <- json
-      JField("id", JString(id)) <- data
-      JField("neurons", JArray(neuronsJson)) <- data
-      JField("inputs", JArray(inputsJson)) <- data
-      JField("threshold", JDouble(threshold)) <- data
-      JField("slope", JDouble(slope)) <- data
-      JField("hushValue", JInt(hush)) <- data
-      JField("forgetting", JString(forgettingStr)) <- data
-      JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
-      JField("weight", JString(weightStr)) <- data
-      JField("inputTickMultiplier", JDouble(inputTickMultiplier)) <- data
-    } yield NetData(id, parseNeurons(neuronsJson), parseInputs(inputsJson),
-                    threshold, slope, HushValue(hush.toInt),
-                    ForgetTrait(forgettingStr), tickTimeMultiplier,
-                    SynapseTrait(weightStr),  inputTickMultiplier)
-
-    if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
-    parsed(0)
-  }
-
-  private def parseNeurons(neuronsJson: List[JValue]) = neuronsJson.map {
-    case JString(n) => NeuronData.fromJson(n)
-    case _ => throw new IllegalArgumentException(s"Unable to parse JSON $neuronsJson")
-  }
-
-  private def parseInputs(inputsJson: List[JValue]) = inputsJson.map {
-    case JString(in) => in
-    case _ => throw new IllegalArgumentException(s"Unable to parse JSON $inputsJson")
-  }
+  def fromJson(jsonStr: String) = read[NetData](jsonStr)
 
   def neuronId(netId: String, id: String): String = s"${netId}_$id"
   def neuronId(netId: String, index: Int): String = s"${netId}_$index"

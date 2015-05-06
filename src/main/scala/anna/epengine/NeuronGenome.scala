@@ -3,10 +3,13 @@ package anna.epengine
 import anna.Context
 import anna.async.{NeuronTypeStandard, NeuronType}
 import anna.data._
-import anna.logger.LOG._
 import anna.utils.RandomNumber
 
 import anna.logger.LOG._
+
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
+
 
 /**
  * Created by gorywoda on 28.12.14.
@@ -137,6 +140,8 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
     addSynapse(sg)
     true
   }
+
+  def toJson = writePretty(this)
 }
 
 object NeuronGenome {
@@ -172,4 +177,6 @@ object NeuronGenome {
 
     ng
   }
+
+  def fromJson(jsonStr: String) = read[NeuronGenome](jsonStr)
 }

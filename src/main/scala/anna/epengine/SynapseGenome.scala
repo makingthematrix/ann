@@ -4,6 +4,9 @@ import anna.Context
 import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 import anna.utils.RandomNumber
 
+import org.json4s.native.Serialization.{ read, writePretty }
+import anna.utils.Utils.formats
+
 /**
  * Created by gorywoda on 27.12.14.
  */
@@ -32,6 +35,8 @@ class SynapseGenome(private var _data: SynapseData){
       case _ => _data.withWeight(SynapseWeight(RandomNumber(Context().weightRange)))
     }
   }
+
+  def toJson = writePretty(this)
 }
 
 object SynapseGenome {
@@ -44,4 +49,6 @@ object SynapseGenome {
     nch.mutate()
     nch
   }
+
+  def fromJson(jsonStr: String) = read[SynapseGenome](jsonStr)
 }

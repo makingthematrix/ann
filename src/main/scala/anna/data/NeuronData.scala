@@ -2,10 +2,6 @@ package anna.data
 
 import anna.Context
 import anna.async.{NeuronTypeDummy, NeuronTypeHush, NeuronTypeStandard, NeuronType}
-import anna.logger.LOG._
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.{ read, writePretty }
 import anna.utils.Utils.formats
 
@@ -37,17 +33,7 @@ case class NeuronData(
   def withNeuronType(neuronType: NeuronType) =
     NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
 
-  def toJson = {
-    val json = ("id" -> id) ~
-      ("threshold" -> threshold) ~
-      ("slope" -> slope) ~
-      ("hushValue" -> hushValue.toString) ~
-      ("forgetting" -> forgetting.toString) ~
-      ("synapses" -> synapses.map{ _.toJson }) ~
-      ("tickTimeMultiplier" -> tickTimeMultiplier) ~
-      ("neuronType" -> neuronType.toString)
-    pretty(render(json))
-  }
+  def toJson = writePretty(this)
 
   def isConnectedTo(id: String) = synapses.find(_.neuronId == id) != None
 }
@@ -78,28 +64,5 @@ object NeuronData {
   def apply(id: String):NeuronData
     = apply(id, 0.0, Context().slope, Context().hushValue, ForgetAll(), Nil, 1.0, NeuronTypeHush())
 
-  def fromJson(jsonStr: String):NeuronData = {
-    val json = parse(jsonStr)
-
-    val parsed:List[NeuronData] = for {
-      JObject(data) <- json
-      JField("id", JString(id)) <- data
-      JField("threshold", JDouble(threshold)) <- data
-      JField("slope", JDouble(slope)) <- data
-      JField("hushValue", JString(hushStr)) <- data
-      JField("forgetting", JString(forgetStr)) <- data
-      JField("synapses", JArray(synapsesJson)) <- data
-      JField("tickTimeMultiplier", JDouble(tickTimeMultiplier)) <- data
-      JField("neuronType", JString(neuronTypeStr)) <- data
-    } yield NeuronData(id, threshold, slope, HushValue(hushStr), ForgetTrait(forgetStr),
-                       parseSynapses(synapsesJson), tickTimeMultiplier, NeuronType.parse(neuronTypeStr))
-
-    if(parsed.size != 1) exception(this, s"Unable to parse JSON: $jsonStr")
-    parsed(0)
-  }
-
-  private def parseSynapses(synapsesJson: List[JValue]) = synapsesJson.map {
-    case JString(s) => SynapseData.fromJson(s)
-    case _ => throw new IllegalArgumentException(s"Unable to parse JSON $synapsesJson")
-  }
+  def fromJson(jsonStr: String) = read[NeuronData](jsonStr)
 }
