@@ -272,8 +272,26 @@ class EngineSuite extends JUnitSuite {
     } catch {
       case ex: IllegalArgumentException =>
         if(!ex.getMessage.contains(dirName)) fail()
-      case other => fail(s"Unknown exception: $other")
+      case other: Throwable => fail(s"Unknown exception: $other")
     }
+  }
+
+  @Test def shouldSaveProgress(): Unit ={
+    val dirName = "test-shouldSaveProgress"
+    val engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration0.json"))
+    assertFalse(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
+    assertFalse(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
+    assertFalse(Utils.fileExists(engine.dirPath + "/results_iteration1.json"))
+
+    engine.run()
+
+    assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration0.json"))
+    assertTrue(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
+    assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
+    assertTrue(Utils.fileExists(engine.dirPath + "/results_iteration1.json"))
+
+    assertTrue(Utils.deleteDir(engine.dirPath))
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

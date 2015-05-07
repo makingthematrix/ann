@@ -13,7 +13,7 @@ import org.json4s.native.Serialization.{read, writePretty}
 
 class Engine(val dirName: String,
              val coach: Coach,
-             val mutationProbability: Probability,
+             val savingProgress: Boolean,
              private var _poll: GenomePoll,
              private var results:Map[String,Double] = HashMap()) {
   import anna.epengine.Engine._
@@ -31,20 +31,22 @@ class Engine(val dirName: String,
   def iteration() = {
     if(iterIndex == 0) calculateResults()
 
-    iterIndex += 1
-
     debug(this,s" ------------------------ Iteration $iterIndex of the engine ------------------------ ")
 
     _poll = GenomePoll(mutate(newGeneration))
 
+    if(savingProgress) Utils.save(s"${dirPath}/poll_iteration${iterIndex}.json", _poll.toJson)
+
     calculateResults()
 
     debug(this,s" ------------------------ done iteration $iterIndex of the engine ------------------------ ")
+
+    iterIndex += 1
   }
 
   def mutate(genomes: List[NetGenome]) = {
     debug(this, s" --- mutating --- ")
-    genomes.foreach( g => if(mutationProbability.toss) {
+    genomes.foreach( g => if(Probability(Context().mutationProbability).toss) {
       g.mutate()
       g.data.validate()
     })
@@ -96,6 +98,9 @@ class Engine(val dirName: String,
     debug(this,poll.ids.toString())
     results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
     debug(this,s"And there ${results.size} results")
+
+    if(savingProgress) Utils.save(s"${dirPath}/results_iteration${iterIndex}.json", writePretty(results))
+
     if(iterIndex == 0) iterIndex = 1
     debug(this,"------------------------------ done calculating results ------------------------------")
   }
@@ -108,7 +113,7 @@ class Engine(val dirName: String,
 
 object Engine {
   def apply(dirName: String, coach: Coach, mutationProbability: Probability, poll: GenomePoll):Engine =
-    new Engine(dirName, coach, mutationProbability, poll, poll.genomes.map(g => g.id -> 0.0).toMap)
+    new Engine(dirName, coach, false, poll, initResultsMap(poll))
 
   def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
     val dirPath = Context().evolutionDir + "/" + dirName
@@ -120,10 +125,9 @@ object Engine {
     Utils.save(dirPath + "/exercisesSet.json", exercisesSet.toJson)
 
     val coach = Coach(exercisesSet)
-    val mutationProbability = Context().mutationProbability
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
     Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
-    apply(dirName, coach, mutationProbability, poll)
+    new Engine(dirName, coach, true, poll, initResultsMap(poll))
   }
 
   def apply(dirName: String):Engine = {
@@ -145,8 +149,7 @@ object Engine {
     }
 
     val coach = Coach(exercisesSet)
-    val mutationProbability = Context().mutationProbability
-    val engine = apply(dirName, coach, mutationProbability, poll)
+    val engine = new Engine(dirName, coach, true, poll, initResultsMap(poll))
     engine.iterIndex = findGenomePollIteration(dirPath)
     engine
   }
@@ -192,4 +195,6 @@ object Engine {
     case head :: tail if r <= head._2 => head._1
     case head :: tail => getId(r - head._2, tail)
   }
+
+  private def initResultsMap(poll: GenomePoll) = poll.genomes.map(g => g.id -> 0.0).toMap
 }
