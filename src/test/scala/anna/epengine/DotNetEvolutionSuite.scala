@@ -46,7 +46,7 @@ class DotNetEvolutionSuite extends JUnitSuite {
 
     debug(this, " --- creating the engine ---")
 
-    val engine = Engine(coach, 0.5, poll)
+    val engine = Engine("engine", coach, 0.5, poll)
 
     debug(this, " --- calculating initial results ---")
 

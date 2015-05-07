@@ -53,7 +53,7 @@ class EngineSuite extends JUnitSuite {
   }
 
   val t2 = Exercise("constant output", 1, List("out1"), f)
-
+/*
   @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 3)
     assertEquals(3, poll.genomes.size)
@@ -181,7 +181,7 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(n2, d1)
     assertNotEquals(n2, d2)
 
-  }
+  }*/
 
   val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
 
@@ -249,9 +249,31 @@ class EngineSuite extends JUnitSuite {
     val engine2 = Engine(dirName)
 
     assertEquals(engine1.coach.exercises, engine2.coach.exercises)
-    assertEquals(engine1.poll(genomeId), engine2.poll(genomeId))
+
+    val g1 = engine1.poll(genomeId)
+    val g2 = engine2.poll(genomeId)
+
+    println("-------")
+    println(g1.toJson)
+    println("-------")
+    println(g2.toJson)
+    println("-------")
+
+    assertEquals(g1.toJson, g2.toJson)
 
     assertTrue(Utils.deleteDir(engine1.dirPath))
+  }
+
+  @Test def shouldThrowExceptionIfDirDoesNotExist(): Unit ={
+    val dirName = "test-shouldThrowExceptionIfDirDoesNotExist"
+    try {
+      Engine(dirName)
+      fail()
+    } catch {
+      case ex: IllegalArgumentException =>
+        if(!ex.getMessage.contains(dirName)) fail()
+      case other => fail(s"Unknown exception: $other")
+    }
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

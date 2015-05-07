@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 
 import anna.utils.Utils.formats
-import org.json4s.native.Serialization.writePretty
+import org.json4s.native.Serialization.{read, writePretty}
 
 class Engine(val dirName: String,
              val coach: Coach,
@@ -126,7 +126,42 @@ object Engine {
     apply(dirName, coach, mutationProbability, poll)
   }
 
-  def apply(dirName: String):Engine = ???
+  def apply(dirName: String):Engine = {
+    val dirPath = Context().evolutionDir + "/" + dirName
+    if(!Utils.fileExists(dirPath)) exception(s"There is no directory $dirPath")
+
+    // this one has to be there
+    val exercisesSet = ExercisesSet.fromJson(Utils.load(dirPath + "/exercisesSet.json"))
+    // if there is no context we can simply use the current one
+    if(Utils.fileExists(dirPath + "/context.json")) Context.withJson(Utils.load(dirPath + "/context.json"))
+    // if there is no poll we can attempt to create it
+    val poll = loadPoll(dirPath) match {
+      case Some(poll) => poll
+      case None =>
+        val inputIds = read[List[String]](Utils.load(dirPath + "/inputIds.json"))
+        val outputIds = read[List[String]](Utils.load(dirPath + "/outputIds.json"))
+        val netTemplate = NetData.fromJson(Utils.load(dirPath + "/netTemplate.json"))
+        GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
+    }
+
+    val coach = Coach(exercisesSet)
+    val mutationProbability = Context().mutationProbability
+    val engine = apply(dirName, coach, mutationProbability, poll)
+    engine.iterIndex = findGenomePollIteration(dirPath)
+    engine
+  }
+
+  private def findGenomePollIteration(dirPath: String) = {
+    var counter = -1
+    while(Utils.fileExists(s"${dirPath}/poll_iteration${counter+1}.json")) counter += 1
+    counter
+  }
+
+  private def loadPoll(dirPath: String):Option[GenomePoll] = {
+    val iteration = findGenomePollIteration(dirPath)
+    if(iteration >= 0) Some(GenomePoll.fromJson(Utils.load(s"${dirPath}/poll_iteration${iteration}.json")))
+    else None
+  }
 
   @tailrec
   private def drawCrossableGenome(firstGenome: NetGenome,
