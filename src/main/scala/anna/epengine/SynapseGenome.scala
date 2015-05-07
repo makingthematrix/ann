@@ -5,6 +5,7 @@ import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 import anna.utils.RandomNumber
 import anna.utils.Utils.formats
 import org.json4s.native.Serialization.{read, writePretty}
+import anna.logger.LOG._
 
 /**
  * Created by gorywoda on 27.12.14.
@@ -21,18 +22,24 @@ class SynapseGenome(private var _data: SynapseData){
   )
 
   private def setWeightToHush():Unit = {
+    debug(s"MUTATION: ... setWeightToHush in a synapse connecting to $neuronId from ${_data.weight}")
     _data = _data.withWeight(Hush())
   }
 
   private def setWeightToFull():Unit = {
+    debug(s"MUTATION: ... setWeightToFull in a synapse connecting to $neuronId from ${_data.weight}")
     _data = _data.withWeight(SynapseWeight(1.0))
   }
 
   private def mutateWeight():Unit = {
-    _data = _data.weight match {
-      case SynapseWeight(avoidWeight) => _data.withWeight(SynapseWeight(Context().weightRange.choose(RandomNumber(), avoidWeight)))
-      case _ => _data.withWeight(SynapseWeight(RandomNumber(Context().weightRange)))
+    val newWeight = _data.weight match {
+      case SynapseWeight(avoidWeight) =>
+        SynapseWeight(Context().weightRange.choose(RandomNumber(), avoidWeight))
+      case _ =>
+        SynapseWeight(RandomNumber(Context().weightRange))
     }
+    debug(s"MUTATION: ... mutateWeight in a synapse connecting to $neuronId -> from ${_data.weight} to $newWeight")
+    _data.withWeight(newWeight)
   }
 
   def toJson = writePretty(this)

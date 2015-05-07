@@ -111,6 +111,8 @@ object Utils {
     dir
   }
 
+  def fileExists(filePath: String) = new File(filePath).exists()
+
   def deleteDir(filePath: String) = {
     val dir = new File(filePath)
     FileUtils.deleteDirectory(dir)

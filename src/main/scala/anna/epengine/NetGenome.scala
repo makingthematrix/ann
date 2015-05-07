@@ -141,7 +141,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
   private def addNeuron(): Unit ={
     val newId = neuronId(id,findFirstFreeId())
-    debug(this,s"adding a neuron to $id -> $newId")
+    debug(s"MUTATION: addNeuron to $id -> the new neuron's id is $newId")
     // 1. create a new neuron with name id+neurons.size and according to NeuronGenome specifications
     val newNG = NeuronGenome.build(newId, accessMap)
     // 2. create exactly one synapse from the set of all neurons (a synapse from an output neuron is also ok)
@@ -172,7 +172,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     val faN = fullAccessNeurons()
     if(faN.nonEmpty){
       val id = RandomNumber(faN).id
-      debug(this,s"deleting a neuron from ${data.id} -> $id")
+      debug(s"MUTATION: deleteNeuron from ${data.id} -> the deleted neuron's id is $id")
       deleteNeuron(id)
       deleteSynapsesTo(id)
     }
@@ -182,14 +182,15 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     val mutNs = mutableNeurons()
     if(mutNs.nonEmpty){
       val nCh = NeuronGenome(RandomNumber(mutNs))
-      debug(this,s"mutating a neuron in $id -> ${nCh.id}")
       nCh.mutate()
       updateNeuron(nCh.data)
     }
   }
 
   private def mutateInputTickMultiplier(): Unit ={
-    _data = _data.withInputTickMultiplier(RandomNumber(Context().inputTickMultiplierRange))
+    val newInputTickMultiplier = RandomNumber(Context().inputTickMultiplierRange)
+    debug(s"MUTATION: mutateInputTickMultiplier for $id from ${_data.inputTickMultiplier} to $newInputTickMultiplier")
+    _data = _data.withInputTickMultiplier(newInputTickMultiplier)
   }
 
   def toJson = writePretty(this)
