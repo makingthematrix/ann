@@ -51,15 +51,21 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   }
 
   private def mutateThreshold():Unit = {
-    _data = _data.withThreshold(RandomNumber(Context().thresholdRange))
+    val newThreshold = RandomNumber(Context().thresholdRange)
+    debug(s"MUTATION: mutateThreshold for $id from ${_data.threshold} to $newThreshold")
+    _data = _data.withThreshold(newThreshold)
   }
 
   private def mutateSlope():Unit = {
-    _data = _data.withSlope(RandomNumber(Context().slopeRange))
+    val newSlope = RandomNumber(Context().slopeRange)
+    debug(s"MUTATION: mutateSlope for $id from ${_data.slope} to $newSlope")
+    _data = _data.withSlope(newSlope)
   }
 
   private def mutateHushValue():Unit = {
-    _data = _data.withHushValue(HushValue(RandomNumber(Context().hushRange)))
+    val newHushValue = HushValue(RandomNumber(Context().hushRange))
+    debug(s"MUTATION: mutateSlope for $id from ${_data.hushValue} to $newHushValue")
+    _data = _data.withHushValue(newHushValue)
   }
 
   private def mutateForgetting():Unit = Probability.performRandom(
@@ -69,19 +75,27 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   )
 
   private def mutateTickTimeMultiplier():Unit = {
-    _data = _data.withTickTimeMultiplier(RandomNumber(Context().tickTimeMultiplierRange))
+    val newTickTimeMultiplier = RandomNumber(Context().tickTimeMultiplierRange)
+    debug(s"MUTATION: mutateTickTimeMultiplier for $id from ${_data.tickTimeMultiplier} to $newTickTimeMultiplier")
+    _data = _data.withTickTimeMultiplier(newTickTimeMultiplier)
   }
 
   private def setDontForget(): Unit ={
-    _data = _data.withForgetting(DontForget())
+    val newForgetting = DontForget()
+    debug(s"MUTATION: setDontForget for $id from ${_data.forgetting} to $newForgetting")
+    _data = _data.withForgetting(newForgetting)
   }
 
   private def mutateForgetValue(): Unit ={
-    _data = _data.withForgetting(ForgetValue(RandomNumber(Context().forgettingRange)))
+    val newForgetting = ForgetValue(RandomNumber(Context().forgettingRange))
+    debug(s"MUTATION: mutateForgetValue for $id from ${_data.forgetting} to $newForgetting")
+    _data = _data.withForgetting(newForgetting)
   }
 
   private def setForgetAll(): Unit ={
-    _data = _data.withForgetting(ForgetAll())
+    val newForgetting = ForgetAll()
+    debug(s"MUTATION: setForgetAll for $id from ${_data.forgetting} to $newForgetting")
+    _data = _data.withForgetting(newForgetting)
   }
 
   private def access(neuronId: String) = accessMap.get(neuronId) match {
@@ -116,20 +130,30 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
-    case Some(neuronId) => addSynapse(SynapseGenome.build(neuronId))
-    case _ => debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
+    case Some(neuronId) =>
+      val newSynapse = SynapseGenome.build(neuronId)
+      debug(s"MUTATION: addRandomSynapse to $id -> the new synapse connects to ${newSynapse.neuronId} with weight ${newSynapse.weight}")
+      addSynapse(newSynapse)
+    case _ =>
+      debug(this, s"Trying to add a synapse from $id to another neuron, but there are no valid neurons")
   }
 
   private def deleteRandomSynapse():Unit = getRandomSynapse(true) match {
-    case Some(synapse) => deleteSynapse(synapse.neuronId)
-    case None => debug(this, s"Trying to remove a synapse from $id but it's not allowed")
+    case Some(synapse) =>
+      debug(s"MUTATION: deleteRandomSynapse from $id -> deleting connection to ${synapse.neuronId}")
+      deleteSynapse(synapse.neuronId)
+    case None =>
+      debug(this, s"Trying to remove a synapse from $id but it's not allowed")
   }
 
   private def mutateSynapseWeight():Unit = getRandomSynapse(false) match {
-      case Some(synapse) => val synapseChromosome = SynapseGenome(synapse)
-                            synapseChromosome.mutate()
-                            _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
-      case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
+      case Some(synapse) =>
+        val synapseChromosome = SynapseGenome(synapse)
+        debug(s"MUTATION: mutateSynapseWeight for $id ... ")
+        synapseChromosome.mutate()
+        _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
+      case None =>
+        debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
   }
 
   def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {

@@ -10,7 +10,7 @@ import anna.epengine._
 import anna.logger.LOG
 import anna.utils.Utils
 import org.junit.Assert._
-import org.junit.{Before, Test}
+import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
 
 
@@ -18,6 +18,12 @@ class EngineSuite extends JUnitSuite {
   @Before def before() {
     LOG.addLogToStdout()
   }
+
+  @After def after(): Unit ={
+    if(engine != null && Utils.fileExists(engine.dirPath)) Utils.deleteDir(engine.dirPath)
+  }
+
+  private var engine: Engine = null
 
   private lazy val inputIds = List("in1")
   private lazy val outputIds = List("out1")
@@ -53,7 +59,7 @@ class EngineSuite extends JUnitSuite {
   }
 
   val t2 = Exercise("constant output", 1, List("out1"), f)
-/*
+
   @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 3)
     assertEquals(3, poll.genomes.size)
@@ -64,16 +70,16 @@ class EngineSuite extends JUnitSuite {
 
   @Test def shouldPerformEvolutionIteration(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 3)
-    val tester = Coach(List(t1, t2))
+    val coach = Coach(List(t1, t2))
 
-    val engine = Engine("engine",tester, 0.5, poll)
+    engine = Engine(coach, poll)
     val best1 = engine.best
-    val result1 = tester.test(best1.data)
+    val result1 = coach.test(best1.data)
 
     engine.run()
 
     val best2 = engine.best
-    val result2 = tester.test(best2.data)
+    val result2 = coach.test(best2.data)
 
     assertTrue(result2 >= result1)
     println(s"new result: $result2, old result: $result1")
@@ -99,7 +105,7 @@ class EngineSuite extends JUnitSuite {
 
     val coach = Coach(set)
 
-    val engine = Engine("engine", coach, 0.5, poll)
+    engine = Engine(coach, poll)
     engine.calculateResults()
     val best1 = engine.best
     val result1 = coach.test(best1.data)
@@ -153,7 +159,7 @@ class EngineSuite extends JUnitSuite {
 
     val coach = Coach(set)
 
-    val engine = Engine("engine", coach, 0.5, poll)
+    engine = Engine(coach, poll)
     engine.calculateResults()
     val best1 = engine.best
     val result1 = coach.test(best1.data)
@@ -181,7 +187,7 @@ class EngineSuite extends JUnitSuite {
     assertNotEquals(n2, d1)
     assertNotEquals(n2, d2)
 
-  }*/
+  }
 
   val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
 
@@ -199,20 +205,15 @@ class EngineSuite extends JUnitSuite {
     val exercisesSet = this.exercisesSet
 
     // create the engine
-    Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
     // check if the directory exists
     val evolutionDirs = new File(Context().evolutionDir).listFiles.filter(_.isDirectory)
     assertTrue(evolutionDirs.map(_.getName).toSet.contains(dirName))
-
-    // delete directory
-    val dir = evolutionDirs.find(_.getName == dirName).get
-
-    assertTrue(Utils.deleteDir(dir.getAbsolutePath))
   }
 
   @Test def shouldSaveContextSetTemplateAndPoll(): Unit ={
     val dirName = "test-shouldSaveContextSetAndPoll"
-    Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
     val dir = new File(Context().evolutionDir).listFiles.find(f => f.getName == dirName && f.isDirectory).get
     val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')+1) , f)).toMap
     filesInDir.foreach( tuple => println(tuple._1))
@@ -220,8 +221,6 @@ class EngineSuite extends JUnitSuite {
     assertTrue(filesInDir.contains("netTemplate.json"))
     assertTrue(filesInDir.contains("exercisesSet.json"))
     assertTrue(filesInDir.contains("poll_iteration0.json"))
-
-    assertTrue(Utils.deleteDir(dir.getAbsolutePath))
   }
 
   @Test def shouldSaveAndRestoreContextFromJson(): Unit ={
@@ -241,16 +240,16 @@ class EngineSuite extends JUnitSuite {
 
   @Test def shouldReadEngineFromDir(): Unit ={
     val dirName = "test-shouldReadEngineFromDir"
-    val engine1 = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
 
-    val genomeId = engine1.poll.ids(0)
+    val genomeId = engine.poll.ids(0)
     println(s"genomeId: $genomeId")
 
     val engine2 = Engine(dirName)
 
-    assertEquals(engine1.coach.exercises, engine2.coach.exercises)
+    assertEquals(engine.coach.exercises, engine2.coach.exercises)
 
-    val g1 = engine1.poll(genomeId)
+    val g1 = engine.poll(genomeId)
     val g2 = engine2.poll(genomeId)
 
     println("-------")
@@ -260,14 +259,12 @@ class EngineSuite extends JUnitSuite {
     println("-------")
 
     assertEquals(g1.toJson, g2.toJson)
-
-    assertTrue(Utils.deleteDir(engine1.dirPath))
   }
 
   @Test def shouldThrowExceptionIfDirDoesNotExist(): Unit ={
     val dirName = "test-shouldThrowExceptionIfDirDoesNotExist"
     try {
-      Engine(dirName)
+      engine = Engine(dirName)
       fail()
     } catch {
       case ex: IllegalArgumentException =>
@@ -278,7 +275,7 @@ class EngineSuite extends JUnitSuite {
 
   @Test def shouldSaveProgress(): Unit ={
     val dirName = "test-shouldSaveProgress"
-    val engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
     assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration0.json"))
     assertFalse(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
     assertFalse(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
@@ -290,8 +287,18 @@ class EngineSuite extends JUnitSuite {
     assertTrue(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
     assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
     assertTrue(Utils.fileExists(engine.dirPath + "/results_iteration1.json"))
+  }
 
-    assertTrue(Utils.deleteDir(engine.dirPath))
+  @Test def shouldSaveLogs(): Unit ={
+    val dirName = "test-shouldSaveLogs"
+    engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    assertFalse(Utils.fileExists(engine.dirPath + "/iteration1.log"))
+    assertFalse(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
+
+    engine.run()
+
+    assertTrue(Utils.fileExists(engine.dirPath + "/iteration1.log"))
+    assertTrue(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

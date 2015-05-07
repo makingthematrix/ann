@@ -2,6 +2,7 @@ package anna.epengine
 
 import anna.Context
 import anna.data.NetData
+import anna.logger.{ListLogOutput, LOG}
 import anna.logger.LOG._
 import anna.utils.{RandomNumber, Utils}
 
@@ -31,6 +32,9 @@ class Engine(val dirName: String,
   def iteration() = {
     if(iterIndex == 0) calculateResults()
 
+    val listOut = new ListLogOutput(s"iteration${iterIndex}")
+    LOG.addOut(listOut)
+
     debug(this,s" ------------------------ Iteration $iterIndex of the engine ------------------------ ")
 
     _poll = GenomePoll(mutate(newGeneration))
@@ -40,6 +44,10 @@ class Engine(val dirName: String,
     calculateResults()
 
     debug(this,s" ------------------------ done iteration $iterIndex of the engine ------------------------ ")
+
+    Utils.save(s"${dirPath}/iteration${iterIndex}.log", listOut.log)
+    val mutations = listOut.list.filter(_.contains("MUTATION: ")).map(l => l.substring(l.indexOf("MUTATION: ") + 10))
+    Utils.save(s"${dirPath}/mutations_iteration${iterIndex}.log", mutations.mkString("\n"))
 
     iterIndex += 1
   }
@@ -112,8 +120,8 @@ class Engine(val dirName: String,
 }
 
 object Engine {
-  def apply(dirName: String, coach: Coach, mutationProbability: Probability, poll: GenomePoll):Engine =
-    new Engine(dirName, coach, false, poll, initResultsMap(poll))
+  def apply(coach: Coach, poll: GenomePoll):Engine =
+    new Engine("engine", coach, false, poll, initResultsMap(poll))
 
   def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
     val dirPath = Context().evolutionDir + "/" + dirName
