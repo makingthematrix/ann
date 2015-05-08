@@ -25,10 +25,21 @@ class NetRef(val id: String, val ref: ActorRef) {
   
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait, tickTime: Long) =
-    await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, slope, hushValue, forgetting, tickTime)))
+  def createNeuron(
+    id: String,
+    threshold: Double,
+    slope: Double,
+    hushValue: HushValue,
+    forgetting: ForgetTrait,
+    tickTime: Long,
+    activationFunctionName: String
+  ) = await[NeuronRef](ref, CreateNeuron(NeuronData(
+    id, threshold, slope, hushValue, forgetting, tickTime, activationFunctionName
+  )))
+
   def createDummy(id: String, hushValue: HushValue, tickTime: Long) =
     await[NeuronRef](ref, CreateNeuron(NeuronData(id, hushValue, tickTime)))
+
   def createHushNeuron(id: String) = await[NeuronRef](ref, CreateNeuron(NeuronData(id)))
   
   def setInputs(seq: Seq[String]) = await[Answer](ref, SetInputs(seq))
@@ -54,8 +65,6 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def reset() = await[Success](ref,Reset)
   def removeAllTriggers() = await[Success](ref, RemoveAllTriggers)
-
-
 }
 
 object NetRef {

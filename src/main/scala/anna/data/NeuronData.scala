@@ -1,7 +1,7 @@
 package anna.data
 
 import anna.Context
-import anna.async.{NeuronType, NeuronTypeDummy, NeuronTypeHush, NeuronTypeStandard}
+import anna.async._
 import anna.utils.Utils.formats
 import org.json4s.native.Serialization.{read, writePretty}
 
@@ -13,25 +13,19 @@ case class NeuronData(
     forgetting: ForgetTrait,
     synapses: List[SynapseData],
     tickTimeMultiplier: Double,
-    neuronType: NeuronType
+    neuronType: NeuronType,
+    activationFunctionName: String
 ){
-  def withId(id: String) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withThreshold(threshold: Double) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withSlope(slope: Double) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withHushValue(hushValue: HushValue) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withForgetting(forgetting: ForgetTrait) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withSynapses(synapses: List[SynapseData]) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withId(id: String) = copy(id = id)
+  def withThreshold(threshold: Double) = copy(threshold = threshold)
+  def withSlope(slope: Double) = copy(slope = slope)
+  def withHushValue(hushValue: HushValue) = copy(hushValue = hushValue)
+  def withForgetting(forgetting: ForgetTrait) = copy(forgetting = forgetting)
+  def withSynapses(synapses: List[SynapseData]) = copy(synapses = synapses)
   def withoutSynapses = withSynapses(Nil)
-  def withTickTimeMultiplier(tickTimeMultiplier: Double) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
-  def withNeuronType(neuronType: NeuronType) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType)
+  def withTickTimeMultiplier(tickTimeMultiplier: Double) = copy(tickTimeMultiplier = tickTimeMultiplier)
+  def withNeuronType(neuronType: NeuronType) = copy(neuronType = neuronType)
+  def withActivationFunctionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
   def toJson = writePretty(this)
 
@@ -45,24 +39,26 @@ object NeuronData {
             hushValue: HushValue, 
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
-            tickTimeMultiplier: Double):NeuronData
-    = apply(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, NeuronTypeStandard())
+            tickTimeMultiplier: Double,
+            activationFunctionName: String):NeuronData
+    = apply(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, NeuronTypeStandard(), activationFunctionName)
 
   def apply(id: String, 
             threshold: Double, 
             slope: Double, 
             hushValue: HushValue,
             forgetting: ForgetTrait,
-            tickTimeMultiplier: Double):NeuronData
-    = apply(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronTypeStandard())
+            tickTimeMultiplier: Double,
+            activationFunctionName: String):NeuronData
+    = apply(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronTypeStandard(), activationFunctionName)
 
   def apply(id: String,  
             hushValue: HushValue,
             tickTimeMultiplier: Double):NeuronData
-    = apply(id, 0.0, Context().slope, hushValue, ForgetAll(), Nil, tickTimeMultiplier, NeuronTypeDummy())
+    = apply(id, 0.0, Context().slope, hushValue, ForgetAll(), Nil, tickTimeMultiplier, NeuronTypeDummy(), ActivationFunction.UNUSED)
   
   def apply(id: String):NeuronData
-    = apply(id, 0.0, Context().slope, Context().hushValue, ForgetAll(), Nil, 1.0, NeuronTypeHush())
+    = apply(id, 0.0, Context().slope, Context().hushValue, ForgetAll(), Nil, 1.0, NeuronTypeHush(), ActivationFunction.UNUSED)
 
   def fromJson(jsonStr: String) = read[NeuronData](jsonStr)
 }

@@ -20,8 +20,8 @@ class HushSuite extends MySuite {
   @Test def shouldSendHush(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime)
-    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
+    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime, ActivationFunction.SIGMOID)
+    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime, ActivationFunction.SIGMOID)
     
     n1.setSynapses(List(Synapse(n2,Hush())))
     net.setInputs(List(n1.id))
@@ -62,9 +62,9 @@ class HushSuite extends MySuite {
   @Test def shouldUseHushNeuron(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime)
+    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime, ActivationFunction.SIGMOID)
     val hushNeuron = net.createHushNeuron("hushneuron")
-    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
+    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime, ActivationFunction.SIGMOID)
     
     n1.setSynapses(List(Synapse(hushNeuron)))
     hushNeuron.setSynapses(List(Synapse(n2)))

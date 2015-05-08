@@ -170,22 +170,15 @@ object NeuronGenome {
   def apply(data: NeuronData):NeuronGenome = new NeuronGenome(data, Map())
   def apply(data: NeuronData, accessMap: Map[String, MutationAccess]):NeuronGenome
     = new NeuronGenome(data, accessMap)
-  def apply(id: String,
-            threshold: Double,
-            slope: Double,
-            hushValue: HushValue,
-            forgetting: ForgetTrait,
-            synapses: List[SynapseData],
-            tickTimeMultiplier: Double,
-            neuronType: NeuronType):NeuronGenome =
-    NeuronGenome(NeuronData(id, threshold, slope, hushValue, forgetting, synapses, tickTimeMultiplier, neuronType))
 
   def build(id: String, accessMap: Map[String, MutationAccess] = Map()) = {
-    debug(this,s" --- building neuron $id --- ")
+    //debug(this,s" --- building neuron $id --- ")
 
     val ng = NeuronGenome(
       NeuronData(id, Context().thresholdRange.from, Context().slopeRange.from, HushValue(),
-                 DontForget(), Nil, Context().tickTimeMultiplierRange.from, NeuronTypeStandard()),
+                 DontForget(), Nil, Context().tickTimeMultiplierRange.from, NeuronTypeStandard(),
+                 Context().activationFunctionName
+      ),
       accessMap
     )
     ng.mutateThreshold()
@@ -194,8 +187,8 @@ object NeuronGenome {
     ng.mutateForgetting()
     ng.mutateTickTimeMultiplier()
 
-    debug(this,ng.data.toJson)
-    debug(this,s" --- done building neuron $id --- ")
+    //debug(this,ng.data.toJson)
+    //debug(this,s" --- done building neuron $id --- ")
 
     ng
   }

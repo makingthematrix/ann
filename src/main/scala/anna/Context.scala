@@ -20,7 +20,8 @@ case class NeuronDefaults(
   weight: SynapseTrait,
   hushValue: HushValue,
   forgetting: ForgetTrait,
-  tickTime: Long
+  tickTime: Long,
+  activationFunctionName: String
 ){
   def toJson = writePretty(this)
 }
@@ -97,6 +98,7 @@ case class Context(
   def hushValue = neuronDefaults.hushValue
   def forgetting = neuronDefaults.forgetting
   def tickTime = neuronDefaults.tickTime
+  def activationFunctionName = neuronDefaults.activationFunctionName
 
   def weightRange = synapseGenomeDefaults.weightRange
   def hushProbability = synapseGenomeDefaults.hushProbability
@@ -216,6 +218,8 @@ object Context {
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(forgetting = forgetting)))
   def withTickTime(tickTime: Long) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(tickTime = tickTime)))
+  def withActivationFunctionName(activationFunctionName: String) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(activationFunctionName = activationFunctionName)))
 
   private def init(): Unit ={
     val config = ConfigFactory.load()
@@ -238,8 +242,9 @@ object Context {
     val hushValue = HushValue(neuronRoot.getInt("defaultHushValue"))
     val forgetting = ForgetTrait(neuronRoot.getString("defaultForgetting"))
     val tickTime = neuronRoot.getLong("defaultTickTime")
+    val activationFunctionName = neuronRoot.getString("activationFunctionName")
 
-    val neuronDefaults = NeuronDefaults(slope, threshold, weight, hushValue, forgetting, tickTime)
+    val neuronDefaults = NeuronDefaults(slope, threshold, weight, hushValue, forgetting, tickTime, activationFunctionName)
 
     // synapse genome defaults
     val synapseDefaultsRoot = root.getConfig("synapseGenomeDefaults")

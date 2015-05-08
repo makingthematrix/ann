@@ -47,9 +47,6 @@ object Utils {
   def await[T](ref: ActorRef, msg: Any): T = Await.result(ref ? msg, timeout.duration).asInstanceOf[T]
   def await[T](net: NetRef, msg: Any): T = await[T](net.ref, msg)
   def await[T](neuron: NeuronRef, msg: Any): T = await[T](neuron.ref, msg)
-  
-  def f(value: Double, slope: Double) = minMaxOpen(value, 0.0, 1.0, 1.0/(1.0+Math.exp(-slope*(value-0.5))) )
-  def s(value: Double, slope: Double) = minmax(0.0, slope * (value - 0.5) + 0.5, 1.0)
 
   def parseDouble(s: String) = {
     val pp = new ParsePosition(0)

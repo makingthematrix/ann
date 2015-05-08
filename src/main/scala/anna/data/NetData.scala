@@ -17,17 +17,19 @@ case class NetData(id: String,
                    forgetting: ForgetTrait,
                    tickTimeMultiplier: Double,
                    weight: SynapseTrait,
-                   inputTickMultiplier: Double){
-  def withId(id: String) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withNeurons(neurons: List[NeuronData]) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withInputs(inputs: List[String]) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withThreshold(threshold: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withSlope(slope: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withHushValue(hushValue: HushValue) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withForgetting(forgetting: ForgetTrait) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withTickTimeMultiplier(tickTimeMultiplier: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight,  inputTickMultiplier)
-  def withWeight(weight: SynapseWeight) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
-  def withInputTickMultiplier(inputTickMultiplier: Double) = NetData(id, neurons, inputs, threshold, slope, hushValue, forgetting, tickTimeMultiplier, weight, inputTickMultiplier)
+                   inputTickMultiplier: Double,
+                   activationFunctionName: String){
+  def withId(id: String) = copy(id = id)
+  def withNeurons(neurons: List[NeuronData]) = copy(neurons = neurons)
+  def withInputs(inputs: List[String]) = copy(inputs = inputs)
+  def withThreshold(threshold: Double) = copy(threshold = threshold)
+  def withSlope(slope: Double) = copy(slope = slope)
+  def withHushValue(hushValue: HushValue) = copy(hushValue = hushValue)
+  def withForgetting(forgetting: ForgetTrait) = copy(forgetting = forgetting)
+  def withTickTimeMultiplier(tickTimeMultiplier: Double) = copy(tickTimeMultiplier = tickTimeMultiplier)
+  def withWeight(weight: SynapseWeight) = copy(weight = weight)
+  def withInputTickMultiplier(inputTickMultiplier: Double) = copy(inputTickMultiplier = inputTickMultiplier)
+  def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
   def toJson = writePretty(this)
 
@@ -90,11 +92,12 @@ object NetData {
   def apply(id: String):NetData = NetData(id, Nil, Nil)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
     NetData(id, neurons, inputs, Context().threshold, Context().slope,
-            Context().hushValue, Context().forgetting, 1.0, Context().weight, 1.0)
+            Context().hushValue, Context().forgetting, 1.0, Context().weight,
+            1.0, Context().activationFunctionName)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetData =
     NetData(id, neurons, inputs, Context().threshold, Context().slope,
             Context().hushValue, Context().forgetting, 1.0, Context().weight,
-            inputTickMultiplier)
+            inputTickMultiplier, Context().activationFunctionName)
 
   def fromJson(jsonStr: String) = read[NetData](jsonStr)
 

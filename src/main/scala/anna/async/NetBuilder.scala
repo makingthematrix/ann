@@ -18,6 +18,7 @@ class NetBuilder {
   var defTickTimeMultiplier = 1.0
   var defWeight:SynapseTrait = Context().weight
   var inputTickMultiplier = 1.0
+  var activationFunctionName = Context().activationFunctionName
 
   private val neurons = mutable.Map[String,NeuronData]()
   private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
@@ -138,7 +139,8 @@ class NetBuilder {
     val ns = neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) )
     NetData(netName, ns.toList.sortBy( _.id ), ins.toList.sorted,
             defThreshold, defSlope, defHushValue, defForgetting,
-            defTickTimeMultiplier, defWeight, inputTickMultiplier)
+            defTickTimeMultiplier, defWeight, inputTickMultiplier,
+            activationFunctionName)
   }
 
   def set(data: NetData) = {
@@ -162,6 +164,7 @@ class NetBuilder {
     defTickTimeMultiplier = data.tickTimeMultiplier
     defWeight = data.weight
     inputTickMultiplier = data.inputTickMultiplier
+    activationFunctionName = data.activationFunctionName
 
     this
   }
@@ -186,8 +189,11 @@ class NetBuilder {
   
   private def newNeuron(neuronType: NeuronType, id: String,
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
-      forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier) =
-    NeuronData(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType)
+      forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier,
+      activationFunctionName: String = activationFunctionName) =
+    NeuronData(
+      id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType, activationFunctionName
+    )
 
   private def add(n: NeuronData){
     neurons.put(n.id, n)

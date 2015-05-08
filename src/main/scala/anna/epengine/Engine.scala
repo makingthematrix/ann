@@ -48,6 +48,9 @@ class Engine(val dirName: String,
     Utils.save(s"${dirPath}/iteration${iterIndex}.log", listOut.log)
     val mutations = listOut.list.filter(_.contains("MUTATION: ")).map(l => l.substring(l.indexOf("MUTATION: ") + 10))
     Utils.save(s"${dirPath}/mutations_iteration${iterIndex}.log", mutations.mkString("\n"))
+    LOG.removeOut(listOut)
+
+    Utils.save(s"${dirPath}/best_iteration${iterIndex}.json", best.toJson)
 
     iterIndex += 1
   }

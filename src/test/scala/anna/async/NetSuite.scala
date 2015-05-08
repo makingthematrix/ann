@@ -28,8 +28,8 @@ class NetSuite extends JUnitSuite {
   @Test def shouldCreateNeurons(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime)
-    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime)
+    val n1 = net.createNeuron("id1", threshold, slope, hushValue, forgetting, tickTime, ActivationFunction.SIGMOID)
+    val n2 = net.createNeuron("id2", threshold, slope, hushValue, forgetting, tickTime, ActivationFunction.SIGMOID)
     
     val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons
