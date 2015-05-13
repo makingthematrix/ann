@@ -209,11 +209,14 @@ object NetGenome {
     assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
     assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
-    val neuronsSize = RandomNumber(
+    val _neuronsSize = RandomNumber(
       if(inputIds.size + outputIds.size > Context().neuronsRange.start)
         IntRange(inputIds.size + outputIds.size, Context().neuronsRange.end)
       else Context().neuronsRange
     )
+
+    // the number of neurons should be at least inputs + outputs + 1
+    val neuronsSize = if(_neuronsSize <= inputIds.size + outputIds.size) inputIds.size + outputIds.size + 1 else _neuronsSize
     
     debug(this,s"There will be $neuronsSize neurons")
 

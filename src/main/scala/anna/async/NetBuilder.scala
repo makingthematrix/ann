@@ -95,13 +95,18 @@ class NetBuilder {
 
   def addHushNeuron(id: String) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeHush(), id))
+    add(newNeuron(NeuronTypeHush(), id, activationFunctionName = ActivationFunction.UNUSED))
     this
   }
 
   def addDummy(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(neuronType=NeuronTypeDummy(), id=id, threshold=0.0, forgetting=ForgetAll(), tickTimeMultiplier=tickTimeMultiplier))
+    add(newNeuron(neuronType=NeuronTypeDummy(),
+                  id=id, threshold=0.0,
+                  forgetting=ForgetAll(),
+                  tickTimeMultiplier=tickTimeMultiplier,
+                  activationFunctionName = ActivationFunction.UNUSED
+    ))
     this
   }
 

@@ -64,7 +64,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
 
   private def mutateHushValue():Unit = {
     val newHushValue = HushValue(RandomNumber(Context().hushRange))
-    debug(s"MUTATION: mutateSlope for $id from ${_data.hushValue} to $newHushValue")
+    debug(s"MUTATION: mutateHushValue for $id from ${_data.hushValue} to $newHushValue")
     _data = _data.withHushValue(newHushValue)
   }
 

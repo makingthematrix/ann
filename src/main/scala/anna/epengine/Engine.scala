@@ -45,12 +45,14 @@ class Engine(val dirName: String,
 
     debug(this,s" ------------------------ done iteration $iterIndex of the engine ------------------------ ")
 
-    Utils.save(s"${dirPath}/iteration${iterIndex}.log", listOut.log)
-    val mutations = listOut.list.filter(_.contains("MUTATION: ")).map(l => l.substring(l.indexOf("MUTATION: ") + 10))
-    Utils.save(s"${dirPath}/mutations_iteration${iterIndex}.log", mutations.mkString("\n"))
-    LOG.removeOut(listOut)
+    if(savingProgress) {
+      Utils.save(s"${dirPath}/iteration${iterIndex}.log", listOut.log)
+      val mutations = listOut.list.filter(_.contains("MUTATION: ")).map(l => l.substring(l.indexOf("MUTATION: ") + 10))
+      Utils.save(s"${dirPath}/mutations_iteration${iterIndex}.log", mutations.mkString("\n"))
+      Utils.save(s"${dirPath}/best_iteration${iterIndex}.json", best.toJson)
+    }
 
-    Utils.save(s"${dirPath}/best_iteration${iterIndex}.json", best.toJson)
+    LOG.removeOut(listOut)
 
     iterIndex += 1
   }
@@ -69,29 +71,24 @@ class Engine(val dirName: String,
     debug(this, " --- new generation --- ")
     debug(this,s"Poll size ${_poll.size}, results: ${results.size}")
 
-    val resultsNormalized = {
-      val sum = results.values.sum
-      results.map( tuple => tuple._1 -> tuple._2/sum ).toList.sortBy(-_._2).toMap
-    }
-
-    // single out one genome from the lower half and cross it
-    // this is to ensure that the new poll will be at least a bit diversified
-    val lowerHalfGenome = _poll(resultsNormalized.toList(RandomNumber(results.size/2) + results.size/2)._1)
-    val higherHalfGenomeOpt = drawCrossableGenome(lowerHalfGenome, _poll.genomes, results)
-    val (g1,g2) = if(higherHalfGenomeOpt != None) lowerHalfGenome.cross(higherHalfGenomeOpt.get)
-                  else (lowerHalfGenome.clone, lowerHalfGenome.clone)
-    debug(this,s"new names: ${g1.id} -> iter${iterIndex}#0Left, ${g2.id} -> iter${iterIndex}#0Right")
-
-    val newGenomes = (for(i <- 1 to results.size/2 - 1) yield {
-      val (g1, g2) = crossTwoGenomes
-      debug(this,s"new names: ${g1.id} -> iter${iterIndex}#${i}Left, ${g2.id} -> iter${iterIndex}#${i}Right")
-      List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
-    }).flatten.toList ++ List(g1.netId(s"iter${iterIndex}#0Left"), g2.netId(s"iter${iterIndex}#0Right"))
+    /*
+    @todo: Create crossCoefficient, so not all new genomes are crossbred - some are simply clones
+     */
+    val newGenomes = crossRandomGenomes(results.size)
 
     if(newGenomes.size < _poll.size) best.netId(s"iter${iterIndex}Best") :: newGenomes else newGenomes
   }
 
-  def crossTwoGenomes = {
+  private def crossRandomGenomes(size: Int) = {
+    val newGenomes = (for(i <- 1 to size/2) yield {
+      val (g1, g2) = crossTwoGenomes
+      debug(this,s"new names: ${g1.id} -> iter${iterIndex}#${i}Left, ${g2.id} -> iter${iterIndex}#${i}Right")
+      List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
+    }).flatten.toList
+    if(newGenomes.size > size) newGenomes.init else newGenomes
+  }
+
+  private def crossTwoGenomes = {
     val genome1 = _poll(drawId)
     drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id) match {
       case Some(genome2) => genome1.cross(genome2)

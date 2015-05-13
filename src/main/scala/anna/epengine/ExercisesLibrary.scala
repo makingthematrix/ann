@@ -3,6 +3,7 @@ package anna.epengine
 import anna.async.NetWrapper
 
 import scala.util.Random
+import scala.collection.mutable
 
 /**
  * Created by gorywoda on 11.03.15.
@@ -49,9 +50,11 @@ object ExercisesLibrary {
     if(counter == 6) success else failure
   })
 
+  private val randomResult01Map = mutable.Map[String,Double]()
+
   val randomResult01 = Exercise("random result 0-1", 1, List("out1"),
                                 (wrapper: NetWrapper, success: Double, failure: Double) => {
-    if(Random.nextBoolean()) success else failure
+    randomResult01Map.getOrElseUpdate(wrapper.net.id, if(Random.nextBoolean()) success else failure)
   })
 
   val oneSignalGivesDot = Exercise("one signal gives dot", 1, List("dot"),

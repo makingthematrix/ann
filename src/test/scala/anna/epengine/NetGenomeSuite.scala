@@ -24,12 +24,12 @@ class NetGenomeSuite extends JUnitSuite {
   val outputIds = List("out1")
 
   @Test def shouldAddNeuron(): Unit ={
-    Context.withNeuronsRange(2 to 2)
+    Context.withNeuronsRange(3 to 3)
     Context.withSynapsesDensity(2.5)
     Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome.build("net", inputIds, outputIds)
-    assertEquals(2, ng.data.neurons.size)
+    assertEquals(3, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
 

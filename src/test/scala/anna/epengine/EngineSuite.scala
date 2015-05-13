@@ -81,8 +81,8 @@ class EngineSuite extends JUnitSuite {
     val best2 = engine.best
     val result2 = coach.test(best2.data)
 
-    assertTrue(result2 >= result1)
     println(s"new result: $result2, old result: $result1")
+    assertTrue(result2 >= result1)
   }
 
   @Test def shouldPerformIterationWithFakeResults(): Unit = {
@@ -115,8 +115,8 @@ class EngineSuite extends JUnitSuite {
     val best2 = engine.best
     val result2 = coach.test(best2.data)
 
-    assertTrue(result2 >= result1)
     println(s"new result: $result2, old result: $result1")
+    assertTrue(result2 >= result1)
   }
 
   @Test def shouldUseTemplateForPoll(): Unit ={
@@ -169,8 +169,8 @@ class EngineSuite extends JUnitSuite {
     val best2 = engine.best
     val result2 = coach.test(best2.data)
 
-    assertTrue(result2 >= result1)
     println(s"new result: $result2, old result: $result1")
+    assertTrue(result2 >= result1)
 
     val newPoll = engine.poll
     val n0 = newPoll(0)
