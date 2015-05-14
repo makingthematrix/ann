@@ -6,6 +6,7 @@ import org.json4s.native.Serialization.{read, writePretty}
 /**
  * Created by gorywoda on 12.01.15.
  */
+
 case class IntRange(start: Int, end: Int)  {
   def choose(x: Double) = math.round(x *(end - r.start - 1) + r.start).toInt
   def r = start to end

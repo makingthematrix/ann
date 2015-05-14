@@ -68,14 +68,21 @@ case class NetGenomeDefaults(
   def toJson = writePretty(this)
 }
 
-case class Context(
-  awaitTimeout: Long,
+case class EngineDefaults(
   initialMutationsNumber: Int,
   genomePollSize: Int,
   exercisesSetDir: String,
   mutationProbability: Double,
   evolutionDir: String,
+  crossCoefficient: Double
+){
+  def toJson = writePretty(this)
+}
 
+case class Context(
+  awaitTimeout: Long,
+
+  engineDefaults: EngineDefaults,
   neuronDefaults: NeuronDefaults,
   synapseGenomeDefaults: SynapseGenomeDefaults,
   neuronGenomeDefaults: NeuronGenomeDefaults,
@@ -91,6 +98,13 @@ case class Context(
   }
 
   def toJson = writePretty(this)
+
+  def initialMutationsNumber = engineDefaults.initialMutationsNumber
+  def genomePollSize = engineDefaults.genomePollSize
+  def exercisesSetDir = engineDefaults.exercisesSetDir
+  def mutationProbability = engineDefaults.mutationProbability
+  def evolutionDir = engineDefaults.evolutionDir
+  def crossCoefficient = engineDefaults.crossCoefficient
 
   def slope = neuronDefaults.slope
   def threshold = neuronDefaults.threshold
@@ -149,6 +163,19 @@ object Context {
   }
 
   private def that = instance.get
+
+  def withInitialMutationsNumber(initialMutationsNumber: Int) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(initialMutationsNumber = initialMutationsNumber)))
+  def withGenomePollSize(genomePollSize: Int) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(genomePollSize = genomePollSize)))
+  def withExercisesSetDir(exercisesSetDir: String) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(exercisesSetDir = exercisesSetDir)))
+  def withMutationProbability(mutationProbability: Double) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(mutationProbability = mutationProbability)))
+  def withEvolutionDir(evolutionDir: String) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(evolutionDir = evolutionDir)))
+  def withCrossCoefficient(crossCoefficient: Double) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(crossCoefficient = crossCoefficient)))
 
   def withWeightRange(weightRange: DoubleRange) =
     set(apply().copy(synapseGenomeDefaults = that.synapseGenomeDefaults.copy(weightRange = weightRange)))
@@ -228,11 +255,17 @@ object Context {
     val awaitTimeout = root.getInt("awaitTimeout")
     //val system = ActorSystem("system")
 
-    val exercisesSetDir = root.getString("exercisesSetDir")
-    val genomePollSize = root.getInt("genomePollSize")
-    val initialMutationsNumber = root.getInt("initialMutationsNumber")
-    val mutationProbability = root.getDouble("mutationProbability")
-    val evolutionDir = root.getString("evolutionDir")
+    val engineRoot = root.getConfig("engineDefaults")
+    val initialMutationsNumber = engineRoot.getInt("initialMutationsNumber")
+    val genomePollSize = engineRoot.getInt("genomePollSize")
+    val exercisesSetDir = engineRoot.getString("exercisesSetDir")
+    val mutationProbability = engineRoot.getDouble("mutationProbability")
+    val evolutionDir = engineRoot.getString("evolutionDir")
+    val crossCoefficient = engineRoot.getDouble("crossCoefficient")
+
+    val engineDefaults = EngineDefaults(
+      initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir, crossCoefficient
+    )
 
     // neuron defaults
     val neuronRoot = root.getConfig("neuronDefaults")
@@ -302,8 +335,7 @@ object Context {
       inputTickMultiplierRange, neuronsRange, synapsesDensity
     )
 
-    set(Context(awaitTimeout, initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir,
-                neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
+    set(Context(awaitTimeout, engineDefaults, neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
   }
 
   def fromJson(jsonStr: String) = read[Context](jsonStr)

@@ -12,9 +12,12 @@ case class GenomePoll(genomes: List[NetGenome]){
   def apply(index: Int):NetGenome = genomes(index)
   def size = genomes.size
   def ids = genomes.map(_.id)
+  def empty = genomes.isEmpty
 
   def toJson = writePretty(this)
-  
+
+  def genomesSorted(results:Map[String,Double]) =
+    genomes.sortWith( (g1: NetGenome, g2: NetGenome) => results(g1.id) >= results(g2.id)).toList
 }
 
 object GenomePoll {

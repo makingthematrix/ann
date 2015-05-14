@@ -4,13 +4,15 @@ import anna.Context
 import anna.data.NetData
 import anna.logger.{ListLogOutput, LOG}
 import anna.logger.LOG._
-import anna.utils.{RandomNumber, Utils}
+import anna.utils.{IntRange, RandomNumber, Utils}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 
 import anna.utils.Utils.formats
 import org.json4s.native.Serialization.{read, writePretty}
+
+import scala.collection.mutable
 
 class Engine(val dirName: String,
              val coach: Coach,
@@ -47,7 +49,14 @@ class Engine(val dirName: String,
 
     if(savingProgress) {
       Utils.save(s"${dirPath}/iteration${iterIndex}.log", listOut.log)
-      val mutations = listOut.list.filter(_.contains("MUTATION: ")).map(l => l.substring(l.indexOf("MUTATION: ") + 10))
+
+      val mutations = listOut.list.map(_ match {
+        case line if line.contains("MUTATION: ") => Some(line.substring(line.indexOf("MUTATION: ")))
+        case line if line.contains("CROSSING: ") => Some(line.substring(line.indexOf("CROSSING: ")))
+        case line if line.contains("CLONING: ") => Some(line.substring(line.indexOf("CLONING: ")))
+        case _ => None
+      }).flatten
+
       Utils.save(s"${dirPath}/mutations_iteration${iterIndex}.log", mutations.mkString("\n"))
       Utils.save(s"${dirPath}/best_iteration${iterIndex}.json", best.toJson)
     }
@@ -67,22 +76,49 @@ class Engine(val dirName: String,
     genomes
   }
 
-  def newGeneration = {
+  def newGeneration:List[NetGenome] = {
     debug(this, " --- new generation --- ")
     debug(this,s"Poll size ${_poll.size}, results: ${results.size}")
 
-    /*
-    @todo: Create crossCoefficient, so not all new genomes are crossbred - some are simply clones
-     */
-    val newGenomes = crossRandomGenomes(results.size)
+    val genomesToCross = math.round(Context().crossCoefficient * results.size).toInt
+    val genomesToClone = results.size - genomesToCross
 
-    if(newGenomes.size < _poll.size) best.netId(s"iter${iterIndex}Best") :: newGenomes else newGenomes
+    debug(this,s"genomesToCross: $genomesToCross, genomesToClone: $genomesToClone")
+
+    val crossedGenomes = crossRandomGenomes(genomesToCross)
+    val clonedGenomes = cloneGenomes(genomesToClone)
+
+    debug(this, s" --- new generation done --- ")
+
+    crossedGenomes ++ clonedGenomes
   }
+
+  private def cloneGenomes(size: Int) = if(size > 0){
+    val sortedGenomes = _poll.genomesSorted(results)
+    val bestGenome = sortedGenomes(0)
+    val newId = s"iter${iterIndex}#0Cloned"
+    debug(this,s"CLONING: best genome ${bestGenome.id} as $newId")
+    val list = mutable.ListBuffer[NetGenome](bestGenome.netId(newId))
+    if(size > 1){
+      val lowerHalfRandom = RandomNumber((sortedGenomes.size / 2) until sortedGenomes.size)
+      val lowerHalfGenome = sortedGenomes(lowerHalfRandom)
+      val newId = s"iter${iterIndex}#${lowerHalfRandom}Cloned"
+      debug(this,s"CLONING: lower half ($lowerHalfRandom) genome ${lowerHalfGenome.id} as $newId")
+      list += lowerHalfGenome.netId(newId)
+      list ++= (2 until size).map(index => {
+        val genome = sortedGenomes(index - 1)
+        val newId = s"iter${iterIndex}#${index - 1}Cloned"
+        debug(this,s"CLONING: genome ${genome.id} as $newId")
+        genome.netId(newId)
+      })
+    }
+    list.toList
+  } else List[NetGenome]()
 
   private def crossRandomGenomes(size: Int) = {
     val newGenomes = (for(i <- 1 to size/2) yield {
       val (g1, g2) = crossTwoGenomes
-      debug(this,s"new names: ${g1.id} -> iter${iterIndex}#${i}Left, ${g2.id} -> iter${iterIndex}#${i}Right")
+      debug(this,s"CROSSING: ... new names ${g1.id} -> iter${iterIndex}#${i}Left, ${g2.id} -> iter${iterIndex}#${i}Right")
       List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
     }).flatten.toList
     if(newGenomes.size > size) newGenomes.init else newGenomes
@@ -91,12 +127,19 @@ class Engine(val dirName: String,
   private def crossTwoGenomes = {
     val genome1 = _poll(drawId)
     drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id) match {
-      case Some(genome2) => genome1.cross(genome2)
-      case None => (genome1.clone, genome1.clone)
+      case Some(genome2) =>
+        debug(this,s"CROSSING: ${genome1.id} with ${genome2.id}")
+        genome1.cross(genome2)
+      case None =>
+        debug(this,s"CROSSING: ${genome1.id} in two copies as no other crossable genome was found")
+        (genome1.clone, genome1.clone)
     }
   }
 
-  def best = _poll.genomes.find( _.id == results.maxBy(_._2)._1 ).get
+  def best = {
+    if(_poll.empty) exception("The genomes poll is empty")
+    _poll.genomesSorted(results)(0)
+  }
 
   def getResult(netId: String) = results.get(netId)
 

@@ -15,12 +15,17 @@ import org.scalatest.junit.JUnitSuite
 
 
 class EngineSuite extends JUnitSuite {
+
+  private var _oldContext:Context = _
+
   @Before def before() {
+    _oldContext = Context()
     LOG.addLogToStdout()
   }
 
   @After def after(): Unit ={
     if(engine != null && Utils.fileExists(engine.dirPath)) Utils.deleteDir(engine.dirPath)
+    Context.set(_oldContext)
   }
 
   private var engine: Engine = null
@@ -59,6 +64,8 @@ class EngineSuite extends JUnitSuite {
   }
 
   val t2 = Exercise("constant output", 1, List("out1"), f)
+
+  val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
 
   @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 3)
@@ -189,8 +196,6 @@ class EngineSuite extends JUnitSuite {
 
   }
 
-  val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
-
   @Test def shouldCreateEvolutionDirectory(): Unit ={
     // for that we need:
     // 1. name of the directory
@@ -299,6 +304,20 @@ class EngineSuite extends JUnitSuite {
 
     assertTrue(Utils.fileExists(engine.dirPath + "/iteration1.log"))
     assertTrue(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
+  }
+
+  @Test def shouldNeitherCrossNorMutate(): Unit ={
+    val dirName = "test-shouldNeitherCrossNorMutate"
+    engine = Engine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+
+    Context.withMutationProbability(0.0)
+    Context.withCrossCoefficient(0.0)
+
+    engine.run()
+
+    assertTrue(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
+    val lines = Utils.load(engine.dirPath + "/mutations_iteration1.log").split("\n")
+    assertTrue(lines.filterNot(_.contains("CLONING:")).isEmpty)
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={
