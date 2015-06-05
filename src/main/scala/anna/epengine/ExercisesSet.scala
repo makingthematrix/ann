@@ -11,12 +11,12 @@ import org.json4s.native.JsonMethods._
  */
 case class ExercisesSet(name: String, exercisesNames: List[String]){
   def exercises = exercisesNames.map( exName => ExercisesLibrary().apply(exName) )
+
+  def size = exercisesNames.size
+
   def validate = exercisesNames.foreach( exName =>
     assert(ExercisesLibrary().get(exName) != None, s"Exercise not defined in the set $name: $exName")
   )
-
-  def resultForAllPassed =
-    exercisesNames.map(exName => ExercisesLibrary().get(exName).map(_.success).getOrElse(0.0)).sum
 
   def save = Utils.save(Context().exercisesSetDir + "/" + name + ".json",toJson)
 

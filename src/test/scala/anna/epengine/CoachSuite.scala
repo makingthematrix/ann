@@ -11,14 +11,14 @@ import org.junit.Test
  */
 class CoachSuite extends MySuite {
 
-  val f = (wrapper: NetWrapper, success: Double, failure: Double) => {
+  val f = (wrapper: NetWrapper) => {
     var counter = 0
     wrapper.addAfterFire("out1"){ counter += 1 }
 
     wrapper += "1,1,1,1,1,1"
 
     wrapper.tickUntilCalm()
-    if(counter == 6) success else failure
+    if(counter == 6) 1.0 else 0.0
   }
 
   @Test def shouldPassNetTest() = {
@@ -55,7 +55,9 @@ class CoachSuite extends MySuite {
     shutdown()
 
     // and now let's do the same through the Coach
-    val test = Exercise(name = "constant output", inputLen = 1, outputIds = List("out1"), function = f)
+    val test = new Exercise("constant output", 1, List("out1")){
+      def run(netWrapper: NetWrapper): Double = f(netWrapper)
+    }
     val coach = Coach(List(test))
     val result = coach.test(data)
     assertEquals(1.0, result, 0.01)
@@ -66,9 +68,13 @@ class CoachSuite extends MySuite {
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     val data = builder.data
 
-    val test1 = Exercise(name = "constant output 1", inputLen = 1, outputIds = List("out1"), function = f)
-    val test2 = Exercise(name = "constant output 2", inputLen = 1, outputIds = List("out1"), function = f)
-    val test3 = Exercise(name = "constant output 3", inputLen = 1, outputIds = List("out1"), function = f)
+    case class FExercise(override val name: String,override val inputLen:Int,override val outputIds:List[String]) extends Exercise(name, inputLen, outputIds){
+      def run(netWrapper: NetWrapper): Double = f(netWrapper)
+    }
+
+    val test1 = FExercise("constant output 1", 1, List("out1"))
+    val test2 = FExercise("constant output 2", 1, List("out1"))
+    val test3 = FExercise("constant output 3", 1, List("out1"))
     val coach = Coach(List(test1, test2, test3))
     val result = coach.test(data)
     assertEquals(3.0, result, 0.01)
@@ -114,7 +120,7 @@ class CoachSuite extends MySuite {
     val result = Coach(set).test(data)
 
     debug(this, s"the result of ${set.name} is $result")
-    assertEquals(set.resultForAllPassed, result, 0.001)
+    assertEquals(set.size, result, 0.001)
   }
 
   @Test def shouldSaveAndLoadDotSet(): Unit ={

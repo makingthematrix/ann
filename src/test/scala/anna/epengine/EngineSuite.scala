@@ -41,29 +41,33 @@ class EngineSuite extends JUnitSuite {
     builder.data
   }
 
-  val anySignalAnyResponse = (wrapper: NetWrapper, good: Double, bad: Double) => {
-    var counter = 0
-    wrapper.addAfterFire("out1"){ counter += 1 }
+  val t1 = new Exercise("any response to any signal", 1, List("out1")) {
+    def run(wrapper: NetWrapper) = {
+      var counter = 0
+      wrapper.addAfterFire("out1") {
+        counter += 1
+      }
 
-    wrapper += "1"
+      wrapper += "1"
 
-    wrapper.tickUntilCalm()
-    if(counter > 0) good else bad
+      wrapper.tickUntilCalm()
+      if (counter > 0) 1.0 else 0.0
+    }
   }
 
-  val t1 = Exercise("any response to any signal", 1, List("out1"), anySignalAnyResponse)
+  val t2 = new Exercise("constant output", 1, List("out1")) {
+    def run(wrapper: NetWrapper):Double = {
+      var counter = 0
+      wrapper.addAfterFire("out1") {
+        counter += 1
+      }
 
-  val f = (wrapper: NetWrapper, success: Double, failure: Double) => {
-    var counter = 0
-    wrapper.addAfterFire("out1"){ counter += 1 }
+      wrapper += "1,1,1,1,1,1"
 
-    wrapper += "1,1,1,1,1,1"
-
-    wrapper.tickUntilCalm()
-    if(counter == 6) success else failure
+      wrapper.tickUntilCalm()
+      if (counter == 6) 1.0 else 0.0
+    }
   }
-
-  val t2 = Exercise("constant output", 1, List("out1"), f)
 
   val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
 
