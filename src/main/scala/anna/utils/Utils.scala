@@ -11,6 +11,7 @@ import anna.async._
 import anna.data._
 import anna.epengine.{MutationAccessDontDelete, MutationAccessDontMutate, MutationAccessFull}
 import anna.logger.LOG
+import anna.logger.LOG._
 import org.apache.commons.io.FileUtils
 import org.json4s._
 import org.json4s.native.Serialization
@@ -107,6 +108,14 @@ object Utils {
 
     dir
   }
+
+  def listDirs(dirPath: String) = {
+    val dir = new File(dirPath)
+    if(!dir.exists() || !dir.isDirectory) exception(this, s"No directory with the name $dir")
+
+    dir.listFiles().filter(_.isDirectory).map(_.getCanonicalPath).toList
+  }
+
 
   def fileExists(filePath: String) = new File(filePath).exists()
 
