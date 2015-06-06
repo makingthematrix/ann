@@ -10,12 +10,12 @@ import org.json4s.native.JsonMethods._
  * Created by gorywoda on 11.03.15.
  */
 case class ExercisesSet(name: String, exercisesNames: List[String]){
-  def exercises = exercisesNames.map( exName => ExercisesLibrary().apply(exName) )
+  def exercises = exercisesNames.map( exName => ExercisesLibrary.apply(exName) )
 
   def size = exercisesNames.size
 
   def validate = exercisesNames.foreach( exName =>
-    assert(ExercisesLibrary().get(exName) != None, s"Exercise not defined in the set $name: $exName")
+    assert(ExercisesLibrary.get(exName) != None, s"Exercise not defined in the set $name: $exName")
   )
 
   def save = Utils.save(Context().exercisesSetDir + "/" + name + ".json",toJson)

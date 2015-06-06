@@ -50,7 +50,12 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
   
   def shutdown() = await[NetShutdownDone](ref,Shutdown)
- 
+
+  def lastOutput(id: String):Double = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.lastOutput
+    case None => throw new IllegalArgumentException(s"Unable to find neuron with id $id")
+  }
+
   def addAfterFire(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addAfterFire(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
