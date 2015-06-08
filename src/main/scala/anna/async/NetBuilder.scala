@@ -174,6 +174,11 @@ class NetBuilder {
     this
   }
 
+  def setName(name: String) = {
+    netName = name
+    this
+  }
+
   def clear() = {
     neurons.clear()
     synapses.clear()

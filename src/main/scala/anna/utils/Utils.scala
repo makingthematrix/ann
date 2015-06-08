@@ -109,13 +109,19 @@ object Utils {
     dir
   }
 
-  def listDirs(dirPath: String) = {
+  def listDirs(dirPath: String) = list(dirPath, 1)
+  def listFiles(dirPath: String) = list(dirPath, 2)
+
+  private def list(dirPath: String, flag: Int) = {
     val dir = new File(dirPath)
     if(!dir.exists() || !dir.isDirectory) exception(this, s"No directory with the name $dir")
 
-    dir.listFiles().filter(_.isDirectory).map(_.getCanonicalPath).toList
+    (flag match {
+      case 0 => dir.listFiles()
+      case 1 => dir.listFiles().filter(_.isDirectory)
+      case 2 => dir.listFiles().filterNot(_.isDirectory)
+    }).map(_.getName).toList
   }
-
 
   def fileExists(filePath: String) = new File(filePath).exists()
 
