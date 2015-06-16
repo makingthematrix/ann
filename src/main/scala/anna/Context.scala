@@ -79,6 +79,19 @@ case class EngineDefaults(
   def toJson = writePretty(this)
 }
 
+case class DotLineExercisesDefaults(
+  oneSignalGivesDotImportance: Double,
+  twoSignalsGiveLineImportance: Double,
+  oneSignalWithNoiseGivesDotImportance: Double,
+  twoSignalsWithNoiseGiveLineImportance: Double,
+  oneVariedSignalGivesDotImportance: Double,
+  twoVariedSignalsGiveLineImportance: Double,
+  oneVariedSignalWithNoiseGivesDotImportance: Double,
+  twoVariedSignalsWithNoiseGiveLineImportance: Double
+){
+  def toJson = writePretty(this)
+}
+
 case class Context(
   awaitTimeout: Long,
 
@@ -86,7 +99,8 @@ case class Context(
   neuronDefaults: NeuronDefaults,
   synapseGenomeDefaults: SynapseGenomeDefaults,
   neuronGenomeDefaults: NeuronGenomeDefaults,
-  netGenomeDefaults: NetGenomeDefaults
+  netGenomeDefaults: NetGenomeDefaults,
+  dotLineExercisesDefaults: DotLineExercisesDefaults
 ){
   def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
 
@@ -144,6 +158,15 @@ case class Context(
 
   def neuronsRange = netGenomeDefaults.neuronsRange
   def synapsesDensity = netGenomeDefaults.synapsesDensity
+
+  def oneSignalGivesDotImportance = dotLineExercisesDefaults.oneSignalGivesDotImportance
+  def twoSignalsGiveLineImportance = dotLineExercisesDefaults.twoSignalsGiveLineImportance
+  def oneSignalWithNoiseGivesDotImportance = dotLineExercisesDefaults.oneSignalWithNoiseGivesDotImportance
+  def twoSignalsWithNoiseGiveLineImportance = dotLineExercisesDefaults.twoSignalsWithNoiseGiveLineImportance
+  def oneVariedSignalGivesDotImportance = dotLineExercisesDefaults.oneVariedSignalGivesDotImportance
+  def twoVariedSignalsGiveLineImportance = dotLineExercisesDefaults.twoVariedSignalsGiveLineImportance
+  def oneVariedSignalWithNoiseGivesDotImportance = dotLineExercisesDefaults.oneVariedSignalWithNoiseGivesDotImportance
+  def twoVariedSignalsWithNoiseGiveLineImportance = dotLineExercisesDefaults.twoVariedSignalsWithNoiseGiveLineImportance
 }
 
 object Context {
@@ -248,12 +271,28 @@ object Context {
   def withActivationFunctionName(activationFunctionName: String) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(activationFunctionName = activationFunctionName)))
 
+  def withOneSignalGivesDotImportance(oneSignalGivesDotImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(oneSignalGivesDotImportance = oneSignalGivesDotImportance)))
+  def withTwoSignalsGiveLineImportance(twoSignalsGiveLineImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(twoSignalsGiveLineImportance = twoSignalsGiveLineImportance)))
+  def withOneSignalWithNoiseGivesDotImportance(oneSignalWithNoiseGivesDotImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(oneSignalWithNoiseGivesDotImportance = oneSignalWithNoiseGivesDotImportance)))
+  def withTwoSignalsWithNoiseGiveLineImportance(twoSignalsWithNoiseGiveLineImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(twoSignalsWithNoiseGiveLineImportance = twoSignalsWithNoiseGiveLineImportance)))
+  def withOneVariedSignalGivesDotImportance(oneVariedSignalGivesDotImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(oneVariedSignalGivesDotImportance = oneVariedSignalGivesDotImportance)))
+  def withTwoVariedSignalsGiveLineImportance(twoVariedSignalsGiveLineImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(twoVariedSignalsGiveLineImportance = twoVariedSignalsGiveLineImportance)))
+  def withOneVariedSignalWithNoiseGivesDotImportance(oneVariedSignalWithNoiseGivesDotImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(oneVariedSignalWithNoiseGivesDotImportance = oneVariedSignalWithNoiseGivesDotImportance)))
+  def withTwoVariedSignalsWithNoiseGiveLineImportance(twoVariedSignalsWithNoiseGiveLineImportance: Double) =
+    set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(twoVariedSignalsWithNoiseGiveLineImportance = twoVariedSignalsWithNoiseGiveLineImportance)))
+
   private def init(): Unit ={
     val config = ConfigFactory.load()
     val root = config.getConfig("context")
 
     val awaitTimeout = root.getInt("awaitTimeout")
-    //val system = ActorSystem("system")
 
     val engineRoot = root.getConfig("engineDefaults")
     val initialMutationsNumber = engineRoot.getInt("initialMutationsNumber")
@@ -335,7 +374,32 @@ object Context {
       inputTickMultiplierRange, neuronsRange, synapsesDensity
     )
 
-    set(Context(awaitTimeout, engineDefaults, neuronDefaults, synapseGenomeDefaults, neuronGenomeDefaults, netGenomeDefaults))
+    // dot-line exercises defaults
+    val dotLineExercisesRoot = root.getConfig("dotLineExercisesDefaults")
+
+    val oneSignalGivesDotImportance = dotLineExercisesRoot.getDouble("oneSignalGivesDotImportance")
+    val twoSignalsGiveLineImportance = dotLineExercisesRoot.getDouble("twoSignalsGiveLineImportance")
+    val oneSignalWithNoiseGivesDotImportance = dotLineExercisesRoot.getDouble("oneSignalWithNoiseGivesDotImportance")
+    val twoSignalsWithNoiseGiveLineImportance = dotLineExercisesRoot.getDouble("twoSignalsWithNoiseGiveLineImportance")
+    val oneVariedSignalGivesDotImportance = dotLineExercisesRoot.getDouble("oneVariedSignalGivesDotImportance")
+    val twoVariedSignalsGiveLineImportance = dotLineExercisesRoot.getDouble("twoVariedSignalsGiveLineImportance")
+    val oneVariedSignalWithNoiseGivesDotImportance = dotLineExercisesRoot.getDouble("oneVariedSignalWithNoiseGivesDotImportance")
+    val twoVariedSignalsWithNoiseGiveLineImportance = dotLineExercisesRoot.getDouble("twoVariedSignalsWithNoiseGiveLineImportance")
+
+    val dotLineExercisesDefaults = DotLineExercisesDefaults(
+      oneSignalGivesDotImportance,
+      twoSignalsGiveLineImportance,
+      oneSignalWithNoiseGivesDotImportance,
+      twoSignalsWithNoiseGiveLineImportance,
+      oneVariedSignalGivesDotImportance,
+      twoVariedSignalsGiveLineImportance,
+      oneVariedSignalWithNoiseGivesDotImportance,
+      twoVariedSignalsWithNoiseGiveLineImportance
+    )
+
+    set(Context(awaitTimeout, engineDefaults, neuronDefaults, synapseGenomeDefaults,
+                neuronGenomeDefaults, netGenomeDefaults, dotLineExercisesDefaults
+    ))
   }
 
   def fromJson(jsonStr: String) = read[Context](jsonStr)

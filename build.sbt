@@ -17,3 +17,5 @@ libraryDependencies ++= Seq(
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+
+initialCommands in console := "import anna.Commands._"

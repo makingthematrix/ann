@@ -45,6 +45,8 @@ object Commands {
     .use("line").hush("dot")
     .setName("net").data
 
+  val simplestTemplate = NetBuilder().addInput("in").chain("dot",1.0,0.5).use("in").chain("line",1.0,0.5).setName("net").data
+
   private var inputIdsOpt:Option[List[String]] = None
 
   def inputIds(ids:String*): Unit ={

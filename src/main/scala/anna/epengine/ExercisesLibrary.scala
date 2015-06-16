@@ -1,5 +1,6 @@
 package anna.epengine
 
+import anna.Context
 import anna.async.NetWrapper
 
 import scala.util.Random
@@ -61,345 +62,167 @@ object ExercisesLibrary {
   
   // here's the list of exercises for DotLine network
 
-  val oneSignalGivesDot = new Exercise("one signal gives dot", 1, List("dot")) {
+  private def dotLinePrepareAndWaitForResult(wrapper: NetWrapper, input: String):(Boolean, Double, Boolean, Double) = {
+    var dotFired = false
+    var dotResult = 0.0
+    wrapper.addAfterFire("dot"){
+      dotFired = true
+      dotResult = wrapper.lastOutput("dot")
+    }
+
+    var lineFired = false
+    var lineResult = 0.0
+    wrapper.addAfterFire("line"){
+      lineFired = true
+      lineResult = wrapper.lastOutput("line")
+    }
+
+    wrapper.tickUntilCalm(input)
+
+    (dotFired, dotResult, lineFired, lineResult)
+  }
+
+  val oneSignalGivesDot = new Exercise("one signal gives dot", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("dot"){ fired = true }
-      wrapper.tickUntilCalm("1,0,0")
-      successIf(fired)
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,0,0")
+
+      if(dotFired){
+        result += (if(!lineFired) 2.0 else 1.0)
+      }
+      if(lineFired) result += 1.0
+
+      result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneSignalGivesDotImportance)
+
+      result
     }
   }
 
-  val oneSignalGivesSomething = new Exercise("one signal gives something", 1, List("dot","line")) {
+  val twoSignalsGiveLine = new Exercise("two signals give line", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("dot"){ fired = true }
-      wrapper.addAfterFire("line"){ fired = true }
-      wrapper.tickUntilCalm("1,0,0")
-      successIf(fired)
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,1,0")
+
+      if(dotFired) result += 1.0
+      if(lineFired){
+        result += (if(!dotFired) 2.0 else 1.0)
+      }
+
+      result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoSignalsGiveLineImportance)
+
+      result
     }
   }
 
-  val oneSignalGivesDotAndSomethingImportance = 10.0
-
-  val oneSignalGivesDotAndSomething = new Exercise("one signal gives dot and something", 1, List("dot","line")) {
+  val oneSignalWithNoiseGivesDot = new Exercise("one signal with noise gives dot", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
-      wrapper.tickUntilCalm("1,0,0")
-      if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * oneSignalGivesDotAndSomethingImportance
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,0,1")
+
+      if(dotFired){
+        result += (if(!lineFired) 2.0 else 1.0)
+      }
+      if(lineFired) result += 1.0
+
+      result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneSignalWithNoiseGivesDotImportance)
+
+      result
     }
   }
 
-  val oneSignalGivesExactlyOneDot = new Exercise("one signal gives exactly one dot", 1, List("dot")) {
+  val twoSignalsWithNoiseGiveLine = new Exercise("two signals with noise give line", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
-      var counter = 0
-      wrapper.addAfterFire("dot") { counter += 1 }
-      wrapper.tickUntilCalm("1,0,0")
-      successIf(counter == 1)
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,1,1")
+
+      if(dotFired) result += 1.0
+      if(lineFired){
+        result += (if(!dotFired) 2.0 else 1.0)
+      }
+
+      result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoSignalsWithNoiseGiveLineImportance)
+
+      result
     }
   }
 
-  val twoSignalsGiveLine = new Exercise("two signals give line", 1, List("line")) {
-    def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("line") { fired = true }
-      wrapper.tickUntilCalm("1,1,0")
-      successIf(fired)
-    }
-  }
-
-  val twoSignalsGiveSomething = new Exercise("two signals give something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      wrapper.addAfterFire("line") { fired = true }
-      wrapper.tickUntilCalm("1,1,0")
-      successIf(fired)
-    }
-  }
-
-  val twoSignalsGiveLineAndSomethingImportance = 10.0
-
-  val twoSignalsGiveLineAndSomething = new Exercise("two signals give line and something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
-      wrapper.tickUntilCalm("1,1,0")
-      if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * twoSignalsGiveLineAndSomethingImportance
-    }
-  }
-
-  val oneSignalWithNoiseGivesDot = new Exercise("one signal with noise gives dot", 1, List("dot")) {
-    def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("dot"){ fired = true }
-      wrapper.tickUntilCalm("1,0,1")
-      successIf(fired)
-    }
-  }
-
-  val oneSignalWithNoiseGivesExactlyOneDot = new Exercise("one signal with noise gives exactly one dot", 1, List("dot")) {
-    def run(wrapper: NetWrapper) = {
-      var counter = 0
-      wrapper.addAfterFire("dot") { counter += 1 }
-      wrapper.tickUntilCalm("1,0,1")
-      successIf(counter == 1)
-    }
-  }
-
-  val oneSignalWithNoiseGivesSomething = new Exercise("one signal with noise gives something", 1, List("dot", "line")) {
-    def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("dot"){ fired = true }
-      wrapper.addAfterFire("line"){ fired = true }
-      wrapper.tickUntilCalm("1,0,1")
-      successIf(fired)
-    }
-  }
-
-  val oneSignalWithNoiseGivesDotAndSomethingImportance = 10.0
-
-  val oneSignalWithNoiseGivesDotAndSomething = new Exercise("one signal with noise gives dot and something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
-      wrapper.tickUntilCalm("1,0,1")
-      if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * oneSignalWithNoiseGivesDotAndSomethingImportance
-    }
-  }
-
-  val twoSignalsWithNoiseGiveLine = new Exercise("two signals with noise give line", 1, List("line")) {
-    def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("line") { fired = true }
-      wrapper.tickUntilCalm("1,1,1")
-      successIf(fired)
-    }
-  }
-
-  val twoSignalsWithNoiseGiveExactlyOneLine = new Exercise("two signals with noise give exactly one line", 1, List("line")) {
-    def run(wrapper: NetWrapper) = {
-      var counter = 0
-      wrapper.addAfterFire("line") { counter += 1 }
-      wrapper.tickUntilCalm("1,1,1")
-      successIf(counter == 1)
-    }
-  }
-
-  val twoSignalsWithNoiseGiveSomething = new Exercise("two signals with noise give something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      wrapper.addAfterFire("line") { fired = true }
-      wrapper.tickUntilCalm("1,1,1")
-      successIf(fired)
-    }
-  }
-
-  val twoSignalsWithNoiseGiveLineAndSomethingImportance = 10.0
-
-  val twoSignalsWithNoiseGiveLineAndSomething = new Exercise("two signals with noise give line and something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
-      wrapper.tickUntilCalm("1,1,1")
-      if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * twoSignalsWithNoiseGiveLineAndSomethingImportance
-    }
-  }
-
-  val oneVariedSignalGivesDot = new Exercise("one varied signal gives dot", 1, List("dot")) {
+  val oneVariedSignalGivesDot = new Exercise("one varied signal gives dot", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
       import anna.utils.Utils.{V, v}
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      List(V, v, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
+
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, v, v).mkString(","))
+
+      if(dotFired){
+        result += (if(!lineFired) 2.0 else 1.0)
+      }
+      if(lineFired) result += 1.0
+
+      result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneVariedSignalGivesDotImportance)
+
+      result
     }
   }
 
-  val oneVariedSignalGivesSomething = new Exercise("one varied signal gives something", 1, List("dot","line")) {
+  val twoVariedSignalsGiveLine = new Exercise("two varied signals give line", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
       import anna.utils.Utils.{V, v}
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      wrapper.addAfterFire("line") { fired = true }
-      List(V, v, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
+
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, V, v).mkString(","))
+
+      if(dotFired) result += 1.0
+      if(lineFired){
+        result += (if(!dotFired) 2.0 else 1.0)
+      }
+
+      result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoVariedSignalsGiveLineImportance)
+
+      result
     }
   }
 
-  val oneVariedSignalGivesDotAndSomethingImportance = 10.0
-
-  val oneVariedSignalGivesDotAndSomething = new Exercise("one varied signal gives dot and something", 1, List("dot","line")) {
+  val oneVariedSignalWithNoiseGivesDot = new Exercise("one varied signal with noise gives dot", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
       import anna.utils.Utils.{V, v}
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
 
-      List(V, v, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * oneSignalWithNoiseGivesDotAndSomethingImportance
+      var result = 0.0
+
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, v, V).mkString(","))
+
+      if(dotFired){
+        result += (if(!lineFired) 2.0 else 1.0)
+      }
+      if(lineFired) result += 1.0
+
+      result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneVariedSignalWithNoiseGivesDotImportance)
+
+      result
     }
   }
 
-  val oneVariedSignalGivesExactlyOneDot = new Exercise("one varied signal gives exactly one dot", 1, List("dot")) {
+  val twoVariedSignalsWithNoiseGiveLine = new Exercise("two varied signals with noise give line", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
       import anna.utils.Utils.{V, v}
-      var counter = 0
-      wrapper.addAfterFire("dot") { counter += 1 }
-      List(V, v, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(counter == 1)
-    }
-  }
 
-  val twoVariedSignalsGiveLine = new Exercise("two varied signals give line", 1, List("line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var fired = false
-      wrapper.addAfterFire("line") { fired = true }
-      List(V, V, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
-    }
-  }
+      var result = 0.0
 
-  val twoVariedSignalsGiveExactlyOneLine = new Exercise("two varied signals give exactly one line", 1, List("line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var counter = 0
-      wrapper.addAfterFire("line") { counter += 1 }
-      List(V, V, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(counter == 1)
-    }
-  }
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, V, V).mkString(","))
 
-  val twoVariedSignalsGiveLineAndSomethingImportance = 10.0
+      if(dotFired) result += 1.0
+      if(lineFired){
+        result += (if(!dotFired) 2.0 else 1.0)
+      }
 
-  val twoVariedSignalsGiveLineAndSomething = new Exercise("two varied signals give line and something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
+      result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoVariedSignalsWithNoiseGiveLineImportance)
 
-      List(V, V, v).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * twoVariedSignalsGiveLineAndSomethingImportance
-    }
-  }
-
-  val oneVariedSignalWithNoiseGivesDot = new Exercise("one varied signal with noise gives dot", 1, List("dot")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      List(V, v, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
-    }
-  }
-
-  val oneVariedSignalWithNoiseGivesExactlyOneDot = new Exercise("one varied signal with noise gives exactly one dot", 1, List("dot")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var counter = 0
-      wrapper.addAfterFire("dot") { counter += 1 }
-      List(V, v, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(counter == 1)
-    }
-  }
-
-  val oneVariedSignalWithNoiseGivesSomething = new Exercise("one varied signal with noise gives something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      wrapper.addAfterFire("line") { fired = true }
-      List(V, v, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
-    }
-  }
-
-  val oneVariedSignalWithNoiseGivesDotAndSomethingImportance = 10.0
-
-  val oneVariedSignalWithNoiseGivesDotAndSomething = new Exercise("one varied signal with noise gives dot and something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.{V, v}
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
-
-      List(V, v, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * oneVariedSignalWithNoiseGivesDotAndSomethingImportance
-    }
-  }
-
-  val twoVariedSignalsWithNoiseGiveLine = new Exercise("two varied signals with noise give line", 1, List("dot")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.V
-      var fired = false
-      wrapper.addAfterFire("line") { fired = true }
-      List(V, V, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
-    }
-  }
-
-  val twoVariedSignalsWithNoiseGiveExactlyOneLine = new Exercise("two varied signals with noise give exactly one line", 1, List("dot")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.V
-      var counter = 0
-      wrapper.addAfterFire("line") { counter += 1 }
-      List(V, V, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(counter == 1)
-    }
-  }
-
-  val twoVariedSignalsWithNoiseGiveSomething = new Exercise("two varied signals with noise give something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.V
-      var fired = false
-      wrapper.addAfterFire("dot") { fired = true }
-      wrapper.addAfterFire("line") { fired = true }
-      List(V, V, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      successIf(fired)
-    }
-  }
-
-  val twoVariedSignalsWithNoiseGiveLineAndSomethingImportance = 10.0
-
-  val twoVariedSignalsWithNoiseGiveLineAndSomething = new Exercise("two varied signals with noise give line and something", 1, List("dot","line")) {
-    def run(wrapper: NetWrapper) = {
-      import anna.utils.Utils.V
-      var dotResult = 0.0
-      wrapper.addAfterFire("dot"){ dotResult = wrapper.lastOutput("dot") }
-      var lineResult = 0.0
-      wrapper.addAfterFire("line"){ lineResult = wrapper.lastOutput("line") }
-      List(V, V, V).foreach(wrapper += _)
-      wrapper.tickUntilCalm()
-      if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * twoVariedSignalsWithNoiseGiveLineAndSomethingImportance
+      result
     }
   }
 
