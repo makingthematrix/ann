@@ -138,7 +138,7 @@ object Commands {
     val genome1 = NetGenome(data1, accessMap)
     val genome2 = NetGenome(data2, accessMap)
     if(genome1.crossable(genome2)) {
-      val (newGenome1, newGenome2) = genome1.cross(newGenome2)
+      val (newGenome1, newGenome2) = genome1.cross(genome2)
       (newGenome1.data, newGenome2.data)
     } else throw new IllegalArgumentException(s"${data1.id} not crossable with ${data2.id}")
   }
