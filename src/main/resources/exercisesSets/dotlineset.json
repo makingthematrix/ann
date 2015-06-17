@@ -1,0 +1,13 @@
+{
+  "name":"dotlineset",
+  "exercisesNames":[
+    "one signal gives dot",
+    "one signal with noise gives dot",
+    "one varied signal gives dot",
+    "one varied signal with noise gives dot",
+    "two signals give line",
+    "two signals with noise give line",
+    "two signals signal give line",
+    "two signals signal with noise give line"
+    ]
+}

@@ -82,7 +82,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   
   implicit private def fromNetBuilder(builder: NetBuilder):NetBuilderOps = NetBuilderOps.fromNetBuilder(builder)
 
-  def SOSNetWithHushNeuron() = {
+  def SOSNetData(name: String = "net") = {
     val itm = 3.0
     builder.inputTickMultiplier = itm
     builder.defSlope = 5.0
@@ -107,6 +107,11 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     builder.use("S").chainHushNeuron("hush_letters").hush("S").hush("O")
     builder.use("O").hush("hush_letters")
 
+    builder.setName(name).data
+  }
+
+  def SOSNetWithHushNeuron() = {
+    SOSNetData()
     val netWrapper = builder.build("net")
 
     netWrapper.addAfterFire("in"){ println("INCOMING!") }
