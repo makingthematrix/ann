@@ -12,6 +12,8 @@ import anna.async.NetBuilderOps._
  */
 object Commands {
 
+  def context = Context()
+
   def listEvolutions = {
     val dirs = Utils.listDirs(Context().evolutionDir)
     println(s"the evolutions directory is ${Context().evolutionDir}")
@@ -84,6 +86,5 @@ object Commands {
     case Some(engine) => engine.best
     case None => throw new IllegalArgumentException("Unable to get the best genome as no engine is ready")
   }
-
 
 }
