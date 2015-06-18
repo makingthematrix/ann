@@ -31,6 +31,8 @@ case class NetData(id: String,
   def withInputTickMultiplier(inputTickMultiplier: Double) = copy(inputTickMultiplier = inputTickMultiplier)
   def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
+  def neuron(id: String) = neurons.find(_.id == id).getOrElse(throw new IllegalArgumentException(s"No neuron found with id $id"))
+
   def toJson = writePretty(this)
 
   def filter(ids: Seq[String]) = {

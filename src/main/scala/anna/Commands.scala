@@ -143,4 +143,40 @@ object Commands {
     } else throw new IllegalArgumentException(s"${data1.id} not crossable with ${data2.id}")
   }
 
+  def diff(data1: NetData, data2: NetData) ={
+    val sb = StringBuilder.newBuilder
+    if(data1.id != data2.id) sb.append(s"net id: ${data1.id} -> ${data2.id}\n")
+    if(data1.neurons.size != data2.neurons.size) sb.append(s"#neurons: ${data1.neurons.size} -> ${data2.neurons.size}\n")
+
+    val data1NeuronIds = data1.neurons.map(_.id).toSet
+    val data2NeuronIds = data2.neurons.map(_.id).toSet
+    if(data1NeuronIds != data2NeuronIds){
+      sb.append(s"neurons: ${data1NeuronIds.toList.sorted} -> ${data2NeuronIds.toList.sorted}")
+      (data1NeuronIds -- data2NeuronIds).foreach( nid => {
+        val n = data1.neuron(nid)
+        sb.append(s"$nid deleted: $n\n")
+      })
+      (data2NeuronIds -- data1NeuronIds).foreach( nid => {
+        val n = data2.neuron(nid)
+        sb.append(s"$nid added: $n\n")
+      })
+    }
+
+    data1NeuronIds.intersect(data2NeuronIds).foreach(nid => {
+      val n1 = data1.neuron(nid)
+      val n2 = data2.neuron(nid)
+      if(n1 != n2){
+        if(n1.threshold != n2.threshold) sb.append(s"$nid threshold: ${n1.threshold} -> ${n2.threshold}\n")
+        if(n1.slope != n2.slope) sb.append(s"$nid slope: ${n1.slope} -> ${n2.slope}\n")
+        if(n1.hushValue != n2.hushValue) sb.append(s"$nid hushValue: ${n1.hushValue} -> ${n2.hushValue}\n")
+        if(n1.forgetting != n2.forgetting) sb.append(s"$nid forgetting: ${n1.forgetting} -> ${n2.forgetting}\n")
+        if(n1.tickTimeMultiplier != n2.tickTimeMultiplier) sb.append(s"$nid tickTimeMultiplier: ${n1.tickTimeMultiplier} -> ${n2.tickTimeMultiplier}\n")
+        // probably wrong
+        if(n1.synapses != n2.synapses) sb.append(s"$nid synapses: ${n1.synapses} -> ${n2.synapses}\n")
+      }
+    })
+
+    sb.toString
+  }
+
 }
