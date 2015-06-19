@@ -120,7 +120,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
     val synapses = if(onlyMutable)
       _data.synapses.filter(sd => access(sd.neuronId) != MutationAccessDontMutate())
     else _data.synapses
-    if(_data.synapses.nonEmpty) Some(RandomNumber(synapses)) else None
+    if(synapses.nonEmpty) Some(RandomNumber(synapses)) else None
   }
 
   private def mutateSynapse():Unit = Probability.performRandom(
@@ -153,7 +153,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
         synapseChromosome.mutate()
         _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
       case None =>
-        debug(this, s"Trying to mutate a synapse from $id but it's not allowed")
+        debug(this, s"Trying to mutate a synapse from $id but it's not allowed or $id has no synapses")
   }
 
   def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {

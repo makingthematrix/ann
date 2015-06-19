@@ -18,4 +18,9 @@ libraryDependencies ++= Seq(
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
 
-initialCommands in console := "import anna.Commands._"
+initialCommands in console :=
+  """
+    |import anna.Commands._
+    |import anna.logger.LOG
+    |LOG.addLogToStdout()
+  """.stripMargin

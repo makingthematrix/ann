@@ -41,12 +41,14 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   def mutate(repetitions: Int = 1) = {
-    for(i <- 0 to repetitions) Probability.performRandom(
+    debug(this,s"mutate with $repetitions repetitions")
+    for(i <- 0 until repetitions) Probability.performRandom(
       (Context().addNeuronProbability, addNeuron _),
       (Context().deleteNeuronProbability, deleteNeuron _),
       (Context().mutateNeuronProbability, mutateNeuron _),
       (Context().inputTickMultiplierProbability, mutateInputTickMultiplier _)
     )
+    debug("here")
     this
   }
 
@@ -119,9 +121,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   } else (clone, genome.clone)
 
   def deleteNeuron(id: String): Unit = {
-    debug(this,s"delete neuron $id. was ${_data.neurons.size}")
     _data = _data.withNeurons( neurons.filterNot( _.id == id ) )
-    debug(this,s"is ${_data.neurons.size}")
   }
 
   private def addNeuron(n: NeuronData) = {

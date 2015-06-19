@@ -151,11 +151,8 @@ object Commands {
     val data1NeuronIds = data1.neurons.map(_.id).toSet
     val data2NeuronIds = data2.neurons.map(_.id).toSet
     if(data1NeuronIds != data2NeuronIds){
-      sb.append(s"neurons: ${data1NeuronIds.toList.sorted} -> ${data2NeuronIds.toList.sorted}")
-      (data1NeuronIds -- data2NeuronIds).foreach( nid => {
-        val n = data1.neuron(nid)
-        sb.append(s"$nid deleted: $n\n")
-      })
+      sb.append(s"neurons: ${data1NeuronIds.toList.sorted} -> ${data2NeuronIds.toList.sorted}\n")
+      (data1NeuronIds -- data2NeuronIds).foreach( nid => sb.append(s"$nid deleted\n"))
       (data2NeuronIds -- data1NeuronIds).foreach( nid => {
         val n = data2.neuron(nid)
         sb.append(s"$nid added: $n\n")
@@ -171,8 +168,23 @@ object Commands {
         if(n1.hushValue != n2.hushValue) sb.append(s"$nid hushValue: ${n1.hushValue} -> ${n2.hushValue}\n")
         if(n1.forgetting != n2.forgetting) sb.append(s"$nid forgetting: ${n1.forgetting} -> ${n2.forgetting}\n")
         if(n1.tickTimeMultiplier != n2.tickTimeMultiplier) sb.append(s"$nid tickTimeMultiplier: ${n1.tickTimeMultiplier} -> ${n2.tickTimeMultiplier}\n")
-        // probably wrong
-        if(n1.synapses != n2.synapses) sb.append(s"$nid synapses: ${n1.synapses} -> ${n2.synapses}\n")
+
+        val n1SynapsesMap = n1.synapses.map(s => (s.neuronId -> s.weight)).toMap
+        val n2SynapsesMap = n2.synapses.map(s => (s.neuronId -> s.weight)).toMap
+
+        if(n1SynapsesMap.keySet != n2SynapsesMap.keySet){
+          sb.append(s"$nid synapses: ${n1SynapsesMap.keys.toList.sorted} -> ${n2SynapsesMap.keys.toList.sorted}\n")
+          (n1SynapsesMap.keySet -- n2SynapsesMap.keySet).foreach(sid => sb.append(s"${nid}->${sid} deleted\n"))
+          (n2SynapsesMap.keySet -- n1SynapsesMap.keySet).foreach(sid => {
+            sb.append(s"${nid}->${sid} added ${n2SynapsesMap(sid)}\n")
+          })
+        }
+
+        n1SynapsesMap.keySet.intersect(n2SynapsesMap.keySet).foreach(sid => {
+          val s1 = n1SynapsesMap(sid)
+          val s2 = n2SynapsesMap(sid)
+          if(s1 != s2) sb.append(s"${nid}->${sid} weight: ${n1SynapsesMap(sid)} -> ${n2SynapsesMap(sid)}\n")
+        })
       }
     })
 
