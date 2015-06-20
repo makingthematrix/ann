@@ -82,6 +82,7 @@ object Commands {
     setDotLineAccessMap()
     inputIds("in")
     outputIds("dot", "line")
+    set("dotlineset")
     println("done")
   }
 
@@ -108,8 +109,10 @@ object Commands {
     case None => throw new IllegalArgumentException("Unable to get the best genome as no engine is ready")
   }
 
-  def see(data: NetData):Unit = println(data.toJson)
+  def print(data: NetData):Unit = println(data.toJson)
   def see(context: Context):Unit = println(context.toJson)
+
+  def build(data: NetData) = NetBuilder().set(data).build()
 
   def test(data: NetData, exerciseName: String):Unit = {
     val exercise = ExercisesLibrary(exerciseName)

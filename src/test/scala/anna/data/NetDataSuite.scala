@@ -61,7 +61,7 @@ class NetDataSuite extends JUnitSuite {
     assertEquals(List("id1","id2"), neurons.map(_.id).sorted)
 
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("id2"){ sb.append(".") }
+    netWrapper.addAfterFire("id2")( (_:Double)=>{ sb.append(".") } )
 
     netWrapper += "1,1,1"
 
@@ -110,11 +110,11 @@ class NetDataSuite extends JUnitSuite {
 
     val netWrapper = builder2.build("in")
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S"){ sb.append('S') }
-    netWrapper.addAfterFire("O"){ sb.append('O') }
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
-    netWrapper.addAfterFire("dot"){ println("KROPA!") }
-    netWrapper.addAfterFire("line"){ println("KRECHA!") }
+    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
+    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
+    netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!") } )
+    netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!") } )
 
 
     val s = "1,0,0,1,0,0,1,0,0"

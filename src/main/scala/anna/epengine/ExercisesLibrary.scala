@@ -2,6 +2,7 @@ package anna.epengine
 
 import anna.Context
 import anna.async.NetWrapper
+import anna.logger.LOG
 
 import scala.util.Random
 import scala.collection.mutable
@@ -28,9 +29,9 @@ object ExercisesLibrary {
   val anyResponseToAnySignal = new Exercise("any response to any signal", 1, List("out1")) {
     def run(wrapper: NetWrapper):Double = {
       var counter = 0
-      wrapper.addAfterFire("out1") {
+      wrapper.addAfterFire("out1")( (_:Double) => {
         counter += 1
-      }
+      })
 
       wrapper += "1"
 
@@ -42,9 +43,9 @@ object ExercisesLibrary {
   val constantOutputForSixUnits = new Exercise("constant output for six units", 1, List("out1")) {
     def run(wrapper: NetWrapper): Double = {
       var counter = 0
-      wrapper.addAfterFire("out1") {
+      wrapper.addAfterFire("out1")( (_:Double) => {
         counter += 1
-      }
+      })
 
       wrapper += "1,1,1,1,1,1"
 
@@ -65,17 +66,17 @@ object ExercisesLibrary {
   private def dotLinePrepareAndWaitForResult(wrapper: NetWrapper, input: String):(Boolean, Double, Boolean, Double) = {
     var dotFired = false
     var dotResult = 0.0
-    wrapper.addAfterFire("dot"){
+    wrapper.addAfterFire("dot")( (output: Double) => {
       dotFired = true
-      dotResult = wrapper.lastOutput("dot")
-    }
+      dotResult = output //wrapper.lastOutput("dot")
+    })
 
     var lineFired = false
     var lineResult = 0.0
-    wrapper.addAfterFire("line"){
+    wrapper.addAfterFire("line")( (output: Double) => {
       lineFired = true
-      lineResult = wrapper.lastOutput("line")
-    }
+      lineResult = output //wrapper.lastOutput("line")
+    })
 
     wrapper.tickUntilCalm(input)
 
@@ -87,6 +88,7 @@ object ExercisesLibrary {
       var result = 0.0
 
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,0,0")
+      LOG.debug(this,s"${this.name}: dotFired: $dotFired, dotResult: $dotResult, lineFired: $lineFired, lineResult: $lineResult")
 
       if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)

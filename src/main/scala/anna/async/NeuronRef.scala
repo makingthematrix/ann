@@ -19,7 +19,7 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   protected def calculateOutput = Double.NaN // we don't do that here 
   
-  def addAfterFire(triggerId: String)(f: => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, () => f)) match {
+  def addAfterFire(triggerId: String)(f: (Double) => Any) = await[Answer](ref, AddAfterFireTrigger(triggerId, f)) match {
     case Success(id) => true
     case Failure(str) => error(this,s"addAfterFire failure: $str"); false
   }

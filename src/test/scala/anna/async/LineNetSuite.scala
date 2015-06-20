@@ -21,10 +21,10 @@ class LineNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("out2"){
+    netWrapper.addAfterFire("out2")( (_:Double)=>{
       println("KRECHA!")
       sb.append('-')
-    }
+    })
     
     sb
   }
@@ -81,8 +81,8 @@ class LineNetSuite extends MySuite {
     lineNet3()
     debug("------------")
     var lines = 0
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
-    netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
+    netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!"); lines += 1; } )
 
     netWrapper += o
     init()

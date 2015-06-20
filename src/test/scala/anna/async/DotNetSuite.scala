@@ -68,8 +68,8 @@ class DotNetSuite extends MySuite {
     netWrapper += s
 
     init()
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
-    netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
+    netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!"); dots += 1; } )
 
     val interval = netWrapper.tickUntilCalm()
     println(s"interval: $interval, dots: $dots")

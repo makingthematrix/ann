@@ -1,6 +1,7 @@
 package anna.async
 
 import anna.Context
+import anna.logger.LOG
 import anna.utils.Utils._
 
 import scala.collection.mutable
@@ -58,7 +59,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
     var neuronFired = false
     val neurons = net.getNeurons
     
-    neurons.foreach(_.addAfterFire("tickUntilCalm"){ neuronFired = true })
+    neurons.foreach(_.addAfterFire("tickUntilCalm")( (_:Double)=>{ neuronFired = true }))
     
     var (calmTick, counter) = (0, 0)
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
@@ -74,10 +75,13 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
     counter
   }
 
-  def lastOutput(neuronId: String) = net.lastOutput(neuronId)
+  def lastOutput(neuronId: String) = {
+    LOG.debug(this,s"trying to reach for the last output of $neuronId")
+    net.lastOutput(neuronId)
+  }
 
-  def addAfterFire(id: String, name: String)(f: => Any): Unit = net.addAfterFire(id, name)(f)
-  def addAfterFire(id: String)(f: => Any): Unit = addAfterFire(id, id)(f)
+  def addAfterFire(id: String, name: String)(f: (Double) => Any): Unit = net.addAfterFire(id, name)(f)
+  def addAfterFire(id: String)(f: (Double) => Any): Unit = addAfterFire(id, id)(f)
 
   def addHushRequested(id: String, name: String)(f: => Any): Unit = net.addHushRequested(id, name)(f)
   def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)

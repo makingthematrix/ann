@@ -19,6 +19,8 @@ class Coach(val exercises: List[Exercise]){
       LOG.resetTimer()
       wrapper.removeAllTriggers()
 
+      LOG.debug(this, s"running ${ex.name}")
+
       val t = ex.run(wrapper)
 
       LOG.timer(this, s"running ${ex.name} finished with result $t")

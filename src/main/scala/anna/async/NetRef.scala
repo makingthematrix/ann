@@ -5,6 +5,7 @@ import akka.pattern.ask
 import anna.Context
 import anna.async.Messages._
 import anna.data.{ForgetTrait, HushValue, NeuronData}
+import anna.logger.LOG
 import anna.logger.LOG._
 import anna.utils.Utils.await
 
@@ -49,18 +50,22 @@ class NetRef(val id: String, val ref: ActorRef) {
     _iteration += 1
   }
   
-  def shutdown() = await[NetShutdownDone](ref,Shutdown)
+  def shutdown() = {
+    LOG.debug(this,s"awaiting shutdown")
+    await[NetShutdownDone](ref,Shutdown)
+    LOG.debug(this,s"awaiting shutdown done")
+  }
 
   def lastOutput(id: String):Double = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.lastOutput
     case None => throw new IllegalArgumentException(s"Unable to find neuron with id $id")
   }
 
-  def addAfterFire(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
+  def addAfterFire(id: String, name: String)(f: (Double)=> Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addAfterFire(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
-  def addAfterFire(id: String)(f: => Any):Unit  = addAfterFire(id, id)(f)
+  def addAfterFire(id: String)(f: (Double) => Any):Unit  = addAfterFire(id, id)(f)
 
   def addHushRequested(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addHushRequested(name)(f)

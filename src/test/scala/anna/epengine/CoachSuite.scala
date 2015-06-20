@@ -13,7 +13,7 @@ class CoachSuite extends MySuite {
 
   val f = (wrapper: NetWrapper) => {
     var counter = 0
-    wrapper.addAfterFire("out1"){ counter += 1 }
+    wrapper.addAfterFire("out1")( (_:Double)=>{ counter += 1 } )
 
     wrapper += "1,1,1,1,1,1"
 

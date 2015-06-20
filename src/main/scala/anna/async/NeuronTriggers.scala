@@ -1,11 +1,11 @@
 package anna.async
 
 import anna.async.NeuronTriggers.Trigger
-
+import anna.async.NeuronTriggers.AfterFireTrigger
 import scala.collection.mutable
 
 trait NeuronTriggers {
-  private val afterFire = mutable.Map[String, Trigger]()
+  private val afterFire = mutable.Map[String, AfterFireTrigger]()
   private val thresholdPassed = mutable.Map[String, Trigger]()
   private val hushRequested = mutable.Map[String, Trigger]()
   
@@ -17,11 +17,13 @@ trait NeuronTriggers {
   private def clear(triggers: mutable.Map[String, Trigger]) = triggers.clear()
   private def trigger(triggers: mutable.Map[String, Trigger]) = triggers.values.foreach( _() )
   
-  def addAfterFire(id: String, f: Trigger) = add(id, f, afterFire)
-  def isAfterFire(id: String) = is(id, afterFire)
-  def removeAfterFire(id: String) = remove(id, afterFire)
-  def clearAfterFire() = clear(afterFire)
-  def triggerAfterFire() = trigger(afterFire)
+  def addAfterFire(id: String, f: AfterFireTrigger) =
+    if(afterFire.contains(id)) throw new IllegalArgumentException(s"There was already registered a trigger $id")
+    else afterFire.put(id, f)
+  def isAfterFire(id: String) = afterFire.contains(id)
+  def removeAfterFire(id: String) = afterFire.remove(id)
+  def clearAfterFire() = afterFire.clear()
+  def triggerAfterFire(output: Double) = afterFire.values.foreach( _(output) )
 
   def addThresholdPassed(id: String, f: Trigger) = add(id, f, thresholdPassed)
   def isThresholdPassed(id: String) = is(id, thresholdPassed)
@@ -44,4 +46,5 @@ trait NeuronTriggers {
 
 object NeuronTriggers {
   type Trigger = () => Any
+  type AfterFireTrigger = (Double) => Any
 }

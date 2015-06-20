@@ -29,15 +29,15 @@ class SOSSuite extends MySuite {
     
     build()
     
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
     
     debug("------------")
   }
   
   @Test def shouldHaveDotsAndLines() = {
     dotLineNet()
-    var dots = 0; netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; }
-    var lines = 0; netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
+    var dots = 0; netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!"); dots += 1; } )
+    var lines = 0; netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!"); lines += 1; } )
     init()
 
     netWrapper += s
@@ -57,8 +57,8 @@ class SOSSuite extends MySuite {
   @Test def shouldGuessDotsAndLines() = {
     dotLineNet()
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("dot"){ sb.append('.') }
-    netWrapper.addAfterFire("line"){ sb.append('-') }
+    netWrapper.addAfterFire("dot")( (_:Double)=>{ sb.append('.') } )
+    netWrapper.addAfterFire("line")( (_:Double)=>{ sb.append('-') } )
     init()
     
     netWrapper += "1,0,0"
@@ -113,7 +113,7 @@ class SOSSuite extends MySuite {
                      .chain("S",0.5,0.81)
     build()
     
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
 
     debug("------------")
   }
@@ -121,8 +121,8 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveSInterval3() = {
     SNet()
     
-    var dots = 0; netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
-    var S = 0; netWrapper.addAfterFire("S"){ println("S!"); S += 1; }
+    var dots = 0; netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!"); dots += 1; } )
+    var S = 0; netWrapper.addAfterFire("S")( (_:Double)=>{ println("S!"); S += 1; } )
     
     netWrapper += s
     init()
@@ -150,7 +150,7 @@ class SOSSuite extends MySuite {
                      .chain("O",0.6,0.81)
     build()
     
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
 
     debug("------------")
   }
@@ -158,8 +158,8 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveOInterval3() = {
     ONet()
     
-    var lines = 0; netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
-    var O = 0; netWrapper.addAfterFire("O"){ println("O!"); O += 1; }
+    var lines = 0; netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!"); lines += 1; } )
+    var O = 0; netWrapper.addAfterFire("O")( (_:Double)=>{ println("O!"); O += 1; } )
     
     netWrapper += o
     init()
@@ -196,7 +196,7 @@ class SOSSuite extends MySuite {
     
     build()
 
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
     
     debug("------------")
   }
@@ -204,10 +204,10 @@ class SOSSuite extends MySuite {
   @Test def shouldHaveSOSInterval3() = {
     SOSNet()
     
-    var dots = 0; netWrapper.addAfterFire("dot"){ println("KROPA!"); dots += 1; } 
-    var S = 0; netWrapper.addAfterFire("S"){ println("S!"); S += 1; }
-    var lines = 0; netWrapper.addAfterFire("line"){ println("KRECHA!"); lines += 1; }
-    var O = 0; netWrapper.addAfterFire("O"){ println("O!"); O += 1; }
+    var dots = 0; netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!"); dots += 1; } )
+    var S = 0; netWrapper.addAfterFire("S")( (_:Double)=>{ println("S!"); S += 1; } )
+    var lines = 0; netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!"); lines += 1; } )
+    var O = 0; netWrapper.addAfterFire("O")( (_:Double)=>{ println("O!"); O += 1; } )
     
     init()
 
@@ -244,8 +244,8 @@ class SOSSuite extends MySuite {
     SOSNet()
     
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S"){ sb.append('S') }
-    netWrapper.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
+    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
     
     netWrapper += s
     netWrapper += o
@@ -264,8 +264,8 @@ class SOSSuite extends MySuite {
     SOSNetWithHushNeuron()
     
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S"){ sb.append('S') }
-    netWrapper.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
+    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
     
     netWrapper += s
     netWrapper += o
@@ -280,8 +280,8 @@ class SOSSuite extends MySuite {
     SOSNetWithHushNeuron()
 
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S"){ sb.append('S') }
-    netWrapper.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
+    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
 
     netWrapper.regSign('i',noised1)
     netWrapper.regSign('_',noised0)
@@ -319,8 +319,8 @@ class SOSSuite extends MySuite {
     SOSNetWithHushNeuron()
 
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S"){ sb.append('S') }
-    netWrapper.addAfterFire("O"){ sb.append('O') }
+    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
+    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
 
     LOG.timer()
 

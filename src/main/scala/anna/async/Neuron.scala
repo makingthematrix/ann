@@ -56,7 +56,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   private def wakeUp(){
     LOG += s"$id waking up"
     forget()
-	tick()
+	  tick()
     context.become(receive)
   }
   
@@ -90,7 +90,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
       LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
       synapses.foreach( _.send(output) )
     } 
-    triggerAfterFire()
+    triggerAfterFire(output)
     makeSleep()
   }
     
@@ -104,6 +104,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   }
   
   private def shutdown(){
+    LOG += s"$id killing itself"
     answer(NeuronShutdownDone(id))
     self ! PoisonPill
   }
@@ -149,6 +150,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
       case GetInput => sender ! Msg(buffer, id)
+      case GetLastOutput => sender ! Msg(lastOutput, id)
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses

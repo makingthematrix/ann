@@ -18,7 +18,7 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    netWrapper.addAfterFire("out1","fired"){ list += LOG.time }
+    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{ list += LOG.time } )
     
     LOG.timer()
     netWrapper.tickUntilCalm()
@@ -38,7 +38,7 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    netWrapper.addAfterFire("out1","fired"){ list += LOG.time }
+    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{ list += LOG.time } )
     
     LOG.timer()
     netWrapper.tickUntilCalm()
@@ -57,7 +57,7 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    netWrapper.addAfterFire("out1","fired"){ list += LOG.time }
+    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{ list += LOG.time } )
     
     LOG.timer()
     netWrapper.tickUntilCalm()
@@ -75,8 +75,8 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
     
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("out1","fired 1"){ sb.append('1') }
-    netWrapper.addAfterFire("out1","fired 0"){ sb.append('0') }
+    netWrapper.addAfterFire("out1","fired 1")( (_:Double)=>{ sb.append('1') } )
+    netWrapper.addAfterFire("out1","fired 0")( (_:Double)=>{ sb.append('0') } )
     
     LOG.timer()
     netWrapper.tickUntilCalm()

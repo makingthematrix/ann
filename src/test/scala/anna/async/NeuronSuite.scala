@@ -59,15 +59,15 @@ class NeuronSuite extends MySuite {
     
     var (goodLoops, badLoops) = (0, 0)
     var done = false
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
-    netWrapper.addAfterFire("loop"){
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
+    netWrapper.addAfterFire("loop")( (_:Double)=>{
       println("here") 
       if(!done) goodLoops += 1 else badLoops += 1
-    }
-    netWrapper.addAfterFire("out"){
+    })
+    netWrapper.addAfterFire("out")( (_:Double)=>{
       println("DONE") 
       done = true
-    }
+    })
     netWrapper += "1"
     init()
     val interval = netWrapper.tickUntilCalm()

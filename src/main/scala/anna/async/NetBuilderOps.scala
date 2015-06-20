@@ -114,9 +114,9 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     SOSNetData()
     val netWrapper = builder.build("net")
 
-    netWrapper.addAfterFire("in"){ println("INCOMING!") }
-    netWrapper.addAfterFire("dot"){ println("KROPA!") }
-    netWrapper.addAfterFire("line"){ println("KRECHA!") }
+    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
+    netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!") } )
+    netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!") } )
 
     netWrapper
   }

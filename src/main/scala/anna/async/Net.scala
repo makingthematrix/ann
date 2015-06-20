@@ -3,6 +3,7 @@ package anna.async
 import akka.actor._
 import anna.async.Messages._
 import anna.data.{ForgetTrait, HushValue, NeuronData}
+import anna.logger.LOG
 
 import scala.collection.mutable
 
@@ -22,12 +23,12 @@ class Net(val id: String) extends Actor {
     case Reset => resetBuffer()
     case RemoveAllTriggers => removeTriggers()
   }
-  
+
   def shutdowning(caller: ActorRef): Receive = {
-    case NeuronShutdownDone(id) =>
-      remove(id)
+    case Terminated(actorRef) =>
+      neurons -= neurons.find( _.ref == actorRef ).get
       if(neurons.isEmpty){
-        caller ! NetShutdownDone(id)
+        caller ! NetShutdownDone(this.id)
         self ! PoisonPill
       }
   }
@@ -35,7 +36,9 @@ class Net(val id: String) extends Actor {
   def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
     case Success(id) =>
       val newWaitingFor = waitingFor - id
+      LOG.debug(this,s"waiting: SUCCESS from $id, still waiting for $newWaitingFor")
       if(newWaitingFor.isEmpty){
+        LOG.debug(this,"sending SUCCESS to the caller")
         caller ! Success(id)
         context.become(receive)
       } else context.become(waiting(caller, newWaitingFor, title))
@@ -54,11 +57,15 @@ class Net(val id: String) extends Actor {
   }
 
   private def shutdown() = {
+    LOG.debug(this,"shutdown")
     context.become( shutdowning(sender) )
-    neurons.foreach(_ ! NeuronShutdown)
+    neurons.foreach(n => context.watch(n.ref))
+    neurons.foreach( _ ! PoisonPill )
+    //neurons.foreach(_ ! NeuronShutdown)
   }
 
   private def resetBuffer() = {
+    LOG.debug(this, "resetBuffer")
     context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
   }

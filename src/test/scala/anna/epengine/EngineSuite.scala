@@ -44,9 +44,9 @@ class EngineSuite extends JUnitSuite {
   val t1 = new Exercise("any response to any signal", 1, List("out1")) {
     def run(wrapper: NetWrapper) = {
       var counter = 0
-      wrapper.addAfterFire("out1") {
+      wrapper.addAfterFire("out1")( (_:Double)=> {
         counter += 1
-      }
+      })
 
       wrapper += "1"
 
@@ -58,9 +58,9 @@ class EngineSuite extends JUnitSuite {
   val t2 = new Exercise("constant output", 1, List("out1")) {
     def run(wrapper: NetWrapper):Double = {
       var counter = 0
-      wrapper.addAfterFire("out1") {
+      wrapper.addAfterFire("out1")( (_:Double)=> {
         counter += 1
-      }
+      })
 
       wrapper += "1,1,1,1,1,1"
 
