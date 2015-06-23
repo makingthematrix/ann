@@ -39,7 +39,7 @@ class SynapseGenome(private var _data: SynapseData){
         SynapseWeight(RandomNumber(Context().weightRange))
     }
     debug(s"MUTATION: ... mutateWeight in a synapse connecting to $neuronId -> from ${_data.weight} to $newWeight")
-    _data.withWeight(newWeight)
+    _data = _data.withWeight(newWeight)
   }
 
   def toJson = writePretty(this)
