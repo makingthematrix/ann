@@ -158,7 +158,9 @@ object ExercisesLibrary {
 
       var result = 0.0
 
-      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, v, v).mkString(","))
+      wrapper.regSign('a',V); wrapper.regSign('b',v); wrapper.regSign('c',v);
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
+      List('a','b','c').foreach( wrapper.deregSign )
 
       if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)
@@ -177,7 +179,9 @@ object ExercisesLibrary {
 
       var result = 0.0
 
-      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, V, v).mkString(","))
+      wrapper.regSign('a',V); wrapper.regSign('b',V); wrapper.regSign('c',v);
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
+      List('a','b','c').foreach( wrapper.deregSign )
 
       if(dotFired) result += 1.0
       if(lineFired){
@@ -196,7 +200,9 @@ object ExercisesLibrary {
 
       var result = 0.0
 
-      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, v, V).mkString(","))
+      wrapper.regSign('a',V); wrapper.regSign('b',v); wrapper.regSign('c',V);
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
+      List('a','b','c').foreach( wrapper.deregSign )
 
       if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)
@@ -215,7 +221,9 @@ object ExercisesLibrary {
 
       var result = 0.0
 
-      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, List(V, V, V).mkString(","))
+      wrapper.regSign('a',V); wrapper.regSign('b',V); wrapper.regSign('c',V);
+      val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
+      List('a','b','c').foreach( wrapper.deregSign )
 
       if(dotFired) result += 1.0
       if(lineFired){

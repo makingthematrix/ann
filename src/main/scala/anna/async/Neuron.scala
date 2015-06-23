@@ -102,12 +102,6 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
     case Some(netref) => netref ! msg
     case None =>
   }
-  
-  private def shutdown(){
-    LOG += s"$id killing itself"
-    answer(NeuronShutdownDone(id))
-    self ! PoisonPill
-  }
 
   private def reset(): Unit ={
     buffer = 0.0
@@ -154,7 +148,6 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses
-      case NeuronShutdown => shutdown()
       case AddAfterFireTrigger(triggerId, trigger) => 
         addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)

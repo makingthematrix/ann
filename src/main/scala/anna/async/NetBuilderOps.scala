@@ -47,6 +47,8 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def chain(id: String, weight: Double):NetBuilder = chainMiddle(id, SynapseWeight(weight))
   def chain(id: String, weight: Double, threshold: Double):NetBuilder = chainMiddle(id, SynapseWeight(weight), threshold)
 
+  def chainHush(id: String, threshold: Double):NetBuilder = chainMiddle(id, Hush(), threshold)
+
   def loop(id: String, 
            w1: SynapseTrait =builder.defWeight,
            threshold: Double =builder.defThreshold,

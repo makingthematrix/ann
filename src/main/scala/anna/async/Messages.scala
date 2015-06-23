@@ -16,7 +16,7 @@ object Messages {
   case class Disconnect(destinationId: String)
   case class CreateNeuron(data: NeuronData)
   case class SetInputs(ids: Seq[String])
-  case object NeuronShutdown
+  //case object NeuronShutdown
   case object Shutdown // net shutdown
   case object Reset
   case object RemoveAllTriggers

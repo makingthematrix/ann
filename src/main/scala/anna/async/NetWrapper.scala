@@ -39,6 +39,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
       if(signRegister.contains(c)) signRegister(c) 
       else throw new IllegalArgumentException(s"No input registered with sign $c")
   )).foreach( add )
+  def deregSign(sign: Char) = signRegister -= sign
 
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n) {

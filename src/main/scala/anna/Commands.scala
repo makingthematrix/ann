@@ -1,7 +1,7 @@
 package anna
 
 import anna.async.NetBuilder
-import anna.data.NetData
+import anna.data.{Hush, NetData}
 import anna.epengine._
 import anna.utils.Utils
 import anna.logger.LOG._
@@ -38,14 +38,30 @@ object Commands {
 
   private var engineOpt:Option[Engine] = None
 
-  val dotLineData =
-    NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
-    .use("in").chain("mi21",1.0,0.5).chain("mi22",1.0,0.5).chain("line",1.0,0.5)
-    .use("mi12").hush("mi21")
-    .use("mi21").hush("mi11")
-    .use("dot").hush("line")
-    .use("line").hush("dot")
-    .setName("dotline").data
+  lazy val dotLineData = {
+    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
+      .use("in").chain("mi21",1.0,0.5).chain("mi22",1.0,0.5).chain("line",1.0,0.5)
+      .use("mi12").hush("mi21")
+      .use("mi21").hush("mi11")
+      .use("dot").hush("line")
+      .use("line").hush("dot")
+      .data
+    val genome = NetGenome(data, accessMapOpt.get)
+    genome.netId("dotline").data
+  }
+
+  // hush instead of standard synapses - for debugging purposes
+  lazy val dotLineHushData = {
+    val data = NetBuilder().addInput("in").chainHush("mi11",0.5).chainHush("mi12",0.5).chainHush("dot",0.5)
+      .use("in").chainHush("mi21",0.5).chainHush("mi22",0.5).chainHush("line",0.5)
+      .use("mi12").hush("mi21")
+      .use("mi21").hush("mi11")
+      .use("dot").hush("line")
+      .use("line").hush("dot")
+      .data
+    val genome = NetGenome(data, accessMapOpt.get)
+    genome.netId("dotlinehush").data
+  }
 
   val simplestData = NetBuilder().addInput("in").chain("dot",1.0,0.5).use("in").chain("line",1.0,0.5).setName("simplest").data
   val zeroData = NetBuilder().addInput("in").chain("dot",0.0,0.0).use("in").chain("line",0.0,0.0).setName("zero").data
@@ -83,7 +99,7 @@ object Commands {
     inputIds("in")
     outputIds("dot", "line")
     set("dotlineset")
-    println("done")
+    println("dot-line config set")
   }
 
   def create(name: String, template: NetData) = {

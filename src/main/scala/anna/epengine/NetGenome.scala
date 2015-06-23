@@ -31,12 +31,35 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     case None => None
   }
 
-  def fullAccessNeurons() = neurons.filter(n => accessMap.getOrElse(n.id, MutationAccessFull()) == MutationAccessFull())
-  def mutableNeurons() = neurons.filter( n => accessMap.getOrElse(n.id, MutationAccessFull()) != MutationAccessDontMutate())
-  def notFullAccessNeurons() = neurons.filterNot(n => accessMap.getOrElse(n.id, MutationAccessFull()) == MutationAccessFull())
+  def isFullAccess(n: NeuronData):Boolean = isFullAccess(n.id)
+  def isFullAccess(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) == MutationAccessFull()
+  def isMutable(n: NeuronData):Boolean = isMutable(n.id)
+  def isMutable(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) != MutationAccessDontMutate()
+
+  def fullAccessNeurons() = neurons.filter(isFullAccess)
+  def mutableNeurons() = neurons.filter(isMutable)
+  def notFullAccessNeurons() = neurons.filterNot(isFullAccess)
 
   def netId(newNetId: String) = {
-    _data = _data.withNewNetId(newNetId)
+    val fanRenamed = fullAccessNeurons().map(n => {
+      val renamedSynapses = n.synapses.map(s => if(isFullAccess(s.neuronId)){
+        val newId = replaceNetId(s.neuronId, newNetId)
+        s.withId(newId)
+      } else s)
+      val newId = replaceNetId(n.id, newNetId)
+      n.withId(newId).withSynapses(renamedSynapses)
+    })
+
+    val nfanRenamed = notFullAccessNeurons().map(n => {
+      val renamedSynapses = n.synapses.map(s => if(isFullAccess(s.neuronId)){
+        val newId = replaceNetId(s.neuronId, newNetId)
+        s.withId(newId)
+      } else s)
+      n.withSynapses(renamedSynapses)
+    })
+
+    _data = _data.withId(newNetId).withNeurons(fanRenamed ++ nfanRenamed)
+
     this
   }
 
@@ -48,7 +71,6 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
       (Context().mutateNeuronProbability, mutateNeuron _),
       (Context().inputTickMultiplierProbability, mutateInputTickMultiplier _)
     )
-    debug("here")
     this
   }
 
@@ -94,27 +116,34 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
   def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
     debug(this, s"--- crossing ${this.id} with ${genome.id}")
-    val var1 = fullAccessNeurons()
-    val var2 = genome.fullAccessNeurons()
-
+    val fullAccessN1 = fullAccessNeurons()
+    debug(this,s"full access neurons 1: $fullAccessN1")
+    val fullAccessN2 = genome.fullAccessNeurons()
+    debug(this,s"full access neurons 2: $fullAccessN2")
     // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
     // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
-    val var1Ids = var1.map(n => removeNetId(n.id)).toSet
-    val var2Ids = var2.map(n => removeNetId(n.id)).toSet
-    val commonIds = var1Ids.intersect(var2Ids)
-
+    val fan1Ids = fullAccessN1.map(n => removeNetId(n.id)).toSet
+    debug(this,s"full access ids 1: $fan1Ids")
+    val fan2Ids = fullAccessN2.map(n => removeNetId(n.id)).toSet
+    debug(this,s"full access ids 2: $fan2Ids")
+    val commonIds = fan1Ids.intersect(fan2Ids)
+    debug(this,s"common ids: $commonIds")
     // if crossable is true it means that there is a common part which we can cross
 
     // 2. choose the number of neuronIds to draw
     val idsToDraw = if (commonIds.size > 1) RandomNumber(1, commonIds.size) else 1
+    debug(this,s"idsToDraw: $idsToDraw")
 
     // 3. draw randomly neuronIds, splitting the set into two
     val (idsToSwitch, _) = Utils.splitIdsRandomly(commonIds, idsToDraw)
-    val leftIds = var1Ids.map(id => neuronId(if (idsToSwitch.contains(id)) genome.id else this.id, id))
-    val rightIds = var2Ids.map(id => neuronId(if (idsToSwitch.contains(id)) this.id else genome.id, id))
+    debug(this,s"idsToSwitch: $idsToSwitch")
+    val leftIds = fan1Ids.map(id => neuronId(if (idsToSwitch.contains(id)) genome.id else this.id, id))
+    debug(this,s"leftIds: $leftIds")
+    val rightIds = fan2Ids.map(id => neuronId(if (idsToSwitch.contains(id)) this.id else genome.id, id))
+    debug(this,s"rightIds: $rightIds")
 
     // 4. create genomes with switch neurons
-    val allVariables = var1 ++ var2
+    val allVariables = fullAccessN1 ++ fullAccessN2
     val leftGenome = NetGenome.breed(this, allVariables.filter( n => leftIds.contains(n.id)), trimEnabled, renameEnabled)
     val rightGenome = NetGenome.breed(genome, allVariables.filter( n => rightIds.contains(n.id)), trimEnabled, renameEnabled)
     (leftGenome, rightGenome)
@@ -276,20 +305,36 @@ object NetGenome {
             trimEnabled: Boolean = true,
             renameEnabled: Boolean = true) = {
     // 6. rename full access neurons so their netId match their new nets
-    val newNeurons = oldGenome.notFullAccessNeurons() ++
-      (if(renameEnabled) newFullAccess.map( n => {
-        n.withSynapses(n.synapses.map( s => s.withId(replaceNetId(s.neuronId, oldGenome.id))))
-         .withId(replaceNetId(n.id, oldGenome.id))
-      } ) else newFullAccess)
+
+    val fan = if(renameEnabled) {
+      newFullAccess.map(n => {
+        val renamedSynapses = n.synapses.map(s => if (oldGenome.isFullAccess(s.neuronId)) {
+          val newId = replaceNetId(s.neuronId, oldGenome.id)
+          s.withId(newId)
+        } else s)
+        val newId = replaceNetId(n.id, oldGenome.id)
+        n.withId(newId).withSynapses(renamedSynapses)
+      })
+    } else newFullAccess
+
+    val nfan = if(renameEnabled) {
+      oldGenome.notFullAccessNeurons().map(n => {
+        val renamedSynapses = n.synapses.map(s => if(oldGenome.isFullAccess(s.neuronId)){
+          val newId = replaceNetId(s.neuronId, oldGenome.id)
+          s.withId(newId)
+        } else s)
+        n.withSynapses(renamedSynapses)
+      })
+    } else oldGenome.notFullAccessNeurons()
+
     // 7. compose new NetData
-    val newNet = oldGenome.data.withNeurons(newNeurons)
+    val newNet = oldGenome.data.withNeurons(fan ++ nfan)
     // 8. "trim" the net, ie. remove synapses which lead to non-existing neurons and full access neurons which do not receive any input
     val newGen = NetGenome(newNet, oldGenome.accessMap)
     if(trimEnabled) newGen.trim()
     if(trimEnabled && renameEnabled) newGen.data.validate()
 
     debug(this,s"new genome bred: ${newGen.id}")
-    debug(this, newGen.data.toJson)
     newGen
   }
 

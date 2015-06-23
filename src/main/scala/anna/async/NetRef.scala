@@ -50,11 +50,7 @@ class NetRef(val id: String, val ref: ActorRef) {
     _iteration += 1
   }
   
-  def shutdown() = {
-    LOG.debug(this,s"awaiting shutdown")
-    await[NetShutdownDone](ref,Shutdown)
-    LOG.debug(this,s"awaiting shutdown done")
-  }
+  def shutdown() = await[NetShutdownDone](ref,Shutdown)
 
   def lastOutput(id: String):Double = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.lastOutput

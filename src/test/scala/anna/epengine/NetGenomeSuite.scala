@@ -413,4 +413,35 @@ class NetGenomeSuite extends JUnitSuite {
     net1G.deleteSynapsesTo("net1_3")
     net1G.data.validate()
   }
+
+  @Test def shouldRename(): Unit ={
+    val data = NetBuilder().addInput("in").chain("mi1").chain("mi2").chain("out").setName("net").data
+    val genome = NetGenome(data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+
+    assertTrue(data.contains("in"))
+    assertTrue(data.contains("mi1"))
+    assertTrue(data.contains("mi2"))
+    assertTrue(data.contains("out"))
+    assertEquals("net",genome.id)
+
+    genome.netId("newname")
+
+    assertEquals("newname",genome.id)
+    assertTrue(genome.data.contains("in"))
+    assertTrue(genome.data.contains("newname_mi1"))
+    assertTrue(genome.data.contains("newname_mi2"))
+    assertTrue(genome.data.contains("out"))
+    assertFalse(genome.data.contains("mi1"))
+    assertFalse(genome.data.contains("mi2"))
+
+    genome.netId("newername")
+
+    assertEquals("newername",genome.id)
+    assertTrue(genome.data.contains("in"))
+    assertTrue(genome.data.contains("newername_mi1"))
+    assertTrue(genome.data.contains("newername_mi2"))
+    assertTrue(genome.data.contains("out"))
+    assertFalse(genome.data.contains("newname_mi1"))
+    assertFalse(genome.data.contains("newname_mi2"))
+  }
 }

@@ -36,9 +36,7 @@ class Net(val id: String) extends Actor {
   def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
     case Success(id) =>
       val newWaitingFor = waitingFor - id
-      LOG.debug(this,s"waiting: SUCCESS from $id, still waiting for $newWaitingFor")
       if(newWaitingFor.isEmpty){
-        LOG.debug(this,"sending SUCCESS to the caller")
         caller ! Success(id)
         context.become(receive)
       } else context.become(waiting(caller, newWaitingFor, title))
@@ -61,7 +59,6 @@ class Net(val id: String) extends Actor {
     context.become( shutdowning(sender) )
     neurons.foreach(n => context.watch(n.ref))
     neurons.foreach( _ ! PoisonPill )
-    //neurons.foreach(_ ! NeuronShutdown)
   }
 
   private def resetBuffer() = {

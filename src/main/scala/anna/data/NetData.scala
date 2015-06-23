@@ -31,7 +31,9 @@ case class NetData(id: String,
   def withInputTickMultiplier(inputTickMultiplier: Double) = copy(inputTickMultiplier = inputTickMultiplier)
   def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
-  def neuron(id: String) = neurons.find(_.id == id).getOrElse(throw new IllegalArgumentException(s"No neuron found with id $id"))
+  def neuron(neuronId: String) = neurons.find(_.id == neuronId)
+                                        .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))
+  def contains(neuronId: String) = neurons.exists(_.id == neuronId)
 
   def toJson = writePretty(this)
 
@@ -44,11 +46,6 @@ case class NetData(id: String,
     val idsSet = ids.toSet
     neurons.filterNot( n => idsSet.contains(n.id) )
   }
-
-  def withNewNetId(newNetId: String) = withNeurons(neurons.map(n =>
-                                         n.withSynapses(n.synapses.map( s => s.withId(replaceNetId(s.neuronId, newNetId))))
-                                          .withId(replaceNetId(n.id, newNetId))
-                                       )).withId(newNetId)
 
   def validate(): Unit = {
     // so, what possibly can go wrong with a net?
@@ -109,5 +106,5 @@ object NetData {
 
   def replaceNetId(oldNeuronId: String, newNetId: String): String =
     if(oldNeuronId.contains("_")) newNetId + "_" + oldNeuronId.substring(oldNeuronId.indexOf("_")+1)
-    else oldNeuronId
+    else newNetId + "_" + oldNeuronId
 }

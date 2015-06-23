@@ -29,7 +29,7 @@ class CoachSuite extends MySuite {
 
     // first we check if it works out of the box
     var counter = 0
-    netWrapper.addAfterFire("out1"){ counter += 1 }
+    netWrapper.addAfterFire("out1")( (_:Double)=>{ counter += 1 })
 
     netWrapper += "1,1,1,1,1,1"
 
@@ -45,7 +45,7 @@ class CoachSuite extends MySuite {
     build()
 
     counter = 0
-    netWrapper.addAfterFire("out1"){ counter += 1 }
+    netWrapper.addAfterFire("out1")( (_:Double)=>{ counter += 1 })
 
     netWrapper += "1,1,1,1,1,1"
 

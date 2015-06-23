@@ -6,6 +6,8 @@ import anna.data.SynapseData.fromDouble
 import anna.data._
 import anna.utils.Utils.{assert, await}
 
+import anna.logger.LOG.debug
+
 import scala.collection.mutable
 
 class NetBuilder {
@@ -176,6 +178,7 @@ class NetBuilder {
 
   def setName(name: String) = {
     netName = name
+
     this
   }
 
