@@ -13,11 +13,11 @@ class Coach(val exercises: List[Exercise]){
     debug(this, s" -------------- testing ${data.id} ------------------")
     checkConditions(data)
 
-    val wrapper = NetBuilder().set(data).build()
     var result = 0.0
     exercises.foreach( ex => {
+      val wrapper = NetBuilder().set(data).build()
       LOG.resetTimer()
-      wrapper.removeAllTriggers()
+      //wrapper.removeAllTriggers()
 
       LOG.debug(this, s"running ${ex.name}")
 
@@ -26,8 +26,8 @@ class Coach(val exercises: List[Exercise]){
       LOG.timer(this, s"running ${ex.name} finished with result $t")
 
       result += t
+      wrapper.shutdown()
     })
-    wrapper.shutdown()
 
     debug(this, s" -------------- done testing ${data.id} ------------------")
     result

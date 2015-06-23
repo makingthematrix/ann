@@ -26,6 +26,7 @@ class Net(val id: String) extends Actor {
 
   def shutdowning(caller: ActorRef): Receive = {
     case Terminated(actorRef) =>
+      context.unwatch(actorRef)
       neurons -= neurons.find( _.ref == actorRef ).get
       if(neurons.isEmpty){
         caller ! NetShutdownDone(this.id)
