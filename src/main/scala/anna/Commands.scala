@@ -4,6 +4,7 @@ import anna.async.NetBuilder
 import anna.data.{Hush, NetData}
 import anna.epengine._
 import anna.utils.Utils
+import anna.epengine.Probability._
 import anna.logger.LOG._
 import anna.async.NetBuilderOps._
 
@@ -37,6 +38,9 @@ object Commands {
   def set:String = exercisesSetOpt.map(_.name).getOrElse("The exercises set is not set")
 
   private var engineOpt:Option[Engine] = None
+
+  def engine = engineOpt.getOrElse(throw new IllegalArgumentException("No engine set"))
+  def poll = engine.poll
 
   lazy val dotLineData = {
     val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
@@ -115,7 +119,7 @@ object Commands {
     println("done")
   }
 
-  def run(iterations: Int) = engineOpt match {
+  def run(iterations: Int =1) = engineOpt match {
     case Some(engine) => engine.run(iterations)
     case None => exception(this, "Unable to run as no engine is ready")
   }

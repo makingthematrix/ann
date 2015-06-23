@@ -72,9 +72,9 @@ case class EngineDefaults(
   initialMutationsNumber: Int,
   genomePollSize: Int,
   exercisesSetDir: String,
-  mutationProbability: Double,
+  mutationProbability: Probability,
   evolutionDir: String,
-  crossCoefficient: Double
+  crossCoefficient: Probability // this is not a probability, but the rules are the same
 ){
   def toJson = writePretty(this)
 }

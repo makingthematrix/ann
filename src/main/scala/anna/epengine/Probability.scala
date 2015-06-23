@@ -6,11 +6,7 @@ class Probability private (val value: Double) extends AnyVal {
   def +(other: Probability) = Probability(value + other.value)
   def -(other: Probability) = Probability(value - other.value)
 
-  def toss = {
-    val t = RandomNumber()
-    println(s"tossing $t for probability $value")
-    t <= value
-  }
+  def toss = RandomNumber() <= value
 }
 
 object Probability{

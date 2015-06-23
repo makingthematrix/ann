@@ -62,7 +62,6 @@ class Net(val id: String) extends Actor {
   }
 
   private def resetBuffer() = {
-    LOG.debug(this, "resetBuffer")
     context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
   }

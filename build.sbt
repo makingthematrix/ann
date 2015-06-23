@@ -22,6 +22,12 @@ initialCommands in console :=
   """
     |import anna.Commands._
     |import anna.logger.LOG
+    |import anna.Context
+    |import anna.epengine.Probability
+    |import anna.epengine.Probability._
+    |import anna.utils.DoubleRange
+    |import anna.utils.DoubleRange._
+    |import anna.utils.RandomNumber
     |LOG.addLogToStdout()
     |setDotLineConfig()
   """.stripMargin
