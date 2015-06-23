@@ -25,6 +25,14 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   protected var buffer = 0.0
   protected var lastOutput = 0.0 // only for debugging purposes
 
+  override def preStart():Unit = {
+    ActorCounter.regNeuron(id)
+  }
+
+  override def postStop():Unit = {
+    ActorCounter.unregNeuron(id)
+  }
+
   private def hushNow(){
     LOG += s"$id hushNow, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0

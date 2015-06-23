@@ -24,12 +24,28 @@ class Net(val id: String) extends Actor {
     case RemoveAllTriggers => removeTriggers()
   }
 
+  //private var shutdownCallerOpt:Option[ActorRef] = None
+
+  override def preStart():Unit = {
+    ActorCounter.regNet(id)
+  }
+
+  override def postStop():Unit = {
+    ActorCounter.unregNet(id)
+    //shutdownCallerOpt match {
+    //  case Some(caller) => caller ! NetShutdownDone(this.id)
+    //  case None =>
+    //}
+  }
+
   def shutdowning(caller: ActorRef): Receive = {
     case Terminated(actorRef) =>
       context.unwatch(actorRef)
       neurons -= neurons.find( _.ref == actorRef ).get
       if(neurons.isEmpty){
+        //shutdownCallerOpt = Some(sender)
         caller ! NetShutdownDone(this.id)
+        //context.stop(self)
         self ! PoisonPill
       }
   }
@@ -59,6 +75,7 @@ class Net(val id: String) extends Actor {
     LOG.debug(this,"shutdown")
     context.become( shutdowning(sender) )
     neurons.foreach(n => context.watch(n.ref))
+    //neurons.foreach( nref => context.stop(nref.ref) )
     neurons.foreach( _ ! PoisonPill )
   }
 

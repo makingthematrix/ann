@@ -28,6 +28,7 @@ initialCommands in console :=
     |import anna.utils.DoubleRange
     |import anna.utils.DoubleRange._
     |import anna.utils.RandomNumber
+    |import anna.async.ActorCounter
     |LOG.addLogToStdout()
     |setDotLineConfig()
   """.stripMargin
