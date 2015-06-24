@@ -10,7 +10,7 @@ import scala.collection.mutable
 class Net(val id: String) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
   private var ins = List[NeuronRef]()
-  
+
   def receive: Receive = {
     case GetId => sender ! Msg(0.0, id)
     case GetNeurons => sender ! MsgNeurons(neurons.toList)
@@ -22,32 +22,26 @@ class Net(val id: String) extends Actor {
     case SignalSeq(in) => signal(in)
     case Reset => resetBuffer()
     case RemoveAllTriggers => removeTriggers()
+    case Terminated(actorRef) =>
+      neurons -= neurons.find( _.ref == actorRef ).get
+      if(neurons.isEmpty) self ! PoisonPill
   }
 
-  //private var shutdownCallerOpt:Option[ActorRef] = None
+  private var shutdownCallerOpt:Option[ActorRef] = None
 
   override def preStart():Unit = {
     ActorCounter.regNet(id)
   }
 
   override def postStop():Unit = {
+    if(shutdownCallerOpt != None) shutdownCallerOpt.get ! NetShutdownDone(id)
     ActorCounter.unregNet(id)
-    //shutdownCallerOpt match {
-    //  case Some(caller) => caller ! NetShutdownDone(this.id)
-    //  case None =>
-    //}
   }
 
-  def shutdowning(caller: ActorRef): Receive = {
-    case Terminated(actorRef) =>
-      context.unwatch(actorRef)
-      neurons -= neurons.find( _.ref == actorRef ).get
-      if(neurons.isEmpty){
-        //shutdownCallerOpt = Some(sender)
-        caller ! NetShutdownDone(this.id)
-        //context.stop(self)
-        self ! PoisonPill
-      }
+  private def shutdown() = {
+    LOG.debug(this,"shutdown")
+    shutdownCallerOpt = Some(sender)
+    neurons.foreach( _ ! PoisonPill )
   }
 
   def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
@@ -58,7 +52,7 @@ class Net(val id: String) extends Actor {
         context.become(receive)
       } else context.become(waiting(caller, newWaitingFor, title))
   }
-  
+
   private def inputs = ins.toList
 
   private def middles = {
@@ -68,15 +62,7 @@ class Net(val id: String) extends Actor {
 
   private def remove(id: String) = findRef(id) match {
     case Some(ref) => neurons -= ref
-    case None => 
-  }
-
-  private def shutdown() = {
-    LOG.debug(this,"shutdown")
-    context.become( shutdowning(sender) )
-    neurons.foreach(n => context.watch(n.ref))
-    //neurons.foreach( nref => context.stop(nref.ref) )
-    neurons.foreach( _ ! PoisonPill )
+    case None =>
   }
 
   private def resetBuffer() = {
@@ -88,10 +74,11 @@ class Net(val id: String) extends Actor {
     context.become( waiting(sender, neurons.map(_.id).toSet, "removing triggers") )
     neurons.foreach(_ ! RemoveAllTriggers)
   }
-  
+
   private def add(id: String, ref: ActorRef) = {
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
+    context.watch(ref)
     sender ! neuronRef
   }
 
@@ -108,27 +95,27 @@ class Net(val id: String) extends Actor {
                            forgetting: ForgetTrait,
                            tickTimeMultiplier: Double,
                            activationFunctionName: String
-                           ){
+                           ) = {
     val f = ActivationFunction(activationFunctionName)
-	  val ref = context.actorOf(Props(new Neuron(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier, f)))
+	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, slope, hushValue, forgetting, tickTimeMultiplier, f)))
     add(id, ref)
   }
 
-  private def createDummy(id: String, hushValue: HushValue, tickTimeMultiplier: Double){
-	  val ref = context.actorOf(Props(new DummyNeuron(id, tickTimeMultiplier)))
+  private def createDummy(id: String, hushValue: HushValue, tickTimeMultiplier: Double) = {
+	  val ref = context.actorOf(Props(new DummyNeuron(id, this.id, tickTimeMultiplier)))
     add(id, ref)
   }
-  
-  private def createHush(id: String){
-    val ref = context.actorOf(Props(new HushNeuron(id)))
+
+  private def createHush(id: String) = {
+    val ref = context.actorOf(Props(new HushNeuron(id, this.id)))
     add(id, ref)
   }
-  
+
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
     ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
   }
-  
+
   private def setInputs(ids: Seq[String]){
     ins = neurons.filter( n => ids.contains(n.id) ).toList
     if(ins.size != ids.size){
@@ -139,6 +126,8 @@ class Net(val id: String) extends Actor {
       sender ! Success("setInputLayer_" + id)
     }
   }
-  
+
   private def findRef(id: String):Option[NeuronRef] = neurons.find(_.id == id)
 }
+
+

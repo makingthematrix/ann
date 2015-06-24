@@ -11,7 +11,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class Neuron(
-    val id: String, 
+    val id: String,
+    val netId: String,
     val threshold: Double, 
     val slope: Double, 
     val hushValue: HushValue, 
@@ -26,11 +27,11 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   protected var lastOutput = 0.0 // only for debugging purposes
 
   override def preStart():Unit = {
-    ActorCounter.regNeuron(id)
+    ActorCounter.regNeuron(netId, id)
   }
 
   override def postStop():Unit = {
-    ActorCounter.unregNeuron(id)
+    ActorCounter.unregNeuron(netId, id)
   }
 
   private def hushNow(){
