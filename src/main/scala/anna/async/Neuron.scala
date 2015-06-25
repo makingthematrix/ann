@@ -26,11 +26,14 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   protected var buffer = 0.0
   protected var lastOutput = 0.0 // only for debugging purposes
 
+  private val schedulerBuffer = new SchedulerBuffer(context)
+
   override def preStart():Unit = {
     ActorCounter.regNeuron(netId, id)
   }
 
   override def postStop():Unit = {
+    schedulerBuffer.clear()
     ActorCounter.unregNeuron(netId, id)
   }
 
@@ -43,6 +46,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   
   private def makeSleep() = {
     context.become(sleep)
+    //schedulerBuffer.schedule((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
     context.system.scheduler.scheduleOnce((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
   }
   
@@ -50,6 +54,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
     val t = (tickTimeMultiplier * Context().tickTime).toLong * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
+    //schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
     context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
   }
   
@@ -115,6 +120,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   private def reset(): Unit ={
     buffer = 0.0
     context.become(receive)
+    schedulerBuffer.clear()
     answer(Success(id))
   }
 
