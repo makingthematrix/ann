@@ -22,6 +22,7 @@ class Net(val id: String) extends Actor {
     case SignalSeq(in) => signal(in)
     case Reset => resetBuffer()
     case RemoveAllTriggers => removeTriggers()
+    case RemoveAfterFireTrigger(id) => removeAfterFire(id)
     case Terminated(actorRef) =>
       neurons -= neurons.find( _.ref == actorRef ).get
       if(neurons.isEmpty) self ! PoisonPill
@@ -68,6 +69,11 @@ class Net(val id: String) extends Actor {
   private def resetBuffer() = {
     context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
+  }
+
+  private def removeAfterFire(id:String) = {
+    context.become( waiting(sender, neurons.map(_.id).toSet, s"removing an after fire trigger $id") )
+    neurons.foreach(_ ! RemoveAfterFireTrigger(id))
   }
 
   private def removeTriggers() = {

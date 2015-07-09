@@ -71,6 +71,8 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def reset() = await[Success](ref,Reset)
   def removeAllTriggers() = await[Success](ref, RemoveAllTriggers)
+
+  def removeAfterFire(id:String) = await[Success](ref, RemoveAfterFireTrigger(id))
 }
 
 object NetRef {
