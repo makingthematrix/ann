@@ -8,9 +8,6 @@ import anna.logger.LOG._
 import anna.utils.Utils.await
 
 class NeuronRef(val id: String, val ref: ActorRef) {
-  //implicit val timeout = Context().timeout
-
-  //def input = await[Msg](ref, GetInput).d
   def lastOutput = await[Msg](ref, GetLastOutput).d
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
@@ -38,5 +35,4 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   
   def +=(signal: Double) = ref ! Signal(signal)
   def !(any: Any) = ref ! any
-  def ?(any: Any) = ref ? any
 }

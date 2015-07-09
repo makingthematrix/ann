@@ -58,11 +58,11 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
 
   def tickUntilCalm():Int = {
     var neuronFired = false
-    //val neurons = net.getNeurons
+    val neurons = net.getNeurons
 
-    net.addAfterFire("tickUntilCalm")( (_:Double)=>{ neuronFired = true }))
-    //neurons.foreach(_.addAfterFire("tickUntilCalm")( (_:Double)=>{ neuronFired = true }))
-    
+    //net.addAfterFire("tickUntilCalm")( (_:Double)=>{ neuronFired = true })
+    neurons.foreach(_.addAfterFire("tickUntilCalm")( (_:Double)=>{ neuronFired = true }))
+
     var (calmTick, counter) = (0, 0)
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
       neuronFired = false
@@ -73,8 +73,8 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
     
     net.reset()
 
-    net.removeAfterFire("tickUntilCalm")
-    //neurons.foreach(_.removeAfterFire("tickUntilCalm"))
+    //net.removeAfterFire("tickUntilCalm")
+    neurons.foreach(_.removeAfterFire("tickUntilCalm"))
     counter
   }
 
