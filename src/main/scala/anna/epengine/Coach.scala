@@ -29,7 +29,7 @@ class Coach(val exercises: List[Exercise]){
     })
     wrapper.shutdown()
 
-    debug(this, s" -------------- done testing ${data.id} ------------------")
+    debug(this, s" -------------- done testing ${data.id} with result $result ------------------")
     result
   }
 
