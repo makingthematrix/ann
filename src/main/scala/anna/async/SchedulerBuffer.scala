@@ -14,7 +14,10 @@ class SchedulerBuffer(context : ActorContext){
 
   def schedule(delay : FiniteDuration)(f : => scala.Unit) = {
     refresh()
-    val c = context.system.scheduler.scheduleOnce(delay)(f)
+    val c = context.system.scheduler.scheduleOnce(delay){
+      f
+      refresh()
+    }
     val timestamp = System.currentTimeMillis() + delay.toMillis
     map += (timestamp -> c)
     timestamp

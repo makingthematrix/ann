@@ -46,16 +46,14 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   
   private def makeSleep() = {
     context.become(sleep)
-    //schedulerBuffer.schedule((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
-    context.system.scheduler.scheduleOnce((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
+    schedulerBuffer.schedule((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
   }
   
   private def makeHush() = {
     val t = (tickTimeMultiplier * Context().tickTime).toLong * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
-    //schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
-    context.system.scheduler.scheduleOnce(t millis){ self ! WakeFromHush }
+    schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
   }
   
   protected def calculateOutput:Double = f(buffer, slope)

@@ -11,6 +11,10 @@ import anna.async.NetBuilderOps._
 /**
  * Created by gorywoda on 06.06.15.
  */
+
+case class IterationStats(iteration: Int, bestId: String, bestResult: Double, avg: Double, size: Int)
+// przydałaby się jeszcze mediana i coś o dystrybucji - kwintyle, wariancja
+
 object Commands {
 
   def context = Context()
@@ -41,6 +45,7 @@ object Commands {
 
   def engine = engineOpt.getOrElse(throw new IllegalArgumentException("No engine set"))
   def poll = engine.poll
+  def coach = engine.coach
 
   lazy val dotLineData = {
     val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
@@ -122,6 +127,16 @@ object Commands {
   def run(iterations: Int =1) = engineOpt match {
     case Some(engine) => engine.run(iterations)
     case None => exception(this, "Unable to run as no engine is ready")
+  }
+
+  def results = poll.ids.map(id => id -> engine.getResult(id).get).toMap
+  def avg = poll.ids.map(engine.getResult(_).get).sum / poll.ids.size
+
+  def runWithStats(iterations: Int =20) = (1 to iterations).map(_ => _runWithStats).sortBy(_.iteration).toList
+
+  private def _runWithStats = {
+    run()
+    IterationStats(engine.iteration, best.id, engine.getResult(best.id).get, avg, poll.size)
   }
 
   def best = engineOpt match {

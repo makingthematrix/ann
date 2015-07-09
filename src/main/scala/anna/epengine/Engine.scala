@@ -22,33 +22,35 @@ class Engine(val dirName: String,
   import anna.epengine.Engine._
 
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
-  private var iterIndex = 0
+  private var _iteration = 0
 
   def poll = _poll
 
+  def iteration = _iteration
+
   def run(iterations: Int =1) = {
-    val end = iterIndex + iterations
-    while(iterIndex < end) iteration()
+    val end = _iteration + iterations
+    while(_iteration < end) _run()
   }
   
-  def iteration() = {
-    if(iterIndex == 0) calculateResults()
+  private def _run() = {
+    if(_iteration == 0) calculateResults()
 
-    val listOut = new ListLogOutput(s"iteration${iterIndex}")
+    val listOut = new ListLogOutput(s"iteration${_iteration}")
     LOG.addOut(listOut)
 
-    debug(this,s" ------------------------ Iteration $iterIndex of the engine ------------------------ ")
+    debug(this,s" ------------------------ Iteration ${_iteration} of the engine ------------------------ ")
 
     _poll = GenomePoll(mutate(newGeneration))
 
-    if(savingProgress) Utils.save(s"${dirPath}/poll_iteration${iterIndex}.json", _poll.toJson)
+    if(savingProgress) Utils.save(s"${dirPath}/poll_iteration${_iteration}.json", _poll.toJson)
 
     calculateResults()
 
-    debug(this,s" ------------------------ done iteration $iterIndex of the engine ------------------------ ")
+    debug(this,s" ------------------------ done iteration ${_iteration} of the engine ------------------------ ")
 
     if(savingProgress) {
-      Utils.save(s"${dirPath}/iteration${iterIndex}.log", listOut.log)
+      Utils.save(s"${dirPath}/iteration${_iteration}.log", listOut.log)
 
       val mutations = listOut.list.map(_ match {
         case line if line.contains("MUTATION: ") => Some(line.substring(line.indexOf("MUTATION: ")))
@@ -57,13 +59,13 @@ class Engine(val dirName: String,
         case _ => None
       }).flatten
 
-      Utils.save(s"${dirPath}/mutations_iteration${iterIndex}.log", mutations.mkString("\n"))
-      Utils.save(s"${dirPath}/best_iteration${iterIndex}.json", best.toJson)
+      Utils.save(s"${dirPath}/mutations_iteration${_iteration}.log", mutations.mkString("\n"))
+      Utils.save(s"${dirPath}/best_iteration${_iteration}.json", best.toJson)
     }
 
     LOG.removeOut(listOut)
 
-    iterIndex += 1
+    _iteration += 1
   }
 
   def mutate(genomes: List[NetGenome]) = {
@@ -96,18 +98,18 @@ class Engine(val dirName: String,
   private def cloneGenomes(size: Int) = if(size > 0){
     val sortedGenomes = _poll.genomesSorted(results)
     val bestGenome = sortedGenomes(0)
-    val newId = s"iter${iterIndex}#0Cloned"
+    val newId = s"iter${_iteration}#0Cloned"
     debug(this,s"CLONING: best genome ${bestGenome.id} as $newId")
     val list = mutable.ListBuffer[NetGenome](bestGenome.netId(newId))
     if(size > 1){
       val lowerHalfRandom = RandomNumber((sortedGenomes.size / 2) until sortedGenomes.size)
       val lowerHalfGenome = sortedGenomes(lowerHalfRandom)
-      val newId = s"iter${iterIndex}#${lowerHalfRandom}Cloned"
+      val newId = s"iter${_iteration}#${lowerHalfRandom}Cloned"
       debug(this,s"CLONING: lower half ($lowerHalfRandom) genome ${lowerHalfGenome.id} as $newId")
       list += lowerHalfGenome.netId(newId)
       list ++= (2 until size).map(index => {
         val genome = sortedGenomes(index - 1)
-        val newId = s"iter${iterIndex}#${index - 1}Cloned"
+        val newId = s"iter${_iteration}#${index - 1}Cloned"
         debug(this,s"CLONING: genome ${genome.id} as $newId")
         genome.netId(newId)
       })
@@ -118,8 +120,8 @@ class Engine(val dirName: String,
   private def crossRandomGenomes(size: Int) = {
     val newGenomes = (for(i <- 1 to size/2) yield {
       val (g1, g2) = crossTwoGenomes
-      debug(this,s"CROSSING: ... new names ${g1.id} -> iter${iterIndex}#${i}Left, ${g2.id} -> iter${iterIndex}#${i}Right")
-      List(g1.netId(s"iter${iterIndex}#${i}Left"), g2.netId(s"iter${iterIndex}#${i}Right"))
+      debug(this,s"CROSSING: ... new names ${g1.id} -> iter${_iteration}#${i}Left, ${g2.id} -> iter${_iteration}#${i}Right")
+      List(g1.netId(s"iter${_iteration}#${i}Left"), g2.netId(s"iter${_iteration}#${i}Right"))
     }).flatten.toList
     if(newGenomes.size > size) newGenomes.init else newGenomes
   }
@@ -150,9 +152,9 @@ class Engine(val dirName: String,
     results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
     debug(this,s"And there ${results.size} results")
 
-    if(savingProgress) Utils.save(s"${dirPath}/results_iteration${iterIndex}.json", writePretty(results))
+    if(savingProgress) Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(results))
 
-    if(iterIndex == 0) iterIndex = 1
+    if(_iteration == 0) _iteration = 1
     debug(this,"------------------------------ done calculating results ------------------------------")
   }
 
@@ -201,7 +203,7 @@ object Engine {
 
     val coach = Coach(exercisesSet)
     val engine = new Engine(dirName, coach, true, poll, initResultsMap(poll))
-    engine.iterIndex = findGenomePollIteration(dirPath)
+    engine._iteration = findGenomePollIteration(dirPath)
     engine
   }
 
