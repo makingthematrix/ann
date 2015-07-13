@@ -15,7 +15,27 @@ import anna.async.NetBuilderOps._
 case class IterationStats(iteration: Int, bestId: String, bestResult: Double, avg: Double, size: Int)
 // przydałaby się jeszcze mediana i coś o dystrybucji - kwintyle, wariancja
 
+class NetDataOps(val data: NetData){
+  def <<(input: String) = {
+    val netWrapper = NetBuilder().set(data).build()
+    val sb = StringBuilder.newBuilder
+    if(data.contains("S")) netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S'); println('S') } )
+    if(data.contains("O")) netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O'); println('O') } )
+    if(data.contains("S")) netWrapper.addAfterFire("dot")( (_:Double)=>{ sb.append('.'); println('.') } )
+    if(data.contains("O")) netWrapper.addAfterFire("line")( (_:Double)=>{ sb.append('-'); println('-') } )
+
+    netWrapper += input
+
+    netWrapper.tickUntilCalm()
+    netWrapper.shutdown()
+
+    sb.toString()
+  }
+}
+
 object Commands {
+
+  implicit def data2Ops(data: NetData):NetDataOps = new NetDataOps(data)
 
   def context = Context()
 
