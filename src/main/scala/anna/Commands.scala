@@ -187,20 +187,23 @@ object Commands {
     if(data1.inputTickMultiplier != data2.inputTickMultiplier) sb.append(s"input tick multiplier: ${data1.inputTickMultiplier} -> ${data2.inputTickMultiplier}")
     if(data1.neurons.size != data2.neurons.size) sb.append(s"#neurons: ${data1.neurons.size} -> ${data2.neurons.size}\n")
 
-    val data1NeuronIds = data1.neurons.map(_.id).toSet
-    val data2NeuronIds = data2.neurons.map(_.id).toSet
+    val data1NeuronIds = data1.neurons.map(n => NetData.removeNetId(n.id)).toSet
+    val data2NeuronIds = data2.neurons.map(n => NetData.removeNetId(n.id)).toSet
     if(data1NeuronIds != data2NeuronIds){
       sb.append(s"neurons: ${data1NeuronIds.toList.sorted} -> ${data2NeuronIds.toList.sorted}\n")
       (data1NeuronIds -- data2NeuronIds).foreach( nid => sb.append(s"$nid deleted\n"))
       (data2NeuronIds -- data1NeuronIds).foreach( nid => {
-        val n = data2.neuron(nid)
+        val n = data2.neuron(NetData.neuronId(data2.id, nid))
         sb.append(s"$nid added: $n\n")
       })
     }
 
     data1NeuronIds.intersect(data2NeuronIds).foreach(nid => {
-      val n1 = data1.neuron(nid)
-      val n2 = data2.neuron(nid)
+      val neuronId1 = NetData.neuronId(data1.id, nid)
+      // constant neurons have no netId before neuronId so but we don't know which are they so we have to check both possibilities
+      val n1 = if(data1.contains(neuronId1)) data1.neuron(neuronId1) else data1.neuron(nid)
+      val neuronId2 = NetData.neuronId(data2.id, nid)
+      val n2 = if(data2.contains(neuronId2)) data2.neuron(neuronId2) else data2.neuron(nid)
       if(n1 != n2){
         if(n1.threshold != n2.threshold) sb.append(s"$nid threshold: ${n1.threshold} -> ${n2.threshold}\n")
         if(n1.slope != n2.slope) sb.append(s"$nid slope: ${n1.slope} -> ${n2.slope}\n")
