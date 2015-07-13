@@ -13,25 +13,25 @@ object ActorCounter {
   val neurons = mutable.Set[String]()
 
   def regNet(netId: String) = if(_enabled){
-    debug(s"REGISTER net $netId")
+    //debug(s"REGISTER net $netId")
     if (nets.contains(netId)) exception(s"The net $netId is already registered")
     else nets += netId
   }
 
   def unregNet(netId: String) = if(_enabled){
-    debug(s"UNREGISTER net $netId")
+    //debug(s"UNREGISTER net $netId")
     nets -= netId
   }
 
   def regNeuron(netId: String, neuronId: String) = if(_enabled){
     val _id = id(netId, neuronId)
     if (neurons.contains(_id)) exception(s"The neuron ${_id} is already registered")
-    debug(s"REGISTER neuron $neuronId in $netId")
+    //debug(s"REGISTER neuron $neuronId in $netId")
     neurons += _id
   }
 
   def unregNeuron(netId: String, neuronId: String) = if(_enabled){
-    debug(s"UNREGISTER neuron $neuronId in $netId")
+    //debug(s"UNREGISTER neuron $neuronId in $netId")
     neurons -= id(netId, neuronId)
   }
 

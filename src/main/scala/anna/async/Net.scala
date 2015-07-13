@@ -73,7 +73,7 @@ class Net(val id: String) extends Actor {
 
   private def removeAfterFire(id:String) = {
     context.become( waiting(sender, neurons.map(_.id).toSet, s"removing an after fire trigger $id") )
-    neurons.foreach(_ ! RemoveAfterFireTrigger(id))
+    neurons.foreach(_.removeAfterFire(id))
   }
 
   private def removeTriggers() = {

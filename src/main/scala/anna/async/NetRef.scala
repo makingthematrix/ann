@@ -17,7 +17,6 @@ class NetRef(val id: String, val ref: ActorRef) {
   def iteration = _iteration
   
   def !(any: Any) = ref ! any
-  def ?(any: Any) = ref ? any
   
   def inputIds = await[MsgNeurons](ref,GetInputs).neurons.map( _.id )
   def inputSize = await[MsgNeurons](ref,GetInputs).neurons.size
@@ -57,11 +56,12 @@ class NetRef(val id: String, val ref: ActorRef) {
     case None => throw new IllegalArgumentException(s"Unable to find neuron with id $id")
   }
 
+  def addAfterFireToAll(name: String) (f: (Double)=> Any) = getNeurons.foreach(_.addAfterFire(name)(f))
   def addAfterFire(id: String, name: String)(f: (Double)=> Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addAfterFire(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
-  def addAfterFire(id: String)(f: (Double) => Any):Unit  = addAfterFire(id, id)(f)
+  def addAfterFire(id: String)(f: (Double) => Any):Unit = addAfterFire(id, id)(f)
 
   def addHushRequested(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addHushRequested(name)(f)
@@ -73,6 +73,7 @@ class NetRef(val id: String, val ref: ActorRef) {
   def removeAllTriggers() = await[Success](ref, RemoveAllTriggers)
 
   def removeAfterFire(id:String) = await[Success](ref, RemoveAfterFireTrigger(id))
+  def removeAfterFireFromAll(name: String) = getNeurons.foreach(_.removeAfterFire(name))
 }
 
 object NetRef {

@@ -17,9 +17,19 @@ class SynapseGenome(private var _data: SynapseData){
 
   def mutate() = Probability.performRandom(
     (Context().hushProbability, setWeightToHush _),
-    (1.0 - Context().fullWeightProbability - Context().hushProbability, mutateWeight _),
-    (Context().fullWeightProbability, setWeightToFull _)
+    (Context().fullWeightProbability, setWeightToFull _),
+    (Context().invertSynapseProbability, invert _),
+    (1.0 - Context().fullWeightProbability - Context().hushProbability - Context().invertSynapseProbability, mutateWeight _)
   )
+
+  def invert():Unit = {
+    debug(s"MUTATION: ... invert a synapse connecting to $neuronId from ${_data.weight}")
+    _data = _data.withWeight(_data.weight match {
+      case Hush() => SynapseWeight(1.0)
+      case SynapseWeight(1.0) => Hush()
+      case SynapseWeight(weight) => SynapseWeight(Context().weightRange.to - weight + Context().weightRange.from)
+    })
+  }
 
   private def setWeightToHush():Unit = {
     debug(s"MUTATION: ... setWeightToHush in a synapse connecting to $neuronId from ${_data.weight}")

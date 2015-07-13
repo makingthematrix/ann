@@ -22,7 +22,7 @@ class NetSuite extends JUnitSuite {
     val msg = await[Msg](net.ref, GetId)
     assertEquals("net1",msg.str)
     
-    net ! Shutdown
+    net.shutdown()
   }
   
   @Test def shouldCreateNeurons(){
@@ -39,7 +39,7 @@ class NetSuite extends JUnitSuite {
     assertTrue(ids.contains(n1.id))
     assertTrue(ids.contains(n2.id))
     
-    net ! Shutdown
+    net.shutdown()
   }
   
   @Test def shouldCreateNeuronsWithBuilder(){
@@ -54,7 +54,7 @@ class NetSuite extends JUnitSuite {
     assertTrue(ids.contains("id1"))
     assertTrue(ids.contains("id2"))
     
-    net ! Shutdown
+    net.shutdown()
   }
   
   @Test def shouldConnectNeuronsWithBuilder(){
@@ -76,7 +76,7 @@ class NetSuite extends JUnitSuite {
     val nRef = synapses(0).dest
     assertEquals("id2", nRef.id)
     
-    net ! Shutdown
+    net.shutdown()
   }
 
 }

@@ -34,7 +34,8 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
     (Context().forgettingProbability, mutateForgetting _),
     (Context().hushValueProbability, mutateHushValue _),
     (Context().synapseChangeProbability, mutateSynapse _),
-    (Context().tickTimeMultiplierProbability, mutateTickTimeMultiplier _)
+    (Context().tickTimeMultiplierProbability, mutateTickTimeMultiplier _),
+    (Context().invertNeuronProbability, invert _)
   )
 
   def addSynapse(synapseChromosome: SynapseGenome) = {
@@ -48,6 +49,13 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   def getSynapse(neuronId: String) = _data.synapses.find( _.neuronId == neuronId ) match {
     case Some(synapse) => synapse
     case None => throw new IllegalArgumentException(s"There is no synapse connecting ${_data.id} with $neuronId")
+  }
+
+  private def invert():Unit = {
+    val genomes = synapses.map(s => SynapseGenome(s))
+    genomes.foreach(_.invert())
+    debug(s"MUTATION: invert for $id")
+    _data = _data.withSynapses(genomes.map(_.data))
   }
 
   private def mutateThreshold():Unit = {
@@ -126,7 +134,7 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
   private def mutateSynapse():Unit = Probability.performRandom(
     (Context().addSynapseProbability, addRandomSynapse _),
     (Context().deleteSynapseProbability, deleteRandomSynapse _),
-    (1.0 - Context().addSynapseProbability - Context().deleteSynapseProbability, mutateSynapseWeight _)
+    (1.0 - Context().addSynapseProbability - Context().deleteSynapseProbability, mutateRandomSynapse _)
   )
 
   private def addRandomSynapse():Unit = getRandomNeuronId() match {
@@ -146,14 +154,16 @@ class NeuronGenome(private var _data: NeuronData, val accessMap: Map[String, Mut
       debug(this, s"Trying to remove a synapse from $id but it's not allowed")
   }
 
-  private def mutateSynapseWeight():Unit = getRandomSynapse(false) match {
-      case Some(synapse) =>
-        val synapseChromosome = SynapseGenome(synapse)
-        debug(s"MUTATION: mutateSynapseWeight for $id ... ")
-        synapseChromosome.mutate()
-        _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
-      case None =>
-        debug(this, s"Trying to mutate a synapse from $id but it's not allowed or $id has no synapses")
+  private def mutateSynapse(synapse: SynapseData):Unit = {
+    val synapseChromosome = SynapseGenome(synapse)
+    debug(s"MUTATION: mutateSynapseWeight for $id ... ")
+    synapseChromosome.mutate()
+    _data = _data.withSynapses(synapseChromosome.data :: _data.synapses.filterNot(_.neuronId == synapse.neuronId))
+  }
+
+  private def mutateRandomSynapse():Unit = getRandomSynapse(false) match {
+    case Some(synapse) => mutateSynapse(synapse)
+    case None => debug(this, s"Trying to mutate a synapse from $id but it's not allowed or $id has no synapses")
   }
 
   def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {

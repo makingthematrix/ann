@@ -29,7 +29,8 @@ case class NeuronDefaults(
 case class SynapseGenomeDefaults(
   weightRange: DoubleRange,
   hushProbability: Probability,
-  fullWeightProbability: Probability
+  fullWeightProbability: Probability,
+  invertSynapseProbability: Probability
 ){
   def toJson = writePretty(this)
 }
@@ -48,6 +49,7 @@ case class NeuronGenomeDefaults(
   forgettingProbability: Probability,
   hushValueProbability: Probability,
   tickTimeMultiplierProbability: Probability,
+  invertNeuronProbability: Probability,
 
   synapseChangeProbability: Probability,
   addSynapseProbability: Probability,
@@ -131,6 +133,7 @@ case class Context(
   def weightRange = synapseGenomeDefaults.weightRange
   def hushProbability = synapseGenomeDefaults.hushProbability
   def fullWeightProbability = synapseGenomeDefaults.fullWeightProbability
+  def invertSynapseProbability = synapseGenomeDefaults.invertSynapseProbability
 
   def thresholdRange = neuronGenomeDefaults.thresholdRange
   def slopeRange = neuronGenomeDefaults.slopeRange
@@ -145,6 +148,8 @@ case class Context(
   def forgettingProbability = neuronGenomeDefaults.forgettingProbability
   def hushValueProbability = neuronGenomeDefaults.hushValueProbability
   def tickTimeMultiplierProbability = neuronGenomeDefaults.tickTimeMultiplierProbability
+  def invertNeuronProbability = neuronGenomeDefaults.invertNeuronProbability
+
 
   def synapseChangeProbability = neuronGenomeDefaults.synapseChangeProbability
   def addSynapseProbability = neuronGenomeDefaults.addSynapseProbability
@@ -323,8 +328,9 @@ object Context {
     val weightRange = synapseDefaultsRoot.getDouble("weightRange.from") <=> synapseDefaultsRoot.getDouble("weightRange.to")
     val hushProbability = Probability(synapseDefaultsRoot.getDouble("hushProbability"))
     val fullWeightProbability = Probability(synapseDefaultsRoot.getDouble("fullWeightProbability"))
+    val invertSynapseProbability = Probability(synapseDefaultsRoot.getDouble("invertSynapseProbability"))
 
-    val synapseGenomeDefaults = SynapseGenomeDefaults(weightRange, hushProbability, fullWeightProbability)
+    val synapseGenomeDefaults = SynapseGenomeDefaults(weightRange, hushProbability, fullWeightProbability, invertSynapseProbability)
 
     // neuron genome defaults - ranges
 
@@ -344,6 +350,7 @@ object Context {
     val forgettingProbability = Probability(neuronGenomeRoot.getDouble("forgettingProbability"))
     val hushValueProbability = Probability(neuronGenomeRoot.getDouble("hushValueProbability"))
     val tickTimeMultiplierProbability = Probability(neuronGenomeRoot.getDouble("tickTimeMultiplierProbability"))
+    val invertNeuronProbability = Probability(neuronGenomeRoot.getDouble("invertNeuronProbability"))
 
     // neuron genome defaults - probabilities of mutating a synapse
     val synapseChangeProbability = Probability(neuronGenomeRoot.getDouble("synapseChangeProbability"))
@@ -354,6 +361,7 @@ object Context {
       thresholdRange, slopeRange, hushRange, forgettingRange, tickTimeMultiplierRange,
       dontForgetProbability, forgetAllProbability, thresholdProbability,
       slopeProbability, forgettingProbability, hushValueProbability, tickTimeMultiplierProbability,
+      invertNeuronProbability,
       synapseChangeProbability, addSynapseProbability, deleteSynapseProbability
     )
 

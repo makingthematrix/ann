@@ -32,6 +32,15 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     case Success(id) => true
     case Failure(str) => error(this,s"removeHushRequested failure: $str"); false    
   }
+  def removeAllTriggers() = await[Answer](ref, RemoveAllTriggers) match {
+    case Success(id) => true
+    case Failure(str) => error(this,s"removeAllTriggers failure: $str"); false
+  }
+
+  def reset() = await[Answer](ref, Reset) match {
+    case Success(id) => true
+    case Failure(str) => error(this,s"reset failure: $str"); false
+  }
   
   def +=(signal: Double) = ref ! Signal(signal)
   def !(any: Any) = ref ! any
