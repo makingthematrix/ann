@@ -6,6 +6,9 @@ import anna.logger.LOG
 /**
  * Created by gorywoda on 23.06.15.
  */
+/**
+ * @todo: Turn into a typed actor
+ */
 object ActorCounter {
   LOG.addLogToFile("actorcounter.log")
 

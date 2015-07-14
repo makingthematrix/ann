@@ -236,10 +236,19 @@ object Engine {
   private def drop(genomes: List[NetGenome], index: Int):List[NetGenome] = genomes.take(index) ++ genomes.drop(index + 1)
   private def drop(genomes: List[NetGenome], id: String):List[NetGenome] = drop(genomes, genomes.indexWhere(_.id == id))
 
-  private def drawId(results: Map[String, Double]):String = {
+  /**
+   *@todo: Dla większego zróżnicowania wyników "normalizowanie" mogłoby np. ucinać część (albo całą) odległość
+   *pomiędzy najgorszym wynikiem a 0 i dopiero pozostały odcinek normalizować do <0,1>
+   */
+  private def normalize(results: Map[String, Double]) = {
     val sum = results.values.sum
-    if(sum == 0.0) results.toList(0)._1
-    else getId(RandomNumber(), results.map(tuple => tuple._1 -> tuple._2 / sum).toList.sortBy(-_._2))
+    if(sum == 0.0) None
+    else Some(results.map(tuple => tuple._1 -> tuple._2 / sum))
+  }
+
+  private def drawId(results: Map[String, Double]):String = normalize(results) match {
+    case None => results.toList(0)._1
+    case Some(normalizedResults) => getId(RandomNumber(), normalizedResults.toList.sortBy(-_._2))
   }
 
   @tailrec

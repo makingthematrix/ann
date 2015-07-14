@@ -90,10 +90,13 @@ object ExercisesLibrary {
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,0,0")
       LOG.debug(this,s"${this.name}: dotFired: $dotFired, dotResult: $dotResult, lineFired: $lineFired, lineResult: $lineResult")
 
-      if(dotFired){
+      /*if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)
       }
-      if(lineFired) result += 1.0
+      if(lineFired) result += 1.0*/
+      if(dotFired){
+        result += (if(!lineFired) 10.0 else 5.0)
+      }
 
       result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneSignalGivesDotImportance)
 
@@ -107,9 +110,12 @@ object ExercisesLibrary {
 
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,1,0")
 
-      if(dotFired) result += 1.0
+      /*if(dotFired) result += 1.0
       if(lineFired){
         result += (if(!dotFired) 2.0 else 1.0)
+      }*/
+      if(lineFired){
+        result += (if(!dotFired) 10.0 else 5.0)
       }
 
       result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoSignalsGiveLineImportance)
@@ -124,10 +130,13 @@ object ExercisesLibrary {
 
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,0,1")
 
-      if(dotFired){
+      /*if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)
       }
-      if(lineFired) result += 1.0
+      if(lineFired) result += 1.0*/
+      if(dotFired){
+        result += (if(!lineFired) 10.0 else 5.0)
+      }
 
       result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneSignalWithNoiseGivesDotImportance)
 
@@ -141,9 +150,12 @@ object ExercisesLibrary {
 
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,1,1")
 
-      if(dotFired) result += 1.0
+      /*if(dotFired) result += 1.0
       if(lineFired){
         result += (if(!dotFired) 2.0 else 1.0)
+      }*/
+      if(lineFired){
+        result += (if(!dotFired) 10.0 else 5.0)
       }
 
       result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoSignalsWithNoiseGiveLineImportance)
@@ -162,10 +174,13 @@ object ExercisesLibrary {
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
       List('a','b','c').foreach( wrapper.deregSign )
 
-      if(dotFired){
+      /*if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)
       }
-      if(lineFired) result += 1.0
+      if(lineFired) result += 1.0*/
+      if(dotFired){
+        result += (if(!lineFired) 10.0 else 5.0)
+      }
 
       result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneVariedSignalGivesDotImportance)
 
@@ -183,9 +198,12 @@ object ExercisesLibrary {
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
       List('a','b','c').foreach( wrapper.deregSign )
 
-      if(dotFired) result += 1.0
+      /*if(dotFired) result += 1.0
       if(lineFired){
         result += (if(!dotFired) 2.0 else 1.0)
+      }*/
+      if(lineFired){
+        result += (if(!dotFired) 10.0 else 5.0)
       }
 
       result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoVariedSignalsGiveLineImportance)
@@ -204,10 +222,13 @@ object ExercisesLibrary {
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
       List('a','b','c').foreach( wrapper.deregSign )
 
-      if(dotFired){
+      /*if(dotFired){
         result += (if(!lineFired) 2.0 else 1.0)
       }
-      if(lineFired) result += 1.0
+      if(lineFired) result += 1.0*/
+      if(dotFired){
+        result += (if(!lineFired) 10.0 else 5.0)
+      }
 
       result += (if(dotResult <= lineResult) 0.0 else (dotResult - lineResult) * Context().oneVariedSignalWithNoiseGivesDotImportance)
 
@@ -225,9 +246,12 @@ object ExercisesLibrary {
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "a,b,c")
       List('a','b','c').foreach( wrapper.deregSign )
 
-      if(dotFired) result += 1.0
+      /*if(dotFired) result += 1.0
       if(lineFired){
         result += (if(!dotFired) 2.0 else 1.0)
+      }*/
+      if(lineFired){
+        result += (if(!dotFired) 10.0 else 5.0)
       }
 
       result += (if(lineResult <= dotResult) 0.0 else (lineResult - dotResult) * Context().twoVariedSignalsWithNoiseGiveLineImportance)
