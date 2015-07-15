@@ -29,12 +29,12 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   private val schedulerBuffer = new SchedulerBuffer(context)
 
   override def preStart():Unit = {
-    ActorCounter.regNeuron(netId, id)
+    NeuronCounter.reg(netId, id, self)
   }
 
   override def postStop():Unit = {
     schedulerBuffer.clear()
-    ActorCounter.unregNeuron(netId, id)
+    NeuronCounter.unreg(netId, id)
   }
 
   private def hushNow(){

@@ -21,8 +21,8 @@ class NetDataOps(val data: NetData){
     val sb = StringBuilder.newBuilder
     if(data.contains("S")) netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S'); println('S') } )
     if(data.contains("O")) netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O'); println('O') } )
-    if(data.contains("S")) netWrapper.addAfterFire("dot")( (_:Double)=>{ sb.append('.'); println('.') } )
-    if(data.contains("O")) netWrapper.addAfterFire("line")( (_:Double)=>{ sb.append('-'); println('-') } )
+    if(data.contains("dot")) netWrapper.addAfterFire("dot")( (_:Double)=>{ sb.append('.'); println('.') } )
+    if(data.contains("line")) netWrapper.addAfterFire("line")( (_:Double)=>{ sb.append('-'); println('-') } )
 
     netWrapper += input
 

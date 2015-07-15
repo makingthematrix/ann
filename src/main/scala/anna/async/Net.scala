@@ -31,16 +31,14 @@ class Net(val id: String) extends Actor {
   private var shutdownCallerOpt:Option[ActorRef] = None
 
   override def preStart():Unit = {
-    ActorCounter.regNet(id)
+
   }
 
   override def postStop():Unit = {
     if(shutdownCallerOpt != None) shutdownCallerOpt.get ! NetShutdownDone(id)
-    ActorCounter.unregNet(id)
   }
 
   private def shutdown() = {
-    LOG.debug(this,"shutdown")
     shutdownCallerOpt = Some(sender)
     neurons.foreach( _ ! PoisonPill )
   }
