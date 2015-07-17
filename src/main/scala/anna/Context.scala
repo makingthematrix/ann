@@ -293,69 +293,133 @@ object Context {
   def withTwoVariedSignalsWithNoiseGiveLineImportance(twoVariedSignalsWithNoiseGiveLineImportance: Double) =
     set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(twoVariedSignalsWithNoiseGiveLineImportance = twoVariedSignalsWithNoiseGiveLineImportance)))
 
+  val _awaittimeout = "awaitTimeout"
+  val _enginedefaults = "engineDefaults"
+  val _initialmutationsnumber = "initialMutationsNumber"
+  val _genomepollsize = "genomePollSize"
+  val _exercisessetdir = "exercisesSetDir"
+  val _mutationprobability = "mutationProbability"
+  val _evolutiondir = "evolutionDir"
+  val _crosscoefficient = "crossCoefficient"
+  val _neurondefaults = "neuronDefaults"
+  val _defaultslope = "defaultSlope"
+  val _defaultthreshold = "defaultThreshold"
+  val _defaultweight = "defaultWeight"
+  val _defaulthushvalue = "defaultHushValue"
+  val _defaultforgetting = "defaultForgetting"
+  val _defaultticktime = "defaultTickTime"
+  val _activationfunctionname = "activationFunctionName"
+  val _synapsegenomedefaults = "synapseGenomeDefaults"
+  val _weightrangefrom = "weightRange.from"
+  val _weightrangeto = "weightRange.to"
+  val _hushprobability = "hushProbability"
+  val _fullweightprobability = "fullWeightProbability"
+  val _invertsynapseprobability = "invertSynapseProbability"
+  val _neurongenomedefaults = "neuronGenomeDefaults"
+  val _thresholdrangeform = "thresholdRange.from"
+  val _thresholdrangeto = "thresholdRange.to"
+  val _sloperangefrom = "slopeRange.from"
+  val _sloperangeto = "slopeRange.to"
+  val _hushrangefrom = "hushRange.from"
+  val _hushrangeto = "hushRange.to"
+  val _forgettingrangefrom = "forgettingRange.from"
+  val _forgettingrangeto = "forgettingRange.to"
+  val _tickmultiplierrangefrom = "tickTimeMultiplierRange.from"
+  val _ticktimemultiplierrangeto = "tickTimeMultiplierRange.to"
+  val _dontforgetprobability = "dontForgetProbability"
+  val _forgetallprobability = "forgetAllProbability"
+  val _thresholdprobability = "thresholdProbability"
+  val _slopeprobability = "slopeProbability"
+  val _forgettingprobability = "forgettingProbability"
+  val _hushvalueprobability = "hushValueProbability"
+  val _ticktimemultiplierprobability = "tickTimeMultiplierProbability"
+  val _invertneuronprobability = "invertNeuronProbability"
+  val _synapsechangeprobability = "synapseChangeProbability"
+  val _addsynapseprobability = "addSynapseProbability"
+  val _deletesynapseprobability = "deleteSynapseProbability"
+  val _netgenomedefaults = "netGenomeDefaults"
+  val _addneuronprobability = "addNeuronProbability"
+  val _deleteneuronprobability = "deleteNeuronProbability"
+  val _mutateneuronprobability = "mutateNeuronProbability"
+  val _inputtickmultiplierprobability = "inputTickMultiplierProbability"
+  val _inputtickmultiplierrangefrom = "inputTickMultiplierRange.from"
+  val _inputtickmultiplierrangeto = "inputTickMultiplierRange.to"
+  val _neuronsrangefrom = "neuronsRange.from"
+  val _neuronsrangeto = "neuronsRange.to"
+  val _synapsesdensity = "synapsesDensity"
+  val _dotlineexercisesdefaults = "dotLineExercisesDefaults"
+  val _onesignalgivesdotimportance = "oneSignalGivesDotImportance"
+  val _twosignalsgivelineimportance = "twoSignalsGiveLineImportance"
+  val _onesignalwithnoisegivesdotimportance = "oneSignalWithNoiseGivesDotImportance"
+  val _twosignalswithnoisegivelineimportance = "twoSignalsWithNoiseGiveLineImportance"
+  val _onevariedsignalgivesdotimportance = "oneVariedSignalGivesDotImportance"
+  val _twovariedsignalsgivelineimportance = "twoVariedSignalsGiveLineImportance"
+  val _onevariedsignalwithnoisegivesdotimportance = "oneVariedSignalWithNoiseGivesDotImportance"
+  val _twovariedsignalswithnoisegivelineimportance = "twoVariedSignalsWithNoiseGiveLineImportance"
+
   private def init(): Unit ={
     val config = ConfigFactory.load()
     val root = config.getConfig("context")
 
-    val awaitTimeout = root.getInt("awaitTimeout")
+    val awaitTimeout = root.getInt(_awaittimeout)
 
-    val engineRoot = root.getConfig("engineDefaults")
-    val initialMutationsNumber = engineRoot.getInt("initialMutationsNumber")
-    val genomePollSize = engineRoot.getInt("genomePollSize")
-    val exercisesSetDir = engineRoot.getString("exercisesSetDir")
-    val mutationProbability = engineRoot.getDouble("mutationProbability")
-    val evolutionDir = engineRoot.getString("evolutionDir")
-    val crossCoefficient = engineRoot.getDouble("crossCoefficient")
+    val engineRoot = root.getConfig(_enginedefaults)
+    val initialMutationsNumber = engineRoot.getInt(_initialmutationsnumber)
+    val genomePollSize = engineRoot.getInt(_genomepollsize)
+    val exercisesSetDir = engineRoot.getString(_exercisessetdir)
+    val mutationProbability = engineRoot.getDouble(_mutationprobability)
+    val evolutionDir = engineRoot.getString(_evolutiondir)
+    val crossCoefficient = engineRoot.getDouble(_crosscoefficient)
 
     val engineDefaults = EngineDefaults(
       initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir, crossCoefficient
     )
 
     // neuron defaults
-    val neuronRoot = root.getConfig("neuronDefaults")
-    val slope = neuronRoot.getDouble("defaultSlope")
-    val threshold = neuronRoot.getDouble("defaultThreshold")
-    val weight = SynapseTrait(neuronRoot.getString("defaultWeight"))
-    val hushValue = HushValue(neuronRoot.getInt("defaultHushValue"))
-    val forgetting = ForgetTrait(neuronRoot.getString("defaultForgetting"))
-    val tickTime = neuronRoot.getLong("defaultTickTime")
-    val activationFunctionName = neuronRoot.getString("activationFunctionName")
+    val neuronRoot = root.getConfig(_neurondefaults)
+    val slope = neuronRoot.getDouble(_defaultslope)
+    val threshold = neuronRoot.getDouble(_defaultthreshold)
+    val weight = SynapseTrait(neuronRoot.getString(_defaultweight))
+    val hushValue = HushValue(neuronRoot.getInt(_defaulthushvalue))
+    val forgetting = ForgetTrait(neuronRoot.getString(_defaultforgetting))
+    val tickTime = neuronRoot.getLong(_defaultticktime)
+    val activationFunctionName = neuronRoot.getString(_activationfunctionname)
 
     val neuronDefaults = NeuronDefaults(slope, threshold, weight, hushValue, forgetting, tickTime, activationFunctionName)
 
     // synapse genome defaults
-    val synapseDefaultsRoot = root.getConfig("synapseGenomeDefaults")
-    val weightRange = synapseDefaultsRoot.getDouble("weightRange.from") <=> synapseDefaultsRoot.getDouble("weightRange.to")
-    val hushProbability = Probability(synapseDefaultsRoot.getDouble("hushProbability"))
-    val fullWeightProbability = Probability(synapseDefaultsRoot.getDouble("fullWeightProbability"))
-    val invertSynapseProbability = Probability(synapseDefaultsRoot.getDouble("invertSynapseProbability"))
+    val synapseDefaultsRoot = root.getConfig(_synapsegenomedefaults)
+    val weightRange = synapseDefaultsRoot.getDouble(_weightrangefrom) <=> synapseDefaultsRoot.getDouble(_weightrangeto)
+    val hushProbability = Probability(synapseDefaultsRoot.getDouble(_hushprobability))
+    val fullWeightProbability = Probability(synapseDefaultsRoot.getDouble(_fullweightprobability))
+    val invertSynapseProbability = Probability(synapseDefaultsRoot.getDouble(_invertsynapseprobability))
 
     val synapseGenomeDefaults = SynapseGenomeDefaults(weightRange, hushProbability, fullWeightProbability, invertSynapseProbability)
 
     // neuron genome defaults - ranges
 
-    val neuronGenomeRoot = root.getConfig("neuronGenomeDefaults")
+    val neuronGenomeRoot = root.getConfig(_neurongenomedefaults)
 
-    val thresholdRange = neuronGenomeRoot.getDouble("thresholdRange.from") <=> neuronGenomeRoot.getDouble("thresholdRange.to")
-    val slopeRange = neuronGenomeRoot.getDouble("slopeRange.from") <=> neuronGenomeRoot.getDouble("slopeRange.to")
-    val hushRange = neuronGenomeRoot.getInt("hushRange.from") to neuronGenomeRoot.getInt("hushRange.to")
-    val forgettingRange = neuronGenomeRoot.getDouble("forgettingRange.from") <=> neuronGenomeRoot.getDouble("forgettingRange.to")
-    val tickTimeMultiplierRange = neuronGenomeRoot.getDouble("tickTimeMultiplierRange.from") <=> neuronGenomeRoot.getDouble("tickTimeMultiplierRange.to")
+    val thresholdRange = neuronGenomeRoot.getDouble(_thresholdrangeform) <=> neuronGenomeRoot.getDouble(_thresholdrangeto)
+    val slopeRange = neuronGenomeRoot.getDouble(_sloperangefrom) <=> neuronGenomeRoot.getDouble(_sloperangeto)
+    val hushRange = neuronGenomeRoot.getInt(_hushrangefrom) to neuronGenomeRoot.getInt(_hushrangeto)
+    val forgettingRange = neuronGenomeRoot.getDouble(_forgettingrangefrom) <=> neuronGenomeRoot.getDouble(_forgettingrangeto)
+    val tickTimeMultiplierRange = neuronGenomeRoot.getDouble(_tickmultiplierrangefrom) <=> neuronGenomeRoot.getDouble(_ticktimemultiplierrangeto)
 
     // neuron genome defaults - probabilities
-    val dontForgetProbability = Probability(neuronGenomeRoot.getDouble("dontForgetProbability"))
-    val forgetAllProbability = Probability(neuronGenomeRoot.getDouble("forgetAllProbability"))
-    val thresholdProbability = Probability(neuronGenomeRoot.getDouble("thresholdProbability"))
-    val slopeProbability = Probability(neuronGenomeRoot.getDouble("slopeProbability"))
-    val forgettingProbability = Probability(neuronGenomeRoot.getDouble("forgettingProbability"))
-    val hushValueProbability = Probability(neuronGenomeRoot.getDouble("hushValueProbability"))
-    val tickTimeMultiplierProbability = Probability(neuronGenomeRoot.getDouble("tickTimeMultiplierProbability"))
-    val invertNeuronProbability = Probability(neuronGenomeRoot.getDouble("invertNeuronProbability"))
+    val dontForgetProbability = Probability(neuronGenomeRoot.getDouble(_dontforgetprobability))
+    val forgetAllProbability = Probability(neuronGenomeRoot.getDouble(_forgetallprobability))
+    val thresholdProbability = Probability(neuronGenomeRoot.getDouble(_thresholdprobability))
+    val slopeProbability = Probability(neuronGenomeRoot.getDouble(_slopeprobability))
+    val forgettingProbability = Probability(neuronGenomeRoot.getDouble(_forgettingprobability))
+    val hushValueProbability = Probability(neuronGenomeRoot.getDouble(_hushvalueprobability))
+    val tickTimeMultiplierProbability = Probability(neuronGenomeRoot.getDouble(_ticktimemultiplierprobability))
+    val invertNeuronProbability = Probability(neuronGenomeRoot.getDouble(_invertneuronprobability))
 
     // neuron genome defaults - probabilities of mutating a synapse
-    val synapseChangeProbability = Probability(neuronGenomeRoot.getDouble("synapseChangeProbability"))
-    val addSynapseProbability = Probability(neuronGenomeRoot.getDouble("addSynapseProbability"))
-    val deleteSynapseProbability = Probability(neuronGenomeRoot.getDouble("deleteSynapseProbability"))
+    val synapseChangeProbability = Probability(neuronGenomeRoot.getDouble(_synapsechangeprobability))
+    val addSynapseProbability = Probability(neuronGenomeRoot.getDouble(_addsynapseprobability))
+    val deleteSynapseProbability = Probability(neuronGenomeRoot.getDouble(_deletesynapseprobability))
 
     val neuronGenomeDefaults = NeuronGenomeDefaults(
       thresholdRange, slopeRange, hushRange, forgettingRange, tickTimeMultiplierRange,
@@ -366,16 +430,16 @@ object Context {
     )
 
     // net genome defaults
-    val netGenomeRoot = root.getConfig("netGenomeDefaults")
+    val netGenomeRoot = root.getConfig(_netgenomedefaults)
 
-    val addNeuronProbability = Probability(netGenomeRoot.getDouble("addNeuronProbability"))
-    val deleteNeuronProbability = Probability(netGenomeRoot.getDouble("deleteNeuronProbability"))
-    val mutateNeuronProbability = Probability(netGenomeRoot.getDouble("mutateNeuronProbability"))
-    val inputTickMultiplierProbability = Probability(netGenomeRoot.getDouble("inputTickMultiplierProbability"))
-    val inputTickMultiplierRange = netGenomeRoot.getDouble("inputTickMultiplierRange.from") <=> netGenomeRoot.getDouble("inputTickMultiplierRange.to")
+    val addNeuronProbability = Probability(netGenomeRoot.getDouble(_addneuronprobability))
+    val deleteNeuronProbability = Probability(netGenomeRoot.getDouble(_deleteneuronprobability))
+    val mutateNeuronProbability = Probability(netGenomeRoot.getDouble(_mutateneuronprobability))
+    val inputTickMultiplierProbability = Probability(netGenomeRoot.getDouble(_inputtickmultiplierprobability))
+    val inputTickMultiplierRange = netGenomeRoot.getDouble(_inputtickmultiplierrangefrom) <=> netGenomeRoot.getDouble(_inputtickmultiplierrangeto)
 
-    val neuronsRange = netGenomeRoot.getInt("neuronsRange.from") to netGenomeRoot.getInt("neuronsRange.to")
-    val synapsesDensity = netGenomeRoot.getDouble("synapsesDensity")
+    val neuronsRange = netGenomeRoot.getInt(_neuronsrangefrom) to netGenomeRoot.getInt(_neuronsrangeto)
+    val synapsesDensity = netGenomeRoot.getDouble(_synapsesdensity)
 
     val netGenomeDefaults = NetGenomeDefaults(
       addNeuronProbability, deleteNeuronProbability, mutateNeuronProbability, inputTickMultiplierProbability,
@@ -383,16 +447,16 @@ object Context {
     )
 
     // dot-line exercises defaults
-    val dotLineExercisesRoot = root.getConfig("dotLineExercisesDefaults")
+    val dotLineExercisesRoot = root.getConfig(_dotlineexercisesdefaults)
 
-    val oneSignalGivesDotImportance = dotLineExercisesRoot.getDouble("oneSignalGivesDotImportance")
-    val twoSignalsGiveLineImportance = dotLineExercisesRoot.getDouble("twoSignalsGiveLineImportance")
-    val oneSignalWithNoiseGivesDotImportance = dotLineExercisesRoot.getDouble("oneSignalWithNoiseGivesDotImportance")
-    val twoSignalsWithNoiseGiveLineImportance = dotLineExercisesRoot.getDouble("twoSignalsWithNoiseGiveLineImportance")
-    val oneVariedSignalGivesDotImportance = dotLineExercisesRoot.getDouble("oneVariedSignalGivesDotImportance")
-    val twoVariedSignalsGiveLineImportance = dotLineExercisesRoot.getDouble("twoVariedSignalsGiveLineImportance")
-    val oneVariedSignalWithNoiseGivesDotImportance = dotLineExercisesRoot.getDouble("oneVariedSignalWithNoiseGivesDotImportance")
-    val twoVariedSignalsWithNoiseGiveLineImportance = dotLineExercisesRoot.getDouble("twoVariedSignalsWithNoiseGiveLineImportance")
+    val oneSignalGivesDotImportance = dotLineExercisesRoot.getDouble(_onesignalgivesdotimportance)
+    val twoSignalsGiveLineImportance = dotLineExercisesRoot.getDouble(_twosignalsgivelineimportance)
+    val oneSignalWithNoiseGivesDotImportance = dotLineExercisesRoot.getDouble(_onesignalwithnoisegivesdotimportance)
+    val twoSignalsWithNoiseGiveLineImportance = dotLineExercisesRoot.getDouble(_twosignalswithnoisegivelineimportance)
+    val oneVariedSignalGivesDotImportance = dotLineExercisesRoot.getDouble(_onevariedsignalgivesdotimportance)
+    val twoVariedSignalsGiveLineImportance = dotLineExercisesRoot.getDouble(_twovariedsignalsgivelineimportance)
+    val oneVariedSignalWithNoiseGivesDotImportance = dotLineExercisesRoot.getDouble(_onevariedsignalwithnoisegivesdotimportance)
+    val twoVariedSignalsWithNoiseGiveLineImportance = dotLineExercisesRoot.getDouble(_twovariedsignalswithnoisegivelineimportance)
 
     val dotLineExercisesDefaults = DotLineExercisesDefaults(
       oneSignalGivesDotImportance,
@@ -412,4 +476,53 @@ object Context {
 
   def fromJson(jsonStr: String) = read[Context](jsonStr)
   def withJson(jsonStr: String) = set(fromJson(jsonStr))
+
+  def set(name: String, d: Double):Unit = name match {
+    case `_genomepollsize` =>withGenomePollSize(d.toInt)
+    case `_mutationprobability` =>withMutationProbability(d)
+    case `_crosscoefficient` =>withCrossCoefficient(d)
+    /*case `_defaultslope` =>withDefaultSlope(d)
+    case `_defaultthreshold` =>withDefaultThreshold(d)
+    case `_defaultweight` =>withDefaultWeight(d)
+    case `_defaulthushvalue` =>withDefaultHushValue(d)
+    case `_defaultforgetting` =>withDefaultForgetting(d)*/
+  //  case `_weightrangefrom` =>withWeightRange.from(d)
+  //  case `_weightrangeto` =>withWeightRange.to(d)
+    case `_hushprobability` =>withHushProbability(d)
+    case `_fullweightprobability` =>withFullWeightProbability(d)
+    /*case `_invertsynapseprobability` =>withInvertSynapseProbability(d)*/
+  //  case `_thresholdrangeform` =>withThresholdRange.from(d)
+  //  case `_thresholdrangeto` =>withThresholdRange.to(d)
+  //  case `_sloperangefrom` =>withSlopeRange.from(d)
+  //  case `_sloperangeto` =>withSlopeRange.to(d)
+  //  case `_hushrangefrom` =>withHushRange.from(d)
+  //  case `_hushrangeto` =>withHushRange.to(d)
+  //  case `_forgettingrangefrom` =>withforgettingRange.from(d)
+  //  case `_forgettingrangeto` =>withforgettingRange.to(d)
+    case `_dontforgetprobability` =>withDontForgetProbability(d)
+    case `_forgetallprobability` =>withForgetAllProbability(d)
+    /*case `_thresholdprobability` =>withtThresholdProbability(d)*/
+    case `_slopeprobability` =>withSlopeProbability(d)
+    case `_forgettingprobability` =>withForgettingProbability(d)
+    case `_hushvalueprobability` =>withHushValueProbability(d)
+    /*case `_invertneuronprobability` =>withInvertNeuronProbability(d)*/
+    case `_synapsechangeprobability` =>withSynapseChangeProbability(d)
+    case `_addsynapseprobability` =>withAddSynapseProbability(d)
+    case `_deletesynapseprobability` =>withDeleteSynapseProbability(d)
+    case `_addneuronprobability` =>withAddNeuronProbability(d)
+    case `_deleteneuronprobability` =>withDeleteNeuronProbability(d)
+    case `_mutateneuronprobability` =>withMutateNeuronProbability(d)
+  //  case `_neuronsrangefrom` =>withNeuronsRange.from(d)
+  //  case `_neuronsrangeto` =>withNeuronsRange.to(d)
+    case `_synapsesdensity` =>withSynapsesDensity(d)
+    /*case `_dotlineexercisesdefaults` =>withDotLineExercisesDefaults(d)*/
+    case `_onesignalgivesdotimportance` =>withOneSignalGivesDotImportance(d)
+    case `_twosignalsgivelineimportance` =>withTwoSignalsGiveLineImportance(d)
+    case `_onesignalwithnoisegivesdotimportance` =>withOneSignalWithNoiseGivesDotImportance(d)
+    case `_twosignalswithnoisegivelineimportance` =>withTwoSignalsWithNoiseGiveLineImportance(d)
+    case `_onevariedsignalgivesdotimportance` =>withOneVariedSignalGivesDotImportance(d)
+    case `_twovariedsignalsgivelineimportance` =>withTwoVariedSignalsGiveLineImportance(d)
+    case `_onevariedsignalwithnoisegivesdotimportance` =>withOneVariedSignalWithNoiseGivesDotImportance(d)
+    case `_twovariedsignalswithnoisegivelineimportance` =>withTwoVariedSignalsWithNoiseGiveLineImportance(d)
+  }
 }
