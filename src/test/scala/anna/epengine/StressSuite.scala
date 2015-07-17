@@ -1,0 +1,66 @@
+package anna.epengine
+
+import anna.Context
+import anna.async.{NeuronCounter, NetBuilder}
+import anna.logger.LOG
+import anna.utils.Utils
+import org.junit.Assert._
+import org.junit.{Test, After, Before}
+import org.scalatest.junit.JUnitSuite
+import anna.async.NetBuilderOps._
+
+/**
+ * Created by gorywoda on 17.07.15.
+ */
+class StressSuite extends JUnitSuite {
+  private var _oldContext:Context = _
+
+  @Before def before() {
+    _oldContext = Context()
+    LOG.addLogToStdout()
+  }
+
+  @After def after(): Unit ={
+    if(engine != null && Utils.fileExists(engine.dirPath)) Utils.deleteDir(engine.dirPath)
+    Context.set(_oldContext)
+  }
+
+  private var engine: Engine = null
+
+  private lazy val inputIds = List("in")
+  private lazy val outputIds = List("dot","line")
+  private lazy val accessMap = Map("in" -> MutationAccessDontMutate(),
+                                   "dot" -> MutationAccessDontDelete(),
+                                   "line" -> MutationAccessDontDelete())
+
+  lazy val dotLineData = {
+    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
+      .use("in").chain("mi21",1.0,0.5).chain("mi22",1.0,0.5).chain("line",1.0,0.5)
+      .use("mi12").hush("mi21")
+      .use("mi21").hush("mi11")
+      .use("dot").hush("line")
+      .use("line").hush("dot")
+      .data
+    val genome = NetGenome(data, accessMap)
+    genome.netId("dotline").data
+  }
+
+  @Test def shouldSurvive1000Restarts(): Unit = {
+    assertEquals(0, NeuronCounter.size)
+    for(i <- 1 to 1000){
+      val wrapper = NetBuilder().set(dotLineData).build()
+      wrapper.shutdown()
+    }
+    assertEquals(0, NeuronCounter.size)
+  }
+
+  @Test def shouldSurvive1000RestartsWithWork(): Unit = {
+    assertEquals(0, NeuronCounter.size)
+    for(i <- 1 to 1000){
+      val wrapper = NetBuilder().set(dotLineData).build()
+      wrapper.tickUntilCalm("1")
+      wrapper.shutdown()
+    }
+    assertEquals(0, NeuronCounter.size)
+  }
+}

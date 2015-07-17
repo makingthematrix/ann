@@ -1,19 +1,15 @@
 package anna
 
 import anna.async.NetBuilder
-import anna.data.{Hush, NetData}
+import anna.data.NetData
 import anna.epengine._
 import anna.utils.Utils
-import anna.epengine.Probability._
 import anna.logger.LOG._
 import anna.async.NetBuilderOps._
 
 /**
  * Created by gorywoda on 06.06.15.
  */
-
-case class IterationStats(iteration: Int, bestId: String, bestResult: Double, avg: Double, size: Int)
-// przydałaby się jeszcze mediana i coś o dystrybucji - kwintyle, wariancja
 
 class NetDataOps(val data: NetData){
   def <<(input: String) = {
@@ -149,15 +145,12 @@ object Commands {
     case None => exception(this, "Unable to run as no engine is ready")
   }
 
-  def results = poll.ids.map(id => id -> engine.getResult(id).get).toMap
-  def avg = poll.ids.map(engine.getResult(_).get).sum / poll.ids.size
-
-  def runWithStats(iterations: Int =20) = (1 to iterations).map(_ => _runWithStats).sortBy(_.iteration).toList
-
-  private def _runWithStats = {
-    run()
-    IterationStats(engine.iteration, best.id, engine.getResult(best.id).get, avg, poll.size)
-  }
+  def results = engine.results
+  def avg = engine.avg
+  def median = engine.median
+  def quintiles = engine.quintiles
+  def quintile(n: Int) = engine.quintile(n)
+  def runWithStats(iterations: Int =20) = engine.runWithStats(iterations)
 
   def best = engineOpt match {
     case Some(engine) => engine.best.data

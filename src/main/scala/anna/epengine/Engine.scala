@@ -18,7 +18,7 @@ class Engine(val dirName: String,
              val coach: Coach,
              val savingProgress: Boolean,
              private var _poll: GenomePoll,
-             private var results:Map[String,Double] = HashMap()) {
+             private var _results:Map[String,Double] = HashMap()) {
   import anna.epengine.Engine._
 
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
@@ -80,10 +80,10 @@ class Engine(val dirName: String,
 
   def newGeneration:List[NetGenome] = {
     debug(this, " --- new generation --- ")
-    debug(this,s"Poll size ${_poll.size}, results: ${results.size}")
+    debug(this,s"Poll size ${_poll.size}, results: ${_results.size}")
 
-    val genomesToCross = math.round(Context().crossCoefficient * results.size).toInt
-    val genomesToClone = results.size - genomesToCross
+    val genomesToCross = math.round(Context().crossCoefficient * _results.size).toInt
+    val genomesToClone = _results.size - genomesToCross
 
     debug(this,s"genomesToCross: $genomesToCross, genomesToClone: $genomesToClone")
 
@@ -96,7 +96,7 @@ class Engine(val dirName: String,
   }
 
   private def cloneGenomes(size: Int) = if(size > 0){
-    val sortedGenomes = _poll.genomesSorted(results)
+    val sortedGenomes = _poll.genomesSorted(_results)
     val bestGenome = sortedGenomes(0)
     val newId = s"iter${_iteration}#0Cloned"
     debug(this,s"CLONING: best genome ${bestGenome.id} as $newId")
@@ -128,7 +128,7 @@ class Engine(val dirName: String,
 
   private def crossTwoGenomes = {
     val genome1 = _poll(drawId)
-    drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id) match {
+    drawCrossableGenome(genome1, drop(genome1.id), _results - genome1.id) match {
       case Some(genome2) =>
         debug(this,s"CROSSING: ${genome1.id} with ${genome2.id}")
         genome1.cross(genome2)
@@ -140,19 +140,21 @@ class Engine(val dirName: String,
 
   def best = {
     if(_poll.empty) exception("The genomes poll is empty")
-    _poll.genomesSorted(results)(0)
+    _poll.genomesSorted(_results)(0)
   }
 
-  def getResult(netId: String) = results.get(netId)
+  def getResult(netId: String) = _results.get(netId)
+
+  def results = _results.toMap
 
   def calculateResults(): Unit ={
     debug(this,"------------------------------ calculate results ------------------------------")
     debug(this,s"There are ${poll.size} genomes in the poll")
     debug(this,poll.ids.toString())
-    results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
-    debug(this,s"And there ${results.size} results")
+    _results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    debug(this,s"And there ${_results.size} results")
 
-    if(savingProgress) Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(results))
+    if(savingProgress) Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(_results))
 
     if(_iteration == 0) _iteration = 1
     debug(this,"------------------------------ done calculating results ------------------------------")
@@ -160,8 +162,30 @@ class Engine(val dirName: String,
 
   def dirPath = Context().evolutionDir + "/" + dirName
 
-  private def drawId = Engine.drawId(results)
+  private def drawId = Engine.drawId(_results)
   private def drop(id: String) = Engine.drop(_poll.genomes, id)
+
+  def avg = poll.ids.map(_results.get(_).get).sum / poll.ids.size
+  def median = {
+    val list = results.map(_._2).toList.sorted
+    list(results.size/2)
+  }
+
+  def quintiles = (1 to 5).map(i => i -> quintile(i)).toMap
+
+  def quintile(n: Int) = {
+    assert(n >= 1 && n <= 5, s"The number of a quintile must be between 1 and 5, is $n")
+    val list = results.map(_._2).toList.sorted
+    val t = results.size/5
+    ((n-1)*t until n*t).map(list(_)).sum / t
+  }
+
+  def runWithStats(iterations: Int =20) = (1 to iterations).map(_ => _runWithStats).sortBy(_.iteration).toList
+
+  private def _runWithStats = {
+    run()
+    EvolutionStats(iteration, best.data.id, getResult(best.data.id).get, avg, poll.size, median, quintiles)
+  }
 }
 
 object Engine {

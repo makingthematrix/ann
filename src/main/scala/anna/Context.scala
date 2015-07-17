@@ -489,12 +489,12 @@ object Context {
   def fromJson(jsonStr: String) = read[Context](jsonStr)
   def withJson(jsonStr: String) = set(fromJson(jsonStr))
 
-  def set(name: String, r: Range) = name match {
+  def set(name: String, r: Range):Unit = name match {
     case `_hushrange` => withHushRange(r)
     case `_neuronsrange` => withNeuronsRange(r)
   }
 
-  def set(name: String, r: DoubleRange) = name match {
+  def set(name: String, r: DoubleRange):Unit = name match {
     case `_weightrange` => withWeightRange(r)
     case `_thresholdrange` => withThresholdRange(r)
     case `_sloperange` => withSlopeRange(r)
