@@ -204,13 +204,15 @@ object Context {
     set(apply().copy(engineDefaults = that.engineDefaults.copy(evolutionDir = evolutionDir)))
   def withCrossCoefficient(crossCoefficient: Double) =
     set(apply().copy(engineDefaults = that.engineDefaults.copy(crossCoefficient = crossCoefficient)))
-
+  
   def withWeightRange(weightRange: DoubleRange) =
     set(apply().copy(synapseGenomeDefaults = that.synapseGenomeDefaults.copy(weightRange = weightRange)))
   def withHushProbability(hushProbability: Probability) =
     set(apply().copy(synapseGenomeDefaults = that.synapseGenomeDefaults.copy(hushProbability = hushProbability)))
   def withFullWeightProbability(fullWeightProbability: Probability) =
     set(apply().copy(synapseGenomeDefaults = that.synapseGenomeDefaults.copy(fullWeightProbability = fullWeightProbability)))
+  def withInvertSynapseProbability(invertSynapseProbability: Probability) =
+    set(apply().copy(synapseGenomeDefaults = that.synapseGenomeDefaults.copy(invertSynapseProbability = invertSynapseProbability)))
 
   def withThresholdRange(thresholdRange: DoubleRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(thresholdRange = thresholdRange)))
@@ -237,7 +239,9 @@ object Context {
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(hushValueProbability = hushValueProbability)))
   def withTickTimeMultiplierProbability(tickTimeMultiplierProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(tickTimeMultiplierProbability = tickTimeMultiplierProbability)))
-
+  def withInvertNeuronProbability(invertNeuronProbability: Probability) =
+    set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(invertNeuronProbability = invertNeuronProbability)))
+  
   def withSynapseChangeProbability(synapseChangeProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(synapseChangeProbability = synapseChangeProbability)))
   def withAddSynapseProbability(addSynapseProbability: Probability) =
@@ -310,20 +314,26 @@ object Context {
   val _defaultticktime = "defaultTickTime"
   val _activationfunctionname = "activationFunctionName"
   val _synapsegenomedefaults = "synapseGenomeDefaults"
+  val _weightrange = "weightRange"
   val _weightrangefrom = "weightRange.from"
   val _weightrangeto = "weightRange.to"
   val _hushprobability = "hushProbability"
   val _fullweightprobability = "fullWeightProbability"
   val _invertsynapseprobability = "invertSynapseProbability"
   val _neurongenomedefaults = "neuronGenomeDefaults"
-  val _thresholdrangeform = "thresholdRange.from"
+  val _thresholdrange = "thresholdRange"
+  val _thresholdrangefrom = "thresholdRange.from"
   val _thresholdrangeto = "thresholdRange.to"
+  val _sloperange = "slopeRange"
   val _sloperangefrom = "slopeRange.from"
   val _sloperangeto = "slopeRange.to"
+  val _hushrange = "hushRange"
   val _hushrangefrom = "hushRange.from"
   val _hushrangeto = "hushRange.to"
+  val _forgettingrange = "forgettingRange"
   val _forgettingrangefrom = "forgettingRange.from"
   val _forgettingrangeto = "forgettingRange.to"
+  val _tickmultiplierrange = "tickTimeMultiplierRange"
   val _tickmultiplierrangefrom = "tickTimeMultiplierRange.from"
   val _ticktimemultiplierrangeto = "tickTimeMultiplierRange.to"
   val _dontforgetprobability = "dontForgetProbability"
@@ -342,8 +352,10 @@ object Context {
   val _deleteneuronprobability = "deleteNeuronProbability"
   val _mutateneuronprobability = "mutateNeuronProbability"
   val _inputtickmultiplierprobability = "inputTickMultiplierProbability"
+  val _inputtickmultiplierrange = "inputTickMultiplierRange"
   val _inputtickmultiplierrangefrom = "inputTickMultiplierRange.from"
   val _inputtickmultiplierrangeto = "inputTickMultiplierRange.to"
+  val _neuronsrange = "neuronsRange"
   val _neuronsrangefrom = "neuronsRange.from"
   val _neuronsrangeto = "neuronsRange.to"
   val _synapsesdensity = "synapsesDensity"
@@ -400,7 +412,7 @@ object Context {
 
     val neuronGenomeRoot = root.getConfig(_neurongenomedefaults)
 
-    val thresholdRange = neuronGenomeRoot.getDouble(_thresholdrangeform) <=> neuronGenomeRoot.getDouble(_thresholdrangeto)
+    val thresholdRange = neuronGenomeRoot.getDouble(_thresholdrangefrom) <=> neuronGenomeRoot.getDouble(_thresholdrangeto)
     val slopeRange = neuronGenomeRoot.getDouble(_sloperangefrom) <=> neuronGenomeRoot.getDouble(_sloperangeto)
     val hushRange = neuronGenomeRoot.getInt(_hushrangefrom) to neuronGenomeRoot.getInt(_hushrangeto)
     val forgettingRange = neuronGenomeRoot.getDouble(_forgettingrangefrom) <=> neuronGenomeRoot.getDouble(_forgettingrangeto)
@@ -477,52 +489,54 @@ object Context {
   def fromJson(jsonStr: String) = read[Context](jsonStr)
   def withJson(jsonStr: String) = set(fromJson(jsonStr))
 
+  def set(name: String, r: Range) = name match {
+    case `_hushrange` => withHushRange(r)
+    case `_neuronsrange` => withNeuronsRange(r)
+  }
+
+  def set(name: String, r: DoubleRange) = name match {
+    case `_weightrange` => withWeightRange(r)
+    case `_thresholdrange` => withThresholdRange(r)
+    case `_sloperange` => withSlopeRange(r)
+    case `_forgettingrange` => withForgettingRange(r)
+  }
+
+  def set(name: String, n: Int):Unit = name match {
+    case `_genomepollsize` => withGenomePollSize(n)
+    case `_defaulthushvalue` => withHushValue(HushValue(n))
+  }
+  
   def set(name: String, d: Double):Unit = name match {
-    case `_genomepollsize` =>withGenomePollSize(d.toInt)
-    case `_mutationprobability` =>withMutationProbability(d)
-    case `_crosscoefficient` =>withCrossCoefficient(d)
-    /*case `_defaultslope` =>withDefaultSlope(d)
-    case `_defaultthreshold` =>withDefaultThreshold(d)
-    case `_defaultweight` =>withDefaultWeight(d)
-    case `_defaulthushvalue` =>withDefaultHushValue(d)
-    case `_defaultforgetting` =>withDefaultForgetting(d)*/
-  //  case `_weightrangefrom` =>withWeightRange.from(d)
-  //  case `_weightrangeto` =>withWeightRange.to(d)
-    case `_hushprobability` =>withHushProbability(d)
-    case `_fullweightprobability` =>withFullWeightProbability(d)
-    /*case `_invertsynapseprobability` =>withInvertSynapseProbability(d)*/
-  //  case `_thresholdrangeform` =>withThresholdRange.from(d)
-  //  case `_thresholdrangeto` =>withThresholdRange.to(d)
-  //  case `_sloperangefrom` =>withSlopeRange.from(d)
-  //  case `_sloperangeto` =>withSlopeRange.to(d)
-  //  case `_hushrangefrom` =>withHushRange.from(d)
-  //  case `_hushrangeto` =>withHushRange.to(d)
-  //  case `_forgettingrangefrom` =>withforgettingRange.from(d)
-  //  case `_forgettingrangeto` =>withforgettingRange.to(d)
-    case `_dontforgetprobability` =>withDontForgetProbability(d)
-    case `_forgetallprobability` =>withForgetAllProbability(d)
-    /*case `_thresholdprobability` =>withtThresholdProbability(d)*/
-    case `_slopeprobability` =>withSlopeProbability(d)
-    case `_forgettingprobability` =>withForgettingProbability(d)
-    case `_hushvalueprobability` =>withHushValueProbability(d)
-    /*case `_invertneuronprobability` =>withInvertNeuronProbability(d)*/
-    case `_synapsechangeprobability` =>withSynapseChangeProbability(d)
-    case `_addsynapseprobability` =>withAddSynapseProbability(d)
-    case `_deletesynapseprobability` =>withDeleteSynapseProbability(d)
-    case `_addneuronprobability` =>withAddNeuronProbability(d)
-    case `_deleteneuronprobability` =>withDeleteNeuronProbability(d)
-    case `_mutateneuronprobability` =>withMutateNeuronProbability(d)
-  //  case `_neuronsrangefrom` =>withNeuronsRange.from(d)
-  //  case `_neuronsrangeto` =>withNeuronsRange.to(d)
-    case `_synapsesdensity` =>withSynapsesDensity(d)
-    /*case `_dotlineexercisesdefaults` =>withDotLineExercisesDefaults(d)*/
-    case `_onesignalgivesdotimportance` =>withOneSignalGivesDotImportance(d)
-    case `_twosignalsgivelineimportance` =>withTwoSignalsGiveLineImportance(d)
-    case `_onesignalwithnoisegivesdotimportance` =>withOneSignalWithNoiseGivesDotImportance(d)
-    case `_twosignalswithnoisegivelineimportance` =>withTwoSignalsWithNoiseGiveLineImportance(d)
-    case `_onevariedsignalgivesdotimportance` =>withOneVariedSignalGivesDotImportance(d)
-    case `_twovariedsignalsgivelineimportance` =>withTwoVariedSignalsGiveLineImportance(d)
-    case `_onevariedsignalwithnoisegivesdotimportance` =>withOneVariedSignalWithNoiseGivesDotImportance(d)
-    case `_twovariedsignalswithnoisegivelineimportance` =>withTwoVariedSignalsWithNoiseGiveLineImportance(d)
+    case `_mutationprobability` => withMutationProbability(d)
+    case `_crosscoefficient` => withCrossCoefficient(d)
+    case `_defaultslope` => withSlope(d)
+    case `_defaultthreshold` => withThreshold(d)
+    case `_defaultweight` => withWeight(SynapseWeight(d))
+    case `_defaultforgetting` => withForgetting(ForgetValue(d))
+    case `_hushprobability` => withHushProbability(d)
+    case `_fullweightprobability` => withFullWeightProbability(d)
+    case `_invertsynapseprobability` => withInvertSynapseProbability(d)
+    case `_dontforgetprobability` => withDontForgetProbability(d)
+    case `_forgetallprobability` => withForgetAllProbability(d)
+    case `_thresholdprobability` => withThresholdProbability(d)
+    case `_slopeprobability` => withSlopeProbability(d)
+    case `_forgettingprobability` => withForgettingProbability(d)
+    case `_hushvalueprobability` => withHushValueProbability(d)
+    case `_invertneuronprobability` => withInvertNeuronProbability(d)
+    case `_synapsechangeprobability` => withSynapseChangeProbability(d)
+    case `_addsynapseprobability` => withAddSynapseProbability(d)
+    case `_deletesynapseprobability` => withDeleteSynapseProbability(d)
+    case `_addneuronprobability` => withAddNeuronProbability(d)
+    case `_deleteneuronprobability` => withDeleteNeuronProbability(d)
+    case `_mutateneuronprobability` => withMutateNeuronProbability(d)
+    case `_synapsesdensity` => withSynapsesDensity(d)
+    case `_onesignalgivesdotimportance` => withOneSignalGivesDotImportance(d)
+    case `_twosignalsgivelineimportance` => withTwoSignalsGiveLineImportance(d)
+    case `_onesignalwithnoisegivesdotimportance` => withOneSignalWithNoiseGivesDotImportance(d)
+    case `_twosignalswithnoisegivelineimportance` => withTwoSignalsWithNoiseGiveLineImportance(d)
+    case `_onevariedsignalgivesdotimportance` => withOneVariedSignalGivesDotImportance(d)
+    case `_twovariedsignalsgivelineimportance` => withTwoVariedSignalsGiveLineImportance(d)
+    case `_onevariedsignalwithnoisegivesdotimportance` => withOneVariedSignalWithNoiseGivesDotImportance(d)
+    case `_twovariedsignalswithnoisegivelineimportance` => withTwoVariedSignalsWithNoiseGiveLineImportance(d)
   }
 }
