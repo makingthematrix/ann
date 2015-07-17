@@ -1,6 +1,6 @@
 package anna.epengine
 
-import anna.async.NetBuilder
+import anna.async.{NeuronCounter, NetBuilder}
 import anna.data.NetData
 import anna.logger.LOG
 import anna.logger.LOG._
@@ -33,8 +33,11 @@ class Coach(val exercises: List[Exercise]){
     result
   }
 
-  def test(poll: GenomePoll):List[(NetGenome,Double)] =
-    poll.genomes.map( genome => (genome, test(genome.data)) ).sortBy(-_._2).toList
+  def test(poll: GenomePoll):List[(NetGenome,Double)] = {
+    val res = poll.genomes.map(genome => (genome, test(genome.data))).sortBy(-_._2).toList
+    NeuronCounter.clean()
+    res
+  }
 
   private def checkConditions(data: NetData): Unit ={
     exercises.foreach( ex => {

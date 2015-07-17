@@ -31,12 +31,10 @@ class NeuronCounterImpl(val name: String) extends NeuronCounter {
   def reg(netId: String, neuronId: String, ref: ActorRef):Unit = {
     val _id = NeuronCounter.id(netId, neuronId)
     if (_neurons.contains(_id)) exception(s"The neuron ${_id} is already registered")
-    debug(s"REGISTER neuron $neuronId in $netId")
     _neurons += _id -> ref
   }
 
   def unreg(netId: String, neuronId: String):Unit = {
-    debug(s"UNREGISTER neuron $neuronId in $netId")
     _neurons -= NeuronCounter.id(netId, neuronId)
   }
 
@@ -46,7 +44,7 @@ class NeuronCounterImpl(val name: String) extends NeuronCounter {
 
   def clean():Unit = if(_neurons.nonEmpty){
     val str = _neurons.map(_._1).mkString(",")
-    debug(s"${_neurons.size} needs cleaning, which means something went wrong... $str")
+    error(this,s"${_neurons.size} needs cleaning, which means something went wrong... $str")
     _neurons.foreach(t => t._2 ! PoisonPill)
     _neurons.clear()
   }
@@ -79,7 +77,7 @@ object NeuronCounter {
   def clean() = if(_enabled) apply().clean()
 
   def stop() = if(_enabled && instanceOpt != None){
-    clean()
+    instanceOpt.get.clean()
     TypedActor(Context().system).poisonPill(instanceOpt.get)
     instanceOpt = None
   }
