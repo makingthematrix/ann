@@ -12,6 +12,8 @@ import anna.utils.{DoubleRange, IntRange}
 import com.typesafe.config.ConfigFactory
 import org.json4s.native.Serialization.{read, writePretty}
 
+import anna.logger.LOG._
+
 import scala.concurrent.duration._
 
 case class NeuronDefaults(
@@ -106,11 +108,20 @@ case class Context(
 ){
   def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
 
-  def system:ActorSystem = {
-    implicit lazy val t = timeout
-    lazy val s = ActorSystem("system")
-    val p = () => s
-    p()
+  private var systemOpt: Option[ActorSystem] = None
+
+  def system:ActorSystem = systemOpt match {
+    case Some(actorSystem) => actorSystem
+    case None =>
+      implicit val t = timeout
+      val actorSystem = ActorSystem("system")
+      systemOpt = Some(actorSystem)
+      actorSystem
+  }
+
+  def shutdownSystem() = if(systemOpt != None) {
+    systemOpt.get.shutdown()
+    systemOpt = None
   }
 
   def toJson = writePretty(this)
@@ -539,4 +550,12 @@ object Context {
     case `_onevariedsignalwithnoisegivesdotimportance` => withOneVariedSignalWithNoiseGivesDotImportance(d)
     case `_twovariedsignalswithnoisegivelineimportance` => withTwoVariedSignalsWithNoiseGiveLineImportance(d)
   }
+
+  def set(map: Map[String,Any]):Unit = map.foreach(tuple =>
+    if(tuple._2.isInstanceOf[Double]) set(tuple._1, tuple._2.asInstanceOf[Double])
+    else if(tuple._2.isInstanceOf[Int]) set(tuple._1, tuple._2.asInstanceOf[Int])
+    else if(tuple._2.isInstanceOf[DoubleRange]) set(tuple._1, tuple._2.asInstanceOf[DoubleRange])
+    else if(tuple._2.isInstanceOf[Range]) set(tuple._1, tuple._2.asInstanceOf[Range])
+    else exception(this,s"Unsuppored type of ${tuple._1}: ${tuple._2.getClass}")
+  )
 }

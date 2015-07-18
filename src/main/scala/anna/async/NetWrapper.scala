@@ -85,7 +85,10 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   def addHushRequested(id: String, name: String)(f: => Any): Unit = net.addHushRequested(id, name)(f)
   def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)
 
-  def shutdown() = net.shutdown()
+  def shutdown() = {
+    net.shutdown()
+    Thread.sleep(100L)
+  }
   def reset() = net.reset()
   def removeAllTriggers() = net.removeAllTriggers()
 

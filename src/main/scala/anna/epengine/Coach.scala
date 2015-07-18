@@ -29,15 +29,12 @@ class Coach(val exercises: List[Exercise]){
     })
     wrapper.shutdown()
 
+
     debug(this, s" -------------- done testing ${data.id} with result $result ------------------")
     result
   }
 
-  def test(poll: GenomePoll):List[(NetGenome,Double)] = {
-    val res = poll.genomes.map(genome => (genome, test(genome.data))).sortBy(-_._2).toList
-    NeuronCounter.clean()
-    res
-  }
+  def test(poll: GenomePoll):List[(NetGenome,Double)] = poll.genomes.map(genome => (genome, test(genome.data))).sortBy(-_._2).toList
 
   private def checkConditions(data: NetData): Unit ={
     exercises.foreach( ex => {
