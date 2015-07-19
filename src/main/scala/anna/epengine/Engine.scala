@@ -2,16 +2,14 @@ package anna.epengine
 
 import anna.Context
 import anna.data.NetData
-import anna.logger.{ListLogOutput, LOG}
 import anna.logger.LOG._
-import anna.utils.{IntRange, RandomNumber, Utils}
+import anna.logger.{LOG, ListLogOutput}
+import anna.utils.Utils.formats
+import anna.utils.{RandomNumber, Utils}
+import org.json4s.native.Serialization.{read, writePretty}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
-
-import anna.utils.Utils.formats
-import org.json4s.native.Serialization.{read, writePretty}
-
 import scala.collection.mutable
 
 class Engine(val dirName: String,
@@ -171,7 +169,7 @@ class Engine(val dirName: String,
     list(results.size/2)
   }
 
-  def quintiles = (1 to 5).map(i => i -> quintile(i)).toMap
+  def quintiles = for(i <- 1 to 5) yield quintile(i)
 
   def quintile(n: Int) = {
     assert(n >= 1 && n <= 5, s"The number of a quintile must be between 1 and 5, is $n")
@@ -184,7 +182,7 @@ class Engine(val dirName: String,
 
   private def _runWithStats = {
     run()
-    EvolutionStats(iteration, best.data.id, getResult(best.data.id).get, avg, poll.size, median, quintiles)
+    EvolutionStats(iteration, best.data.id, getResult(best.data.id).get, avg, poll.size, median, quintiles.toList)
   }
 }
 

@@ -1,11 +1,14 @@
 package anna
 
+import anna.Context._
 import anna.async.NetBuilder
 import anna.data.NetData
 import anna.epengine._
+import anna.logger.LOG
 import anna.utils.Utils
 import anna.logger.LOG._
 import anna.async.NetBuilderOps._
+import anna.utils.DoubleRange._
 
 /**
  * Created by gorywoda on 06.06.15.
@@ -62,6 +65,18 @@ object Commands {
   def engine = engineOpt.getOrElse(throw new IllegalArgumentException("No engine set"))
   def poll = engine.poll
   def coach = engine.coach
+
+  lazy val sosTemplate = {
+    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5).chain("S",1.0,0.5)
+      .use("in").chain("mi21",1.0,0.5).chain("mi22",1.0,0.5).chain("line",1.0,0.5).chain("O",1.0,0.5)
+      .use("mi12").hush("mi21")
+      .use("mi21").hush("mi11")
+      .use("dot").hush("line").hush("O")
+      .use("line").hush("dot").hush("S")
+      .data
+    val genome = NetGenome(data, accessMapOpt.get)
+    genome.netId("dotline").data
+  }
 
   lazy val dotLineData = {
     val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
@@ -246,4 +261,67 @@ object Commands {
     sb.toString
   }
 
+  def contextMatrix(iterations: Int = 2, name: String, template: NetData): Unit = {
+    val cm = ContextMatrix(List(
+     // ContextDoubleRange(_mutationprobability, 0.2 <=> 0.8, 3),
+     // ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3),
+     // ContextDoubleRange(_hushprobability, 0.2 <=> 0.8, 3),
+     // ContextDoubleRange(_fullweightprobability, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_addneuronprobability, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_addsynapseprobability, 0.2 <=> 0.8, 3)
+     // ContextDoubleRange(_mutateneuronprobability, 0.2 <=> 0.8, 3)
+    ))
+
+    /* write to csv */
+    val sb = StringBuilder.newBuilder
+
+    //sb.append(s"${_mutationprobability},")
+    //sb.append(s"${_crosscoefficient},")
+   // sb.append(s"${_hushprobability},")
+    //sb.append(s"${_fullweightprobability},")
+    sb.append(s"${_addneuronprobability},")
+    sb.append(s"${_addsynapseprobability},")
+    //sb.append(s"${_mutateneuronprobability},")
+    sb.append("iteration,")
+    sb.append("bestId,")
+    sb.append("bestResult,")
+    sb.append("avg,")
+    sb.append("size,")
+    sb.append("median,")
+    sb.append("quintiles(0),")
+    sb.append("quintiles(1),")
+    sb.append("quintiles(2),")
+    sb.append("quintiles(3),")
+    sb.append("quintiles(4)\n")
+
+    cm.unfold.map(contextVector => {
+      Context.set(contextVector)
+      create(s"name${System.currentTimeMillis()}", template)
+      val stats = engine.runWithStats(iterations)
+
+      val map = contextVector
+      val lastIter = stats.last
+
+      //sb.append(s"${map(_mutationprobability)},")
+      //sb.append(s"${map(_crosscoefficient)},")
+      //sb.append(s"${map(_hushprobability)},")
+      //sb.append(s"${map(_fullweightprobability)},")
+      sb.append(s"${map(_addneuronprobability)},")
+      sb.append(s"${map(_addsynapseprobability)},")
+      //sb.append(s"${map(_mutateneuronprobability}),")
+      sb.append(s"${lastIter.iteration},")
+      sb.append(s"${lastIter.bestId},")
+      sb.append(s"${lastIter.bestResult},")
+      sb.append(s"${lastIter.avg},")
+      sb.append(s"${lastIter.size},")
+      sb.append(s"${lastIter.median},")
+      sb.append(s"${lastIter.quintiles(0)},")
+      sb.append(s"${lastIter.quintiles(1)},")
+      sb.append(s"${lastIter.quintiles(2)},")
+      sb.append(s"${lastIter.quintiles(3)},")
+      sb.append(s"${lastIter.quintiles(4)}\n")
+      Utils.save(s"contextMatrixTest-$name", sb.toString() )
+      sb.clear()
+    })
+  }
 }

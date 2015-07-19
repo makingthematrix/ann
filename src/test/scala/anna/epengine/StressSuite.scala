@@ -3,13 +3,13 @@ package anna.epengine
 import anna.{ContextDoubleRange, ContextMatrix, Context}
 import anna.async.{NeuronCounter, NetBuilder}
 import anna.logger.LOG
-import anna.utils.{DoubleRange, Utils}
+import anna.utils.Utils
 import anna.utils.DoubleRange._
-import org.junit.Assert._
 import org.junit.{Test, After, Before}
 import org.scalatest.junit.JUnitSuite
 import anna.async.NetBuilderOps._
 import anna.Context._
+import org.junit.Assert._
 
 /**
  * Created by gorywoda on 17.07.15.
@@ -49,7 +49,7 @@ class StressSuite extends JUnitSuite {
     val genome = NetGenome(data, accessMap)
     genome.netId("dotline").data
   }
-/*
+
   @Test def shouldSurvive1000Restarts(): Unit = {
     assertEquals(0, NeuronCounter.size)
     var counter = 0
@@ -58,7 +58,7 @@ class StressSuite extends JUnitSuite {
         val wrapper = NetBuilder().set(dotLineData).build()
         wrapper.shutdown()
         NeuronCounter.clean()
-        Thread.sleep(100)
+        println(counter)
         counter += 1
       }
     } catch {
@@ -79,8 +79,7 @@ class StressSuite extends JUnitSuite {
         val wrapper = NetBuilder().set(dotLineData).build()
         wrapper.tickUntilCalm("1")
         wrapper.shutdown()
-        Thread.sleep(100)
-        NeuronCounter.clean()
+        println(counter)
         counter += 1
       }
     } catch {
@@ -91,28 +90,23 @@ class StressSuite extends JUnitSuite {
         fail()
     }
     assertEquals(0, NeuronCounter.size)
-  }*/
+  }
 
-  @Test def shouldFindBestConfiguration(): Unit = {
-    val iterations = 2
-    val cv1 = ContextDoubleRange(_mutationprobability, 0.0 <=> 1.0, 5)
-    val cv2 = ContextDoubleRange(_crosscoefficient, 0.0 <=> 1.0, 5)
+  @Test def shouldNotCrashSearchBestContext(): Unit = {
+    val iterations = 20
+    val cv1 = ContextDoubleRange(_mutationprobability, 0.2 <=> 0.8, 3)
+    val cv2 = ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3)
     val cm = ContextMatrix(List(cv1, cv2))
 
-    //cm.unfold.foreach(t => println(t))
     val engine = Engine("engine", inputIds, outputIds, dotLineData, exercisesSet)
 
-    val results = cm.unfold.map(contextVector => {
+    cm.unfold.map(contextVector => {
       Context.set(contextVector)
       val stats = engine.runWithStats(iterations)
       LOG.debug("-----------------------------------")
       LOG.debug(s"context vector: $contextVector")
       LOG.debug(s"results for the iteration $iterations :")
       LOG.debug(stats.last.toString)
-
-      (contextVector, stats)
     })
-
-    /* write to json */
   }
 }

@@ -2,7 +2,7 @@ package anna.utils
 
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.text.{NumberFormat, ParsePosition}
-import java.util.Locale
+import java.util.{Calendar, Locale}
 
 import akka.actor.ActorRef
 import akka.pattern.ask
@@ -149,5 +149,19 @@ object Utils {
       )
     )
   )
+
+  private def twociphers(n: Int) = if(n < 10) "0"+n.toString else n.toString
+
+  def dateTag = {
+    val cal = Calendar.getInstance
+    StringBuilder.newBuilder
+      .append(cal.get(Calendar.YEAR)).append('-')
+      .append(twociphers(cal.get(Calendar.MONTH)+1)).append('-')
+      .append(twociphers(cal.get(Calendar.DAY_OF_MONTH))).append('_')
+      .append(twociphers(cal.get(Calendar.HOUR_OF_DAY))).append(':')
+      .append(twociphers(cal.get(Calendar.MINUTE))).append(':')
+      .append(twociphers(cal.get(Calendar.SECOND))).append('.')
+      .append(cal.get(Calendar.MILLISECOND)).toString
+  }
 }
 

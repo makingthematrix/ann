@@ -9,4 +9,4 @@ case class EvolutionStats(iteration: Int,
                           avg: Double,
                           size: Int,
                           median: Double,
-                          quintiles: Map[Int, Double])
+                          quintiles: List[Double])

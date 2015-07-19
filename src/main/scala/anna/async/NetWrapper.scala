@@ -87,7 +87,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
 
   def shutdown() = {
     net.shutdown()
-    Thread.sleep(100L)
+    Thread.sleep(10L)
   }
   def reset() = net.reset()
   def removeAllTriggers() = net.removeAllTriggers()
