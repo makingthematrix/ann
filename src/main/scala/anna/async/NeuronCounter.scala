@@ -58,10 +58,12 @@ object NeuronCounter {
     instanceOpt = Some(nc)
   }
 
+ // private var index = 1
+
   def apply() = instanceOpt match {
     case Some(instance) => instance
     case None =>
-      val instance = TypedActor(Context().system).typedActorOf(TypedProps(classOf[NeuronCounter], new NeuronCounterImpl("default")), "name")
+      val instance = TypedActor(Context().system).typedActorOf(TypedProps(classOf[NeuronCounter], new NeuronCounterImpl("default")))
       instanceOpt = Some(instance)
       instance
   }

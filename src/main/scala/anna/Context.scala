@@ -549,6 +549,8 @@ object Context {
     case `_twovariedsignalsgivelineimportance` => withTwoVariedSignalsGiveLineImportance(d)
     case `_onevariedsignalwithnoisegivesdotimportance` => withOneVariedSignalWithNoiseGivesDotImportance(d)
     case `_twovariedsignalswithnoisegivelineimportance` => withTwoVariedSignalsWithNoiseGiveLineImportance(d)
+    case `_genomepollsize` => withGenomePollSize(d.toInt)
+    case `_defaulthushvalue` => withHushValue(HushValue(d.toInt))
   }
 
   def set(map: Map[String,Any]):Unit = map.foreach(tuple =>

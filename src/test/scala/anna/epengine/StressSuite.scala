@@ -1,6 +1,6 @@
 package anna.epengine
 
-import anna.Context
+import anna.{ContextDoubleRange, ContextMatrix, Context}
 import anna.async.{NeuronCounter, NetBuilder}
 import anna.logger.LOG
 import anna.utils.{DoubleRange, Utils}
@@ -14,22 +14,6 @@ import anna.Context._
 /**
  * Created by gorywoda on 17.07.15.
  */
-
-case class ContextDoubleRange(varName: String, range: DoubleRange, resolution: Int){
-  def list = range.iterator(resolution).toList
-}
-
-case class ContextMatrix(drList: List[ContextDoubleRange]){
-  private def unfold(myDRList: List[ContextDoubleRange]):List[Map[String,Double]] = myDRList match {
-    case Nil => Nil
-    case head :: Nil => head.list.map(d => Map(head.varName -> d))
-    case head :: tail =>
-      val foo = unfold(tail)
-      head.list.flatMap(d => foo.map( _ + (head.varName -> d) ) )
-  }
-
-  def unfold:List[Map[String,Double]] = unfold(drList)
-}
 
 class StressSuite extends JUnitSuite {
   private var _oldContext:Context = _
@@ -115,6 +99,7 @@ class StressSuite extends JUnitSuite {
     val cv2 = ContextDoubleRange(_crosscoefficient, 0.0 <=> 1.0, 5)
     val cm = ContextMatrix(List(cv1, cv2))
 
+    //cm.unfold.foreach(t => println(t))
     val engine = Engine("engine", inputIds, outputIds, dotLineData, exercisesSet)
 
     val results = cm.unfold.map(contextVector => {
@@ -123,7 +108,7 @@ class StressSuite extends JUnitSuite {
       LOG.debug("-----------------------------------")
       LOG.debug(s"context vector: $contextVector")
       LOG.debug(s"results for the iteration $iterations :")
-      LOG.debug(stats(19).toString)
+      LOG.debug(stats.last.toString)
 
       (contextVector, stats)
     })
