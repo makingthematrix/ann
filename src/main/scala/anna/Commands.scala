@@ -263,25 +263,25 @@ object Commands {
 
   def contextMatrix(iterations: Int = 2, name: String, template: NetData): Unit = {
     val cm = ContextMatrix(List(
-     // ContextDoubleRange(_mutationprobability, 0.2 <=> 0.8, 3),
-     // ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3),
-     // ContextDoubleRange(_hushprobability, 0.2 <=> 0.8, 3),
-     // ContextDoubleRange(_fullweightprobability, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_mutationprobability, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_hushprobability, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_fullweightprobability, 0.2 <=> 0.8, 3),
       ContextDoubleRange(_addneuronprobability, 0.2 <=> 0.8, 3),
-      ContextDoubleRange(_addsynapseprobability, 0.2 <=> 0.8, 3)
-     // ContextDoubleRange(_mutateneuronprobability, 0.2 <=> 0.8, 3)
+      ContextDoubleRange(_addsynapseprobability, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_mutateneuronprobability, 0.2 <=> 0.8, 3)
     ))
 
     /* write to csv */
     val sb = StringBuilder.newBuilder
 
-    //sb.append(s"${_mutationprobability},")
-    //sb.append(s"${_crosscoefficient},")
-   // sb.append(s"${_hushprobability},")
-    //sb.append(s"${_fullweightprobability},")
+    sb.append(s"${_mutationprobability},")
+    sb.append(s"${_crosscoefficient},")
+    sb.append(s"${_hushprobability},")
+    sb.append(s"${_fullweightprobability},")
     sb.append(s"${_addneuronprobability},")
     sb.append(s"${_addsynapseprobability},")
-    //sb.append(s"${_mutateneuronprobability},")
+    sb.append(s"${_mutateneuronprobability},")
     sb.append("iteration,")
     sb.append("bestId,")
     sb.append("bestResult,")
@@ -302,13 +302,13 @@ object Commands {
       val map = contextVector
       val lastIter = stats.last
 
-      //sb.append(s"${map(_mutationprobability)},")
-      //sb.append(s"${map(_crosscoefficient)},")
-      //sb.append(s"${map(_hushprobability)},")
-      //sb.append(s"${map(_fullweightprobability)},")
+      sb.append(s"${map(_mutationprobability)},")
+      sb.append(s"${map(_crosscoefficient)},")
+      sb.append(s"${map(_hushprobability)},")
+      sb.append(s"${map(_fullweightprobability)},")
       sb.append(s"${map(_addneuronprobability)},")
       sb.append(s"${map(_addsynapseprobability)},")
-      //sb.append(s"${map(_mutateneuronprobability}),")
+      sb.append(s"${map(_mutateneuronprobability)},")
       sb.append(s"${lastIter.iteration},")
       sb.append(s"${lastIter.bestId},")
       sb.append(s"${lastIter.bestResult},")
@@ -320,7 +320,7 @@ object Commands {
       sb.append(s"${lastIter.quintiles(2)},")
       sb.append(s"${lastIter.quintiles(3)},")
       sb.append(s"${lastIter.quintiles(4)}\n")
-      Utils.save(s"contextMatrixTest-$name", sb.toString() )
+      Utils.save(s"contextMatrixTest-${name}.csv", sb.toString() )
       sb.clear()
     })
   }
