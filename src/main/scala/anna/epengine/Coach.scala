@@ -31,7 +31,7 @@ class Coach(val exercises: List[Exercise]){
 
 
     debug(this, s" -------------- done testing ${data.id} with result $result ------------------")
-    result
+    math.max(result, 0.0)
   }
 
   def test(poll: GenomePoll):List[(NetGenome,Double)] = poll.genomes.map(genome => (genome, test(genome.data))).sortBy(-_._2).toList

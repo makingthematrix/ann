@@ -77,6 +77,7 @@ case class EngineDefaults(
   genomePollSize: Int,
   exercisesSetDir: String,
   mutationProbability: Probability,
+  mutationsPerGenome: Range,
   evolutionDir: String,
   crossCoefficient: Probability // this is not a probability, but the rules are the same
 ){
@@ -130,6 +131,7 @@ case class Context(
   def genomePollSize = engineDefaults.genomePollSize
   def exercisesSetDir = engineDefaults.exercisesSetDir
   def mutationProbability = engineDefaults.mutationProbability
+  def mutationsPerGenome = engineDefaults.mutationsPerGenome
   def evolutionDir = engineDefaults.evolutionDir
   def crossCoefficient = engineDefaults.crossCoefficient
 
@@ -160,7 +162,6 @@ case class Context(
   def hushValueProbability = neuronGenomeDefaults.hushValueProbability
   def tickTimeMultiplierProbability = neuronGenomeDefaults.tickTimeMultiplierProbability
   def invertNeuronProbability = neuronGenomeDefaults.invertNeuronProbability
-
 
   def synapseChangeProbability = neuronGenomeDefaults.synapseChangeProbability
   def addSynapseProbability = neuronGenomeDefaults.addSynapseProbability
@@ -211,6 +212,8 @@ object Context {
     set(apply().copy(engineDefaults = that.engineDefaults.copy(exercisesSetDir = exercisesSetDir)))
   def withMutationProbability(mutationProbability: Double) =
     set(apply().copy(engineDefaults = that.engineDefaults.copy(mutationProbability = mutationProbability)))
+  def withMutationsPerGenome(mutationsPerGenome: Range) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(mutationsPerGenome = mutationsPerGenome)))
   def withEvolutionDir(evolutionDir: String) =
     set(apply().copy(engineDefaults = that.engineDefaults.copy(evolutionDir = evolutionDir)))
   def withCrossCoefficient(crossCoefficient: Double) =
@@ -314,6 +317,9 @@ object Context {
   val _genomepollsize = "genomePollSize"
   val _exercisessetdir = "exercisesSetDir"
   val _mutationprobability = "mutationProbability"
+  val _mutationspergenome = "mutationsPerGenome"
+  val _mutationspergenomefrom = "mutationsPerGenome.from"
+  val _mutationspergenometo = "mutationsPerGenome.to"
   val _evolutiondir = "evolutionDir"
   val _crosscoefficient = "crossCoefficient"
   val _neurondefaults = "neuronDefaults"
@@ -391,11 +397,13 @@ object Context {
     val genomePollSize = engineRoot.getInt(_genomepollsize)
     val exercisesSetDir = engineRoot.getString(_exercisessetdir)
     val mutationProbability = engineRoot.getDouble(_mutationprobability)
+    val mutationsPerGenome = engineRoot.getInt(_mutationspergenomefrom) to engineRoot.getInt(_mutationspergenometo)
     val evolutionDir = engineRoot.getString(_evolutiondir)
     val crossCoefficient = engineRoot.getDouble(_crosscoefficient)
 
     val engineDefaults = EngineDefaults(
-      initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability, evolutionDir, crossCoefficient
+      initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability,
+      mutationsPerGenome, evolutionDir, crossCoefficient
     )
 
     // neuron defaults
@@ -503,6 +511,7 @@ object Context {
   def set(name: String, r: Range):Unit = name match {
     case `_hushrange` => withHushRange(r)
     case `_neuronsrange` => withNeuronsRange(r)
+    case `_mutationspergenome` => withMutationsPerGenome(r)
   }
 
   def set(name: String, r: DoubleRange):Unit = name match {

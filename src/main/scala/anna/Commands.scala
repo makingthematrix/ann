@@ -38,7 +38,7 @@ object Commands {
 
   def context = Context()
 
-  def listEvolutions = {
+  def list = {
     val dirs = Utils.listDirs(Context().evolutionDir)
     println(s"the evolutions directory is ${Context().evolutionDir}")
     println(s"evolutions found: ${dirs.size}")
@@ -165,7 +165,7 @@ object Commands {
   def median = engine.median
   def quintiles = engine.quintiles
   def quintile(n: Int) = engine.quintile(n)
-  def runWithStats(iterations: Int =20) = engine.runWithStats(iterations)
+  def runWithStats(iterations: Int =15) = engine.runWithStats(iterations)
 
   def best = engineOpt match {
     case Some(engine) => engine.best.data
@@ -261,15 +261,15 @@ object Commands {
     sb.toString
   }
 
-  def contextMatrix(iterations: Int = 2, name: String, template: NetData): Unit = {
+  def contextMatrix(iterations: Int = 15, name: String, template: NetData): Unit = {
     val cm = ContextMatrix(List(
-      ContextDoubleRange(_mutationprobability, 0.2 <=> 0.8, 3),
-      ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3),
+      ContextDoubleRange(_mutationprobability, 0.5 <=> 0.9, 3),
+      ContextDoubleRange(_crosscoefficient, 0.5 <=> 0.9, 3),
       ContextDoubleRange(_hushprobability, 0.2 <=> 0.8, 3),
       ContextDoubleRange(_fullweightprobability, 0.2 <=> 0.8, 3),
       ContextDoubleRange(_addneuronprobability, 0.2 <=> 0.8, 3),
-      ContextDoubleRange(_addsynapseprobability, 0.2 <=> 0.8, 3),
-      ContextDoubleRange(_mutateneuronprobability, 0.2 <=> 0.8, 3)
+      ContextDoubleRange(_addsynapseprobability, 0.5 <=> 0.9, 3),
+      ContextDoubleRange(_mutateneuronprobability, 0.5 <=> 0.9, 3)
     ))
 
     /* write to csv */
@@ -296,7 +296,7 @@ object Commands {
 
     cm.unfold.map(contextVector => {
       Context.set(contextVector)
-      create(s"name${System.currentTimeMillis()}", template)
+      create(s"$name${Utils.dateTag}", template)
       val stats = engine.runWithStats(iterations)
 
       val map = contextVector

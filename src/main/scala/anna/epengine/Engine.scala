@@ -5,7 +5,7 @@ import anna.data.NetData
 import anna.logger.LOG._
 import anna.logger.{LOG, ListLogOutput}
 import anna.utils.Utils.formats
-import anna.utils.{RandomNumber, Utils}
+import anna.utils.{RandomNumber, Utils, IntRange}
 import org.json4s.native.Serialization.{read, writePretty}
 
 import scala.annotation.tailrec
@@ -69,7 +69,7 @@ class Engine(val dirName: String,
   def mutate(genomes: List[NetGenome]) = {
     debug(this, s" --- mutating --- ")
     genomes.foreach( g => if(Probability(Context().mutationProbability).toss) {
-      g.mutate()
+      g.mutate(RandomNumber(Context().mutationsPerGenome))
       g.data.validate()
     })
     debug(this, s" --- done mutating --- ")
@@ -262,10 +262,14 @@ object Engine {
    *@todo: Dla większego zróżnicowania wyników "normalizowanie" mogłoby np. ucinać część (albo całą) odległość
    *pomiędzy najgorszym wynikiem a 0 i dopiero pozostały odcinek normalizować do <0,1>
    */
-  private def normalize(results: Map[String, Double]) = {
-    val sum = results.values.sum
-    if(sum == 0.0) None
-    else Some(results.map(tuple => tuple._1 -> tuple._2 / sum))
+  private def normalize(results: Map[String, Double]) = results.values.sum match {
+    case 0.0 => None
+    case sum =>
+      val normalized = results.map(tuple => tuple._1 -> tuple._2 / sum)
+      val z = normalized.values.min / 2.0
+      val b = -z/(1.0-z)
+      val a = 1.0-z
+      Some(normalized.map(tuple => tuple._1 -> (a * tuple._2 + b)))
   }
 
   private def drawId(results: Map[String, Double]):String = normalize(results) match {
