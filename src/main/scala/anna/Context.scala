@@ -77,7 +77,7 @@ case class EngineDefaults(
   genomePollSize: Int,
   exercisesSetDir: String,
   mutationProbability: Probability,
-  mutationsPerGenome: Range,
+  mutationsPerGenome: IntRange,
   evolutionDir: String,
   crossCoefficient: Probability // this is not a probability, but the rules are the same
 ){
