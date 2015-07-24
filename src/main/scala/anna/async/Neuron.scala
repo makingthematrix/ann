@@ -3,7 +3,7 @@ package anna.async
 import akka.actor._
 import anna.Context
 import anna.async.Messages._
-import anna.data.{ForgetAll, ForgetTrait, ForgetValue, HushValue}
+import anna.data._
 import anna.logger.LOG
 import anna.utils.Utils
 
@@ -19,11 +19,12 @@ class Neuron(
     val forgetting: ForgetTrait,
     val tickTimeMultiplier: Double,
     protected val f:(Double,Double)=>Double,
-protected var synapses: Seq[Synapse] = Seq[Synapse]()
+    protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
   protected var buffer = 0.0
+  protected var highestBuffer = 0.0
   protected var lastOutput = 0.0
 
   private val schedulerBuffer = new SchedulerBuffer(context)
@@ -74,6 +75,7 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   
   private def tick(){
     buffer = Utils.minmax(-1.0, buffer, 1.0)
+    if(highestBuffer < buffer) highestBuffer = buffer
     if(buffer > threshold){
       triggerThresholdPassed()
       run()
@@ -156,11 +158,10 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
    
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
-      case GetInput => sender ! Msg(buffer, id)
-      case GetLastOutput => sender ! Msg(lastOutput, id)
+      case GetData => sender ! info
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
-      case SetSynapses(synapses) => this.synapses = synapses
+      case SetSynapses(synapses) => this.synapses = synapses.toList
       case AddAfterFireTrigger(triggerId, trigger) => 
         addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)
@@ -180,4 +181,10 @@ protected var synapses: Seq[Synapse] = Seq[Synapse]()
   def otherBehaviour(state: String): Receive = {
     case other => LOG += s"$state, unrecognized message: $other"
   }
+
+  def info = NeuronInfo(
+    id, netId, threshold, slope, hushValue, forgetting, tickTimeMultiplier,
+    synapses.map(_.info), buffer, highestBuffer, lastOutput
+  )
+
 }

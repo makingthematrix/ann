@@ -83,6 +83,94 @@ object ExercisesLibrary {
     (dotFired, dotResult, lineFired, lineResult)
   }
 
+  private def dotLineCountFires(wrapper: NetWrapper, input: String):(Int, Int) = {
+    var dotFired = 0
+    wrapper.addAfterFire("dot")( (_: Double) => { dotFired += 1 })
+    var lineFired = 0
+    wrapper.addAfterFire("line")( (_: Double) => { lineFired += 1 })
+
+    wrapper.tickUntilCalm(input)
+
+    wrapper.removeAllTriggers()
+
+    (dotFired, lineFired)
+  }
+
+  private def countFires(wrapper: NetWrapper, fires: Int) = {
+    var result = 0.0
+
+    val (dotDot, lineDot) = dotLineCountFires(wrapper, (0 until fires).map(n => "1,0,0").mkString(","))
+    val (dotLine, lineLine) = dotLineCountFires(wrapper, (0 until fires).map(n => "1,1,0").mkString(","))
+    LOG.debug(s"countFires$fires: dotDot: $dotDot, lineDot: $lineDot, dotLine: $dotLine, lineLine: $lineLine")
+
+    val t = 4.0 - fires
+    if (dotDot == fires) result += 10.0 * t
+    else if (dotDot > fires) result += t
+    result -= dotLine * 5.0 * t
+    if (lineLine == fires) result += 10.0 * t
+    else if (lineLine > fires) result += t
+    result -= lineDot * 5.0 * t
+    if (dotDot == fires && lineLine == fires) result += 20.0 * t
+
+    result
+  }
+
+  val countFires1 = new Exercise("count fires 1", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 1)
+  }
+
+  val countFires2 = new Exercise("count fires 2", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 2)
+  }
+
+  val countFires3 = new Exercise("count fires 3", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 3)
+  }
+
+  val oneForAll = new Exercise("one for all", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = {
+      var result = 0.0
+
+      val (dotDot1, lineDot1) = dotLineCountFires(wrapper, "1,0,0")
+      val (dotLine1, lineLine1) = dotLineCountFires(wrapper, "1,1,0")
+      LOG.debug(s"${this.name}: dotDot1: $dotDot1, lineDot1: $lineDot1, dotLine1: $dotLine1, lineLine1: $lineLine1")
+
+      if(dotDot1 == 1) result += 30.0
+      else if(dotDot1 > 1) result += 3.0
+      result -= dotLine1*3.0
+      if(lineLine1 == 1) result += 30.0
+      else if(lineLine1 > 1) result += 3.0
+      result -= lineDot1*3.0
+      if(dotDot1 == 1 && lineLine1 == 1) result += 60.0
+
+      val (dotDot2, lineDot2) = dotLineCountFires(wrapper, "1,0,0,1,0,0")
+      val (dotLine2, lineLine2) = dotLineCountFires(wrapper, "1,1,0,1,1,0")
+      LOG.debug(s"${this.name}: dotDot2: $dotDot2, lineDot2: $lineDot2, dotLine2: $dotLine2, lineLine2: $lineLine2")
+
+      if(dotDot2 == 2) result += 20.0
+      else if(dotDot2 == 1) result += 2.0
+      result -= dotLine2*2.0
+      if(lineLine2 == 2) result += 20.0
+      else if(lineLine2 == 1) result += 2.0
+      result -= lineDot2*2.0
+      if(dotDot2 == 1 && lineLine2 == 1) result += 40.0
+
+      val (dotDot3, lineDot3) = dotLineCountFires(wrapper, "1,0,0,1,0,0,1,0,0")
+      val (dotLine3, lineLine3) = dotLineCountFires(wrapper, "1,1,0,1,1,0,1,1,0")
+      LOG.debug(s"${this.name}: dotDot3: $dotDot3, lineDot3: $lineDot3, dotLine3: $dotLine3, lineLine3: $lineLine3")
+
+      if(dotDot3 == 3) result += 10.0
+      else if(dotDot3 == 1 || dotDot3 == 2) result += 1.0
+      result -= dotLine3*1.0
+      if(lineLine3 == 3) result += 10.0
+      else if(lineLine3 == 1 || lineLine3 == 2) result += 1.0
+      result -= lineDot3*1.0
+      if(dotDot3 == 1 && lineLine3 == 1) result += 20.0
+
+      result
+    }
+  }
+
   val oneSignalGivesDot = new Exercise("one signal gives dot", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
       var result = 0.0

@@ -1,5 +1,6 @@
 package anna.epengine
 
+import anna.logger.LOG.error
 import anna.utils.RandomNumber
 
 class Probability private (val value: Double) extends AnyVal {
@@ -13,8 +14,17 @@ object Probability{
   def apply(d: Double) = fromDouble(d)
 
   implicit def fromDouble(d: Double):Probability = {
-    assert(d >= 0.0 && d <= 1.0, s"You can't set the probability outside the range <0.0,1.0>: $d")
-    new Probability(d)
+    val dd = if(d < 0.0 && d > 0.001){
+      error(this,s"Trying to set the probability to $d - assuming a floating point error and using 0.0")
+      0.0
+    } else if(d > 1.0 && d < 1.001){
+      error(this,s"Trying to set the probability to $d - assuming a floating point error and using 1.0")
+      1.0
+    } else {
+      assert(d >= 0.0 && d <= 1.0, s"You can't set the probability outside the range <0.0,1.0>: $d")
+      d
+    }
+    new Probability(dd)
   }
   
   implicit def toDouble(p: Probability):Double = p.value

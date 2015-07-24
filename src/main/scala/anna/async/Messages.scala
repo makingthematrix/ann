@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.async.NeuronTriggers.{AfterFireTrigger, Trigger}
-import anna.data.{NeuronData, SynapseTrait}
+import anna.data.{ForgetTrait, HushValue, NeuronData, SynapseTrait}
 
 object Messages {
   // signals
@@ -31,6 +31,7 @@ object Messages {
   case class GetNeuron(id: String)
   case object GetNeurons
   case object GetInputs
+  case object GetData
 
   // answers
   abstract class Answer
@@ -43,7 +44,20 @@ object Messages {
   case class MsgSynapses(synapses: Seq[Synapse]) extends Answer // sends back all synapses of the neuron
   case class MsgNeuron(neuronOpt: Option[NeuronRef]) extends Answer
   case class MsgNeurons(neurons: Seq[NeuronRef]) extends Answer
-	
+  case class NeuronInfo(id: String,
+                        netId: String,
+                        threshold: Double,
+                        slope: Double,
+                        hushValue: HushValue,
+                        forgetting: ForgetTrait,
+                        tickTimeMultiplier: Double,
+                        synapses: List[SynapseInfo],
+                        buffer: Double,
+                        highestBuffer: Double,
+                        lastOutput: Double)
+  case class SynapseInfo(neuronId: String, weight: SynapseTrait, strongestSignal: Double)
+
+
   // triggers
   case class AddAfterFireTrigger(id: String, f: AfterFireTrigger)
   case class RemoveAfterFireTrigger(id: String)

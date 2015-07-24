@@ -8,7 +8,7 @@ import anna.logger.LOG._
 import anna.utils.Utils.await
 
 class NeuronRef(val id: String, val ref: ActorRef) {
-  def lastOutput = await[Msg](ref, GetLastOutput).d
+  def info = await[NeuronInfo](ref, GetData)
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
   

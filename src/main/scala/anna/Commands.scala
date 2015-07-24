@@ -79,8 +79,8 @@ object Commands {
   }
 
   lazy val dotLineData = {
-    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5)
-      .use("in").chain("mi21",1.0,0.5).chain("mi22",1.0,0.5).chain("line",1.0,0.5)
+    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.15).chain("mi12",1.0,0.15).chain("dot",1.0,0.15)
+      .use("in").chain("mi21",1.0,0.15).chain("mi22",1.0,0.15).chain("line",1.0,0.15)
       .use("mi12").hush("mi21")
       .use("mi21").hush("mi11")
       .use("dot").hush("line")

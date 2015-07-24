@@ -17,6 +17,8 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   
   def find(id: String) = if(ids.contains(id)) net.find(id).neuronOpt.get
                          else throw new IllegalArgumentException(s"There is no output neuron with id $id")
+
+  def info(id: String) = find(id).info
     
   def add(input: Seq[Double]) = {
 	  assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
@@ -73,12 +75,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
     net.removeAfterFireFromAll("tickUntilCalm")
     counter
   }
-
-  def lastOutput(neuronId: String) = {
-    LOG.debug(this,s"trying to reach for the last output of $neuronId")
-    net.lastOutput(neuronId)
-  }
-
+  
   def addAfterFire(id: String, name: String)(f: (Double) => Any): Unit = net.addAfterFire(id, name)(f)
   def addAfterFire(id: String)(f: (Double) => Any): Unit = addAfterFire(id, id)(f)
 
