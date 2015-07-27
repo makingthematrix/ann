@@ -15,8 +15,10 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   private var _iteration = 0
   def iteration = _iteration 
   
-  def find(id: String) = if(ids.contains(id)) net.find(id).neuronOpt.get
-                         else throw new IllegalArgumentException(s"There is no output neuron with id $id")
+  def find(id: String) = net.find(id).neuronOpt match {
+    case Some(nref) => nref
+    case None => throw new IllegalArgumentException(s"There is no output neuron with id $id")
+  }
 
   def info(id: String) = find(id).info
     
@@ -75,7 +77,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
     net.removeAfterFireFromAll("tickUntilCalm")
     counter
   }
-  
+
   def addAfterFire(id: String, name: String)(f: (Double) => Any): Unit = net.addAfterFire(id, name)(f)
   def addAfterFire(id: String)(f: (Double) => Any): Unit = addAfterFire(id, id)(f)
 

@@ -14,7 +14,7 @@ object Probability{
   def apply(d: Double) = fromDouble(d)
 
   implicit def fromDouble(d: Double):Probability = {
-    val dd = if(d < 0.0 && d > 0.001){
+    val dd = if(d < 0.0 && d > -0.001){
       error(this,s"Trying to set the probability to $d - assuming a floating point error and using 0.0")
       0.0
     } else if(d > 1.0 && d < 1.001){

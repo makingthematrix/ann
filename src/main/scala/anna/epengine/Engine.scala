@@ -68,7 +68,8 @@ class Engine(val dirName: String,
 
   def mutate(genomes: List[NetGenome]) = {
     debug(this, s" --- mutating --- ")
-    genomes.foreach( g => if(Probability(Context().mutationProbability).toss) {
+    // we don't mutate the best one
+    genomes.filterNot(_.id == newBestId).foreach( g => if(Probability(Context().mutationProbability).toss) {
       g.mutate(RandomNumber(Context().mutationsPerGenome))
       g.data.validate()
     })
@@ -93,12 +94,15 @@ class Engine(val dirName: String,
     crossedGenomes ++ clonedGenomes
   }
 
+  private def newBestId = s"iter${_iteration}#0Cloned-Best"
+
   private def cloneGenomes(size: Int) = if(size > 0){
     val sortedGenomes = _poll.genomesSorted(_results)
     val bestGenome = sortedGenomes(0)
-    val newId = s"iter${_iteration}#0Cloned"
-    debug(this,s"CLONING: best genome ${bestGenome.id} as $newId")
-    val list = mutable.ListBuffer[NetGenome](bestGenome.netId(newId))
+
+    debug(this,s"CLONING: best genome ${bestGenome.id} as $newBestId")
+
+    val list = mutable.ListBuffer[NetGenome](bestGenome.netId(newBestId))
     if(size > 1){
       val lowerHalfRandom = RandomNumber((sortedGenomes.size / 2) until sortedGenomes.size)
       val lowerHalfGenome = sortedGenomes(lowerHalfRandom)

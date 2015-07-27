@@ -2,7 +2,7 @@ package test.async.epengine
 
 import java.io.File
 
-import anna.Context
+import anna.{Commands, Context}
 import anna.async.{NetWrapper, NetBuilder}
 import anna.async.NetBuilderOps._
 import anna.data.{Hush, SynapseWeight}
@@ -70,7 +70,7 @@ class EngineSuite extends JUnitSuite {
   }
 
   val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
-
+/*
   @Test def shouldTestGenomePoll(): Unit ={
     val poll = GenomePoll("net", inputIds, outputIds, 3)
     assertEquals(3, poll.genomes.size)
@@ -322,6 +322,45 @@ class EngineSuite extends JUnitSuite {
     assertTrue(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
     val lines = Utils.load(engine.dirPath + "/mutations_iteration1.log").split("\n")
     assertTrue(lines.filterNot(_.contains("CLONING:")).isEmpty)
+  }*/
+
+  @Test def shouldCloneTheBestGenome(): Unit = {
+    val ex = new Exercise("shouldCloneTheBestGenome-exercise", 1, List("out1")) {
+      def run(wrapper: NetWrapper): Double = wrapper.net.id match {
+        case "best" => 1.0
+        case _ => 0.5
+      }
+    }
+
+    Context.withMutationProbability(1.0)
+    Context.withCrossCoefficient(1.0)
+
+    val map = NetGenome.accessMap(List("in1"), List("out1"))
+
+    val g1 = NetGenome(NetBuilder("best").addInput("in1").chain("out1",0.5,0.5).data, map)
+    val g2 = NetGenome(NetBuilder("other-1").addInput("in1").chain("out1",0.0,0.0).data, map)
+    val g3 = NetGenome(NetBuilder("other-2").addInput("in1").chain("out1",1.0,1.0).data, map)
+
+    val engine = Engine(Coach(List(ex)), GenomePoll(List(g1, g2, g3)))
+    val str1 = g1.data.toJson
+    println("---\n"+str1+"---\n")
+
+    engine.calculateResults()
+
+    val diff1 = Commands.diff(g1.data, engine.best.data)
+    println(diff1)
+    //assertEquals("", diff1)
+    val str2 = engine.best.data.toJson
+    println("---\n"+str2+"---\n")
+    assertEquals(str1, str2)
+
+    engine.run(1)
+
+    //val diff2 = Commands.diff(g1.data, engine.best.data)
+   // assertEquals("", diff1)
+    val str3 = engine.best.data.toJson
+    println("---\n"+str3+"---\n")
+    assertEquals(str1, str3)
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

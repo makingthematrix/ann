@@ -178,7 +178,6 @@ class NetBuilder {
 
   def setName(name: String) = {
     netName = name
-
     this
   }
 
@@ -217,8 +216,15 @@ class NetBuilder {
 }
 
 object NetBuilder {
-  def apply() = new NetBuilder()
-  def apply(data: NetData) = {
+  def apply():NetBuilder = new NetBuilder()
+
+  def apply(name: String):NetBuilder = {
+    val nb = new NetBuilder()
+    nb.setName(name)
+    nb
+  }
+
+  def apply(data: NetData):NetBuilder = {
     val builder = new NetBuilder()
     builder.set(data)
   }
