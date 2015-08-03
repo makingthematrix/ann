@@ -12,26 +12,26 @@ import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
-class Engine(val dirName: String,
-             val coach: Coach,
-             val savingProgress: Boolean,
-             private var _poll: GenomePoll,
-             private var _results:Map[String,Double] = HashMap()) {
+class Engine(val dirName: String, val coach: Coach, private var _poll: GenomePoll) extends EngineLike {
   import anna.epengine.Engine._
-
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
-  private var _iteration = 0
 
   def poll = _poll
 
-  def iteration = _iteration
+  def calculateResults(): Unit ={
+    debug(this,"------------------------------ calculate results ------------------------------")
+    debug(this,s"There are ${poll.size} genomes in the poll")
+    debug(this,poll.ids.toString())
+    _results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    debug(this,s"And there ${_results.size} results")
 
-  def run(iterations: Int =1) = {
-    val end = _iteration + iterations
-    while(_iteration < end) _run()
+    Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(_results))
+
+    if(_iteration == 0) _iteration = 1
+    debug(this,"------------------------------ done calculating results ------------------------------")
   }
-  
-  private def _run() = {
+
+  protected def _run() = {
     if(_iteration == 0) calculateResults()
 
     val listOut = new ListLogOutput(s"iteration${_iteration}")
@@ -41,25 +41,23 @@ class Engine(val dirName: String,
 
     _poll = GenomePoll(mutate(newGeneration))
 
-    if(savingProgress) Utils.save(s"${dirPath}/poll_iteration${_iteration}.json", _poll.toJson)
+    Utils.save(s"${dirPath}/poll_iteration${_iteration}.json", _poll.toJson)
 
     calculateResults()
 
     debug(this,s" ------------------------ done iteration ${_iteration} of the engine ------------------------ ")
 
-    if(savingProgress) {
-      Utils.save(s"${dirPath}/iteration${_iteration}.log", listOut.log)
+    Utils.save(s"${dirPath}/iteration${_iteration}.log", listOut.log)
 
-      val mutations = listOut.list.map(_ match {
-        case line if line.contains("MUTATION: ") => Some(line.substring(line.indexOf("MUTATION: ")))
-        case line if line.contains("CROSSING: ") => Some(line.substring(line.indexOf("CROSSING: ")))
-        case line if line.contains("CLONING: ") => Some(line.substring(line.indexOf("CLONING: ")))
-        case _ => None
-      }).flatten
+    val mutations = listOut.list.map(_ match {
+      case line if line.contains("MUTATION: ") => Some(line.substring(line.indexOf("MUTATION: ")))
+      case line if line.contains("CROSSING: ") => Some(line.substring(line.indexOf("CROSSING: ")))
+      case line if line.contains("CLONING: ") => Some(line.substring(line.indexOf("CLONING: ")))
+      case _ => None
+    }).flatten
 
-      Utils.save(s"${dirPath}/mutations_iteration${_iteration}.log", mutations.mkString("\n"))
-      Utils.save(s"${dirPath}/best_iteration${_iteration}.json", best.toJson)
-    }
+    Utils.save(s"${dirPath}/mutations_iteration${_iteration}.log", mutations.mkString("\n"))
+    Utils.save(s"${dirPath}/best_iteration${_iteration}.json", best.toJson)
 
     LOG.removeOut(listOut)
 
@@ -140,59 +138,15 @@ class Engine(val dirName: String,
     }
   }
 
-  def best = {
-    if(_poll.empty) exception("The genomes poll is empty")
-    _poll.genomesSorted(_results)(0)
-  }
-
-  def getResult(netId: String) = _results.get(netId)
-
-  def results = _results.toMap
-
-  def calculateResults(): Unit ={
-    debug(this,"------------------------------ calculate results ------------------------------")
-    debug(this,s"There are ${poll.size} genomes in the poll")
-    debug(this,poll.ids.toString())
-    _results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
-    debug(this,s"And there ${_results.size} results")
-
-    if(savingProgress) Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(_results))
-
-    if(_iteration == 0) _iteration = 1
-    debug(this,"------------------------------ done calculating results ------------------------------")
-  }
-
   def dirPath = Context().evolutionDir + "/" + dirName
 
   private def drawId = Engine.drawId(_results)
   private def drop(id: String) = Engine.drop(_poll.genomes, id)
-
-  def avg = poll.ids.map(_results.get(_).get).sum / poll.ids.size
-  def median = {
-    val list = results.map(_._2).toList.sorted
-    list(results.size/2)
-  }
-
-  def quintiles = for(i <- 1 to 5) yield quintile(i)
-
-  def quintile(n: Int) = {
-    assert(n >= 1 && n <= 5, s"The number of a quintile must be between 1 and 5, is $n")
-    val list = results.map(_._2).toList.sorted
-    val t = results.size/5
-    ((n-1)*t until n*t).map(list(_)).sum / t
-  }
-
-  def runWithStats(iterations: Int =20) = (1 to iterations).map(_ => _runWithStats).sortBy(_.iteration).toList
-
-  private def _runWithStats = {
-    run()
-    EvolutionStats(iteration, best.data.id, getResult(best.data.id).get, avg, poll.size, median, quintiles.toList)
-  }
 }
 
 object Engine {
   def apply(coach: Coach, poll: GenomePoll):Engine =
-    new Engine("engine", coach, false, poll, initResultsMap(poll))
+    new Engine("engine", coach, poll)
 
   def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
     val dirPath = Context().evolutionDir + "/" + dirName
@@ -206,7 +160,7 @@ object Engine {
     val coach = Coach(exercisesSet)
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
     Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
-    new Engine(dirName, coach, true, poll, initResultsMap(poll))
+    new Engine(dirName, coach, poll)
   }
 
   def apply(dirName: String):Engine = {
@@ -228,7 +182,7 @@ object Engine {
     }
 
     val coach = Coach(exercisesSet)
-    val engine = new Engine(dirName, coach, true, poll, initResultsMap(poll))
+    val engine = new Engine(dirName, coach, poll)
     engine._iteration = findGenomePollIteration(dirPath)
     engine
   }
@@ -262,10 +216,6 @@ object Engine {
   private def drop(genomes: List[NetGenome], index: Int):List[NetGenome] = genomes.take(index) ++ genomes.drop(index + 1)
   private def drop(genomes: List[NetGenome], id: String):List[NetGenome] = drop(genomes, genomes.indexWhere(_.id == id))
 
-  /**
-   *@todo: Dla większego zróżnicowania wyników "normalizowanie" mogłoby np. ucinać część (albo całą) odległość
-   *pomiędzy najgorszym wynikiem a 0 i dopiero pozostały odcinek normalizować do <0,1>
-   */
   private def normalize(results: Map[String, Double]) = results.values.sum match {
     case 0.0 => None
     case sum =>
@@ -288,5 +238,4 @@ object Engine {
     case head :: tail => getId(r - head._2, tail)
   }
 
-  private def initResultsMap(poll: GenomePoll) = poll.genomes.map(g => g.id -> 0.0).toMap
 }

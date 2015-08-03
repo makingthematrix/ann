@@ -4,7 +4,6 @@ import anna.Context._
 import anna.async.NetBuilder
 import anna.data.NetData
 import anna.epengine._
-import anna.logger.LOG
 import anna.utils.Utils
 import anna.logger.LOG._
 import anna.async.NetBuilderOps._
@@ -320,8 +319,8 @@ object Commands {
       sb.append(s"${lastIter.quintiles(2)},")
       sb.append(s"${lastIter.quintiles(3)},")
       sb.append(s"${lastIter.quintiles(4)}\n")
-      Utils.save(s"contextMatrixTest-${name}.csv", sb.toString() )
       sb.clear()
     })
+    Utils.save(s"contextMatrixTest-${name}.csv", sb.toString() )
   }
 }
