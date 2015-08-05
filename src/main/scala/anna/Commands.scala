@@ -59,7 +59,7 @@ object Commands {
 
   def set:String = exercisesSetOpt.map(_.name).getOrElse("The exercises set is not set")
 
-  private var engineOpt:Option[Engine] = None
+  private var engineOpt:Option[StandardEngine] = None
 
   def engine = engineOpt.getOrElse(throw new IllegalArgumentException("No engine set"))
   def poll = engine.poll
@@ -145,12 +145,12 @@ object Commands {
     val inputIds:List[String] = inputIdsOpt.getOrElse(throw new IllegalArgumentException("No input ids set"))
     val outputIds:List[String] = outputIdsOpt.getOrElse(throw new IllegalArgumentException("No output ids set"))
     val exercisesSet = exercisesSetOpt.getOrElse(throw new IllegalArgumentException("No exercises set... set"))
-    engineOpt = Some(Engine(name, inputIds, outputIds, template, exercisesSet))
+    engineOpt = Some(StandardEngine(name, inputIds, outputIds, template, exercisesSet))
     println("done")
   }
 
   def open(name: String) = {
-    engineOpt = Some(Engine(name))
+    engineOpt = Some(StandardEngine(name))
     println("done")
   }
 
@@ -319,7 +319,6 @@ object Commands {
       sb.append(s"${lastIter.quintiles(2)},")
       sb.append(s"${lastIter.quintiles(3)},")
       sb.append(s"${lastIter.quintiles(4)}\n")
-      sb.clear()
     })
     Utils.save(s"contextMatrixTest-${name}.csv", sb.toString() )
   }

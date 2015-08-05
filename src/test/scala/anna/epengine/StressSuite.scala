@@ -28,7 +28,7 @@ class StressSuite extends JUnitSuite {
     Context.set(_oldContext)
   }
 
-  private var engine: Engine = null
+  private var engine: StandardEngine = null
 
   private lazy val inputIds = List("in")
   private lazy val outputIds = List("dot","line")
@@ -100,7 +100,7 @@ class StressSuite extends JUnitSuite {
 
     cm.unfold.map(contextVector => {
       Context.set(contextVector)
-      val engine = Engine("engine", inputIds, outputIds, dotLineData, exercisesSet)
+      val engine = StandardEngine("engine", inputIds, outputIds, dotLineData, exercisesSet)
       val stats = engine.runWithStats(iterations)
       LOG.debug("-----------------------------------")
       LOG.debug(s"context vector: $contextVector")

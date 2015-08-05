@@ -12,8 +12,8 @@ import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
-class Engine(val dirName: String, val coach: Coach, private var _poll: GenomePoll) extends EngineLike {
-  import anna.epengine.Engine._
+class StandardEngine(val dirName: String, val coach: Coach, private var _poll: GenomePoll) extends EngineLike {
+  import anna.epengine.StandardEngine._
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
 
   def poll = _poll
@@ -140,15 +140,15 @@ class Engine(val dirName: String, val coach: Coach, private var _poll: GenomePol
 
   def dirPath = Context().evolutionDir + "/" + dirName
 
-  private def drawId = Engine.drawId(_results)
-  private def drop(id: String) = Engine.drop(_poll.genomes, id)
+  private def drawId = StandardEngine.drawId(_results)
+  private def drop(id: String) = StandardEngine.drop(_poll.genomes, id)
 }
 
-object Engine {
-  def apply(coach: Coach, poll: GenomePoll):Engine =
-    new Engine("engine", coach, poll)
+object StandardEngine {
+  def apply(coach: Coach, poll: GenomePoll):StandardEngine =
+    new StandardEngine("engine", coach, poll)
 
-  def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): Engine = {
+  def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): StandardEngine = {
     val dirPath = Context().evolutionDir + "/" + dirName
     Utils.createDir(dirPath)
     Utils.save(dirPath + "/inputIds.json", writePretty(inputIds))
@@ -160,10 +160,10 @@ object Engine {
     val coach = Coach(exercisesSet)
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
     Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
-    new Engine(dirName, coach, poll)
+    new StandardEngine(dirName, coach, poll)
   }
 
-  def apply(dirName: String):Engine = {
+  def apply(dirName: String):StandardEngine = {
     val dirPath = Context().evolutionDir + "/" + dirName
     if(!Utils.fileExists(dirPath)) exception(s"There is no directory $dirPath")
 
@@ -182,7 +182,7 @@ object Engine {
     }
 
     val coach = Coach(exercisesSet)
-    val engine = new Engine(dirName, coach, poll)
+    val engine = new StandardEngine(dirName, coach, poll)
     engine._iteration = findGenomePollIteration(dirPath)
     engine
   }
