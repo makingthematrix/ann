@@ -114,33 +114,37 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     var1Ids.intersect(var2Ids).nonEmpty
   }
 
+  def crossOnlySynapses(genome: NetGenome) = if(crossable(genome)){
+    // @todo
+  } else (clone, genome.clone)
+
   def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
-    debug(this, s"--- crossing ${this.id} with ${genome.id}")
+    //debug(this, s"--- crossing ${this.id} with ${genome.id}")
     val fullAccessN1 = fullAccessNeurons()
-    debug(this,s"full access neurons 1: $fullAccessN1")
+    //debug(this,s"full access neurons 1: $fullAccessN1")
     val fullAccessN2 = genome.fullAccessNeurons()
-    debug(this,s"full access neurons 2: $fullAccessN2")
+    //debug(this,s"full access neurons 2: $fullAccessN2")
     // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
     // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
     val fan1Ids = fullAccessN1.map(n => removeNetId(n.id)).toSet
-    debug(this,s"full access ids 1: $fan1Ids")
+   // debug(this,s"full access ids 1: $fan1Ids")
     val fan2Ids = fullAccessN2.map(n => removeNetId(n.id)).toSet
-    debug(this,s"full access ids 2: $fan2Ids")
+    //debug(this,s"full access ids 2: $fan2Ids")
     val commonIds = fan1Ids.intersect(fan2Ids)
-    debug(this,s"common ids: $commonIds")
+    //debug(this,s"common ids: $commonIds")
     // if crossable is true it means that there is a common part which we can cross
 
     // 2. choose the number of neuronIds to draw
     val idsToDraw = if (commonIds.size > 1) RandomNumber(1, commonIds.size) else 1
-    debug(this,s"idsToDraw: $idsToDraw")
+    //debug(this,s"idsToDraw: $idsToDraw")
 
     // 3. draw randomly neuronIds, splitting the set into two
     val (idsToSwitch, _) = Utils.splitIdsRandomly(commonIds, idsToDraw)
-    debug(this,s"idsToSwitch: $idsToSwitch")
+    //debug(this,s"idsToSwitch: $idsToSwitch")
     val leftIds = fan1Ids.map(id => neuronId(if (idsToSwitch.contains(id)) genome.id else this.id, id))
-    debug(this,s"leftIds: $leftIds")
+    //debug(this,s"leftIds: $leftIds")
     val rightIds = fan2Ids.map(id => neuronId(if (idsToSwitch.contains(id)) this.id else genome.id, id))
-    debug(this,s"rightIds: $rightIds")
+    //debug(this,s"rightIds: $rightIds")
 
     // 4. create genomes with switch neurons
     val allVariables = fullAccessN1 ++ fullAccessN2

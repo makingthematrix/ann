@@ -55,10 +55,10 @@ class MonteCarloEngine(override val name: String,
     val bestGenome = best
     val accessMap = bestGenome.accessMap
     debug(this,s"CLONING: best genome ${bestGenome.id} as $newBestId")
-    bestGenome.netId(newBestId) :: GenomePoll.newGeneration(netTemplate, accessMap, _poll.size - 1, mutationsPerNewGenome)
+    bestGenome.netId(newBestId) :: GenomePoll.newGeneration(bestGenome.data, accessMap, _poll.size - 1, mutationsPerNewGenome)
   }
 
-  private def newBestId = s"iter${_iteration}#0Cloned-Best"
+  private def newBestId = s"iter${_iteration}#0"
 }
 
 object MonteCarloEngine {
@@ -67,7 +67,6 @@ object MonteCarloEngine {
             outputIds: List[String], 
             netTemplate: NetData,
             exercisesSet: ExercisesSet,
-            pollSize: Int,
             mutationsPerNewGenome: Int = Context().initialMutationsNumber): MonteCarloEngine = {
     val dirPath = Context().evolutionDir + "/" + name
     Utils.createDir(dirPath)
@@ -78,7 +77,7 @@ object MonteCarloEngine {
     Utils.save(dirPath + "/exercisesSet.json", exercisesSet.toJson)
 
     val coach = Coach(exercisesSet)
-    val poll = GenomePoll(netTemplate, inputIds, outputIds, pollSize, mutationsPerNewGenome)
+    val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize, mutationsPerNewGenome)
     Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
     new MonteCarloEngine(name, coach, poll, netTemplate, mutationsPerNewGenome)
   }

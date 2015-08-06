@@ -2,6 +2,7 @@ package anna.epengine
 
 import anna.Context
 import anna.async.NetBuilder
+import anna.epengine.NetGenome
 import anna.logger.LOG
 import anna.logger.LOG._
 import anna.utils.Utils
@@ -32,10 +33,26 @@ class MonteCarloEngineSuite extends JUnitSuite {
 
   val inputIds = List("in")
   val outputIds = List("dot", "line")
+  val accessMap = NetGenome.accessMap(inputIds, outputIds)
 
-  val simplestTemplate = NetBuilder().addInput("in").chain("dot", 1.0, 0.5)
-    .use("in").chain("line", 1.0, 0.5)
-    .setName("simplest").data
+  lazy val simplestTemplate = {
+    val data = NetBuilder().addInput("in").chain("dot", 1.0, 0.5)
+      .use("in").chain("line", 1.0, 0.5).data
+    val genome = NetGenome(data, accessMap)
+    genome.netId("simplest").data
+  }
+
+  lazy val dotLineTemplate = {
+    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.15).chain("mi12",1.0,0.15).chain("dot",1.0,0.15)
+      .use("in").chain("mi21",1.0,0.15).chain("mi22",1.0,0.15).chain("line",1.0,0.15)
+      .use("mi12").hush("mi21")
+      .use("mi21").hush("mi11")
+      .use("dot").hush("line")
+      .use("line").hush("dot")
+      .data
+    val genome = NetGenome(data, accessMap)
+    genome.netId("dotline").data
+  }
 
   val set = ExercisesSet("count fires", List("count fires 1"))
 
@@ -52,6 +69,34 @@ class MonteCarloEngineSuite extends JUnitSuite {
       debug(this, s" best result: $best")
     }
     assertTrue(best >= first)
+  }
+
+  @Test def shouldLooseWithStandardEngine(): Unit = {
+    Context.withGenomePollSize(25)
+
+    val initialMutationsNumber = Context().initialMutationsNumber
+
+    Context.withInitialMutationsNumber(50)
+    engine = MonteCarloEngine("test-shouldLooseWithStandardEngine-MCE", inputIds, outputIds, dotLineTemplate, set)
+    engine.calculateResults()
+    val firstMCE = engine.getResult(engine.best.id).get
+    engine.run(5)
+    val bestMCE = engine.getResult(engine.best.id).get
+    Utils.deleteDir(engine.dirPath)
+
+    Context.withInitialMutationsNumber(initialMutationsNumber)
+    engine = StandardEngine("test-shouldLooseWithStandardEngine-SE", inputIds, outputIds, dotLineTemplate, set)
+    engine.calculateResults()
+    val firstSE = engine.getResult(engine.best.id).get
+    engine.run(5)
+    val bestSE = engine.getResult(engine.best.id).get
+
+    debug(this, s" first MCE result: $firstMCE")
+    debug(this, s" best MCE result: $bestMCE")
+    debug(this, s" first SE result: $firstSE")
+    debug(this, s" best SE result: $bestSE")
+
+    assertTrue(bestSE > bestMCE)
   }
 
 }
