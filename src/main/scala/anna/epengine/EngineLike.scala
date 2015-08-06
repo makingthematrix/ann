@@ -1,19 +1,43 @@
 package anna.epengine
 
+import anna.Context
 import anna.logger.LOG._
+import anna.utils.Utils
+import org.json4s.native.Serialization.{read, writePretty}
+import anna.utils.Utils.formats
 
 /**
  * Created by gorywoda on 03.08.15.
  */
 trait EngineLike {
-  // these three need to be implemented
-  def poll: GenomePoll
-  def calculateResults(): Unit
+  // these have to be initialized
+  val name: String
+  val coach: Coach
+  protected var _poll: GenomePoll
+
+  // this has to be implemented
   protected def _run(): Unit
+
+  def poll = _poll
+
+  def dirPath = Context().evolutionDir + "/" + name
+
+  def calculateResults(): Unit ={
+    debug(this,"------------------------------ calculate results ------------------------------")
+    debug(this,s"There are ${poll.size} genomes in the poll")
+    debug(this,poll.ids.toString())
+    _results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
+    debug(this,s"And there ${_results.size} results")
+
+    Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(_results))
+
+    if(_iteration == 0) _iteration = 1
+    debug(this,"------------------------------ done calculating results ------------------------------")
+  }
 
   def best = {
     if(poll.empty) exception("The genomes poll is empty")
-    poll.genomesSorted(_results)(0)
+    poll.genomesSorted(_results).head
   }
 
   def getResult(netId: String) = _results.get(netId)

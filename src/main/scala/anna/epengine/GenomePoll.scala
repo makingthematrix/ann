@@ -28,17 +28,25 @@ object GenomePoll {
     new GenomePoll( (1 to size).map( i => NetGenome.build(netId + i, inputIds, outputIds) ).toList )
   }
 
-  def apply(template: NetData, inputIds: List[String], outputIds: List[String], size: Int):GenomePoll = {
+  def apply(template: NetData,
+            inputIds: List[String],
+            outputIds: List[String],
+            size: Int,
+            initialMutationsNumber: Int = Context().initialMutationsNumber):GenomePoll = {
     assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron, is: " + Context().synapsesDensity)
     assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
     val accessMap = NetGenome.accessMap(inputIds, outputIds)
-    new GenomePoll( 
-      (1 to size).map( 
-        i => NetGenome(template, accessMap).netId(template.id+i).mutate(Context().initialMutationsNumber)
-      ).toList
-    )
+    new GenomePoll(newGeneration(template, accessMap, size, initialMutationsNumber))
   }
+
+  def newGeneration(template: NetData,
+                    accessMap: Map[String, MutationAccess],
+                    size: Int,
+                    initialMutationsNumber: Int) =
+    (1 to size).map(
+      i => NetGenome(template, accessMap).netId(template.id+i).mutate(initialMutationsNumber)
+    ).toList
 
   def fromJson(jsonStr: String) = read[GenomePoll](jsonStr)
 }

@@ -4,40 +4,27 @@ import anna.Context
 import anna.data.NetData
 import anna.logger.LOG._
 import anna.logger.{LOG, ListLogOutput}
+import anna.utils.{RandomNumber, Utils}
 import anna.utils.Utils.formats
-import anna.utils.{RandomNumber, Utils, IntRange}
 import org.json4s.native.Serialization.{read, writePretty}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
-class StandardEngine(val dirName: String, val coach: Coach, private var _poll: GenomePoll) extends EngineLike {
+class StandardEngine(override val name: String,
+                     override val coach: Coach,
+                     override protected var _poll: GenomePoll) extends EngineLike {
   import anna.epengine.StandardEngine._
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
 
-  def poll = _poll
-
-  def calculateResults(): Unit ={
-    debug(this,"------------------------------ calculate results ------------------------------")
-    debug(this,s"There are ${poll.size} genomes in the poll")
-    debug(this,poll.ids.toString())
-    _results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
-    debug(this,s"And there ${_results.size} results")
-
-    Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(_results))
-
-    if(_iteration == 0) _iteration = 1
-    debug(this,"------------------------------ done calculating results ------------------------------")
-  }
-
-  protected def _run() = {
+  override protected def _run() = {
     if(_iteration == 0) calculateResults()
 
     val listOut = new ListLogOutput(s"iteration${_iteration}")
     LOG.addOut(listOut)
 
-    debug(this,s" ------------------------ Iteration ${_iteration} of the engine ------------------------ ")
+    debug(this,s" ------------------------ Iteration ${_iteration} of the standard engine $name ------------------------ ")
 
     _poll = GenomePoll(mutate(newGeneration))
 
@@ -45,7 +32,7 @@ class StandardEngine(val dirName: String, val coach: Coach, private var _poll: G
 
     calculateResults()
 
-    debug(this,s" ------------------------ done iteration ${_iteration} of the engine ------------------------ ")
+    debug(this,s" ------------------------ done iteration ${_iteration} of the standard engine $name ------------------------ ")
 
     Utils.save(s"${dirPath}/iteration${_iteration}.log", listOut.log)
 
@@ -138,8 +125,6 @@ class StandardEngine(val dirName: String, val coach: Coach, private var _poll: G
     }
   }
 
-  def dirPath = Context().evolutionDir + "/" + dirName
-
   private def drawId = StandardEngine.drawId(_results)
   private def drop(id: String) = StandardEngine.drop(_poll.genomes, id)
 }
@@ -148,8 +133,8 @@ object StandardEngine {
   def apply(coach: Coach, poll: GenomePoll):StandardEngine =
     new StandardEngine("engine", coach, poll)
 
-  def apply(dirName: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): StandardEngine = {
-    val dirPath = Context().evolutionDir + "/" + dirName
+  def apply(name: String, inputIds: List[String], outputIds: List[String], netTemplate: NetData, exercisesSet: ExercisesSet): StandardEngine = {
+    val dirPath = Context().evolutionDir + "/" + name
     Utils.createDir(dirPath)
     Utils.save(dirPath + "/inputIds.json", writePretty(inputIds))
     Utils.save(dirPath + "/outputIds.json", writePretty(outputIds))
@@ -160,7 +145,7 @@ object StandardEngine {
     val coach = Coach(exercisesSet)
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize)
     Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
-    new StandardEngine(dirName, coach, poll)
+    new StandardEngine(name, coach, poll)
   }
 
   def apply(dirName: String):StandardEngine = {

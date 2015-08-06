@@ -1,9 +1,9 @@
 package anna.epengine
 
 import anna.Context
-import anna.epengine.EngineLike
 import anna.async.NetBuilder
 import anna.logger.LOG
+import anna.logger.LOG._
 import anna.utils.Utils
 import org.junit.{After, Before}
 import org.scalatest.junit.JUnitSuite
@@ -40,15 +40,18 @@ class MonteCarloEngineSuite extends JUnitSuite {
   val set = ExercisesSet("count fires", List("count fires 1"))
 
   @Test def shouldImproveExercisesResults(): Unit = {
-    engine = MonteCarloEngine("montecarlo1", inputIds, outputIds, simplestTemplate, set)
+    engine = MonteCarloEngine("montecarlo1", inputIds, outputIds, simplestTemplate, set, 3, 50)
     engine.calculateResults()
-    var before = engine.getResult(engine.best.id).get
-    for(i <- 1 to 20){
+    val first = engine.getResult(engine.best.id).get
+    var best = first
+    for(i <- 1 to 5){
       engine.run(1)
-      val after = engine.getResult(engine.best.id).get
-      assertTrue(after >= before)
-      before = after
+      val newBest = engine.getResult(engine.best.id).get
+      assertTrue(newBest >= best)
+      best = newBest
+      debug(this, s" best result: $best")
     }
+    assertTrue(best >= first)
   }
 
 }
