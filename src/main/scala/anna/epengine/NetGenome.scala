@@ -2,7 +2,7 @@ package anna.epengine
 
 import anna.Context
 import anna.data.NetData._
-import anna.data.{NetData, NeuronData}
+import anna.data.{SynapseData, NetData, NeuronData}
 import anna.logger.LOG._
 import anna.utils.Utils.formats
 import anna.utils.{IntRange, RandomNumber, Utils}
@@ -115,7 +115,17 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   def crossOnlySynapses(genome: NetGenome) = if(crossable(genome)){
-    // @todo
+    val n1Map = neurons.map(n => (removeNetId(n.id) -> n)).toMap
+    val n2Map = genome.neurons.map(n => (removeNetId(n.id) -> n)).toMap
+    val commonIds = n1Map.keySet.intersect(n2Map.keySet)
+
+    val idsToDraw = if (commonIds.size > 1) RandomNumber(1, commonIds.size) else 1
+    val (idsToSwitch, _) = Utils.splitIdsRandomly(commonIds, idsToDraw)
+
+    val leftGenome = NetGenome.swapSynapses(this, NetGenome.synapsesMap(n2Map, commonIds), idsToSwitch)
+    val rightGenome = NetGenome.swapSynapses(genome, NetGenome.synapsesMap(n1Map, commonIds), idsToSwitch)
+
+    (leftGenome, rightGenome)
   } else (clone, genome.clone)
 
   def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
@@ -341,6 +351,29 @@ object NetGenome {
     debug(this,s"new genome bred: ${newGen.id}")
     newGen
   }
+
+  private def synapsesMap(neuronsMap: Map[String,NeuronData], commonIds: Set[String]) =
+    neuronsMap.filterKeys(key => commonIds.contains(key)).map(tuple => {
+      val (id, n) = tuple
+      n.synapses.map(s => {
+        val destId = removeNetId(s.neuronId)
+        if(commonIds.contains(destId)) Some(s"$id:$destId" -> s) else None
+      }).flatten
+    }).flatten.toMap
+
+  private def swapSynapses(genome: NetGenome, synapsesMap: Map[String, SynapseData], idsToSwitch: Set[String]) = {
+    val rightData = genome.data.withNeurons(
+      genome.neurons.map(n => if(idsToSwitch.contains(n.id+":")){
+        n.withSynapses(
+          n.synapses.map(s => if(idsToSwitch.contains(":"+s.neuronId)){
+            s.withWeight(synapsesMap(n.id+":"+s.neuronId).weight)
+          } else s)
+        )
+      } else n)
+    )
+    NetGenome(rightData, genome.accessMap)
+  }
+
 
   private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {
     case Nil => None
