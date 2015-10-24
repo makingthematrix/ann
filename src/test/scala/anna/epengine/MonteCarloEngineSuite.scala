@@ -57,7 +57,7 @@ class MonteCarloEngineSuite extends JUnitSuite {
   val set = ExercisesSet("count fires", List("count fires 1"))
 
   @Test def shouldImproveExercisesResults(): Unit = {
-    engine = MonteCarloEngine("montecarlo1", inputIds, outputIds, simplestTemplate, set, 3, 50)
+    engine = MonteCarloEngine("montecarlo1", inputIds, outputIds, simplestTemplate, set)
     engine.calculateResults()
     val first = engine.getResult(engine.best.id).get
     var best = first

@@ -163,5 +163,8 @@ object Utils {
       .append(twociphers(cal.get(Calendar.SECOND))).append('.')
       .append(cal.get(Calendar.MILLISECOND)).toString
   }
+
+  def synapseId(fromId: String, toId: String) = s"$fromId->$toId"
+
 }
 

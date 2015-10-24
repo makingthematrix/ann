@@ -1,8 +1,7 @@
 package anna.data
 
 import anna.Context
-import anna.data.NetData._
-import anna.utils.Utils.formats
+import anna.utils.Utils.{formats, synapseId}
 import org.json4s.native.Serialization.{read, writePretty}
 
 /**
@@ -34,6 +33,8 @@ case class NetData(id: String,
   def neuron(neuronId: String) = neurons.find(_.id == neuronId)
                                         .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))
   def contains(neuronId: String) = neurons.exists(_.id == neuronId)
+
+  def synapses:Map[String,SynapseData] = neurons.flatMap(n => n.synapses.map(s => (synapseId(n.id, s.neuronId) -> s))).toMap
 
   def toJson = writePretty(this)
 

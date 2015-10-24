@@ -96,45 +96,72 @@ object ExercisesLibrary {
     (dotFired, lineFired)
   }
 
-  private def countFires(wrapper: NetWrapper, fires: Int, weight: Double) = {
+  private def countFires(wrapper: NetWrapper, fires: Int, weight: Double, dotFireCoeff: Double = 10.0, lineFireCoeff: Double = 10.0, successCoeff: Double = 5.0) = {
     var result = 0.0
 
     val (dotDot, lineDot) = dotLineCountFires(wrapper, (0 until fires).map(n => "1,0,0").mkString(","))
     val (dotLine, lineLine) = dotLineCountFires(wrapper, (0 until fires).map(n => "1,1,0").mkString(","))
     LOG.debug(s"countFires$fires: dotDot: $dotDot, lineDot: $lineDot, dotLine: $dotLine, lineLine: $lineLine")
 
-    if (dotDot == fires) result += 10.0 * weight
+    if (dotDot == fires) result += dotFireCoeff * weight
     else if (dotDot > fires) result += weight
     else if(dotDot == 0){
       val info = wrapper.info("dot")
-      result += weight * 5.0 * (1.0 - info.threshold + info.highestBuffer)
+      result += weight * dotFireCoeff * 0.5 * (1.0 - info.threshold + info.highestBuffer)
     }
-    result -= dotLine * 5.0 * weight
+    result -= dotLine * dotFireCoeff * 0.5 * weight
 
-    if (lineLine == fires) result += 10.0 * weight
+    if (lineLine == fires) result += lineFireCoeff * weight
     else if (lineLine > fires) result += weight
     else if(lineLine == 0){
       val info = wrapper.info("line")
-      result += weight * 5.0 * (1.0 - info.threshold + info.highestBuffer)
+      result += weight * lineFireCoeff * 0.5 * (1.0 - info.threshold + info.highestBuffer)
     }
-    result -= lineDot * 5.0 * weight
+    result -= lineDot * lineFireCoeff * 0.5 * weight
 
-    if (dotDot == fires && lineLine == fires && dotLine < fires && lineDot < fires) result += 5.0 * weight
+    if (dotDot == fires && lineLine == fires && dotLine < fires && lineDot < fires) result += successCoeff * weight
 
     result
   }
 
-  val countFires1 = new Exercise("count fires 1", 1, List("dot","line")) {
+  val countFiresEqually1 = new Exercise("count fires equally 1", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = countFires(wrapper, 1, 3.0)
   }
 
-  val countFires2 = new Exercise("count fires 2", 1, List("dot","line")) {
+  val countFiresEqually2 = new Exercise("count fires equally 2", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = countFires(wrapper, 2, 0.5)
   }
 
-  val countFires3 = new Exercise("count fires 3", 1, List("dot","line")) {
+  val countFiresEqually3 = new Exercise("count fires equally 3", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = countFires(wrapper, 3, 0.1)
   }
+
+  val countFiresPreferDot1 = new Exercise("count fires prefer dot 1", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 1, 3.0, 10.0, 5.0)
+  }
+
+  val countFiresPreferDot2 = new Exercise("count fires prefer dot 2", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 2, 0.5, 10.0, 5.0)
+  }
+
+  val countFiresPreferDot3 = new Exercise("count fires prefer dot 3", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 3, 0.1, 10.0, 5.0)
+  }
+
+  val countFiresPreferLine1 = new Exercise("count fires prefer line 1", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 1, 3.0, 5.0, 10.0)
+  }
+
+  val countFiresPreferLine2 = new Exercise("count fires prefer line 2", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 2, 0.5, 5.0, 10.0)
+  }
+
+  val countFiresPreferLine3 = new Exercise("count fires prefer line 3", 1, List("dot","line")) {
+    def run(wrapper: NetWrapper) = countFires(wrapper, 3, 0.1, 5.0, 10.0)
+  }
+
+
+  // ----
 
   val oneForAll = new Exercise("one for all", 1, List("dot","line")) {
     def run(wrapper: NetWrapper) = {
