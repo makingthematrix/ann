@@ -9,7 +9,7 @@ import org.json4s.native.Serialization.{read, writePretty}
  */
 case class NetData(id: String,
                    neurons: List[NeuronData],
-                   inputs: List[String],
+                   inputs: List[String], // time wasted refactoring this to Set[String]: 3h; please update when needed
                    threshold: Double,
                    slope: Double,
                    hushValue: HushValue,

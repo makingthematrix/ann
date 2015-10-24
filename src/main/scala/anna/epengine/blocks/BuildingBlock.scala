@@ -7,12 +7,13 @@ import anna.utils.Utils.synapseId
  * Created by gorywoda on 10/23/15.
  */
 trait BuildingBlock {
-  var removePhantomInputs = true
-  var removePhantomOutputs = true
+  val name: String
+
+  var removePhantomOuts = true
 
   def neurons:List[NeuronData]
   def ins:List[NeuronData]
-  def outs:List[NeuronData]
+  def phantomOuts:List[NeuronData]
   def synapses:Map[String,SynapseData] // the key is synapseId(fromId,toId)
 
   def netData: NetData

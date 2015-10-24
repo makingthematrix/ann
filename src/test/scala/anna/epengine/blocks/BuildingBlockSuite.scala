@@ -2,6 +2,7 @@ package anna.epengine.blocks
 
 import anna.async.MySuite
 import anna.data.{Hush, SynapseWeight, SynapseTrait, NetData}
+import anna.utils.Utils
 import org.junit.Test
 import org.junit.Assert._
 
@@ -15,10 +16,10 @@ class BuildingBlockSuite  extends MySuite {
   // natomiast gdy łączymy dwa bloki, trzeba określić jak "out" jednego łączy się z "in" drugiego.
   @Test def shouldBuildOneNeuronNetFromBlock(): Unit = {
     val block:BuildingBlock = BuildingBlock.createBlock("oneneuronbridge")
-    // blok powinien zawierać 3 neurony: wejściowy, domyślny i wyjściowy
+    // blok powinien zawierać 3 neurony: wejściowy, domyślny i fantomowy wyjściowy
     assertEquals(3, block.neurons.size)
     assertEquals(1, block.ins.size)
-    assertEquals(1, block.outs.size)
+    assertEquals(1, block.phantomOuts.size)
 
     assertTrue(block.contains("in1"))
     assertTrue(block.contains("default"))
@@ -39,31 +40,28 @@ class BuildingBlockSuite  extends MySuite {
     block.setWeight("in1","n1", Hush())
     assertEquals(Hush(), block.weight("in1","n1"))
 
-    // ale po utworzeniu netData mamy już tylko jeden neuron i żadnych synaps
-    // domyślnie, przy przerabianiu bloku na sieć, neurony fantomowe są usuwane.
+    // ale po utworzeniu netData mamy już tylko dwa neurony i jedną synapsę in1->n1
+    // domyślnie, przy przerabianiu bloku na sieć, fantomowe neurony wyjściowe są usuwane.
     val netData1:NetData = block.netData
+    assertTrue(netData1.contains("in1"))
     assertTrue(netData1.contains("n1"))
-    assertEquals(1, netData1.neurons.size)
-    assertEquals(0, netData1.synapses.size)
-    assertEquals(0, netData1.inputs.size)
+    assertEquals(2, netData1.neurons.size)
+    assertEquals(1, netData1.synapses.size)
+    assertTrue(netData1.synapses.contains(Utils.synapseId("in1","n1")))
+    assertEquals(1, netData1.inputs.size)
+    assertTrue(netData1.inputs.contains("n1"))
 
     // można jednak zaznaczyć, że nie chcemy ich usuwać
-    assertTrue(block.removePhantomInputs)
-    block.removePhantomInputs = false
 
-    // i tym razem pozostały neuron zostanie zbudowany jako wejściowy
+    assertTrue(block.removePhantomOuts)
+    block.removePhantomOuts = false
+
     val netData2:NetData = block.netData
     assertTrue(netData2.contains("n1"))
     assertTrue(netData2.contains("in1"))
-    assertEquals(1, netData2.inputs.size)
-    assertTrue(netData2.inputs.contains("n1"))
-
-    assertTrue(block.removePhantomOutputs)
-    block.removePhantomOutputs = false
-
-    val netData3:NetData = block.netData
-    assertTrue(netData3.contains("n1"))
-    assertTrue(netData3.contains("in1"))
-    assertTrue(netData3.contains("out1"))
+    assertTrue(netData2.contains("out1"))
+    assertEquals(2, netData2.synapses.size)
+    assertTrue(netData2.synapses.contains(Utils.synapseId("in1","n1")))
+    assertTrue(netData2.synapses.contains(Utils.synapseId("n1","out1")))
   }
 }

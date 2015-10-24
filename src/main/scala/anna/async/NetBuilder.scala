@@ -4,7 +4,8 @@ import anna.Context
 import anna.async.Messages._
 import anna.data.SynapseData.fromDouble
 import anna.data._
-import anna.utils.Utils.{assert, await}
+import anna.epengine.blocks.StandardBuildingBlock
+import anna.utils.Utils.{assert, await, synapseId}
 
 import anna.logger.LOG.debug
 
@@ -142,13 +143,22 @@ class NetBuilder {
     NetWrapper(net, inputTickMultiplier)
   }
 
-  def data = {
-    val ns = neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) )
-    NetData(netName, ns.toList.sortBy( _.id ), ins.toList.sorted,
-            defThreshold, defSlope, defHushValue, defForgetting,
-            defTickTimeMultiplier, defWeight, inputTickMultiplier,
-            activationFunctionName)
-  }
+  def buildingBlock(outIds: Set[String]) = StandardBuildingBlock(
+    netName,
+    neurons.values,
+    synapses.flatMap( tuple => tuple._2.map( s => (synapseId(tuple._1, s.neuronId) -> s))).toMap,
+    ins,
+    outIds
+  )
+
+  def data = NetData(
+    netName,
+    neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) ).toList.sortBy( _.id ),
+    ins.toList.sorted,
+    defThreshold, defSlope, defHushValue, defForgetting,
+    defTickTimeMultiplier, defWeight, inputTickMultiplier,
+    activationFunctionName
+  )
 
   def set(data: NetData) = {
     netName = data.id

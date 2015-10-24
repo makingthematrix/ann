@@ -2,7 +2,6 @@ package anna.epengine
 
 import anna.Context
 import anna.async.NetBuilder
-import anna.epengine.NetGenome
 import anna.logger.LOG
 import anna.logger.LOG._
 import anna.utils.Utils

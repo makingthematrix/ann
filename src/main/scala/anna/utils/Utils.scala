@@ -165,6 +165,8 @@ object Utils {
   }
 
   def synapseId(fromId: String, toId: String) = s"$fromId->$toId"
+  def fromId(id: String) = s"$id->"
+  def toId(id: String) = s"->$id"
 
 }
 
