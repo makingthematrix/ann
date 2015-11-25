@@ -36,12 +36,12 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   def isMutable(n: NeuronData):Boolean = isMutable(n.id)
   def isMutable(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) != MutationAccessDontMutate()
 
-  def fullAccessNeurons() = neurons.filter(isFullAccess)
-  def mutableNeurons() = neurons.filter(isMutable)
-  def notFullAccessNeurons() = neurons.filterNot(isFullAccess)
+  def fullAccessNeurons = neurons.filter(isFullAccess)
+  def mutableNeurons = neurons.filter(isMutable)
+  def notFullAccessNeurons = neurons.filterNot(isFullAccess)
 
   def netId(newNetId: String) = {
-    val fanRenamed = fullAccessNeurons().map(n => {
+    val fanRenamed = fullAccessNeurons.map(n => {
       val renamedSynapses = n.synapses.map(s => if(isFullAccess(s.neuronId)){
         val newId = replaceNetId(s.neuronId, newNetId)
         s.withId(newId)
@@ -50,7 +50,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
       n.withId(newId).withSynapses(renamedSynapses)
     })
 
-    val nfanRenamed = notFullAccessNeurons().map(n => {
+    val nfanRenamed = notFullAccessNeurons.map(n => {
       val renamedSynapses = n.synapses.map(s => if(isFullAccess(s.neuronId)){
         val newId = replaceNetId(s.neuronId, newNetId)
         s.withId(newId)
@@ -100,16 +100,16 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   def crossable(genome: NetGenome) = {
-    val constants1 = notFullAccessNeurons()
-    val constants2 = genome.notFullAccessNeurons()
+    val constants1 = notFullAccessNeurons
+    val constants2 = genome.notFullAccessNeurons
 
     assert(
       constants1.map(_.id).toSet == constants2.map(_.id).toSet,
       s"Unable to cross $id with ${genome.id}: The list of constant neurons differ, they are respectively ${constants1.map(_.id).sorted} and ${constants2.map(_.id).sorted}"
     )
 
-    val var1Ids = fullAccessNeurons().map(n => removeNetId(n.id)).toSet
-    val var2Ids = genome.fullAccessNeurons().map(n => removeNetId(n.id)).toSet
+    val var1Ids = fullAccessNeurons.map(n => removeNetId(n.id)).toSet
+    val var2Ids = genome.fullAccessNeurons.map(n => removeNetId(n.id)).toSet
     // if there is no common part then we cannot cross the genomes
     var1Ids.intersect(var2Ids).nonEmpty
   }
@@ -130,9 +130,9 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
   def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
     //debug(this, s"--- crossing ${this.id} with ${genome.id}")
-    val fullAccessN1 = fullAccessNeurons()
+    val fullAccessN1 = fullAccessNeurons
     //debug(this,s"full access neurons 1: $fullAccessN1")
-    val fullAccessN2 = genome.fullAccessNeurons()
+    val fullAccessN2 = genome.fullAccessNeurons
     //debug(this,s"full access neurons 2: $fullAccessN2")
     // 1. a variable neuron id should be as follows: [netId]_[neuronId]. strip netId and assume that neurons from both
     // nets with the same neuronId are equivalent and so, after the cross they cannot end up in the same new net.
@@ -167,17 +167,17 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     _data = _data.withNeurons( neurons.filterNot( _.id == id ) )
   }
 
-  private def addNeuron(n: NeuronData) = {
+  def addNeuron(n: NeuronData): Unit = {
     _data = _data.withNeurons(n :: neurons)
   }
 
-  private def updateNeuron(neuronData: NeuronData) = {
+  def updateNeuron(neuronData: NeuronData) = {
     deleteNeuron(neuronData.id)
     addNeuron(neuronData)
   }
 
   @tailrec
-  private def findFirstFreeId(index: Int = 1):Int = find(neuronId(id, index)) match {
+  final def findFirstFreeId(index: Int = 1):Int = find(neuronId(id, index)) match {
     case Some(n) => findFirstFreeId(index + 1)
     case None => index
   }
@@ -192,7 +192,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     oldNG.addSynapse(SynapseGenome.build(newNG.id))
     updateNeuron(oldNG.data)
     // 3. create exactly one synapse from the new neuron to the set of not-input neurons
-    val mutNs = mutableNeurons()
+    val mutNs = mutableNeurons
     if(mutNs.nonEmpty) newNG.addSynapse(SynapseGenome.build(RandomNumber(mutNs).id))
 
     addNeuron(newNG.data)
@@ -212,7 +212,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   private def deleteNeuron(): Unit ={
-    val faN = fullAccessNeurons()
+    val faN = fullAccessNeurons
     if(faN.nonEmpty){
       val id = RandomNumber(faN).id
       debug(s"MUTATION: deleteNeuron from ${data.id} -> the deleted neuron's id is $id")
@@ -222,7 +222,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
   }
 
   private def mutateNeuron(): Unit ={
-    val mutNs = mutableNeurons()
+    val mutNs = mutableNeurons
     if(mutNs.nonEmpty){
       val nCh = NeuronGenome(RandomNumber(mutNs))
       nCh.mutate()
@@ -332,7 +332,7 @@ object NetGenome {
     } else newFullAccess
 
     val nfan = if(renameEnabled) {
-      oldGenome.notFullAccessNeurons().map(n => {
+      oldGenome.notFullAccessNeurons.map(n => {
         val renamedSynapses = n.synapses.map(s => if(oldGenome.isFullAccess(s.neuronId)){
           val newId = replaceNetId(s.neuronId, oldGenome.id)
           s.withId(newId)

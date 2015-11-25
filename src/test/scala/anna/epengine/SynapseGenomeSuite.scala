@@ -41,6 +41,7 @@ class SynapseGenomeSuite extends JUnitSuite {
   @Test def shouldChangeHushProbability() {
     Context.withHushProbability(1.0)
     Context.withFullWeightProbability(0.0)
+    Context.withInvertSynapseProbability(0.0)
 
     val totalCount = 1000
     var hushCount = 0

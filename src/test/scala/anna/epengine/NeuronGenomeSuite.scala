@@ -205,9 +205,11 @@ class NeuronGenomeSuite extends JUnitSuite {
     Context.withHushValueProbability(0.0)
     Context.withSynapseChangeProbability(1.0)
     Context.withTickTimeMultiplierProbability(0.0)
+    Context.withInvertNeuronProbability(0.0)
 
     Context.withAddSynapseProbability(0.0)
     Context.withDeleteSynapseProbability(1.0)
+    Context.withInvertSynapseProbability(0.0)
 
     ng1.mutate()
     assertEquals(0, ng1.synapses.size)

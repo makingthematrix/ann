@@ -48,7 +48,7 @@ class SynapseGenome(private var _data: SynapseData){
       case _ =>
         SynapseWeight(RandomNumber(Context().weightRange))
     }
-    debug(s"MUTATION: ... mutateWeight in a synapse connecting to $neuronId -> from ${_data.weight} to $newWeight")
+    debug(s"MUTATION: ... mutateWeight in a synapse connecting to $neuronId -> from ${_data.weight} to $newWeight, range is: ${Context().weightRange}")
     _data = _data.withWeight(newWeight)
   }
 

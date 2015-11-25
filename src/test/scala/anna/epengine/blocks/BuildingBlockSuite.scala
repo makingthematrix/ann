@@ -2,6 +2,7 @@ package anna.epengine.blocks
 
 import anna.async.MySuite
 import anna.data.{Hush, SynapseWeight, SynapseTrait, NetData}
+import anna.logger.LOG._
 import anna.utils.Utils
 import org.junit.Test
 import org.junit.Assert._
@@ -29,6 +30,7 @@ class BuildingBlockSuite  extends MySuite {
     block.changeNeuronId("default","n1")
 
     // blok powinien zawierać 2 synapsy "in1"->"n1" (po zmianie nazwy), oraz "n1"->"out1"
+    debug(this, s"${block.synapses}")
     assertEquals(2, block.synapses.size)
     assertTrue(block.contains("in1","n1"))
     assertTrue(block.contains("n1","out1"))
@@ -46,6 +48,7 @@ class BuildingBlockSuite  extends MySuite {
     assertTrue(netData1.contains("in1"))
     assertTrue(netData1.contains("n1"))
     assertEquals(2, netData1.neurons.size)
+    debug(this, s"netdata synapses: ${netData1.synapses}")
     assertEquals(1, netData1.synapses.size)
     assertTrue(netData1.synapses.contains(Utils.synapseId("in1","n1")))
     assertEquals(1, netData1.inputs.size)

@@ -93,16 +93,12 @@ class CoachSuite extends MySuite {
 
   val dotSet = ExercisesSet("dotset", List(
     "one signal gives dot",
-    "one signal gives exactly one dot",
     "two signals give nothing",
     "one signal with noise gives dot",
-    "one signal with noise gives exactly one dot",
     "two signals with noise give nothing",
     "one varied signal gives dot",
-    "one varied signal gives exactly one dot",
     "two varied signals give nothing",
     "one varied signal with noise gives dot",
-    "one varied signal with noise gives exactly one dot",
     "two varied signals with noise give nothing"
   ))
 

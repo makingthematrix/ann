@@ -41,10 +41,12 @@ object Probability{
   def normalize[T](map: Map[Probability, T]): List[(Probability, T)] =
     normalize(map.keys.toSeq: _*).zip(map.values).toList
   
-  def performRandom(tuples: (Probability,()=>Unit)*): Unit = RandomNumber() match {
-    case 0.0 if tuples.map(_._1.value).sum == 0.0 => (tuples.head._2)()
-    case 0.0 => (tuples.collectFirst({ case (p, f) if p > 0.0 => f }).get)()
-    case r => performRandom(r, tuples.toList)
+  def performRandom(tuples: (Probability,()=>Unit)*): Unit = performRandom(tuples.toList)
+
+  def performRandom(list: List[(Probability,()=>Unit)]): Unit = RandomNumber() match {
+    case 0.0 if list.map(_._1.value).sum == 0.0 => (list.head._2)()
+    case 0.0 => (list.collectFirst({ case (p, f) if p > 0.0 => f }).get)()
+    case r => performRandom(r, list)
   }
 
   private def performRandom(r: Double, tuples: List[(Probability,()=>Unit)]): Unit = {
