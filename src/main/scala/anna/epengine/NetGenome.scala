@@ -2,11 +2,12 @@ package anna.epengine
 
 import anna.Context
 import anna.data.NetData._
-import anna.data.{SynapseData, NetData, NeuronData}
+import anna.data._
 import anna.logger.LOG._
 import anna.utils.Utils.formats
 import anna.utils.{IntRange, RandomNumber, Utils}
 import org.json4s.native.Serialization.{read, writePretty}
+import scala.collection.mutable
 
 import scala.annotation.tailrec
 
@@ -14,63 +15,41 @@ import scala.annotation.tailrec
  * Created by gorywoda on 04.01.15.
  */
 
-class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationAccess]){
-  override def clone = NetGenome(_data, accessMap)
-
-  def id = _data.id
-  def neurons = _data.neurons
-  def inputs = _data.inputs
-  def inputTickMultiplier = _data.inputTickMultiplier
-  def data = _data
-  def find(id: String) = _data.neurons.find( _.id == id )
-  def filter(ids: Seq[String]) = _data.filter(ids)
-  def filterNot(ids: Seq[String]) = _data.filterNot(ids)
+class NetGenome(var id: String,
+                var neurons: mutable.ListBuffer[NeuronGenome],
+                val inputs: List[String],
+                var threshold: Double,
+                var slope: Double,
+                var hushValue: HushValue,
+                var forgetting: ForgetTrait,
+                var tickTimeMultiplier: Double,
+                var weight: SynapseTrait,
+                var inputTickMultiplier: Double,
+                val activationFunctionName: String,
+                val accessMap: Map[String, MutationAccess]){
+  def find(id: String) = neurons.find( _.id == id )
+  def filter(ids: Seq[String]) = neurons.filter(n => ids.contains(n.id))
+  def filterNot(ids: Seq[String]) = neurons.filterNot(n => ids.contains(n.id))
 
   def findSynapse(from: String, to: String) = find(from) match {
     case Some(n) => n.synapses.find( _.neuronId == to )
     case None => None
   }
 
-  def isFullAccess(n: NeuronData):Boolean = isFullAccess(n.id)
+  def isFullAccess(n: NeuronGenome):Boolean = isFullAccess(n.id)
   def isFullAccess(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) == MutationAccessFull()
-  def isMutable(n: NeuronData):Boolean = isMutable(n.id)
+  def isMutable(n: NeuronGenome):Boolean = isMutable(n.id)
   def isMutable(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) != MutationAccessDontMutate()
 
-  def fullAccessNeurons = neurons.filter(isFullAccess)
-  def mutableNeurons = neurons.filter(isMutable)
-  def notFullAccessNeurons = neurons.filterNot(isFullAccess)
+  def fullAccessNeurons = neurons.filter(isFullAccess).toList
+  def mutableNeurons = neurons.filter(isMutable).toList
+  def notFullAccessNeurons = neurons.filterNot(isFullAccess).toList
 
   def netId(newNetId: String) = {
-    val fanRenamed = fullAccessNeurons.map(n => {
-      val renamedSynapses = n.synapses.map(s => if(isFullAccess(s.neuronId)){
-        val newId = replaceNetId(s.neuronId, newNetId)
-        s.withId(newId)
-      } else s)
-      val newId = replaceNetId(n.id, newNetId)
-      n.withId(newId).withSynapses(renamedSynapses)
-    })
-
-    val nfanRenamed = notFullAccessNeurons.map(n => {
-      val renamedSynapses = n.synapses.map(s => if(isFullAccess(s.neuronId)){
-        val newId = replaceNetId(s.neuronId, newNetId)
-        s.withId(newId)
-      } else s)
-      n.withSynapses(renamedSynapses)
-    })
-
-    _data = _data.withId(newNetId).withNeurons(fanRenamed ++ nfanRenamed)
-
-    this
-  }
-
-  def mutate(repetitions: Int = 1) = {
-    debug(this,s"mutate with $repetitions repetitions")
-    for(i <- 0 until repetitions) Probability.performRandom(
-      (Context().addNeuronProbability, addNeuron _),
-      (Context().deleteNeuronProbability, deleteNeuron _),
-      (Context().mutateNeuronProbability, mutateNeuron _),
-      (Context().inputTickMultiplierProbability, mutateInputTickMultiplier _)
-    )
+    neurons.foreach(_.synapses.foreach(s => if(isFullAccess(s.neuronId)) s.neuronId = replaceNetId(s.neuronId, newNetId)))
+    // sequence is important: if we change ids of neurons before changing synapses, we will never know where the synapses lead to
+    fullAccessNeurons.foreach(n => { n.id = replaceNetId(n.id, newNetId)})
+    id = newNetId
     this
   }
 
@@ -78,25 +57,18 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     // identify synapses which lead to non-existing neurons
     // for each such synapse, create a neuron without it and replace the original one with it in data
     val neuronIdSet = neurons.map(_.id).toSet
-
-    var replaceNeeded = false
-    val trimmedNeurons = neurons.map(n => {
-      val trimmedSynapses = n.synapses.filter( s => neuronIdSet.contains(s.neuronId))
-      if(trimmedSynapses.size == n.synapses.size) n else {
-        replaceNeeded = true
-        n.withSynapses(trimmedSynapses)
-      }
+    neurons.foreach(n => {
+      val trimmedSynapses = n.synapses.filter(s => neuronIdSet.contains(s.neuronId))
+      if(trimmedSynapses.size != n.synapses.size) n.synapses = trimmedSynapses
     })
-    if(replaceNeeded) _data = _data.withNeurons(trimmedNeurons)
 
     // identify full access neurons which have no synapses leading to them
     // delete these neurons from the data
     val endPointNeuronIds = neurons.map( _.synapses.map(_.neuronId) ).flatten.toSet
-    val endPointNeurons = neurons.filter( n =>
+    neurons = neurons.filter( n =>
       endPointNeuronIds.contains(n.id) ||
        accessMap.getOrElse(n.id, MutationAccessFull()) != MutationAccessFull()
     )
-    if(endPointNeurons.size != neurons.size) _data = _data.withNeurons(endPointNeurons)
   }
 
   def crossable(genome: NetGenome) = {
@@ -128,7 +100,7 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     (leftGenome, rightGenome)
   } else (clone, genome.clone)
 
-  def cross(genome: NetGenome, trimEnabled: Boolean =true, renameEnabled: Boolean =true) = if(crossable(genome)) {
+  def cross(genome: NetGenome) = if(crossable(genome)) {
     //debug(this, s"--- crossing ${this.id} with ${genome.id}")
     val fullAccessN1 = fullAccessNeurons
     //debug(this,s"full access neurons 1: $fullAccessN1")
@@ -158,22 +130,17 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
 
     // 4. create genomes with switch neurons
     val allVariables = fullAccessN1 ++ fullAccessN2
-    val leftGenome = NetGenome.breed(this, allVariables.filter( n => leftIds.contains(n.id)), trimEnabled, renameEnabled)
-    val rightGenome = NetGenome.breed(genome, allVariables.filter( n => rightIds.contains(n.id)), trimEnabled, renameEnabled)
+    val leftGenome = NetGenome.breed(this, allVariables.filter( n => leftIds.contains(n.id)).toList)
+    val rightGenome = NetGenome.breed(genome, allVariables.filter( n => rightIds.contains(n.id)).toList)
     (leftGenome, rightGenome)
   } else (clone, genome.clone)
 
   def deleteNeuron(id: String): Unit = {
-    _data = _data.withNeurons( neurons.filterNot( _.id == id ) )
+    neurons = neurons.filterNot( _.id == id )
   }
 
-  def addNeuron(n: NeuronData): Unit = {
-    _data = _data.withNeurons(n :: neurons)
-  }
-
-  def updateNeuron(neuronData: NeuronData) = {
-    deleteNeuron(neuronData.id)
-    addNeuron(neuronData)
+  def addNeuron(n: NeuronGenome): Unit = {
+    neurons += n
   }
 
   @tailrec
@@ -182,65 +149,27 @@ class NetGenome(private var _data: NetData, val accessMap: Map[String, MutationA
     case None => index
   }
 
-  private def addNeuron(): Unit ={
-    val newId = neuronId(id,findFirstFreeId())
-    debug(s"MUTATION: addNeuron to $id -> the new neuron's id is $newId")
-    // 1. create a new neuron with name id+neurons.size and according to NeuronGenome specifications
-    val newNG = NeuronGenome.build(newId, accessMap)
-    // 2. create exactly one synapse from the set of all neurons (a synapse from an output neuron is also ok)
-    val oldNG = NeuronGenome(RandomNumber(neurons), accessMap)
-    oldNG.addSynapse(SynapseGenome.build(newNG.id))
-    updateNeuron(oldNG.data)
-    // 3. create exactly one synapse from the new neuron to the set of not-input neurons
-    val mutNs = mutableNeurons
-    if(mutNs.nonEmpty) newNG.addSynapse(SynapseGenome.build(RandomNumber(mutNs).id))
-
-    addNeuron(newNG.data)
-  }
-
   def deleteSynapsesTo(neuronId: String) = {
     debug(this, s"deleting synapses leading to $neuronId")
-    val (neuronsToChange, neuronsToLeave) = neurons.partition( _.isConnectedTo(neuronId) )
-    val changedNeurons = neuronsToChange.map( n => {
-      debug(this, s"deleting synapse ${n.id}->$neuronId")
-      val ng = NeuronGenome(n)
-      ng.deleteSynapse(neuronId)
-      ng.data
-    })
-
-    _data = _data.withNeurons(changedNeurons ++ neuronsToLeave)
-  }
-
-  private def deleteNeuron(): Unit ={
-    val faN = fullAccessNeurons
-    if(faN.nonEmpty){
-      val id = RandomNumber(faN).id
-      debug(s"MUTATION: deleteNeuron from ${data.id} -> the deleted neuron's id is $id")
-      deleteNeuron(id)
-      deleteSynapsesTo(id)
-    }
-  }
-
-  private def mutateNeuron(): Unit ={
-    val mutNs = mutableNeurons
-    if(mutNs.nonEmpty){
-      val nCh = NeuronGenome(RandomNumber(mutNs))
-      nCh.mutate()
-      updateNeuron(nCh.data)
-    }
-  }
-
-  private def mutateInputTickMultiplier(): Unit ={
-    val newInputTickMultiplier = RandomNumber(Context().inputTickMultiplierRange)
-    debug(s"MUTATION: mutateInputTickMultiplier for $id from ${_data.inputTickMultiplier} to $newInputTickMultiplier")
-    _data = _data.withInputTickMultiplier(newInputTickMultiplier)
+    neurons.foreach(n => if( n.isConnectedTo(neuronId) ) n.deleteSynapse(neuronId))
   }
 
   def toJson = writePretty(this)
+  def data = NetData(id, neurons.map(_.data).toList, inputs, threshold, slope, hushValue, forgetting,
+                     tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName)
+  override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, slope, hushValue, forgetting,
+                                     tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName, accessMap)
 }
 
 object NetGenome {
-  def apply(data: NetData, accessMap: Map[String, MutationAccess] = Map()) = new NetGenome(data, accessMap)
+  def apply(data: NetData, accessMap: Map[String, MutationAccess] = Map()) = {
+    val nListBuffer = mutable.ListBuffer[NeuronGenome]()
+    nListBuffer ++= data.neurons.map(NeuronGenome(_))
+    new NetGenome(data.id, nListBuffer, data.inputs, data.threshold, data.slope, data.hushValue,
+                  data.forgetting, data.tickTimeMultiplier, data.weight, data.inputTickMultiplier,
+                  data.activationFunctionName, accessMap)
+  }
+
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
     NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
 
@@ -270,7 +199,7 @@ object NetGenome {
     debug(this,"* building middles")
     val middles = (
       for(i <- 1 to neuronsSize - ins.size - outs.size)
-        yield NeuronGenome.build(neuronId(netId,i), accessMap(inputIds, outputIds))
+        yield NeuronGenome.build(neuronId(netId,i))
     ).toList
     val ns = ins ++ middles ++ outs
 
@@ -308,71 +237,64 @@ object NetGenome {
     )
 
     debug(this, s"done building $netId")
-    debug(this, ng.data.toJson)
+    debug(this, ng.toJson)
     debug(this, "---------------------------------------------------------------------")
 
     ng
   }
 
   def breed(oldGenome: NetGenome,
-            newFullAccess: List[NeuronData],
-            trimEnabled: Boolean = true,
-            renameEnabled: Boolean = true) = {
+            newFullAccess: List[NeuronGenome]) = {
     // 6. rename full access neurons so their netId match their new nets
+    val newNeurons = mutable.ListBuffer[NeuronGenome]()
+    val fan = newFullAccess.map(_.clone)
+    fan.foreach(n => {
+      n.synapses.foreach(s => if (oldGenome.isFullAccess(s.neuronId)) s.neuronId = replaceNetId(s.neuronId, oldGenome.id))
+      n.id = replaceNetId(n.id, oldGenome.id)
+    })
+    newNeurons ++= fan
 
-    val fan = if(renameEnabled) {
-      newFullAccess.map(n => {
-        val renamedSynapses = n.synapses.map(s => if (oldGenome.isFullAccess(s.neuronId)) {
-          val newId = replaceNetId(s.neuronId, oldGenome.id)
-          s.withId(newId)
-        } else s)
-        val newId = replaceNetId(n.id, oldGenome.id)
-        n.withId(newId).withSynapses(renamedSynapses)
-      })
-    } else newFullAccess
-
-    val nfan = if(renameEnabled) {
-      oldGenome.notFullAccessNeurons.map(n => {
-        val renamedSynapses = n.synapses.map(s => if(oldGenome.isFullAccess(s.neuronId)){
-          val newId = replaceNetId(s.neuronId, oldGenome.id)
-          s.withId(newId)
-        } else s)
-        n.withSynapses(renamedSynapses)
-      })
-    } else oldGenome.notFullAccessNeurons()
+    val nfan = oldGenome.notFullAccessNeurons.map(_.clone)
+    nfan.foreach(n =>
+      n.synapses.foreach(s => if(oldGenome.isFullAccess(s.neuronId)) s.neuronId = replaceNetId(s.neuronId, oldGenome.id))
+    )
+    newNeurons ++= nfan
 
     // 7. compose new NetData
-    val newNet = oldGenome.data.withNeurons(fan ++ nfan)
+   // val newNet = oldGenome.data.withNeurons(fan ++ nfan)
     // 8. "trim" the net, ie. remove synapses which lead to non-existing neurons and full access neurons which do not receive any input
-    val newGen = NetGenome(newNet, oldGenome.accessMap)
-    if(trimEnabled) newGen.trim()
-    if(trimEnabled && renameEnabled) newGen.data.validate()
+    val newGen = new NetGenome(
+      oldGenome.id,
+      newNeurons,
+      oldGenome.inputs,
+      oldGenome.threshold,
+      oldGenome.slope,
+      oldGenome.hushValue,
+      oldGenome.forgetting,
+      oldGenome.tickTimeMultiplier,
+      oldGenome.weight,
+      oldGenome.inputTickMultiplier,
+      oldGenome.activationFunctionName,
+      oldGenome.accessMap
+    )
+    newGen.trim()
 
     debug(this,s"new genome bred: ${newGen.id}")
     newGen
   }
 
-  private def synapsesMap(neuronsMap: Map[String,NeuronData], commonIds: Set[String]) =
-    neuronsMap.filterKeys(key => commonIds.contains(key)).map(tuple => {
-      val (id, n) = tuple
+  private def synapsesMap(neuronsMap: Map[String, NeuronGenome], commonIds: Set[String]) =
+    neuronsMap.filterKeys(key => commonIds.contains(key)).map{case (id, n) => {
       n.synapses.map(s => {
         val destId = removeNetId(s.neuronId)
         if(commonIds.contains(destId)) Some(s"$id:$destId" -> s) else None
       }).flatten
-    }).flatten.toMap
+    }}.flatten.toMap
 
-  private def swapSynapses(genome: NetGenome, synapsesMap: Map[String, SynapseData], idsToSwitch: Set[String]) = {
-    val rightData = genome.data.withNeurons(
-      genome.neurons.map(n => if(idsToSwitch.contains(n.id+":")){
-        n.withSynapses(
-          n.synapses.map(s => if(idsToSwitch.contains(":"+s.neuronId)){
-            s.withWeight(synapsesMap(n.id+":"+s.neuronId).weight)
-          } else s)
-        )
-      } else n)
-    )
-    NetGenome(rightData, genome.accessMap)
-  }
+  private def swapSynapses(genome: NetGenome, synapsesMap: Map[String, SynapseGenome], idsToSwitch: Set[String]) =
+    genome.neurons.foreach(n => if(idsToSwitch.contains(n.id+":")){
+      n.synapses.foreach(s => if(idsToSwitch.contains(":"+s.neuronId)) s.weight = synapsesMap(n.id+":"+s.neuronId).weight)
+    })
 
 
   private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {

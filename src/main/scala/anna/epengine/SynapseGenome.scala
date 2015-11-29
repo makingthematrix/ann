@@ -5,65 +5,31 @@ import anna.data.{Hush, SynapseData, SynapseTrait, SynapseWeight}
 import anna.utils.RandomNumber
 import anna.utils.Utils.formats
 import org.json4s.native.Serialization.{read, writePretty}
-import anna.logger.LOG._
 
 /**
  * Created by gorywoda on 27.12.14.
  */
-class SynapseGenome(private var _data: SynapseData){
-  def neuronId = _data.neuronId
-  def weight = _data.weight
-  def data = _data
-
-  def mutate() = Probability.performRandom(
-    (Context().hushProbability, setWeightToHush _),
-    (Context().fullWeightProbability, setWeightToFull _),
-    (Context().invertSynapseProbability, invert _),
-    (1.0 - Context().fullWeightProbability - Context().hushProbability - Context().invertSynapseProbability, mutateWeight _)
-  )
-
-  def invert():Unit = {
-    debug(s"MUTATION: ... invert a synapse connecting to $neuronId from ${_data.weight}")
-    _data = _data.withWeight(_data.weight match {
-      case Hush() => SynapseWeight(1.0)
-      case SynapseWeight(1.0) => Hush()
-      case SynapseWeight(weight) => SynapseWeight(Context().weightRange.to - weight + Context().weightRange.from)
-    })
-  }
-
-  private def setWeightToHush():Unit = {
-    debug(s"MUTATION: ... setWeightToHush in a synapse connecting to $neuronId from ${_data.weight}")
-    _data = _data.withWeight(Hush())
-  }
-
-  private def setWeightToFull():Unit = {
-    debug(s"MUTATION: ... setWeightToFull in a synapse connecting to $neuronId from ${_data.weight}")
-    _data = _data.withWeight(SynapseWeight(1.0))
-  }
-
-  private def mutateWeight():Unit = {
-    val newWeight = _data.weight match {
-      case SynapseWeight(avoidWeight) =>
-        SynapseWeight(Context().weightRange.choose(RandomNumber(), avoidWeight))
-      case _ =>
-        SynapseWeight(RandomNumber(Context().weightRange))
-    }
-    debug(s"MUTATION: ... mutateWeight in a synapse connecting to $neuronId -> from ${_data.weight} to $newWeight, range is: ${Context().weightRange}")
-    _data = _data.withWeight(newWeight)
-  }
-
+class SynapseGenome(var neuronId: String, var weight: SynapseTrait){
   def toJson = writePretty(this)
+  def data = SynapseData(neuronId, weight)
+  override def clone = new SynapseGenome(neuronId, weight)
 }
 
 object SynapseGenome {
-  def apply(data: SynapseData):SynapseGenome = new SynapseGenome(data)
-  def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = SynapseGenome(SynapseData(neuronId, weight))
+  def apply(gen: SynapseGenome):SynapseGenome = new SynapseGenome(gen.neuronId, gen.weight)
+  def apply(data: SynapseData):SynapseGenome = new SynapseGenome(data.neuronId, data.weight)
+  def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = SynapseGenome(neuronId, weight)
   def apply(neuronId: String, weight: Double):SynapseGenome = apply(neuronId, SynapseWeight(weight))
 
   def build(neuronId: String) = {
-    val nch = apply(neuronId, Hush())
-    nch.mutate()
-    nch
+    val newSynapse = apply(neuronId, Hush())
+    Probability.performRandom(
+      (Context().hushProbability, () => {}),
+      (Context().fullWeightProbability, () => { newSynapse.weight = SynapseWeight(1.0)}),
+      (1.0 - Context().fullWeightProbability - Context().hushProbability - Context().invertSynapseProbability,
+        () => { newSynapse.weight = SynapseWeight(RandomNumber(Context().weightRange))})
+    )
+    newSynapse
   }
 
   def fromJson(jsonStr: String) = read[SynapseGenome](jsonStr)

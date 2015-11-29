@@ -210,7 +210,7 @@ class NetGenomeSuite extends JUnitSuite {
     val poll = GenomePoll("net", inputIds, outputIds, 1)
     val netG = poll.genomes(0)
     val net1Middle = netG.filterNot(inputIds ++ outputIds)
-    val net1FullAccess = netG.fullAccessNeurons()
+    val net1FullAccess = netG.fullAccessNeurons
     assertEquals(net1Middle, net1FullAccess)
   }
 
@@ -219,7 +219,7 @@ class NetGenomeSuite extends JUnitSuite {
     val net1G = poll.genomes(0)
     val net2G = poll.genomes(1)
 
-    val variables = net1G.fullAccessNeurons() ++ net2G.fullAccessNeurons()
+    val variables = net1G.fullAccessNeurons ++ net2G.fullAccessNeurons
 
     val ids = variables.map(_.id).toSet
     println(s"ids: ${ids.mkString(", ")}")
@@ -227,7 +227,7 @@ class NetGenomeSuite extends JUnitSuite {
     println(s"ids1: ${ids1.mkString(", ")}")
     val newGen = NetGenome.breed(net1G, variables.filter(n => ids.contains(n.id)), false)
 
-    val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons().map(_.id).toSet
+    val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons.map(_.id).toSet
     println(s"expectedIds: ${expectedIds.mkString(", ")}")
     val newGenIds = newGen.neurons.map(_.id).toSet
     println(s"newGenIds: ${newGenIds.mkString(", ")}")

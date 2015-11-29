@@ -59,6 +59,9 @@ object Commands {
 
   def set:String = exercisesSetOpt.map(_.name).getOrElse("The exercises set is not set")
 
+  // @todo: we need some easy ways to create the mutation profile in the command
+  private var mutationsProfileOpt:Option[MutationsProfile] = None
+
   private var engineOpt:Option[StandardEngine] = None
 
   def engine = engineOpt.getOrElse(throw new IllegalArgumentException("No engine set"))
@@ -145,7 +148,9 @@ object Commands {
     val inputIds:List[String] = inputIdsOpt.getOrElse(throw new IllegalArgumentException("No input ids set"))
     val outputIds:List[String] = outputIdsOpt.getOrElse(throw new IllegalArgumentException("No output ids set"))
     val exercisesSet = exercisesSetOpt.getOrElse(throw new IllegalArgumentException("No exercises set... set"))
-    engineOpt = Some(StandardEngine(name, inputIds, outputIds, template, exercisesSet))
+    val mutationsProfile = mutationsProfileOpt.getOrElse(throw new IllegalArgumentException("No mutations profile set"))
+
+    engineOpt = Some(StandardEngine(name, inputIds, outputIds, template, exercisesSet, mutationsProfile))
     println("done")
   }
 
@@ -193,8 +198,9 @@ object Commands {
 
   def mutate(data: NetData) = {
     val accessMap = accessMapOpt.getOrElse(throw new IllegalArgumentException("No access map set"))
+    val mutationsProfile = mutationsProfileOpt.getOrElse(throw new IllegalArgumentException("No mutations profile set"))
     val genome = NetGenome(data, accessMap)
-    genome.mutate()
+    mutationsProfile.mutate(genome)
     genome.data
   }
 

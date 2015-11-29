@@ -1,13 +1,26 @@
 package anna.epengine
 
 import anna.utils.Utils
-
+import anna.utils.Utils.formats
+import org.json4s.native.Serialization.{read, writePretty}
 import scala.collection.mutable
 
 /**
  * Created by gorywoda on 11/25/15.
  */
-class MutationsProfile(private val probabilityMap: mutable.Map[String, Probability]){
+case class MutationsProfile(probabilityMap: Map[String, Probability]){
+  Utils.assert(probabilityMap.values.map(_.toDouble).sum <= 1.0, "You try to create a mutations profile with the total sum of probabilities > 1.0")
+
+  def size = probabilityMap.size
+
+  def mutate(net: NetGenome) = Probability.performRandom(probabilityMap.map{
+    case (name, p) => (p, () => MutationsLibrary.get(name)(net))
+  }.toList)
+
+  def toJson = writePretty(this)
+}
+
+class MutationsProfileBuilder(private val probabilityMap: mutable.Map[String, Probability]){
   private def normalize() = {
     val sum = probabilityMap.values.map(_.toDouble).sum
     // if this method is called, we assume there is at least one non-zero probability in the map
@@ -40,14 +53,13 @@ class MutationsProfile(private val probabilityMap: mutable.Map[String, Probabili
   def toMap = probabilityMap.toMap
   def size = probabilityMap.size
 
-  def mutate(net: NetGenome) = Probability.performRandom(probabilityMap.map{ case (name, p) => (p, () => MutationsLibrary.get(name)(net))}.toList)
+  def build = MutationsProfile(probabilityMap.toMap)
 }
 
 object MutationsProfile {
-  def apply(map: Map[String, Double]) = {
-    Utils.assert(map.values.sum <= 1.0, "You try to create a mutations profile with the total sum of probabilities > 1.0")
-    val probabilityMap = mutable.Map[String, Probability]()
-    map.foreach{ case (name, d) => probabilityMap += (name -> Probability(d))}
-    new MutationsProfile(probabilityMap)
-  }
+  val nullProfile = MutationsProfile(Map.empty[String,Probability])
+
+  def apply(tuples: (String, Double)*):MutationsProfile
+    = MutationsProfile(tuples.map{ case (name, p) => name -> Probability(p) }.toMap)
+  def fromJson(jsonStr: String) = read[MutationsProfile](jsonStr)
 }

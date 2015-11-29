@@ -98,9 +98,12 @@ class StressSuite extends JUnitSuite {
     val cv2 = ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3)
     val cm = ContextMatrix(List(cv1, cv2))
 
+    // @todo: change it to smoething smarter
+    val mutationsProfile = MutationsProfile.nullProfile
+
     cm.unfold.map(contextVector => {
       Context.set(contextVector)
-      val engine = StandardEngine("engine", inputIds, outputIds, dotLineData, exercisesSet)
+      val engine = StandardEngine("engine", inputIds, outputIds, dotLineData, exercisesSet, mutationsProfile)
       val stats = engine.runWithStats(iterations)
       LOG.debug("-----------------------------------")
       LOG.debug(s"context vector: $contextVector")

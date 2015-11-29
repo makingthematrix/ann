@@ -17,7 +17,7 @@ case class GenomePoll(genomes: List[NetGenome]){
   def toJson = writePretty(this)
 
   def genomesSorted(results:Map[String,Double]) =
-    genomes.sortWith( (g1: NetGenome, g2: NetGenome) => results(g1.id) > results(g2.id)).toList
+    genomes.sortWith( (g1: NetGenome, g2: NetGenome) => results(g1.id) > results(g2.id))
 }
 
 object GenomePoll {
@@ -32,21 +32,24 @@ object GenomePoll {
             inputIds: List[String],
             outputIds: List[String],
             size: Int,
+            mutationsProfile: MutationsProfile,
             initialMutationsNumber: Int = Context().initialMutationsNumber):GenomePoll = {
     assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron, is: " + Context().synapsesDensity)
     assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
-    val accessMap = NetGenome.accessMap(inputIds, outputIds)
-    new GenomePoll(newGeneration(template, accessMap, size, initialMutationsNumber))
+    new GenomePoll(newGeneration(template, NetGenome.accessMap(inputIds, outputIds), size, mutationsProfile, initialMutationsNumber))
   }
 
   def newGeneration(template: NetData,
                     accessMap: Map[String, MutationAccess],
                     size: Int,
-                    initialMutationsNumber: Int) =
-    (1 to size).map(
-      i => NetGenome(template, accessMap).netId(template.id+i).mutate(initialMutationsNumber)
-    ).toList
+                    mutationProfile: MutationsProfile,
+                    initialMutationsNumber: Int = Context().initialMutationsNumber):List[NetGenome] =
+    (1 to size).map( i => {
+      val ng = NetGenome(template, accessMap).netId(template.id+i)
+      for(j <- 1 to initialMutationsNumber) mutationProfile.mutate(ng)
+      ng
+    }).toList
 
   def fromJson(jsonStr: String) = read[GenomePoll](jsonStr)
 }

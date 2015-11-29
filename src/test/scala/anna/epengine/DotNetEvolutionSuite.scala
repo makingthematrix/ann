@@ -15,6 +15,9 @@ class DotNetEvolutionSuite extends JUnitSuite {
     LOG.addLogToFile(s"DotNetEvolutionSuite-${System.currentTimeMillis()}.log")
   }
 
+  // @todo: put here something smarter ;)
+  private var mutationsProfile = MutationsProfile.nullProfile
+
   val dotSet = ExercisesSet("dotset", List(
     "one signal gives dot",
     "one signal gives exactly one dot",
@@ -46,7 +49,7 @@ class DotNetEvolutionSuite extends JUnitSuite {
 
     debug(this, " --- creating the engine ---")
 
-    val engine = StandardEngine(coach, poll)
+    val engine = StandardEngine(coach, poll, mutationsProfile)
 
     debug(this, " --- calculating initial results ---")
 

@@ -29,6 +29,8 @@ class StandardEngineSuite extends JUnitSuite {
   }
 
   private var engine: StandardEngine = null
+  // @todo: put here something smarter ;)
+  private var mutationsProfile = MutationsProfile.nullProfile
 
   private lazy val inputIds = List("in1")
   private lazy val outputIds = List("out1")
@@ -83,7 +85,7 @@ class StandardEngineSuite extends JUnitSuite {
     val poll = GenomePoll("net", inputIds, outputIds, 3)
     val coach = Coach(List(t1, t2))
 
-    engine = StandardEngine(coach, poll)
+    engine = StandardEngine(coach, poll, mutationsProfile)
     val best1 = engine.best
     val result1 = coach.test(best1.data)
 
@@ -116,7 +118,7 @@ class StandardEngineSuite extends JUnitSuite {
 
     val coach = Coach(set)
 
-    engine = StandardEngine(coach, poll)
+    engine = StandardEngine(coach, poll, mutationsProfile)
     engine.calculateResults()
     val best1 = engine.best
     val result1 = coach.test(best1.data)
@@ -143,7 +145,7 @@ class StandardEngineSuite extends JUnitSuite {
 
     val template = builder.data
 
-    val poll = GenomePoll(template, inputIds, outputIds, 3)
+    val poll = GenomePoll(template, inputIds, outputIds, 3, mutationsProfile)
     val d0 = poll(0).data
     val d1 = poll(1).data
     val d2 = poll(2).data
@@ -170,7 +172,7 @@ class StandardEngineSuite extends JUnitSuite {
 
     val coach = Coach(set)
 
-    engine = StandardEngine(coach, poll)
+    engine = StandardEngine(coach, poll, mutationsProfile)
     engine.calculateResults()
     val best1 = engine.best
     val result1 = coach.test(best1.data)
@@ -214,7 +216,7 @@ class StandardEngineSuite extends JUnitSuite {
     val exercisesSet = this.exercisesSet
 
     // create the engine
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
     // check if the directory exists
     val evolutionDirs = new File(Context().evolutionDir).listFiles.filter(_.isDirectory)
     assertTrue(evolutionDirs.map(_.getName).toSet.contains(dirName))
@@ -222,7 +224,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   @Test def shouldSaveContextSetTemplateAndPoll(): Unit ={
     val dirName = "test-shouldSaveContextSetAndPoll"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
     val dir = new File(Context().evolutionDir).listFiles.find(f => f.getName == dirName && f.isDirectory).get
     val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')+1) , f)).toMap
     filesInDir.foreach( tuple => println(tuple._1))
@@ -249,7 +251,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   @Test def shouldReadEngineFromDir(): Unit ={
     val dirName = "test-shouldReadEngineFromDir"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
 
     val genomeId = engine.poll.ids(0)
     println(s"genomeId: $genomeId")
@@ -284,7 +286,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   @Test def shouldSaveProgress(): Unit ={
     val dirName = "test-shouldSaveProgress"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
     assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration0.json"))
     assertFalse(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
     assertFalse(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
@@ -300,7 +302,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   @Test def shouldSaveLogs(): Unit ={
     val dirName = "test-shouldSaveLogs"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
     assertFalse(Utils.fileExists(engine.dirPath + "/iteration1.log"))
     assertFalse(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
 
@@ -312,7 +314,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   @Test def shouldNeitherCrossNorMutate(): Unit ={
     val dirName = "test-shouldNeitherCrossNorMutate"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet)
+    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
 
     Context.withMutationProbability(0.0)
     Context.withCrossCoefficient(0.0)
@@ -341,7 +343,7 @@ class StandardEngineSuite extends JUnitSuite {
     val g2 = NetGenome(NetBuilder("other-1").addInput("in1").chain("out1",0.0,0.0).data, map)
     val g3 = NetGenome(NetBuilder("other-2").addInput("in1").chain("out1",1.0,1.0).data, map)
 
-    val engine = StandardEngine(Coach(List(ex)), GenomePoll(List(g1, g2, g3)))
+    val engine = StandardEngine(Coach(List(ex)), GenomePoll(List(g1, g2, g3)), mutationsProfile)
     val str1 = g1.data.toJson
     println("---\n"+str1+"---\n")
 
