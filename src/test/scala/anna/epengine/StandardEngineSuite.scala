@@ -30,7 +30,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   private var engine: StandardEngine = null
   // @todo: put here something smarter ;)
-  private var mutationsProfile = MutationsProfile.nullProfile
+  private var mutationsProfile = MutationsProfile.noMutationsProfile
 
   private lazy val inputIds = List("in1")
   private lazy val outputIds = List("out1")

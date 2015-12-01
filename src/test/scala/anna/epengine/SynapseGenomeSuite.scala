@@ -21,7 +21,7 @@ class SynapseGenomeSuite extends JUnitSuite {
     Context.withWeightRange(-1.0 <=> 1.0)
     Context.withHushProbability(0.1)
   }
-/*
+
   @Test def shouldTossForSynapse() {
     val totalCount = 1000
     var hushCount = 0
@@ -59,14 +59,13 @@ class SynapseGenomeSuite extends JUnitSuite {
 
     debug(this, s"hushCount: $hushCount")
     assertTrue(hushCount > 800)
-  }*/
+  }
 
   @Test def shouldMutateSynapse(): Unit ={
     LOG.debug("1")
-    val builder = NetBuilder()
-    builder.addInput("in").chain("out",0.5,0.81)
+    val data = NetBuilder().addInput("in").chain("out",0.5,0.81).data
     LOG.debug("2")
-    val gen = NetGenome(builder.data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+    val gen = NetGenome(data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
     val sg:SynapseGenome = gen.neurons.find(_.id == "in").get.synapses.find(_.neuronId == "out").get
     LOG.debug("3")
     val originalWeight = sg.weight
@@ -80,9 +79,9 @@ class SynapseGenomeSuite extends JUnitSuite {
     LOG.debug("5")
     mp.mutate(gen)
     LOG.debug("6")
-    val mutatedWeight = sg.weight
-    LOG.debug("7")
-    assertNotEquals(originalWeight, mutatedWeight)
+    println(originalWeight)
+    println(sg.weight)
+    assertNotEquals(originalWeight, sg.weight)
     LOG.debug("8")
   }
 

@@ -109,6 +109,28 @@ object MutationsLibrary {
     case SynapseWeight(weight) => SynapseWeight(Context().weightRange.to - weight + Context().weightRange.from)
   }
 
+  add("addSynapse", (net: NetGenome) => chooseNeuron(net) match {
+    case Some(n2) =>
+      val validNeurons = net.neurons.filterNot(_.isConnectedTo(n2.id))
+      if(validNeurons.nonEmpty) {
+        val n1 = RandomNumber(validNeurons)
+        val sg = n1.connect(n2)
+        debug(s"MUTATION: ... add a synapse connecting ${n1.id} to ${n2.id}, with weight $sg")
+      } else debug(s"MUTATION: ... failed to connect as all other valid neurons are already connected to ${n2.id} (and the author is too lazy to avoid such situation)")
+    case None =>
+  })
+
+  add("deleteSynapse", (net: NetGenome) => chooseNeuron(net) match {
+    case Some(n2) =>
+      val validNeurons = net.neurons.filter(_.isConnectedTo(n2.id))
+      if(validNeurons.nonEmpty) {
+        val n1 = RandomNumber(validNeurons)
+        n1.deleteSynapse(n2.id)
+        debug(s"MUTATION: ... delete a synapse connecting ${n1.id} to ${n2.id}")
+      } else debug(s"MUTATION: ... failed to delete as nothing is connected to ${n2.id} (so it should be trimmed in a moment)")
+    case None =>
+  })
+
   add("invertSynapse", (net: NetGenome) => chooseSynapse(net) match {
     case Some((s,n)) =>
       val newWeight = invertSynapseWeight(s.weight)

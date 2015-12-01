@@ -13,8 +13,8 @@ case class MutationsProfile(probabilityMap: Map[String, Probability]){
 
   def size = probabilityMap.size
 
-  def mutate(net: NetGenome) = Probability.performRandom(probabilityMap.map{
-    case (name, p) => (p, () => MutationsLibrary.get(name)(net))
+  def mutate(gen: NetGenome) = Probability.performRandom(probabilityMap.map{
+    case (name, p) => (p, () => MutationsLibrary.get(name)(gen))
   }.toList)
 
   def toJson = writePretty(this)
@@ -23,10 +23,9 @@ case class MutationsProfile(probabilityMap: Map[String, Probability]){
 class MutationsProfileBuilder(private val probabilityMap: mutable.Map[String, Probability]){
   private def normalize() = {
     val sum = probabilityMap.values.map(_.toDouble).sum
-    // if this method is called, we assume there is at least one non-zero probability in the map
-    probabilityMap.keys.foreach(key => {
+    if(sum > 0.0) probabilityMap.keys.foreach(key =>
       probabilityMap.update(key, probabilityMap(key) / sum)
-    })
+    )
   }
 
   private def makeRoom(newProbability: Probability) = {
@@ -57,7 +56,7 @@ class MutationsProfileBuilder(private val probabilityMap: mutable.Map[String, Pr
 }
 
 object MutationsProfile {
-  val nullProfile = MutationsProfile(Map.empty[String,Probability])
+  val noMutationsProfile = MutationsProfile(Map.empty[String,Probability])
 
   def apply(tuples: (String, Double)*):MutationsProfile
     = MutationsProfile(tuples.map{ case (name, p) => name -> Probability(p) }.toMap)

@@ -1,12 +1,14 @@
 package anna.epengine
 
 import anna.Context
+import anna.async.NetBuilder
 import anna.data._
 import anna.logger.LOG
 import anna.utils.DoubleRange._
 import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
+import anna.async.NetBuilderOps._
 
 /**
  * Created by gorywoda on 16.02.15.
@@ -54,34 +56,32 @@ class NeuronGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldMutateThreshold(): Unit ={
-    val ng = NeuronGenome.build("id1")
+    val gen = NetGenome(
+      NetBuilder().addMiddle("id1").data
+    )
+
+    val ng = gen.find("id1").get
     val original = ng.threshold
 
-    Context.withThresholdProbability(1.0)
-    Context.withSlopeProbability(0.0)
-    Context.withForgettingProbability(0.0)
-    Context.withHushValueProbability(0.0)
-    Context.withSynapseChangeProbability(0.0)
-    Context.withTickTimeMultiplierProbability(0.0)
-
-    ng.mutate()
+    MutationsProfile(
+      "mutateThreshold" -> 1.0
+    ).mutate(gen)
 
     val mutated = ng.threshold
     assertNotEquals(original, mutated)
   }
 
   @Test def shouldMutateSlope(): Unit ={
-    val ng = NeuronGenome.build("id1")
+    val gen = NetGenome(
+      NetBuilder().addMiddle("id1").data
+    )
+
+    val ng = gen.find("id1").get
     val original = ng.slope
 
-    Context.withThresholdProbability(0.0)
-    Context.withSlopeProbability(1.0)
-    Context.withForgettingProbability(0.0)
-    Context.withHushValueProbability(0.0)
-    Context.withSynapseChangeProbability(0.0)
-    Context.withTickTimeMultiplierProbability(0.0)
-
-    ng.mutate()
+    MutationsProfile(
+      "mutateSlope" -> 1.0
+    ).mutate(gen)
 
     val mutated = ng.slope
     assertNotEquals(original, mutated)
@@ -89,36 +89,31 @@ class NeuronGenomeSuite extends JUnitSuite {
 
 
   @Test def shouldMutateForgetting(): Unit ={
-    val ng = NeuronGenome.build("id1")
+    val gen = NetGenome(
+      NetBuilder().addMiddle("id1").data
+    )
+
+    val ng = gen.find("id1").get
     val original = ng.forgetting
 
-    Context.withThresholdProbability(0.0)
-    Context.withSlopeProbability(0.0)
-    Context.withForgettingProbability(1.0)
-    Context.withHushValueProbability(0.0)
-    Context.withSynapseChangeProbability(0.0)
-    Context.withTickTimeMultiplierProbability(0.0)
-
-    Context.withForgetAllProbability(1.0)
-    Context.withDontForgetProbability(0.0)
-
-    ng.mutate()
+    MutationsProfile(
+      "setForgetAll" -> 1.0
+    ).mutate(gen)
 
     var mutated = ng.forgetting
     assertEquals(ForgetAll(), mutated)
 
-    Context.withForgetAllProbability(0.0)
-    Context.withDontForgetProbability(1.0)
-
-    ng.mutate()
+    MutationsProfile(
+      "setDontForget" -> 1.0
+    ).mutate(gen)
 
     mutated = ng.forgetting
     assertEquals(DontForget(), mutated)
 
-    Context.withForgetAllProbability(0.0)
-    Context.withDontForgetProbability(0.0)
 
-    ng.mutate()
+    MutationsProfile(
+      "mutateForgetValue" -> 1.0
+    ).mutate(gen)
 
     ng.forgetting match {
       case ForgetValue(value) => println("ok")
@@ -128,138 +123,101 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shouldMutateHush(){
     Context.withHushRange(1 to 1)
-    val ng = NeuronGenome.build("id1")
+
+    val gen = NetGenome(
+      NetBuilder().addMiddle("id1").data
+    )
+
+    val ng = gen.find("id1").get
+
     val original = ng.hushValue
     assertEquals(HushValue(1), ng.hushValue)
 
-    Context.withThresholdProbability(0.0)
-    Context.withSlopeProbability(0.0)
-    Context.withForgettingProbability(0.0)
-    Context.withHushValueProbability(1.0)
-    Context.withSynapseChangeProbability(0.0)
-    Context.withTickTimeMultiplierProbability(0.0)
-
     Context.withHushRange(2 to 5)
 
-    ng.mutate()
+    MutationsProfile(
+    "mutateHushValue" -> 1.0
+    ).mutate(gen)
+
     val mutated = ng.hushValue
     assertNotEquals(original, mutated)
     assertTrue(Context().hushRange.contains(mutated.iterations))
   }
 
   @Test def shouldAddSynapse(): Unit ={
-    val idSet = Set("id1","id2")
-    val accessMap = Map("id1" -> MutationAccessFull(), "id2" -> MutationAccessFull())
-    val ng1 = NeuronGenome.build("id1", accessMap)
-    val ng2 = NeuronGenome.build("id2", accessMap)
+    val gen = NetGenome(
+      NetBuilder().addInput("id1").addMiddle("id2").data
+    )
+
+    val ng1 = gen.find("id1").get
 
     assertEquals(0, ng1.synapses.size)
 
-    Context.withThresholdProbability(0.0)
-    Context.withSlopeProbability(0.0)
-    Context.withForgettingProbability(0.0)
-    Context.withHushValueProbability(0.0)
-    Context.withSynapseChangeProbability(1.0)
-    Context.withTickTimeMultiplierProbability(0.0)
+    val mp = MutationsProfile(
+      "addSynapse" -> 1.0
+    )
 
-    Context.withAddSynapseProbability(1.0)
-    Context.withDeleteSynapseProbability(0.0)
+    mp.mutate(gen)
 
-    ng1.mutate()
-
-    assertEquals(1, ng1.synapses.size)
-    val s = ng1.synapses(0)
-    assertTrue(idSet.contains(s.neuronId))
+    assertEquals(1, ng1.synapses.size) // it should not be possible to connect id2->id1, because id1 is an input
+    assertTrue(ng1.synapses(0).neuronId == "id2")
 
     // a mutation should not result in adding a second synapse pointing to an already connected neuron
     // so if we mutate this neuron again, in 100% cases it should result in connections both to id1 and id2
-    ng1.mutate()
+    mp.mutate(gen)
 
-    assertEquals(2, ng1.synapses.size)
-    assertEquals(idSet, ng1.synapses.map(_.neuronId).toSet)
-
-    val oldWayOfDoingCopy = NeuronGenome(ng1.data, accessMap)
-    val clone = ng1.clone
-    assertEquals(oldWayOfDoingCopy.data, clone.data)
-    assertEquals(oldWayOfDoingCopy.accessMap, clone.accessMap)
-
-    // nothing should change as there is no way to add another synapse
-    ng1.mutate()
-
-    assertEquals(clone.data, ng1.data)
+    assertEquals(1, ng1.synapses.size)
   }
 
   @Test def shoulDeleteSynapse(): Unit ={
-    val idSet = Set("id1","id2")
-    val accessMap = Map("id1" -> MutationAccessFull(), "id2" -> MutationAccessFull())
-    val ng1 = NeuronGenome.build("id1", accessMap)
-    val ng2 = NeuronGenome.build("id2", accessMap)
+    val gen = NetGenome(
+      NetBuilder().addMiddle("id1").addMiddle("id2").use("id1").hush("id2").data
+    )
 
-    ng1.addSynapse(SynapseGenome("id2",Hush()))
+    val ng1 = gen.find("id1").get
 
     assertEquals(1, ng1.synapses.size)
 
-    Context.withThresholdProbability(0.0)
-    Context.withSlopeProbability(0.0)
-    Context.withForgettingProbability(0.0)
-    Context.withHushValueProbability(0.0)
-    Context.withSynapseChangeProbability(1.0)
-    Context.withTickTimeMultiplierProbability(0.0)
-    Context.withInvertNeuronProbability(0.0)
+    val mp = MutationsProfile(
+      "deleteSynapse" -> 1.0
+    )
 
-    Context.withAddSynapseProbability(0.0)
-    Context.withDeleteSynapseProbability(1.0)
-    Context.withInvertSynapseProbability(0.0)
+    mp.mutate(gen)
 
-    ng1.mutate()
     assertEquals(0, ng1.synapses.size)
 
     val clone = ng1.clone
 
     // nothing should change as there is no more synapses to remove
-    ng1.mutate()
+    mp.mutate(gen)
     assertEquals(0, ng1.synapses.size)
     assertEquals(clone.data, ng1.data)
   }
 
   @Test def shouldChangeSynapseWeight(): Unit ={
-    val idSet = Set("id1","id2")
-    val accessMap = Map("id1" -> MutationAccessFull(), "id2" -> MutationAccessFull())
-    val nch1 = NeuronGenome.build("id1", accessMap)
-    val nch2 = NeuronGenome.build("id2", accessMap)
+    val gen = NetGenome(
+      NetBuilder().addMiddle("id1").addMiddle("id2").use("id1").hush("id2").data
+    )
 
-    nch1.addSynapse(SynapseGenome("id2",Hush()))
+    val synGen = gen.findSynapse("id1","id2").get
 
-    assertEquals(1, nch1.synapses.size)
+    MutationsProfile(
+      "setWeightToFull" -> 1.0
+    ).mutate(gen)
 
-    Context.withThresholdProbability(0.0)
-    Context.withSlopeProbability(0.0)
-    Context.withForgettingProbability(0.0)
-    Context.withHushValueProbability(0.0)
-    Context.withSynapseChangeProbability(1.0)
-    Context.withTickTimeMultiplierProbability(0.0)
+    assertEquals(SynapseWeight(1.0), synGen.weight)
 
-    Context.withAddSynapseProbability(0.0)
-    Context.withDeleteSynapseProbability(0.0)
+    MutationsProfile(
+      "setWeightToHush" -> 1.0
+    ).mutate(gen)
 
-    Context.withFullWeightProbability(1.0)
-    Context.withHushProbability(0.0)
+    assertEquals(Hush(), synGen.weight)
 
-    nch1.mutate()
-    assertEquals(SynapseWeight(1.0), nch1.getSynapse("id2").weight)
+    MutationsProfile(
+      "mutateWeight" -> 1.0
+    ).mutate(gen)
 
-    Context.withFullWeightProbability(0.0)
-    Context.withHushProbability(1.0)
-
-    nch1.mutate()
-    assertEquals(Hush(), nch1.getSynapse("id2").weight)
-
-    Context.withFullWeightProbability(0.0)
-    Context.withHushProbability(0.0)
-
-    nch1.mutate()
-    val weight = nch1.getSynapse("id2").weight
-    assertNotEquals(Hush, weight)
-    assertNotEquals(SynapseWeight(1.0), weight)
+    assertNotEquals(Hush, synGen.weight)
+    assertNotEquals(SynapseWeight(1.0), synGen.weight)
   }
 }

@@ -99,7 +99,7 @@ class StressSuite extends JUnitSuite {
     val cm = ContextMatrix(List(cv1, cv2))
 
     // @todo: change it to smoething smarter
-    val mutationsProfile = MutationsProfile.nullProfile
+    val mutationsProfile = MutationsProfile.noMutationsProfile
 
     cm.unfold.map(contextVector => {
       Context.set(contextVector)

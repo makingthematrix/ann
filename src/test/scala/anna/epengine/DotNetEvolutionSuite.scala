@@ -16,7 +16,7 @@ class DotNetEvolutionSuite extends JUnitSuite {
   }
 
   // @todo: put here something smarter ;)
-  private var mutationsProfile = MutationsProfile.nullProfile
+  private var mutationsProfile = MutationsProfile.noMutationsProfile
 
   val dotSet = ExercisesSet("dotset", List(
     "one signal gives dot",

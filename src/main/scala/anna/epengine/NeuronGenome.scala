@@ -38,11 +38,11 @@ class NeuronGenome(var id: String,
     case None => throw new IllegalArgumentException(s"There is no synapse connecting $id with $neuronId")
   }
 
-  def connect(to:NeuronGenome): Boolean = if(isConnectedTo(to.id)) false else {
+  def connect(to:NeuronGenome) = if(isConnectedTo(to.id)) None else {
     val sg = SynapseGenome.build(to.id)
     debug(this, s"connecting $id to ${to.id} with ${sg.weight}")
     addSynapse(sg)
-    true
+    Some(sg)
   }
 
   def toJson = writePretty(this)

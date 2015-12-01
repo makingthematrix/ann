@@ -20,5 +20,5 @@ object RandomNumber {
   def apply(range: IntRange):Int = range.choose(apply())
   def apply(range: DoubleRange):Double = range.choose(apply())
   def apply(end: Int):Int = apply(0, end)
-  def apply[T](it: Iterable[T]):T = it.drop(apply(it.size)).head
+  def apply[T](it: Iterable[T]):T =  it.drop(apply(it.size)).head
 }

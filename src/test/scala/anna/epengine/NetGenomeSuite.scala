@@ -33,12 +33,9 @@ class NetGenomeSuite extends JUnitSuite {
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
 
-    Context.withAddNeuronProbability(1.0)
-    Context.withDeleteNeuronProbability(0.0)
-    Context.withMutateNeuronProbability(0.0)
-    Context.withInputTickMultiplierProbability(0.0)
-
-    ng.mutate()
+    MutationsProfile(
+      "addNeuron" -> 1.0
+    ).mutate(ng)
 
     val middle1Opt = ng.find("net_1")
     assertNotEquals(None, middle1Opt)
@@ -56,12 +53,9 @@ class NetGenomeSuite extends JUnitSuite {
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
 
-    Context.withAddNeuronProbability(0.0)
-    Context.withDeleteNeuronProbability(1.0)
-    Context.withMutateNeuronProbability(0.0)
-    Context.withInputTickMultiplierProbability(0.0)
-
-    ng.mutate()
+    MutationsProfile(
+      "deleteNeuron" -> 1.0
+    ).mutate(ng)
 
     assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
@@ -225,9 +219,9 @@ class NetGenomeSuite extends JUnitSuite {
     println(s"ids: ${ids.mkString(", ")}")
     val (ids1, ids2) = Utils.splitIdsRandomly(ids, 2)
     println(s"ids1: ${ids1.mkString(", ")}")
-    val newGen = NetGenome.breed(net1G, variables.filter(n => ids.contains(n.id)), false)
+    val newGen = NetGenome.breed(net1G, variables.filter(n => ids.contains(n.id)))
 
-    val expectedIds = (ids1.map(id => NetData.replaceNetId(id, net1G.id))) ++ net1G.notFullAccessNeurons.map(_.id).toSet
+    val expectedIds = ids1.map(id => NetData.replaceNetId(id, net1G.id)) ++ net1G.notFullAccessNeurons.map(_.id).toSet
     println(s"expectedIds: ${expectedIds.mkString(", ")}")
     val newGenIds = newGen.neurons.map(_.id).toSet
     println(s"newGenIds: ${newGenIds.mkString(", ")}")
@@ -283,7 +277,7 @@ class NetGenomeSuite extends JUnitSuite {
 
     assertFalse(net1G.crossable(net2G))
 
-    val (net12G, net21G) = net1G.cross(net2G, false, false)
+    val (net12G, net21G) = net1G.cross(net2G)
     assertEquals(net1G.data, net12G.data)
     assertEquals(net2G.data, net21G.data)
   }
@@ -316,7 +310,7 @@ class NetGenomeSuite extends JUnitSuite {
     debug("---")
     debug("net1G: " + net1G.neurons.map(_.id))
     debug("net2G: " + net2G.neurons.map(_.id))
-    val (net12G, net21G) = net1G.cross(net2G, false, false)
+    val (net12G, net21G) = net1G.cross(net2G)
     debug("net12G: " + net12G.neurons.map(_.id))
     debug("net21G: " + net21G.neurons.map(_.id))
     debug("---")
