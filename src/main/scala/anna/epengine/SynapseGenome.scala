@@ -16,9 +16,9 @@ class SynapseGenome(var neuronId: String, var weight: SynapseTrait){
 }
 
 object SynapseGenome {
+  def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = new SynapseGenome(neuronId, weight)
   def apply(gen: SynapseGenome):SynapseGenome = new SynapseGenome(gen.neuronId, gen.weight)
   def apply(data: SynapseData):SynapseGenome = new SynapseGenome(data.neuronId, data.weight)
-  def apply(neuronId: String, weight: SynapseTrait):SynapseGenome = SynapseGenome(neuronId, weight)
   def apply(neuronId: String, weight: Double):SynapseGenome = apply(neuronId, SynapseWeight(weight))
 
   def build(neuronId: String) = {

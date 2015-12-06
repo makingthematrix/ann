@@ -39,7 +39,7 @@ class NetGenome(var id: String,
   def isFullAccess(n: NeuronGenome):Boolean = isFullAccess(n.id)
   def isFullAccess(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) == MutationAccessFull()
   def isMutable(n: NeuronGenome):Boolean = isMutable(n.id)
-  def isMutable(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) != MutationAccessDontMutate()
+  def isMutable(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) != MutationAccessInput()
 
   def fullAccessNeurons = neurons.filter(isFullAccess).toList
   def mutableNeurons = neurons.filter(isMutable).toList
@@ -159,6 +159,8 @@ class NetGenome(var id: String,
                      tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName)
   override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, slope, hushValue, forgetting,
                                      tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName, accessMap)
+
+  def synapses = neurons.flatMap(_.synapses).toList // mainly for debug purposes
 }
 
 object NetGenome {
@@ -305,7 +307,7 @@ object NetGenome {
   }
 
   def accessMap(inputIds: List[String], outputIds: List[String]) =
-    (inputIds.map(_ -> MutationAccessDontMutate()) ++ outputIds.map(_ -> MutationAccessDontDelete())).toMap
+    (inputIds.map(_ -> MutationAccessInput()) ++ outputIds.map(_ -> MutationAccessOutput())).toMap
 
   def fromJson(jsonStr: String) = read[NetGenome](jsonStr)
 }

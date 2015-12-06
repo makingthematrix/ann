@@ -8,7 +8,6 @@ import anna.utils.DoubleRange._
 import org.junit.Assert._
 import org.junit.{Before, Test}
 import org.scalatest.junit.JUnitSuite
-import anna.async.NetBuilderOps._
 
 /**
  * Created by gorywoda on 16.02.15.
@@ -146,7 +145,7 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shouldAddSynapse(): Unit ={
     val gen = NetGenome(
-      NetBuilder().addInput("id1").addMiddle("id2").data
+      NetBuilder().addInput("id1").addMiddle("id2").data, Map("id1" -> MutationAccessInput())
     )
 
     val ng1 = gen.find("id1").get
@@ -159,15 +158,22 @@ class NeuronGenomeSuite extends JUnitSuite {
 
     mp.mutate(gen)
 
-    assertEquals(1, ng1.synapses.size) // it should not be possible to connect id2->id1, because id1 is an input
-    assertTrue(ng1.synapses(0).neuronId == "id2")
+    assertEquals(1, gen.synapses.size) // it should not be possible to connect id2->id1, because id1 is an input, but it is possible to connect id2->id2
+    assertTrue(gen.synapses(0).neuronId == "id2") // id2 is the only connectable neuron
+
+    mp.mutate(gen)
+    assertEquals(2, gen.synapses.size)
+    assertEquals(1, ng1.synapses.size) // two synapses is the max for this net and one if these synapses has to be id1->id2
+
 
     // a mutation should not result in adding a second synapse pointing to an already connected neuron
     // so if we mutate this neuron again, in 100% cases it should result in connections both to id1 and id2
     mp.mutate(gen)
 
-    assertEquals(1, ng1.synapses.size)
+
+    assertEquals(2, gen.synapses.size)
   }
+
 
   @Test def shoulDeleteSynapse(): Unit ={
     val gen = NetGenome(

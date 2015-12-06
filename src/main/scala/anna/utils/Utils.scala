@@ -9,7 +9,7 @@ import akka.pattern.ask
 import anna.Context
 import anna.async._
 import anna.data._
-import anna.epengine.{MutationAccessDontDelete, MutationAccessDontMutate, MutationAccessFull}
+import anna.epengine.{MutationAccessInput, MutationAccessOutput, MutationAccessFull}
 import anna.logger.LOG
 import anna.logger.LOG._
 import org.apache.commons.io.FileUtils
@@ -144,8 +144,8 @@ object Utils {
         classOf[NeuronTypeDummy],
         classOf[NeuronTypeHush],
         classOf[MutationAccessFull],
-        classOf[MutationAccessDontDelete],
-        classOf[MutationAccessDontMutate]
+        classOf[MutationAccessInput],
+        classOf[MutationAccessOutput]
       )
     )
   )

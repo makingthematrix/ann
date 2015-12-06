@@ -30,7 +30,7 @@ object MutationsLibrary {
         None
       case neurons =>
         val n = RandomNumber(neurons)
-        val s = SynapseGenome(RandomNumber(n.synapses))
+        val s = RandomNumber(n.synapses)
         Some(s, n)
     }
   }
@@ -59,7 +59,7 @@ object MutationsLibrary {
   }
 
   private def chooseNeuron(net: NetGenome, forDeletion: Boolean = false) =
-    if(forDeletion) neuronChooser.chooseForDeletion(net) else neuronChooser.chooseForDeletion(net)
+    if(forDeletion) neuronChooser.chooseForDeletion(net) else neuronChooser.chooseForMutation(net)
   private def chooseSynapse(net: NetGenome) = synapseChooser.choose(net)
 
   private val mutationsMap = mutable.Map[String, Mutation]()
@@ -120,15 +120,14 @@ object MutationsLibrary {
     case None =>
   })
 
-  add("deleteSynapse", (net: NetGenome) => chooseNeuron(net) match {
-    case Some(n2) =>
-      val validNeurons = net.neurons.filter(_.isConnectedTo(n2.id))
-      if(validNeurons.nonEmpty) {
+  add("deleteSynapse", (net: NetGenome) => {
+    val validNeurons = net.neurons.filter(_.synapses.nonEmpty)
+    if(validNeurons.nonEmpty){
         val n1 = RandomNumber(validNeurons)
-        n1.deleteSynapse(n2.id)
-        debug(s"MUTATION: ... delete a synapse connecting ${n1.id} to ${n2.id}")
-      } else debug(s"MUTATION: ... failed to delete as nothing is connected to ${n2.id} (so it should be trimmed in a moment)")
-    case None =>
+        val n2Id = RandomNumber(n1.synapses.map(_.neuronId))
+        n1.deleteSynapse(n2Id)
+        debug(s"MUTATION: ... delete a synapse connecting ${n1.id} to ${n2Id}")
+    } else debug(s"MUTATION: ... failed to delete a synapse - no synapses in the net")
   })
 
   add("invertSynapse", (net: NetGenome) => chooseSynapse(net) match {

@@ -214,10 +214,6 @@ object ExercisesLibrary {
       val (dotFired, dotResult, lineFired, lineResult) = dotLinePrepareAndWaitForResult(wrapper, "1,0,0")
       LOG.debug(this,s"${this.name}: dotFired: $dotFired, dotResult: $dotResult, lineFired: $lineFired, lineResult: $lineResult")
 
-      /*if(dotFired){
-        result += (if(!lineFired) 2.0 else 1.0)
-      }
-      if(lineFired) result += 1.0*/
       if(dotFired){
         result += (if(!lineFired) 10.0 else 5.0)
       }

@@ -23,6 +23,7 @@ class SynapseGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldTossForSynapse() {
+    debug(this, "shouldTossForSynapse")
     val totalCount = 1000
     var hushCount = 0
     for (i <- 1 to totalCount) {
@@ -35,12 +36,12 @@ class SynapseGenomeSuite extends JUnitSuite {
       }
     }
 
-    debug(this, s"hushCount: $hushCount")
     assertTrue(hushCount > 70)
     assertTrue(hushCount < 130)
   }
 
   @Test def shouldChangeHushProbability() {
+    debug(this, "shouldChangeHushProbability")
     Context.withHushProbability(1.0)
     Context.withFullWeightProbability(0.0)
     Context.withInvertSynapseProbability(0.0)
@@ -51,38 +52,31 @@ class SynapseGenomeSuite extends JUnitSuite {
       val sg = SynapseGenome.build("id1")
       assertEquals("id1", sg.neuronId)
       sg.weight match {
-        case Hush() => hushCount = hushCount + 1
+        case Hush() => hushCount += 1
         case SynapseWeight(w) =>
           assert(Context().weightRange.contains(w), s"weight outside range: $w")
       }
     }
 
-    debug(this, s"hushCount: $hushCount")
     assertTrue(hushCount > 800)
   }
 
   @Test def shouldMutateSynapse(): Unit ={
-    LOG.debug("1")
+    debug(this,"shouldMutateSynapse")
     val data = NetBuilder().addInput("in").chain("out",0.5,0.81).data
-    LOG.debug("2")
-    val gen = NetGenome(data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
-    val sg:SynapseGenome = gen.neurons.find(_.id == "in").get.synapses.find(_.neuronId == "out").get
-    LOG.debug("3")
+    val gen = NetGenome(data, Map("in" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
+    val sg = gen.neurons.find(_.id == "in").get.synapses.find(_.neuronId == "out").get
+
     val originalWeight = sg.weight
-    LOG.debug("4")
-    val mp = MutationsProfile(
+
+    MutationsProfile(
       "invertSynapse" -> 0.1,
       "setWeightToHush" -> 0.2,
       "setWeightToFull" -> 0.2,
       "mutateWeight" -> 0.5
-    )
-    LOG.debug("5")
-    mp.mutate(gen)
-    LOG.debug("6")
-    println(originalWeight)
-    println(sg.weight)
+    ).mutate(gen)
+
     assertNotEquals(originalWeight, sg.weight)
-    LOG.debug("8")
   }
 
 }

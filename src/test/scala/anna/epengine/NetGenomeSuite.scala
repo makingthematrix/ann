@@ -86,7 +86,7 @@ class NetGenomeSuite extends JUnitSuite {
     builder.addInput("in").chain("mi11",1.0,0.0).chain("out",0.5,0.81)
     builder.addMiddle("mi12")
 
-    val gen = NetGenome(builder.data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+    val gen = NetGenome(builder.data, Map("in" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
     assertEquals(4, gen.neurons.size)
     val trimmed = gen.clone()
     trimmed.trim()
@@ -102,7 +102,7 @@ class NetGenomeSuite extends JUnitSuite {
     val builder = NetBuilder()
     builder.addInput("in1").chain("mi11",1.0,0.0).chain("out",0.5,0.81).addMiddle("mi12").addInput("in2")
 
-    val gen = NetGenome(builder.data, Map("in1" -> MutationAccessDontMutate(), "in2" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+    val gen = NetGenome(builder.data, Map("in1" -> MutationAccessInput(), "in2" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
     assertEquals(5, gen.neurons.size)
     val trimmed = gen.clone()
     trimmed.trim()
@@ -116,7 +116,7 @@ class NetGenomeSuite extends JUnitSuite {
     val builder = NetBuilder()
     builder.addInput("in1").chain("mi11",1.0,0.0).chain("out",0.5,0.81).addMiddle("out2")
 
-    val gen = NetGenome(builder.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete(), "out2" -> MutationAccessDontDelete()))
+    val gen = NetGenome(builder.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput(), "out2" -> MutationAccessOutput()))
     assertEquals(4, gen.neurons.size)
     val trimmed = gen.clone()
     trimmed.trim()
@@ -151,20 +151,20 @@ class NetGenomeSuite extends JUnitSuite {
     val netDataWithSynapse = replaceSynapses(netData, "mi11", SynapseData("mi12",Hush()) :: mi11.synapses)
     assertEquals(3, sumSynapses(netDataWithSynapse))
 
-    val trimmed = NetGenome(netDataWithSynapse, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+    val trimmed = NetGenome(netDataWithSynapse, Map("in" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
     trimmed.trim()
     assertEquals(3, trimmed.neurons.size)
     assertEquals(2, sumSynapses(trimmed.data))
     val mi11Trimmed = trimmed.neurons.find(_.id == "mi11").get
     assertEquals(1, mi11Trimmed.synapses.size)
-    assertEquals(Some(SynapseData("out",0.5)), mi11Trimmed.synapses.find(_.neuronId == "out"))
+    assertEquals(SynapseData("out",0.5), mi11Trimmed.synapses.find(_.neuronId == "out").get.data)
     assertEquals(None, mi11Trimmed.synapses.find(_.neuronId == "mi12"))
   }
 
   @Test def shouldCloneGenome(): Unit ={
     val builder = NetBuilder()
     builder.addInput("in").chain("mi11",1.0,0.0).chain("out",0.5,0.81)
-    val genome = NetGenome(builder.data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+    val genome = NetGenome(builder.data, Map("in" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
     val cloned = genome.clone
     assertEquals(genome.data, cloned.data)
     assertEquals(genome.accessMap, cloned.accessMap)
@@ -236,13 +236,13 @@ class NetGenomeSuite extends JUnitSuite {
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
     b2.netName = "net2"
     b2.addInput("in1").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
-    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     crossTest(net1G, net2G)
   }
@@ -251,13 +251,13 @@ class NetGenomeSuite extends JUnitSuite {
     val b1 = NetBuilder()
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
     b2.netName = "net2"
     b2.addInput("in1").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
-    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     crossTest(net1G, net2G)
   }
@@ -267,13 +267,13 @@ class NetGenomeSuite extends JUnitSuite {
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
     b2.netName = "net2"
     b2.addInput("in1").chain("net2_11",1.0,0.0).chain("net2_12",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).connect("out1",1.0)
-    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     assertFalse(net1G.crossable(net2G))
 
@@ -287,13 +287,13 @@ class NetGenomeSuite extends JUnitSuite {
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
     b2.netName = "net2"
     b2.addInput("in2").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out2",0.5,0.81)
     b2.use("in2").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out2",1.0)
-    val net2G = NetGenome(b2.data, Map("in2" -> MutationAccessDontMutate(), "out2" -> MutationAccessDontDelete()))
+    val net2G = NetGenome(b2.data, Map("in2" -> MutationAccessInput(), "out2" -> MutationAccessOutput()))
 
     intercept[AssertionError] {
       net1G.crossable(net2G)
@@ -355,13 +355,13 @@ class NetGenomeSuite extends JUnitSuite {
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
     b2.netName = "net2"
     b2.addInput("in1").chain("net2_11",1.0,0.0).chain("net2_12",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).connect("out1",1.0)
-    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     assertFalse(net1G.crossable(net2G))
 
@@ -376,13 +376,13 @@ class NetGenomeSuite extends JUnitSuite {
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
     b2.netName = "net2"
     b2.addInput("in1").chain("net2_12",1.0,0.0)
     b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).chain("out1",1.0)
-    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     assertFalse(net1G.crossable(net2G))
 
@@ -397,7 +397,7 @@ class NetGenomeSuite extends JUnitSuite {
     b1.netName = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).connect("out1",0.81)
-    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessDontMutate(), "out1" -> MutationAccessDontDelete()))
+    val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     net1G.deleteNeuron("net1_3")
     intercept[AssertionError] {
@@ -410,7 +410,7 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldRename(): Unit ={
     val data = NetBuilder().addInput("in").chain("mi1").chain("mi2").chain("out").setName("net").data
-    val genome = NetGenome(data, Map("in" -> MutationAccessDontMutate(), "out" -> MutationAccessDontDelete()))
+    val genome = NetGenome(data, Map("in" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
 
     assertTrue(data.contains("in"))
     assertTrue(data.contains("mi1"))

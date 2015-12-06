@@ -118,7 +118,7 @@ object Commands {
     accessMapOpt = Some(map)
   }
 
-  def setDotLineAccessMap() = accessMap(Map("in" -> MutationAccessDontMutate(), "dot" -> MutationAccessDontDelete(), "line" -> MutationAccessDontDelete()))
+  def setDotLineAccessMap() = accessMap(Map("in" -> MutationAccessInput(), "dot" -> MutationAccessOutput(), "line" -> MutationAccessOutput()))
 
   private var inputIdsOpt:Option[List[String]] = None
 

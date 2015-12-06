@@ -40,7 +40,11 @@ class Net(val id: String) extends Actor {
 
   private def shutdown() = {
     shutdownCallerOpt = Some(sender)
-    neurons.foreach( _ ! PoisonPill )
+    if(neurons.nonEmpty) {
+      neurons.foreach(_ ! PoisonPill)
+    } else {
+      self ! PoisonPill
+    }
   }
 
   def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {

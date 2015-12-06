@@ -32,9 +32,9 @@ class StressSuite extends JUnitSuite {
 
   private lazy val inputIds = List("in")
   private lazy val outputIds = List("dot","line")
-  private lazy val accessMap = Map("in" -> MutationAccessDontMutate(),
-                                   "dot" -> MutationAccessDontDelete(),
-                                   "line" -> MutationAccessDontDelete())
+  private lazy val accessMap = Map("in" -> MutationAccessInput(),
+                                   "dot" -> MutationAccessOutput(),
+                                   "line" -> MutationAccessOutput())
   private lazy val exercisesSet = ExercisesSet.load("dotlineset")
 
 

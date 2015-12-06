@@ -21,7 +21,7 @@ class NetSuite extends JUnitSuite {
 
     val msg = await[Msg](net.ref, GetId)
     assertEquals("net1",msg.str)
-    
+
     net.shutdown()
   }
   
