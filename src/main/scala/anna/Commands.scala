@@ -8,6 +8,7 @@ import anna.utils.Utils
 import anna.logger.LOG._
 import anna.async.NetBuilderOps._
 import anna.utils.DoubleRange._
+import anna.epengine.MutationsProfile._
 
 /**
  * Created by gorywoda on 06.06.15.
@@ -37,23 +38,32 @@ object Commands {
 
   def context = Context()
 
-  def list = {
+  def listEvolutions = {
     val dirs = Utils.listDirs(Context().evolutionDir)
     println(s"the evolutions directory is ${Context().evolutionDir}")
     println(s"evolutions found: ${dirs.size}")
     dirs.foreach( println )
   }
 
-  def listSets = {
+  def listExercisesSets = {
     val sets = Utils.listFiles(Context().exercisesSetDir)
     println(s"the exercises sets directory is ${Context().exercisesSetDir}")
     println(s"sets found: ${sets.size}")
     sets.map(s => s.substring(0,s.lastIndexOf(".json"))).foreach( println )
   }
 
+  def listExercises = ExercisesLibrary.names.toList.sorted.zipWithIndex.foreach{
+    case (name, index) => println(s"$index. $name")
+  }
+
+  def listMutations = MutationsLibrary.names.toList.sorted.zipWithIndex.foreach{
+    case (name, index) => println(s"$index. $name")
+  }
+
+
   private var exercisesSetOpt:Option[ExercisesSet] = None
 
-  def set(name: String):Unit = {
+  def setExercisesSet(name: String):Unit = {
     exercisesSetOpt = Some(ExercisesSet.load(name))
   }
 
@@ -61,6 +71,10 @@ object Commands {
 
   // @todo: we need some easy ways to create the mutation profile in the command
   private var mutationsProfileOpt:Option[MutationsProfile] = None
+
+  def setMutationsProfile(profile: MutationsProfile) = {
+    mutationsProfileOpt = Some(profile)
+  }
 
   private var engineOpt:Option[StandardEngine] = None
 
@@ -140,7 +154,8 @@ object Commands {
     setDotLineAccessMap()
     inputIds("in")
     outputIds("dot", "line")
-    set("dotlineset")
+    setExercisesSet("dotlineset")
+    setMutationsProfile(MutationsProfile.simpleMutations)
     println("dot-line config set")
   }
 

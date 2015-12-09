@@ -29,6 +29,8 @@ initialCommands in console :=
     |import anna.utils.DoubleRange._
     |import anna.utils.RandomNumber
     |import anna.async.NeuronCounter
+    |import anna.epengine.MutationsProfile
+    |import anna.epengine.MutationsProfile._
     |LOG.addLogToStdout()
     |setDotLineConfig()
   """.stripMargin

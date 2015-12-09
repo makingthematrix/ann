@@ -68,6 +68,8 @@ object MutationsLibrary {
 
   def contains(name: String) = mutationsMap.contains(name)
 
+  def names = mutationsMap.keys
+
   def add(name: String, mutation: Mutation):Unit = if(mutationsMap.contains(name)){
     throw new IllegalArgumentException(s"There is already a mutation with the name $name in the MutationsLibrary")
   } else mutationsMap += (name -> mutation)

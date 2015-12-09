@@ -20,7 +20,7 @@ case class MutationsProfile(probabilityMap: Map[String, Probability]){
   def toJson = writePretty(this)
 }
 
-class MutationsProfileBuilder(private val probabilityMap: mutable.Map[String, Probability]){
+class MutationsProfileBuilder(private val probabilityMap: mutable.Map[String, Probability] = mutable.HashMap[String,Probability]()){
   private def normalize() = {
     val sum = probabilityMap.values.map(_.toDouble).sum
     if(sum > 0.0) probabilityMap.keys.foreach(key =>
@@ -56,9 +56,35 @@ class MutationsProfileBuilder(private val probabilityMap: mutable.Map[String, Pr
 }
 
 object MutationsProfile {
-  val noMutationsProfile = MutationsProfile(Map.empty[String,Probability])
+  val noMutations = MutationsProfile(Map.empty[String,Probability])
 
-  def apply(tuples: (String, Double)*):MutationsProfile
-    = MutationsProfile(tuples.map{ case (name, p) => name -> Probability(p) }.toMap)
+  val simpleMutations = MutationsProfile(
+    "addNeuron" -> 0.1,
+    "deleteNeuron" -> 0.1,
+    "mutateInputTickMultiplier" -> 0.0,
+    "addSynapse" -> 0.1,
+    "deleteSynapse" -> 0.1,
+    "invertSynapse" -> 0.0,
+    "setWeightToHush" -> 0.05,
+    "setWeightToFull" -> 0.05,
+    "mutateWeight" -> 0.2,
+    "invertNeuron" -> 0.0,
+    "mutateThreshold" -> 0.05,
+    "mutateSlope" -> 0.05,
+    "mutateHushValue" -> 0.05,
+    "mutateTickTimeMultiplier" -> 0.0,
+    "setDontForget" -> 0.05,
+    "mutateForgetValue" -> 0.05,
+    "setForgetAll" -> 0.05
+  )
+
+  def apply(tuples: (String, Double)*):MutationsProfile = {
+    val mpb = new MutationsProfileBuilder()
+    tuples.foreach{
+      case (name, p) => mpb.add(name, p)
+    }
+    mpb.build
+  }
+
   def fromJson(jsonStr: String) = read[MutationsProfile](jsonStr)
 }

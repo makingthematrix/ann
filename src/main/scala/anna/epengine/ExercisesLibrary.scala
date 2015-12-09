@@ -26,6 +26,8 @@ object ExercisesLibrary {
   def run(name: String, netWrapper: NetWrapper) = map(name).run(netWrapper)
   def add(exercise: Exercise) = map += (exercise.name -> exercise)
 
+  def names = map.keys
+
   val anyResponseToAnySignal = new Exercise("any response to any signal", 1, List("out1")) {
     def run(wrapper: NetWrapper):Double = {
       var counter = 0
