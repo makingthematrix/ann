@@ -132,7 +132,8 @@ object Commands {
     accessMapOpt = Some(map)
   }
 
-  def setDotLineAccessMap() = accessMap(Map("in" -> MutationAccessInput(), "dot" -> MutationAccessOutput(), "line" -> MutationAccessOutput()))
+  def setDotLineAccessMap() = accessMap(AccessMap(List("in"), List("dot", "line")))
+  def setSOSAccessMap() = accessMap(AccessMap(List("in"), List("dot", "line", "S", "O")))
 
   private var inputIdsOpt:Option[List[String]] = None
 
@@ -157,6 +158,25 @@ object Commands {
     setExercisesSet("dotlineset")
     setMutationsProfile(MutationsProfile.simpleMutations)
     println("dot-line config set")
+  }
+
+  def setSOSConfig() = {
+    setSOSAccessMap()
+    inputIds("in")
+    outputIds("dot", "line", "S", "O")
+    setExercisesSet("sosset")
+    setMutationsProfile(MutationsProfile.simpleMutations)
+    println("SOS config set")
+  }
+
+  def setSOS() = {
+    setSOSConfig()
+    create("sos", sosNetData)
+  }
+
+  def setSOSTemplate(name: String) = {
+    setSOSConfig()
+    create(name, sosTemplate)
   }
 
   def create(name: String, template: NetData) = {

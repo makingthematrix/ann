@@ -162,6 +162,83 @@ object ExercisesLibrary {
     def run(wrapper: NetWrapper) = countFires(wrapper, 3, 0.1, 5.0, 10.0)
   }
 
+  // ----
+  private def soCountFires(wrapper: NetWrapper, input: String):(Int, Int) = {
+    var sFired = 0
+    wrapper.addAfterFire("S")( (_: Double) => { sFired += 1 })
+    var oFired = 0
+    wrapper.addAfterFire("O")( (_: Double) => { oFired += 1 })
+
+    wrapper.tickUntilCalm(input)
+
+    wrapper.removeAllTriggers()
+
+    (sFired, oFired)
+  }
+  
+  private def countSOFires(wrapper: NetWrapper, fires: Int, weight: Double, sFireCoeff: Double = 10.0, oFireCoeff: Double = 10.0, successCoeff: Double = 5.0) = {
+    var result = 0.0
+
+    val (sWhenSExpected, oWhenSExpected) = soCountFires(wrapper, (0 until fires).map(n => "1,0,0,1,0,0,1,0,0").mkString(","))
+    val (sWhenOExpected, oWhenOExpected) = soCountFires(wrapper, (0 until fires).map(n => "1,1,0,1,1,0,1,1,0").mkString(","))
+    LOG.debug(s"countFires$fires: sWhenSExpected: $sWhenSExpected, oWhenSExpected: $oWhenSExpected, sWhenOExpected: $sWhenOExpected, oWhenOExpected: $oWhenOExpected")
+
+    if (sWhenSExpected == fires) result += sFireCoeff * weight
+    else if (sWhenSExpected > fires) result += weight
+    else if(sWhenSExpected == 0){
+      val info = wrapper.info("S")
+      result += weight * sFireCoeff * 0.5 * (1.0 - info.threshold + info.highestBuffer)
+    }
+    result -= sWhenOExpected * sFireCoeff * 0.5 * weight
+
+    if (oWhenOExpected == fires) result += oFireCoeff * weight
+    else if (oWhenOExpected > fires) result += weight
+    else if(oWhenOExpected == 0){
+      val info = wrapper.info("O")
+      result += weight * oFireCoeff * 0.5 * (1.0 - info.threshold + info.highestBuffer)
+    }
+    result -= oWhenSExpected * oFireCoeff * 0.5 * weight
+
+    if (sWhenSExpected == fires && oWhenOExpected == fires && sWhenOExpected < fires && oWhenSExpected < fires) result += successCoeff * weight
+
+    result
+  }
+  
+  val countSOEqually1 = new Exercise("count S-O equally 1", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 1, 3.0)
+  }
+
+  val countSOEqually2 = new Exercise("count S-O equally 2", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 2, 0.5)
+  }
+
+  val countSOEqually3 = new Exercise("count S-O equally 3", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 3, 0.1)
+  }
+
+  val countSOPreferS1 = new Exercise("count S-O prefer S 1", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 1, 3.0, 10.0, 5.0)
+  }
+
+  val countSOPreferS2 = new Exercise("count S-O prefer S 2", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 2, 0.5, 10.0, 5.0)
+  }
+
+  val countSOPreferS3 = new Exercise("count S-O prefer S 3", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 3, 0.1, 10.0, 5.0)
+  }
+
+  val countSOPreferO1 = new Exercise("count S-O prefer O 1", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 1, 3.0, 5.0, 10.0)
+  }
+
+  val countSOPreferO2 = new Exercise("count S-O prefer O 2", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 2, 0.5, 5.0, 10.0)
+  }
+
+  val countSOPreferO3 = new Exercise("count S-O prefer O 3", 1, List("S","O")) {
+    def run(wrapper: NetWrapper) = countSOFires(wrapper, 3, 0.1, 5.0, 10.0)
+  }
 
   // ----
 
