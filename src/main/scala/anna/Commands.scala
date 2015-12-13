@@ -8,7 +8,10 @@ import anna.utils.Utils
 import anna.logger.LOG._
 import anna.async.NetBuilderOps._
 import anna.utils.DoubleRange._
-import anna.epengine.MutationsProfile._
+
+// 1. Czy początkowe mutacje dają na koniec tę samą sieć, skopiowaną genomeSize razy? Tak by wynikało z wyników testów (są takie same)
+// 2. Wprowadź timeout do testów.
+// 3. Uprość cross.
 
 /**
  * Created by gorywoda on 06.06.15.
@@ -83,15 +86,13 @@ object Commands {
   def coach = engine.coach
 
   lazy val sosTemplate = {
-    val data = NetBuilder().addInput("in").chain("mi11",1.0,0.5).chain("mi12",1.0,0.5).chain("dot",1.0,0.5).chain("S",1.0,0.5)
-      .use("in").chain("mi21",1.0,0.5).chain("mi22",1.0,0.5).chain("line",1.0,0.5).chain("O",1.0,0.5)
-      .use("mi12").hush("mi21")
-      .use("mi21").hush("mi11")
-      .use("dot").hush("line").hush("O")
-      .use("line").hush("dot").hush("S")
+    val data = NetBuilder().addInput("in").chain("dot",1.0,0.5).chain("S",1.0,0.5)
+      .use("in").chain("line",1.0,0.5).chain("O",1.0,0.5)
+      .use("dot").connect("O",0.5)
+      .use("line").connect("S",0.5)
       .data
     val genome = NetGenome(data, accessMapOpt.get)
-    genome.netId("dotline").data
+    genome.netId("sos").data
   }
 
   lazy val dotLineData = {
@@ -166,6 +167,7 @@ object Commands {
     outputIds("dot", "line", "S", "O")
     setExercisesSet("sosset")
     setMutationsProfile(MutationsProfile.simpleMutations)
+    Context.withInitialMutationsNumber(50)
     println("SOS config set")
   }
 
