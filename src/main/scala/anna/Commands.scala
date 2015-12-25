@@ -86,11 +86,7 @@ object Commands {
   def coach = engine.coach
 
   lazy val sosTemplate = {
-    val data = NetBuilder().addInput("in").chain("dot",1.0,0.5).chain("S",1.0,0.5)
-      .use("in").chain("line",1.0,0.5).chain("O",1.0,0.5)
-      .use("dot").connect("O",0.5)
-      .use("line").connect("S",0.5)
-      .data
+    val data = NetBuilder().SOSNetTemplateData()
     val genome = NetGenome(data, accessMapOpt.get)
     genome.netId("sos").data
   }
@@ -188,11 +184,6 @@ object Commands {
     val mutationsProfile = mutationsProfileOpt.getOrElse(throw new IllegalArgumentException("No mutations profile set"))
 
     engineOpt = Some(StandardEngine(name, inputIds, outputIds, template, exercisesSet, mutationsProfile))
-    println("done")
-  }
-
-  def open(name: String) = {
-    engineOpt = Some(StandardEngine(name))
     println("done")
   }
 

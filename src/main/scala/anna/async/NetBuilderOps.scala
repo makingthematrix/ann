@@ -1,6 +1,7 @@
 package anna.async
 
 import anna.data._
+import anna.epengine.NetGenome
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
@@ -121,6 +122,19 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!") } )
 
     netWrapper
+  }
+
+  def SOSNetTemplateData(name: String = "net") = {
+    val itm = 3.0
+    builder.inputTickMultiplier = itm
+    builder.defSlope = 5.0
+
+    builder.addInput("in").chain("dot",1.0,0.5).chain("S",1.0,0.5)
+               .use("in").chain("line",1.0,0.5).chain("O",1.0,0.5)
+               .use("dot").connect("O",0.5)
+               .use("line").connect("S",0.5)
+               .setName(name).data
+
   }
 }
 

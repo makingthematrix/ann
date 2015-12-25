@@ -33,8 +33,11 @@ case class NetData(id: String,
   def neuron(neuronId: String) = neurons.find(_.id == neuronId)
                                         .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))
   def contains(neuronId: String) = neurons.exists(_.id == neuronId)
-
   def synapses:Map[String,SynapseData] = neurons.flatMap(n => n.synapses.map(s => (synapseId(n.id, s.neuronId) -> s))).toMap
+  def synapse(from: String, to: String) = neurons.find(_.id == from) match {
+    case Some(n) => n.synapses.find(_.neuronId == to)
+    case None => None
+  }
 
   def toJson = writePretty(this)
 

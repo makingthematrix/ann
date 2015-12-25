@@ -13,9 +13,15 @@ case class MutationsProfile(probabilityMap: Map[String, Probability]){
 
   def size = probabilityMap.size
 
-  def mutate(gen: NetGenome) = Probability.performRandom(probabilityMap.map{
+  private def mutateOnce(gen: NetGenome) = Probability.performRandom(probabilityMap.map{
     case (name, p) => (p, () => MutationsLibrary.get(name)(gen))
   }.toList)
+
+  def mutate(gen: NetGenome, times: Int = 1) = for(i <- 1 to times) mutateOnce(gen)
+  def mutate(gen: NetGenome, probability: Probability) = {
+    Utils.assert(probability < 1.0, "Don't mutate with probability == 1.0 - it will be never end")
+    while(probability.toss) mutateOnce(gen)
+  } // mutate until you toss otherwise
 
   def toJson = writePretty(this)
 }

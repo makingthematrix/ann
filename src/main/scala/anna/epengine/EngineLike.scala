@@ -29,8 +29,6 @@ trait EngineLike {
     _results = coach.test(_poll).map( tuple => tuple._1.id -> tuple._2 ).toMap
     debug(this,s"And there ${_results.size} results")
 
-    Utils.save(s"${dirPath}/results_iteration${_iteration}.json", writePretty(_results))
-
     if(_iteration == 0) _iteration = 1
     debug(this,"------------------------------ done calculating results ------------------------------")
   }
@@ -46,7 +44,7 @@ trait EngineLike {
 
   def iteration = _iteration
 
-  def run(iterations: Int =20) = {
+  def run(iterations: Int =1) = {
     val end = _iteration + iterations
     while(_iteration < end) _run()
   }

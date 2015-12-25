@@ -5,11 +5,7 @@ import anna.data.NetData
 import anna.logger.LOG._
 import anna.logger.{LOG, ListLogOutput}
 import anna.utils.{RandomNumber, Utils}
-import anna.utils.Utils.formats
-import org.json4s.native.Serialization.{read, writePretty}
-
 import scala.annotation.tailrec
-import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
 class StandardEngine(override val name: String,
@@ -29,13 +25,9 @@ class StandardEngine(override val name: String,
 
     _poll = GenomePoll(mutate(newGeneration))
 
-    Utils.save(s"${dirPath}/poll_iteration${_iteration}.json", _poll.toJson)
-
     calculateResults()
 
     debug(this,s" ------------------------ done iteration ${_iteration} of the standard engine $name ------------------------ ")
-
-    Utils.save(s"${dirPath}/iteration${_iteration}.log", listOut.log)
 
     val mutations = listOut.list.map(_ match {
       case line if line.contains("MUTATION: ") => Some(line.substring(line.indexOf("MUTATION: ")))
@@ -43,9 +35,6 @@ class StandardEngine(override val name: String,
       case line if line.contains("CLONING: ") => Some(line.substring(line.indexOf("CLONING: ")))
       case _ => None
     }).flatten
-
-    Utils.save(s"${dirPath}/mutations_iteration${_iteration}.log", mutations.mkString("\n"))
-    Utils.save(s"${dirPath}/best_iteration${_iteration}.json", best.toJson)
 
     LOG.removeOut(listOut)
 
@@ -56,7 +45,7 @@ class StandardEngine(override val name: String,
     debug(this, s" --- mutating --- ")
     // we don't mutate the best one
     genomes.filterNot(_.id == newBestId).foreach( g => if(Probability(Context().mutationProbability).toss) {
-      for(i <- 1 to RandomNumber(Context().mutationsPerGenome)) mutationsProfile.mutate(g)
+      mutationsProfile.mutate(g, RandomNumber(Context().mutationsPerGenome))
       g.data.validate()
     })
     debug(this, s" --- done mutating --- ")
@@ -67,14 +56,12 @@ class StandardEngine(override val name: String,
     debug(this, " --- new generation --- ")
     debug(this,s"Poll size ${_poll.size}, results: ${_results.size}")
 
-    val genomesToCross = math.round(Context().crossCoefficient * _results.size).toInt
-    val genomesToClone = _results.size - genomesToCross
-
-    debug(this,s"genomesToCross: $genomesToCross, genomesToClone: $genomesToClone")
-
+    val genomesToCross = math.round(Context().crossCoefficient * (_results.size-1)).toInt
     val crossedGenomes = crossRandomGenomes(genomesToCross)
+    val genomesToClone = _results.size - crossedGenomes.size
     val clonedGenomes = cloneGenomes(genomesToClone)
 
+    debug(this,s"genomesToCross: ${crossedGenomes.size}, genomesToClone: ${clonedGenomes.size}")
     debug(this, s" --- new generation done --- ")
 
     crossedGenomes ++ clonedGenomes
@@ -131,8 +118,9 @@ class StandardEngine(override val name: String,
 }
 
 object StandardEngine {
-  def apply(coach: Coach, poll: GenomePoll, mutationsProfile: MutationsProfile):StandardEngine =
-    new StandardEngine("engine", coach, poll, mutationsProfile)
+  def apply(coach: Coach, poll: GenomePoll, mutationsProfile: MutationsProfile):StandardEngine = {
+    new StandardEngine ("engine", coach, poll, mutationsProfile)
+  }
 
   def apply(name: String,
             inputIds: List[String],
@@ -140,56 +128,9 @@ object StandardEngine {
             netTemplate: NetData,
             exercisesSet: ExercisesSet,
             mutationsProfile: MutationsProfile): StandardEngine = {
-    val dirPath = Context().evolutionDir + "/" + name
-    Utils.createDir(dirPath)
-    Utils.save(dirPath + "/inputIds.json", writePretty(inputIds))
-    Utils.save(dirPath + "/outputIds.json", writePretty(outputIds))
-    Utils.save(dirPath + "/context.json", Context().toJson)
-    Utils.save(dirPath + "/netTemplate.json", netTemplate.toJson)
-    Utils.save(dirPath + "/exercisesSet.json", exercisesSet.toJson)
-    Utils.save(dirPath + "/mutationsProfile.json", mutationsProfile.toJson)
-
     val coach = Coach(exercisesSet)
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize, mutationsProfile)
-    Utils.save(dirPath + "/poll_iteration0.json", poll.toJson)
     new StandardEngine(name, coach, poll, mutationsProfile)
-  }
-
-  def apply(dirName: String):StandardEngine = {
-    val dirPath = Context().evolutionDir + "/" + dirName
-    if(!Utils.fileExists(dirPath)) exception(s"There is no directory $dirPath")
-
-    // these two have to be there
-    val exercisesSet = ExercisesSet.fromJson(Utils.load(dirPath + "/exercisesSet.json"))
-    val mutationsProfile = MutationsProfile.fromJson(Utils.load(dirPath + "/mutationsProfile.json"))
-    // if there is no context we can simply use the current one
-    if(Utils.fileExists(dirPath + "/context.json")) Context.withJson(Utils.load(dirPath + "/context.json"))
-    // if there is no poll we can attempt to create it
-    val poll = loadPoll(dirPath) match {
-      case Some(poll) => poll
-      case None =>
-        val inputIds = read[List[String]](Utils.load(dirPath + "/inputIds.json"))
-        val outputIds = read[List[String]](Utils.load(dirPath + "/outputIds.json"))
-        val netTemplate = NetData.fromJson(Utils.load(dirPath + "/netTemplate.json"))
-        GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize, mutationsProfile)
-    }
-
-    val coach = Coach(exercisesSet)
-    val engine = new StandardEngine(dirName, coach, poll, mutationsProfile)
-    engine._iteration = findGenomePollIteration(dirPath)
-    engine
-  }
-
-  private def findGenomePollIteration(dirPath: String) = {
-    var counter = -1
-    while(Utils.fileExists(s"${dirPath}/poll_iteration${counter+1}.json")) counter += 1
-    counter
-  }
-
-  private def loadPoll(dirPath: String):Option[GenomePoll] = {
-    val iteration = findGenomePollIteration(dirPath)
-    if(iteration >= 0) Some(GenomePoll.fromJson(Utils.load(s"${dirPath}/poll_iteration${iteration}.json")))
-    else None
   }
 
   @tailrec

@@ -21,23 +21,16 @@ case class GenomePoll(genomes: List[NetGenome]){
 }
 
 object GenomePoll {
-  def apply(netId: String, inputIds: List[String], outputIds: List[String], size: Int):GenomePoll = {
-    // the same assertions are in NetGenome.toss; I repeat them here so they won't appear for every net tossed.
-    assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron, is: " + Context().synapsesDensity)
-    assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
-    new GenomePoll( (1 to size).map( i => NetGenome.build(netId + i, inputIds, outputIds) ).toList )
-  }
-
   def apply(template: NetData,
             inputIds: List[String],
             outputIds: List[String],
             size: Int,
-            mutationsProfile: MutationsProfile,
+            mutationsProfile: MutationsProfile = MutationsProfile.noMutations,
             initialMutationsNumber: Int = Context().initialMutationsNumber):GenomePoll = {
     assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron, is: " + Context().synapsesDensity)
     assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
-    new GenomePoll(newGeneration(template, NetGenome.accessMap(inputIds, outputIds), size, mutationsProfile, initialMutationsNumber))
+    new GenomePoll(newGeneration(template, AccessMap(inputIds, outputIds), size, mutationsProfile, initialMutationsNumber))
   }
 
   def newGeneration(template: NetData,

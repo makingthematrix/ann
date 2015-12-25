@@ -4,16 +4,30 @@ import anna.Context
 import anna.async.NetWrapper
 import anna.logger.LOG
 
+import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.util.Random
 import scala.collection.mutable
+
+import scala.concurrent.duration._
+import java.util.concurrent.TimeoutException
 
 /**
  * Created by gorywoda on 11.03.15.
  */
 
-abstract class Exercise(val name: String, val inputLen: Int, val outputIds: List[String]) {
-  def run(wrapper: NetWrapper): Double
+abstract class Exercise(val name: String, val inputLen: Int, val outputIds: List[String], val timeout: Long = 5000L, val timeoutResult: Double = 0.0) {
+  def runWithTimeout(wrapper: NetWrapper) = {
+    implicit val executionContext = ExecutionContext.global
+    try {
+      Await.result(Future { run(wrapper) }, timeout millis)
+    } catch {
+      case ex: TimeoutException => timeoutResult
+    }
+  }
+
   def successIf(flag: Boolean) = if(flag) 1.0 else 0.0
+
+  def run(wrapper: NetWrapper): Double
 
   ExercisesLibrary.add(this)
 }
@@ -23,7 +37,7 @@ object ExercisesLibrary {
 
   def apply(name: String) = map(name)
   def get(name: String) = map.get(name)
-  def run(name: String, netWrapper: NetWrapper) = map(name).run(netWrapper)
+  def run(name: String, netWrapper: NetWrapper) = map(name).runWithTimeout(netWrapper)
   def add(exercise: Exercise) = map += (exercise.name -> exercise)
 
   def names = map.keys
@@ -204,39 +218,39 @@ object ExercisesLibrary {
     result
   }
   
-  val countSOEqually1 = new Exercise("count S-O equally 1", 1, List("S","O")) {
+  val countSOEqually1 = new Exercise("count S-O equally 1", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 1, 3.0)
   }
 
-  val countSOEqually2 = new Exercise("count S-O equally 2", 1, List("S","O")) {
+  val countSOEqually2 = new Exercise("count S-O equally 2", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 2, 0.5)
   }
 
-  val countSOEqually3 = new Exercise("count S-O equally 3", 1, List("S","O")) {
+  val countSOEqually3 = new Exercise("count S-O equally 3", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 3, 0.1)
   }
 
-  val countSOPreferS1 = new Exercise("count S-O prefer S 1", 1, List("S","O")) {
+  val countSOPreferS1 = new Exercise("count S-O prefer S 1", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 1, 3.0, 10.0, 5.0)
   }
 
-  val countSOPreferS2 = new Exercise("count S-O prefer S 2", 1, List("S","O")) {
+  val countSOPreferS2 = new Exercise("count S-O prefer S 2", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 2, 0.5, 10.0, 5.0)
   }
 
-  val countSOPreferS3 = new Exercise("count S-O prefer S 3", 1, List("S","O")) {
+  val countSOPreferS3 = new Exercise("count S-O prefer S 3", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 3, 0.1, 10.0, 5.0)
   }
 
-  val countSOPreferO1 = new Exercise("count S-O prefer O 1", 1, List("S","O")) {
+  val countSOPreferO1 = new Exercise("count S-O prefer O 1", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 1, 3.0, 5.0, 10.0)
   }
 
-  val countSOPreferO2 = new Exercise("count S-O prefer O 2", 1, List("S","O")) {
+  val countSOPreferO2 = new Exercise("count S-O prefer O 2", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 2, 0.5, 5.0, 10.0)
   }
 
-  val countSOPreferO3 = new Exercise("count S-O prefer O 3", 1, List("S","O")) {
+  val countSOPreferO3 = new Exercise("count S-O prefer O 3", 1, List("S","O"), 10000L, -100L) {
     def run(wrapper: NetWrapper) = countSOFires(wrapper, 3, 0.1, 5.0, 10.0)
   }
 

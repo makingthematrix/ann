@@ -1,10 +1,10 @@
-package test.async.epengine
+package anna.epengine
 
 import java.io.File
 
 import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
-import anna.data.{Hush, SynapseWeight}
+import anna.data.{NetData, Hush, SynapseWeight}
 import anna.epengine._
 import anna.logger.LOG
 import anna.utils.Utils
@@ -13,6 +13,8 @@ import org.junit.Assert._
 import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
 
+
+// @todo: check what it does: org.scalatest.tools.Runner$.doRunRunRunDaDoRunRun
 
 class StandardEngineSuite extends JUnitSuite {
 
@@ -24,13 +26,12 @@ class StandardEngineSuite extends JUnitSuite {
   }
 
   @After def after(): Unit ={
-    if(engine != null && Utils.fileExists(engine.dirPath)) Utils.deleteDir(engine.dirPath)
     Context.set(_oldContext)
   }
 
   private var engine: StandardEngine = null
   // @todo: put here something smarter ;)
-  private var mutationsProfile = MutationsProfile.noMutationsProfile
+  private var mutationsProfile = MutationsProfile.noMutations
 
   private lazy val inputIds = List("in1")
   private lazy val outputIds = List("out1")
@@ -74,7 +75,7 @@ class StandardEngineSuite extends JUnitSuite {
   val exercisesSet = ExercisesSet("randomset", List("random result 0-1"))
 
   @Test def shouldTestGenomePoll(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 3)
+    val poll = GenomePoll(netTemplate, inputIds, outputIds, 3)
     assertEquals(3, poll.genomes.size)
 
     val results = Coach(List(t1)).test(poll)
@@ -82,7 +83,7 @@ class StandardEngineSuite extends JUnitSuite {
   }
 
   @Test def shouldPerformEvolutionIteration(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 3)
+    val poll = GenomePoll(netTemplate, inputIds, outputIds, 3)
     val coach = Coach(List(t1, t2))
 
     engine = StandardEngine(coach, poll, mutationsProfile)
@@ -90,47 +91,8 @@ class StandardEngineSuite extends JUnitSuite {
     val result1 = coach.test(best1.data)
 
     engine.run()
-
-    val best2 = engine.best
-    val result2 = coach.test(best2.data)
-
-    println(s"new result: $result2, old result: $result1")
-    assertTrue(result2 >= result1)
   }
 
-  @Test def shouldPerformIterationWithFakeResults(): Unit = {
-    val inputIds = List("in")
-    val outputIds = List("out1")
-
-    val poll = GenomePoll("net", inputIds, outputIds, 3)
-    val set = ExercisesSet("randomset", List(
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1"
-    ))
-
-    val coach = Coach(set)
-
-    engine = StandardEngine(coach, poll, mutationsProfile)
-    engine.calculateResults()
-    val best1 = engine.best
-    val result1 = coach.test(best1.data)
-
-    engine.run()
-
-    val best2 = engine.best
-    val result2 = coach.test(best2.data)
-
-    println(s"new result: $result2, old result: $result1")
-    assertTrue(result2 >= result1)
-  }
 
   @Test def shouldUseTemplateForPoll(): Unit ={
     assertNotEquals(0, Context().initialMutationsNumber)
@@ -160,13 +122,6 @@ class StandardEngineSuite extends JUnitSuite {
     val set = ExercisesSet("randomset", List(
       "random result 0-1",
       "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
-      "random result 0-1",
       "random result 0-1"
     ))
 
@@ -178,17 +133,15 @@ class StandardEngineSuite extends JUnitSuite {
     val result1 = coach.test(best1.data)
 
     engine.run()
+    assertEquals(poll.size, engine.poll.size)
 
     val best2 = engine.best
     val result2 = coach.test(best2.data)
 
-    println(s"new result: $result2, old result: $result1")
-    assertTrue(result2 >= result1)
-
     val newPoll = engine.poll
-    val n0 = newPoll(0)
-    val n1 = newPoll(0)
-    val n2 = newPoll(0)
+    val n0 = newPoll(0).data
+    val n1 = newPoll(1).data
+    val n2 = newPoll(2).data
 
     assertNotEquals(n0, d0)
     assertNotEquals(n0, d1)
@@ -202,39 +155,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   }
 
-  @Test def shouldCreateEvolutionDirectory(): Unit ={
-    // for that we need:
-    // 1. name of the directory
-    val dirName = "test-shouldCreateEvolutionDirectory"
-    // 2. inputIds
-    val inputIds = this.inputIds
-    // 3. outputIds
-    val outputIds = this.outputIds
-    // 4. net template
-    val netTemplate = this.netTemplate
-    // 5. exercises set
-    val exercisesSet = this.exercisesSet
-
-    // create the engine
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
-    // check if the directory exists
-    val evolutionDirs = new File(Context().evolutionDir).listFiles.filter(_.isDirectory)
-    assertTrue(evolutionDirs.map(_.getName).toSet.contains(dirName))
-  }
-
-  @Test def shouldSaveContextSetTemplateAndPoll(): Unit ={
-    val dirName = "test-shouldSaveContextSetAndPoll"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
-    val dir = new File(Context().evolutionDir).listFiles.find(f => f.getName == dirName && f.isDirectory).get
-    val filesInDir = dir.listFiles.map( f => (f.getAbsolutePath.substring(f.getAbsolutePath.lastIndexOf('/')+1) , f)).toMap
-    filesInDir.foreach( tuple => println(tuple._1))
-    assertTrue(filesInDir.contains("context.json"))
-    assertTrue(filesInDir.contains("netTemplate.json"))
-    assertTrue(filesInDir.contains("exercisesSet.json"))
-    assertTrue(filesInDir.contains("poll_iteration0.json"))
-  }
-
-  @Test def shouldSaveAndRestoreContextFromJson(): Unit ={
+  @Test def shouldSaveAndRestoreContextFromJson(): Unit = {
     val json = Context().toJson
     println(json)
 
@@ -249,69 +170,6 @@ class StandardEngineSuite extends JUnitSuite {
     assertTrue(origWeight == Context().weight)
   }
 
-  @Test def shouldReadEngineFromDir(): Unit ={
-    val dirName = "test-shouldReadEngineFromDir"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
-
-    val genomeId = engine.poll.ids(0)
-    println(s"genomeId: $genomeId")
-
-    val engine2 = StandardEngine(dirName)
-
-    assertEquals(engine.coach.exercises, engine2.coach.exercises)
-
-    val g1 = engine.poll(genomeId)
-    val g2 = engine2.poll(genomeId)
-
-    println("-------")
-    println(g1.toJson)
-    println("-------")
-    println(g2.toJson)
-    println("-------")
-
-    assertEquals(g1.toJson, g2.toJson)
-  }
-
-  @Test def shouldThrowExceptionIfDirDoesNotExist(): Unit ={
-    val dirName = "test-shouldThrowExceptionIfDirDoesNotExist"
-    try {
-      engine = StandardEngine(dirName)
-      fail()
-    } catch {
-      case ex: IllegalArgumentException =>
-        if(!ex.getMessage.contains(dirName)) fail()
-      case other: Throwable => fail(s"Unknown exception: $other")
-    }
-  }
-
-  @Test def shouldSaveProgress(): Unit ={
-    val dirName = "test-shouldSaveProgress"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
-    assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration0.json"))
-    assertFalse(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
-    assertFalse(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
-    assertFalse(Utils.fileExists(engine.dirPath + "/results_iteration1.json"))
-
-    engine.run()
-
-    assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration0.json"))
-    assertTrue(Utils.fileExists(engine.dirPath + "/results_iteration0.json"))
-    assertTrue(Utils.fileExists(engine.dirPath + "/poll_iteration1.json"))
-    assertTrue(Utils.fileExists(engine.dirPath + "/results_iteration1.json"))
-  }
-
-  @Test def shouldSaveLogs(): Unit ={
-    val dirName = "test-shouldSaveLogs"
-    engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
-    assertFalse(Utils.fileExists(engine.dirPath + "/iteration1.log"))
-    assertFalse(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
-
-    engine.run()
-
-    assertTrue(Utils.fileExists(engine.dirPath + "/iteration1.log"))
-    assertTrue(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
-  }
-
   @Test def shouldNeitherCrossNorMutate(): Unit ={
     val dirName = "test-shouldNeitherCrossNorMutate"
     engine = StandardEngine(dirName, inputIds, outputIds, netTemplate, exercisesSet, mutationsProfile)
@@ -321,48 +179,41 @@ class StandardEngineSuite extends JUnitSuite {
 
     engine.run()
 
-    assertTrue(Utils.fileExists(engine.dirPath + "/mutations_iteration1.log"))
-    val lines = Utils.load(engine.dirPath + "/mutations_iteration1.log").split("\n")
-    assertTrue(lines.filterNot(_.contains("CLONING:")).isEmpty)
+    assertTrue(engine.poll.genomes.filterNot(_.id.contains("Cloned")).isEmpty)
   }
 
   @Test def shouldCloneTheBestGenome(): Unit = {
+    val specialNeuronId = "middle"
+    val bestResult = 1.0
+    val worseResult = 0.5
+
     val ex = new Exercise("shouldCloneTheBestGenome-exercise", 1, List("out1")) {
-      def run(wrapper: NetWrapper): Double = wrapper.net.id match {
-        case "best" => 1.0
-        case _ => 0.5
+      def run(wrapper: NetWrapper): Double = wrapper.net.getNeurons.find(n => NetData.removeNetId(n.id) == specialNeuronId) match {
+        case Some(n) => bestResult
+        case None => worseResult
       }
     }
 
     Context.withMutationProbability(1.0)
     Context.withCrossCoefficient(1.0)
 
-    val map = NetGenome.accessMap(List("in1"), List("out1"))
+    val map = AccessMap(List("in1"), List("out1"))
 
-    val g1 = NetGenome(NetBuilder("best").addInput("in1").chain("out1",0.5,0.5).data, map)
+    val g1 = NetGenome(NetBuilder("best").addInput("in1").chain("middle",1.0,1.0).chain("out1",0.5,0.5).data, map)
     val g2 = NetGenome(NetBuilder("other-1").addInput("in1").chain("out1",0.0,0.0).data, map)
     val g3 = NetGenome(NetBuilder("other-2").addInput("in1").chain("out1",1.0,1.0).data, map)
 
     val engine = StandardEngine(Coach(List(ex)), GenomePoll(List(g1, g2, g3)), mutationsProfile)
-    val str1 = g1.data.toJson
-    println("---\n"+str1+"---\n")
 
     engine.calculateResults()
+    assertEquals(g1.data, engine.best.data)
 
-    val diff1 = Commands.diff(g1.data, engine.best.data)
-    println(diff1)
-    //assertEquals("", diff1)
-    val str2 = engine.best.data.toJson
-    println("---\n"+str2+"---\n")
-    assertEquals(str1, str2)
+    engine.run()
+    val bestGenome = engine.best
 
-    engine.run(1)
-
-    //val diff2 = Commands.diff(g1.data, engine.best.data)
-   // assertEquals("", diff1)
-    val str3 = engine.best.data.toJson
-    println("---\n"+str3+"---\n")
-    assertEquals(str1, str3)
+    assertEquals(bestResult, engine.getResult(bestGenome.id).get, 0.01)
+    assertTrue(bestGenome.id.contains("Cloned-Best"))
+    assertTrue(bestGenome.neurons.find(n => NetData.removeNetId(n.id) == specialNeuronId).isDefined)
   }
 /*
   @Test def shouldLogEvolutionAndSaveResults(): Unit ={

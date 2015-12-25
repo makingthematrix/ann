@@ -175,76 +175,6 @@ object NetGenome {
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
     NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
 
-  def build(netId: String, inputIds: List[String], outputIds: List[String]) = {
-    debug(this, "---------------------------------------------------------------------")
-    debug(this, s"building $netId with input ids: $inputIds and output ids: $outputIds")
-    debug(this, "")
-    
-    assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron")
-    assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
-
-    val _neuronsSize = RandomNumber(
-      if(inputIds.size + outputIds.size > Context().neuronsRange.start)
-        IntRange(inputIds.size + outputIds.size, Context().neuronsRange.end)
-      else Context().neuronsRange
-    )
-
-    // the number of neurons should be at least inputs + outputs + 1
-    val neuronsSize = if(_neuronsSize <= inputIds.size + outputIds.size) inputIds.size + outputIds.size + 1 else _neuronsSize
-    
-    debug(this,s"There will be $neuronsSize neurons")
-
-    debug(this,"* building inputs")
-    val ins = inputIds.map( NeuronGenome.build(_) )
-    debug(this,"* building outputs")
-    val outs = outputIds.map( NeuronGenome.build(_) )
-    debug(this,"* building middles")
-    val middles = (
-      for(i <- 1 to neuronsSize - ins.size - outs.size)
-        yield NeuronGenome.build(neuronId(netId,i))
-    ).toList
-    val ns = ins ++ middles ++ outs
-
-    debug(this,"* creating synapses")
-
-    // at least one synapse from each "in" to one of "middles"
-    debug(this, "at least one synapse from each \"in\" to one of \"middles\"")
-    var synapsesCounter = 0
-    ins.foreach(in => chooseNeuron(middles, (n: NeuronGenome) => !in.isConnectedTo(n.id)) match {
-      case Some(n) => in.connect(n); synapsesCounter += 1
-      case None =>
-    })
-
-    // at least one synapse to each "out" from one of "middles"
-    debug(this, "at least one synapse to each \"out\" from one of \"middles\"")
-    outs.foreach(out => chooseNeuron(middles, (n: NeuronGenome) => !n.isConnectedTo(out.id)) match {
-      case Some(n) => n.connect(out); synapsesCounter += 1
-      case None =>
-    })
-
-    val synapsesSize = Math.round(Context().synapsesDensity * neuronsSize).toInt - synapsesCounter
-    debug(this,s"$synapsesCounter created, $synapsesSize left to create")
-
-    if(synapsesSize > 0) {
-      val im = ins ++ middles
-      val mo = middles ++ outs
-
-      for(i <- 1 to synapsesSize) RandomNumber(im).connect(RandomNumber(mo))
-    }
-    // @todo: it still doesn't ensure that there is a valid connection from ins to outs
-
-    val ng = NetGenome(
-      NetData(netId, ns.map(_.data), inputIds, RandomNumber(Context().inputTickMultiplierRange)),
-      accessMap(inputIds, outputIds)
-    )
-
-    debug(this, s"done building $netId")
-    debug(this, ng.toJson)
-    debug(this, "---------------------------------------------------------------------")
-
-    ng
-  }
-
   def breed(oldGenome: NetGenome,
             newFullAccess: List[NeuronGenome]) = {
     // 6. rename full access neurons so their netId match their new nets
@@ -298,16 +228,12 @@ object NetGenome {
       n.synapses.foreach(s => if(idsToSwitch.contains(":"+s.neuronId)) s.weight = synapsesMap(n.id+":"+s.neuronId).weight)
     })
 
-
   private def chooseNeuron(neurons: List[NeuronGenome], check:(NeuronGenome)=>Boolean):Option[NeuronGenome] = neurons match {
     case Nil => None
     case list => val n = RandomNumber(list)
                  if(check(n)) Some(n)
                  else chooseNeuron(list.filter(_.id != n.id), check)
   }
-
-  def accessMap(inputIds: List[String], outputIds: List[String]) =
-    (inputIds.map(_ -> MutationAccessInput()) ++ outputIds.map(_ -> MutationAccessOutput())).toMap
 
   def fromJson(jsonStr: String) = read[NetGenome](jsonStr)
 }

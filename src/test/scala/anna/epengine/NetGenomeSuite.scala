@@ -20,16 +20,20 @@ class NetGenomeSuite extends JUnitSuite {
     LOG.addLogToStdout()
   }
 
+  val netData = NetBuilder().addInput("in1").chain("mi",1.0,1.0).chain("out1",1.0,1.0).setName("net").data
+
+
   val inputIds = List("in1")
   val outputIds = List("out1")
 
   @Test def shouldAddNeuron(): Unit ={
+    val netDataInOut = NetBuilder().addInput("in1").chain("out1",1.0,1.0).setName("net").data
     Context.withNeuronsRange(3 to 3)
     Context.withSynapsesDensity(2.5)
     Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
-    val ng = NetGenome.build("net", inputIds, outputIds)
-    assertEquals(3, ng.data.neurons.size)
+    val ng = NetGenome(netDataInOut, AccessMap(inputIds, outputIds))
+    assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
 
@@ -37,9 +41,12 @@ class NetGenomeSuite extends JUnitSuite {
       "addNeuron" -> 1.0
     ).mutate(ng)
 
+    assertEquals(3, ng.data.neurons.size)
+
     val middle1Opt = ng.find("net_1")
     assertNotEquals(None, middle1Opt)
-    assertTrue(ng.findSynapse("in1","net_1") != None || ng.findSynapse("out1","net_1") != None)
+
+    assertTrue(ng.findSynapse("in1","net_1").isDefined || ng.findSynapse("out1","net_1").isDefined)
     assertNotEquals(None, ng.findSynapse("net_1","out1"))
   }
 
@@ -48,7 +55,7 @@ class NetGenomeSuite extends JUnitSuite {
     Context.withSynapsesDensity (2.5)
     Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
-    val ng = NetGenome.build("net", inputIds, outputIds)
+    val ng = NetGenome(netData, AccessMap(inputIds, outputIds))
     assertEquals(3, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in1"))
     assertNotEquals(None, ng.find("out1"))
@@ -188,7 +195,7 @@ class NetGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldCreateNonEmptyGenomes(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 2)
+    val poll = GenomePoll(netData, inputIds, outputIds, 2)
     assertEquals(2, poll.genomes.size)
     val net1G = poll.genomes(0)
     println(s"net1G size: ${net1G.data.neurons.size}")
@@ -201,7 +208,7 @@ class NetGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldAssignFullAccessToMiddleNeurons(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 1)
+    val poll = GenomePoll(netData, inputIds, outputIds, 1)
     val netG = poll.genomes(0)
     val net1Middle = netG.filterNot(inputIds ++ outputIds)
     val net1FullAccess = netG.fullAccessNeurons
@@ -209,7 +216,7 @@ class NetGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldCreateNewGenome(): Unit ={
-    val poll = GenomePoll("net", inputIds, outputIds, 2)
+    val poll = GenomePoll(netData, inputIds, outputIds, 2)
     val net1G = poll.genomes(0)
     val net2G = poll.genomes(1)
 
@@ -317,7 +324,7 @@ class NetGenomeSuite extends JUnitSuite {
     // has the same input neurons
     assertEquals(net12G.inputs, inputIds)
     // has the same output neurons
-    assertFalse(outputIds.exists( net12G.find(_) == None ))
+    assertFalse(outputIds.exists( net12G.find(_).isEmpty ))
     // has non-empty middle layer
     val net12Middle = net12G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net12Middle.nonEmpty)
@@ -325,7 +332,7 @@ class NetGenomeSuite extends JUnitSuite {
     // has the same input neurons
     assertEquals(net21G.inputs, inputIds)
     // has the same output neurons
-    assertFalse(outputIds.exists( net21G.find(_) == None ))
+    assertFalse(outputIds.exists( net21G.find(_).isEmpty ))
     // has non-empty middle layer
     val net21Middle = net21G.filterNot(inputIds ++ outputIds).map(_.id)
     assertTrue(net21Middle.nonEmpty)
