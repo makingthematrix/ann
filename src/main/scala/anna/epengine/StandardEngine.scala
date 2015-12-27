@@ -7,11 +7,10 @@ import anna.logger.{LOG, ListLogOutput}
 
 class StandardEngine(override val name: String,
                      override val coach: Coach,
-                     override protected var _poll: GenomePoll,
-                     mutationsProfile: MutationsProfile) extends Engine {
+                     val mutator: Mutator,
+                     val crosserId: String,
+                     override protected var _poll: GenomePoll) extends Engine {
   assert(_poll.genomes.size >= 2, "There have to be at least two genomes in the engine's poll")
-
-  private val mutator = new Mutator(mutationsProfile)
 
   override protected def _run() = {
     if(_iteration == 0) calculateResults()
@@ -21,7 +20,7 @@ class StandardEngine(override val name: String,
 
     debug(this,s" ------------------------ Iteration ${_iteration} of the standard engine $name ------------------------ ")
 
-    val newGeneration = Crosser(StandardCrosser.ID, _poll, _results).newGeneration(_iteration)
+    val newGeneration = Crosser(crosserId, _poll, _results).newGeneration(_iteration)
     _poll = GenomePoll(mutator.mutate(newGeneration))
 
     calculateResults()
@@ -43,7 +42,7 @@ class StandardEngine(override val name: String,
 
 object StandardEngine {
   def apply(coach: Coach, poll: GenomePoll, mutationsProfile: MutationsProfile):StandardEngine = {
-    new StandardEngine ("engine", coach, poll, mutationsProfile)
+    new StandardEngine ("engine", coach, Mutator(mutationsProfile), StandardCrosser.ID, poll)
   }
 
   def apply(name: String,
@@ -54,6 +53,6 @@ object StandardEngine {
             mutationsProfile: MutationsProfile): StandardEngine = {
     val coach = Coach(exercisesSet)
     val poll = GenomePoll(netTemplate, inputIds, outputIds, Context().genomePollSize, mutationsProfile)
-    new StandardEngine(name, coach, poll, mutationsProfile)
+    new StandardEngine(name, coach, Mutator(mutationsProfile), StandardCrosser.ID, poll)
   }
 }

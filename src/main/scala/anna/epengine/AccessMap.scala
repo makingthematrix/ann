@@ -6,4 +6,6 @@ package anna.epengine
 object AccessMap {
   def apply(inputs: List[String], outputs: List[String]):Map[String,MutationAccess] =
     inputs.map(_ -> MutationAccessInput()).toMap ++ outputs.map(_ -> MutationAccessOutput())
+
+  def apply(input: String, output: String):Map[String,MutationAccess] = apply(List(input),List(output))
 }

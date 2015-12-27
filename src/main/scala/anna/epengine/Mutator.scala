@@ -18,3 +18,7 @@ class Mutator(val mutationsProfile: MutationsProfile) {
     genomes
   }
 }
+
+object Mutator {
+  def apply(mutationsProfile: MutationsProfile) = new Mutator(mutationsProfile)
+}

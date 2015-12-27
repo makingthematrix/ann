@@ -1,5 +1,6 @@
 package anna.epengine
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
@@ -25,4 +26,12 @@ object Crosser {
     case Some(builder) =>  throw new IllegalArgumentException(s"There is an already registered crosser builder with id $crosserId")
     case None => crosserBuilders += (crosserId -> builder)
   }
+
+  @tailrec
+  def getId(r: Double, resultsNormalized: List[(String, Double)]):String = resultsNormalized match {
+    case head :: Nil => head._1
+    case head :: tail if r <= head._2 => head._1
+    case head :: tail => getId(r - head._2, tail)
+  }
+
 }

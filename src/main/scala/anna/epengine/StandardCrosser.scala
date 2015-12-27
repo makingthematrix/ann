@@ -60,7 +60,7 @@ class StandardCrosser(override val poll: GenomePoll, override val results:Map[St
 
   private def drawId = normalizedResults match {
     case None => results.toList(0)._1
-    case Some(nr) => StandardCrosser.getId(RandomNumber(), nr.toList.sortBy(-_._2))
+    case Some(nr) => Crosser.getId(RandomNumber(), nr.toList.sortBy(-_._2))
   }
 
   private def normalizedResults = results.values.sum match {
@@ -93,12 +93,7 @@ class StandardCrosser(override val poll: GenomePoll, override val results:Map[St
 }
 
 object StandardCrosser {
-  @tailrec
-  def getId(r: Double, resultsNormalized: List[(String, Double)]):String = resultsNormalized match {
-    case head :: Nil => head._1
-    case head :: tail if r <= head._2 => head._1
-    case head :: tail => getId(r - head._2, tail)
-  }
+  def apply(poll: GenomePoll, results: Map[String,Double]) = new StandardCrosser(poll, results)
 
   val ID = "StandardCrosser"
 

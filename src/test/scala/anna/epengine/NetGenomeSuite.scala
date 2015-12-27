@@ -417,7 +417,7 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldRename(): Unit ={
     val data = NetBuilder().addInput("in").chain("mi1").chain("mi2").chain("out").setName("net").data
-    val genome = NetGenome(data, Map("in" -> MutationAccessInput(), "out" -> MutationAccessOutput()))
+    val genome = NetGenome(data, AccessMap("in","out"))
 
     assertTrue(data.contains("in"))
     assertTrue(data.contains("mi1"))

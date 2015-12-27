@@ -1,14 +1,10 @@
 package anna.epengine
 
-import java.io.File
-
 import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
 import anna.data.{NetData, Hush, SynapseWeight}
-import anna.epengine._
 import anna.logger.LOG
-import anna.utils.Utils
-import anna.{Commands, Context}
+import anna.Context
 import org.junit.Assert._
 import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
