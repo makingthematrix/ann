@@ -93,7 +93,6 @@ class StandardEngineSuite extends JUnitSuite {
     engine.run()
   }
 
-
   @Test def shouldUseTemplateForPoll(): Unit ={
     assertNotEquals(0, Context().initialMutationsNumber)
 
@@ -143,9 +142,13 @@ class StandardEngineSuite extends JUnitSuite {
     val n1 = newPoll(1).data
     val n2 = newPoll(2).data
 
-    assertNotEquals(n0, d0)
-    assertNotEquals(n0, d1)
-    assertNotEquals(n0, d2)
+    assertEquals(best2.data, n0)
+
+    // the best one is copied so it is equal to one of the old ones, but different from others
+    if(n0.id != d0.id) assertNotEquals(n0, d0) else assertEquals(n0, d0)
+    if(n0.id != d1.id) assertNotEquals(n0, d1) else assertEquals(n0, d1)
+    if(n0.id != d2.id) assertNotEquals(n0, d2) else assertEquals(n0, d2)
+
     assertNotEquals(n1, d0)
     assertNotEquals(n1, d1)
     assertNotEquals(n1, d2)
@@ -179,10 +182,14 @@ class StandardEngineSuite extends JUnitSuite {
 
     engine.run()
 
-    assertTrue(engine.poll.genomes.filterNot(_.id.contains("Cloned")).isEmpty)
+    // the best genome is not even cloned with the new netId - it's just taken from the old generation and put in the new one
+    val bestGenome = engine.best
+    val notCloned = engine.poll.genomes.filterNot(_.id.contains("Cloned"))
+    assertEquals(1, notCloned.size)
+    assertEquals(bestGenome, notCloned(0))
   }
 
-  @Test def shouldCloneTheBestGenome(): Unit = {
+  @Test def shouldCopyTheBestGenome(): Unit = {
     val specialNeuronId = "middle"
     val bestResult = 1.0
     val worseResult = 0.5
@@ -212,36 +219,8 @@ class StandardEngineSuite extends JUnitSuite {
     val bestGenome = engine.best
 
     assertEquals(bestResult, engine.getResult(bestGenome.id).get, 0.01)
-    assertTrue(bestGenome.id.contains("Cloned-Best"))
+    assertEquals("best", bestGenome.id)
     assertTrue(bestGenome.neurons.find(n => NetData.removeNetId(n.id) == specialNeuronId).isDefined)
   }
-/*
-  @Test def shouldLogEvolutionAndSaveResults(): Unit ={
-    // tworzę engine z podaną nazwą procesu
-    // tworzę, lub otwieram katalog o danej nazwie
-    // 1. jeśli tworzę:
-    // - podaję listę inputIds i outputIds
-    // - podaję kontekst
-    // - podaję szablon inicjalizacyjny
-    // - podaję exercises set
-    // - na podstawie inputIds, outputIds, Context i szablonu tworzę poll
-    // - zapisuję poll jako iteration 0
-    // 2. jeśli otwieram istniejący:
-    // - wczytuję kontekst z jsona
-    // - wczytuję excercises set z jsona
-    // - odnajduję ostatnią iterację i wczytuję ją, tworząc poll
 
-
-    // 3. podstawie exercises set tworzę coacha
-
-    // 4. puszczam jedną iterację
-    // - otwieram (lub tworzę) log iteracji z katalogu i dopisuję do niego logi działania engine
-    // - otwieram (lub tworzę) log mutacji z katalogu i dopisuję do niego jakie mutacje zostały przeprowadzone na jakim genomie
-
-    // 5. po zakończeniu iteracji
-    // - zapisuję poll i listę wyników jako iterację N (będzie ją można wczytać i od niej rozpocząć kolejną iterację)
-    // - w osobnym pliku zapisuję najlepszy genom
-
-  }
-  */
 }

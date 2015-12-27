@@ -2,14 +2,10 @@ package anna.epengine
 
 import anna.Context
 import anna.logger.LOG._
-import anna.utils.Utils
-import org.json4s.native.Serialization.{read, writePretty}
-import anna.utils.Utils.formats
-
 /**
  * Created by gorywoda on 03.08.15.
  */
-trait EngineLike {
+trait Engine {
   // these have to be initialized
   val name: String
   val coach: Coach
