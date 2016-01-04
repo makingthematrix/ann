@@ -4,8 +4,6 @@ import anna.Context
 import anna.logger.LOG._
 import anna.utils.RandomNumber
 
-import scala.annotation.tailrec
-
 /**
   * Created by gorywoda on 12/26/15.
   */
@@ -36,6 +34,7 @@ class StandardCrosser(override val poll: GenomePoll, override val results:Map[St
       val genome = sortedGenomes(index - 1)
       val newId = s"iter${iteration}#${index - 1}Cloned"
       debug(this,s"CLONING: genome ${genome.id} as $newId")
+      _cloned.add(genome.id)
       genome.netId(newId)
     })
   }
@@ -49,45 +48,19 @@ class StandardCrosser(override val poll: GenomePoll, override val results:Map[St
     if(newGenomes.size > size) newGenomes.init else newGenomes
   }
 
-  private def crossTwoGenomes(genome1: NetGenome) = drawCrossableGenome(genome1, drop(genome1.id), results - genome1.id) match {
-    case Some(genome2) =>
-      debug(this,s"CROSSING: ${genome1.id} with ${genome2.id}")
-      genome1.cross(genome2)
+  override def cross(g1: NetGenome, g2: NetGenome):(NetGenome, NetGenome) = {
+    debug(this,s"CROSSING: ${g1.id} with ${g2.id}")
+    _crossed.add(g1.id)
+    _crossed.add(g2.id)
+    g1.cross(g2)
+  }
+
+  private def crossTwoGenomes(genome1: NetGenome) = drawCrossableGenomeFor(genome1) match {
+    case Some(genome2) => cross(genome1, genome2)
     case None =>
       debug(this,s"CROSSING: ${genome1.id} in two copies as no other crossable genome was found")
+      _cloned.add(genome1.id)
       (genome1.clone, genome1.clone)
-  }
-
-  private def drawId = normalizedResults match {
-    case None => results.toList(0)._1
-    case Some(nr) => Crosser.getId(RandomNumber(), nr.toList.sortBy(-_._2))
-  }
-
-  private def normalizedResults = results.values.sum match {
-    case 0.0 => None
-    case sum =>
-      val normalized = results.map(tuple => tuple._1 -> tuple._2 / sum)
-      val z = normalized.values.min / 2.0
-      val b = -z/(1.0-z)
-      val a = 1.0-z
-      Some(normalized.map(tuple => tuple._1 -> (a * tuple._2 + b)))
-  }
-
-  private def drop(index: Int):List[NetGenome] = poll.genomes.take(index) ++ poll.genomes.drop(index + 1)
-  private def drop(id: String):List[NetGenome] = drop(poll.genomes.indexWhere(_.id == id))
-
-  @tailrec
-  private def drawCrossableGenome(firstGenome: NetGenome,
-                                  genomes: List[NetGenome],
-                                  results: Map[String, Double]):Option[NetGenome] = genomes match {
-    case Nil => None
-    case list =>
-      debug(this,s"drawCrossableGenome(${firstGenome.id},${poll.genomes.size},${results.size})")
-      val id = drawId
-      val index = poll.genomes.indexWhere(_.id == id)
-      val genome = poll.genomes(index)
-      if(firstGenome.id != genome.id && firstGenome.crossable(genome)) Some(genome)
-      else drawCrossableGenome(firstGenome, genomes.drop(index), results - id)
   }
 
 }

@@ -30,8 +30,10 @@ object GenomePoll {
     assert(Context().synapsesDensity >= 1.0, "There should be at least one synapse for neuron, is: " + Context().synapsesDensity)
     assert(inputIds.size + outputIds.size <= Context().neuronsRange.end, s"You chose ${inputIds.size} inputs and ${outputIds.size} outputs, but the max possible neurons number is only ${Context().neuronsRange.end}")
 
-    new GenomePoll(newGeneration(template, AccessMap(inputIds, outputIds), size, mutationsProfile, initialMutationsNumber))
+    GenomePoll(newGeneration(template, AccessMap(inputIds, outputIds), size, mutationsProfile, initialMutationsNumber))
   }
+
+  def apply(genomes: NetGenome*):GenomePoll = GenomePoll(genomes.toList)
 
   def newGeneration(template: NetData,
                     accessMap: Map[String, MutationAccess],

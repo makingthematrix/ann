@@ -5,13 +5,10 @@ import anna.async.Messages._
 import anna.data.SynapseData.fromDouble
 import anna.data._
 import anna.utils.Utils.{assert, await}
-
-import anna.logger.LOG.debug
-
 import scala.collection.mutable
 
 class NetBuilder {
-  var netName = "net"
+  var netId:String = "net"
 
   var defThreshold = Context().threshold
   var defSlope = Context().slope
@@ -30,19 +27,19 @@ class NetBuilder {
 
   def inputSet = ins.toSet
 
-  def generateId() = netName + "_" + nextIndex()
-  
+  def generateId() = netId + "_" + nextIndex()
+
   private def addSynapse(fromId: String, toId: String, weight: SynapseTrait) =
     synapses.getOrElseUpdate(fromId, mutable.ListBuffer[SynapseData]()) += SynapseData(toId, weight)
-    
+
   def contains(id: String) = neurons.contains(id)
-  
+
   def use(id: String) = {
     assert(contains(id),s"There is no neuron with id $id")
     currentNeuronId = Some(id)
     this
   }
-  
+
   def hush(id: String) = connect(id, Hush())
 
   def connect(id: String, weight: SynapseTrait) = {
@@ -55,7 +52,7 @@ class NetBuilder {
     case Some(id) => neurons(id)
     case None => throw new IllegalArgumentException("There is no current neuron id set")
   }
-  
+
   def chain(id: String, weight: SynapseTrait, threshold: Double, slope: Double,
             hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplier: Double) = {
     val n1 = current
@@ -63,27 +60,27 @@ class NetBuilder {
     addSynapse(n1.id, id, weight)
     this
   }
-  
+
   def chainDummy(id: String, weight: Double, hushValue: HushValue =defHushValue) = {
     val n1 = current
     addDummy(id)
     addSynapse(n1.id, id, weight)
     this
   }
-  
+
   def chainHushNeuron(id: String) = {
     val n1 = current
     addHushNeuron(id)
     addSynapse(n1.id, id, Hush())
     this
   }
-  
+
   def addInput(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier):NetBuilder = {
     addDummy(id, tickTimeMultiplier)
     ins += id
     this
   }
-  
+
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
                 slope: Double = defSlope,
@@ -92,7 +89,7 @@ class NetBuilder {
                 tickTimeMultiplier: Double = defTickTimeMultiplier):NetBuilder =
     addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)
 
-  
+
   def addMiddle():NetBuilder = addMiddle(generateId())
 
   def addHushNeuron(id: String) = {
@@ -123,7 +120,7 @@ class NetBuilder {
     this
   }
 
-  def build(netName: String =netName) = {
+  def build(netName: String =netId) = {
     //debug(this,s"build $netName")
     val net = NetRef(netName)
     //debug(this, "building neurons")
@@ -143,7 +140,7 @@ class NetBuilder {
   }
 
   def data = NetData(
-    netName,
+    netId,
     neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) ).toList.sortBy( _.id ),
     ins.toList.sorted,
     defThreshold, defSlope, defHushValue, defForgetting,
@@ -152,7 +149,7 @@ class NetBuilder {
   )
 
   def set(data: NetData) = {
-    netName = data.id
+    netId = data.id
 
     clear()
 
@@ -177,8 +174,8 @@ class NetBuilder {
     this
   }
 
-  def setName(name: String) = {
-    netName = name
+  def netId(id: String):NetBuilder = {
+    netId = id
     this
   }
 
@@ -190,7 +187,7 @@ class NetBuilder {
   }
 
   private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))
-  
+
   private val nextIndex = {
     var nextFreeIndex = 0L
     () => {
@@ -199,7 +196,7 @@ class NetBuilder {
       t
     }
   }
-  
+
   private def newNeuron(neuronType: NeuronType, id: String,
       threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
       forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier,
@@ -221,7 +218,7 @@ object NetBuilder {
 
   def apply(name: String):NetBuilder = {
     val nb = new NetBuilder()
-    nb.setName(name)
+    nb.netId(name)
     nb
   }
 

@@ -1,6 +1,7 @@
 package anna.data
 
 import anna.Context
+import anna.utils.Utils
 import anna.utils.Utils.{formats, synapseId}
 import org.json4s.native.Serialization.{read, writePretty}
 
@@ -30,12 +31,12 @@ case class NetData(id: String,
   def withInputTickMultiplier(inputTickMultiplier: Double) = copy(inputTickMultiplier = inputTickMultiplier)
   def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
-  def neuron(neuronId: String) = neurons.find(_.id == neuronId)
+  def neuron(neuronId: String) = neurons.find(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
                                         .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))
-  def contains(neuronId: String) = neurons.exists(_.id == neuronId)
+  def contains(neuronId: String) = neurons.exists(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
   def synapses:Map[String,SynapseData] = neurons.flatMap(n => n.synapses.map(s => (synapseId(n.id, s.neuronId) -> s))).toMap
-  def synapse(from: String, to: String) = neurons.find(_.id == from) match {
-    case Some(n) => n.synapses.find(_.neuronId == to)
+  def synapse(from: String, to: String) = neurons.find(n => n.id == from || NetData.removeNetId(n.id) == from) match {
+    case Some(n) => n.synapses.find(s => s.neuronId == to || NetData.removeNetId(s.neuronId) == to)
     case None => None
   }
 

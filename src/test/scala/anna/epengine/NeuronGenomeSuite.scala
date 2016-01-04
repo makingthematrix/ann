@@ -205,7 +205,7 @@ class NeuronGenomeSuite extends JUnitSuite {
       NetBuilder().addMiddle("id1").addMiddle("id2").use("id1").hush("id2").data
     )
 
-    val synGen = gen.findSynapse("id1","id2").get
+    val synGen = gen.findSynapse("id1","id2")
 
     MutationsProfile(
       "setWeightToFull" -> 1.0

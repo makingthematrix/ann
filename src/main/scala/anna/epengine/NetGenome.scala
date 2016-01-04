@@ -27,13 +27,13 @@ class NetGenome(var id: String,
                 var inputTickMultiplier: Double,
                 val activationFunctionName: String,
                 val accessMap: Map[String, MutationAccess]){
-  def find(id: String) = neurons.find( _.id == id )
-  def filter(ids: Seq[String]) = neurons.filter(n => ids.contains(n.id))
-  def filterNot(ids: Seq[String]) = neurons.filterNot(n => ids.contains(n.id))
+  def find(id: String) = neurons.find(n => n.id == id || removeNetId(n.id) == id)
+  def filter(ids: Seq[String]) = neurons.filter(n => ids.contains(n.id) || ids.contains(removeNetId(n.id)))
+  def filterNot(ids: Seq[String]) = neurons.filterNot(n => ids.contains(n.id) || ids.contains(removeNetId(n.id)))
 
-  def findSynapse(from: String, to: String) = find(from) match {
-    case Some(n) => n.synapses.find( _.neuronId == to )
-    case None => None
+  def findSynapse(from: String, to: String):SynapseGenome = find(from) match {
+    case Some(n) => n.getSynapse(to)
+    case None => throw new IllegalArgumentException(s"There is no neuron $from in the net genome $id")
   }
 
   def isFullAccess(n: NeuronGenome):Boolean = isFullAccess(n.id)

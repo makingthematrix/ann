@@ -21,7 +21,7 @@ class NeuronGenome(var id: String,
                    var tickTimeMultiplier: Double,
                    val neuronType: NeuronType,
                    val activationFunctionName: String) {
-  def isConnectedTo(id: String) = synapses.exists(_.neuronId == id)
+  def isConnectedTo(id: String) = synapses.exists(s => s.neuronId == id || NetData.removeNetId(s.neuronId) == id)
 
   def addSynapse(gen: SynapseGenome) = {
     debug(this, s"adding a synapse from $id to ${gen.neuronId}")
@@ -33,7 +33,7 @@ class NeuronGenome(var id: String,
     case None =>
   }
   
-  def getSynapse(neuronId: String) = synapses.find( _.neuronId == neuronId ) match {
+  def getSynapse(neuronId: String):SynapseGenome = synapses.find(s => s.neuronId == neuronId || NetData.removeNetId(s.neuronId) == neuronId) match {
     case Some(synapse) => synapse
     case None => throw new IllegalArgumentException(s"There is no synapse connecting $id with $neuronId")
   }

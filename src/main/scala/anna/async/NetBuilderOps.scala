@@ -110,7 +110,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     builder.use("S").chainHushNeuron("hush_letters").hush("S").hush("O")
     builder.use("O").hush("hush_letters")
 
-    builder.setName(name).data
+    builder.netId(name).data
   }
 
   def SOSNetWithHushNeuron() = {
@@ -133,7 +133,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
                .use("in").chain("line",1.0,0.5).chain("O",1.0,0.5)
                .use("dot").connect("O",0.5)
                .use("line").connect("S",0.5)
-               .setName(name).data
+               .netId(name).data
 
   }
 }

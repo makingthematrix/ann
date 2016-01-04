@@ -20,14 +20,14 @@ class NetGenomeSuite extends JUnitSuite {
     LOG.addLogToStdout()
   }
 
-  val netData = NetBuilder().addInput("in1").chain("mi",1.0,1.0).chain("out1",1.0,1.0).setName("net").data
+  val netData = NetBuilder().addInput("in1").chain("mi",1.0,1.0).chain("out1",1.0,1.0).netId("net").data
 
 
   val inputIds = List("in1")
   val outputIds = List("out1")
 
   @Test def shouldAddNeuron(): Unit ={
-    val netDataInOut = NetBuilder().addInput("in1").chain("out1",1.0,1.0).setName("net").data
+    val netDataInOut = NetBuilder().addInput("in1").chain("out1",1.0,1.0).netId("net").data
     Context.withNeuronsRange(3 to 3)
     Context.withSynapsesDensity(2.5)
     Context.withInputTickMultiplierRange(2.0 <=> 2.0)
@@ -46,7 +46,8 @@ class NetGenomeSuite extends JUnitSuite {
     val middle1Opt = ng.find("net_1")
     assertNotEquals(None, middle1Opt)
 
-    assertTrue(ng.findSynapse("in1","net_1").isDefined || ng.findSynapse("out1","net_1").isDefined)
+    ng.find("in1").get.isConnectedTo("net_1")
+    assertTrue(ng.find("in1").get.isConnectedTo("net_1") || ng.find("out1").get.isConnectedTo("net_1"))
     assertNotEquals(None, ng.findSynapse("net_1","out1"))
   }
 
@@ -240,13 +241,13 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldCrossTwoEvenGenomes(): Unit ={
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
-    b2.netName = "net2"
+    b2.netId = "net2"
     b2.addInput("in1").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
     val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
@@ -256,12 +257,12 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldCrossTwoUnevenGenomes(): Unit ={
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
-    b2.netName = "net2"
+    b2.netId = "net2"
     b2.addInput("in1").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out1",1.0)
     val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
@@ -271,13 +272,13 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldNotCrossGenomesWithoutCommonNeurons(): Unit = {
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
-    b2.netName = "net2"
+    b2.netId = "net2"
     b2.addInput("in1").chain("net2_11",1.0,0.0).chain("net2_12",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).connect("out1",1.0)
     val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
@@ -291,13 +292,13 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldNotCrossGenomesWithDifferentIO(): Unit = {
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
-    b2.netName = "net2"
+    b2.netId = "net2"
     b2.addInput("in2").chain("net2_1",1.0,0.0).chain("net2_2",1.0,0.0).chain("out2",0.5,0.81)
     b2.use("in2").chain("net2_3",1.0,0.0).chain("net2_4",1.0,0.0).connect("out2",1.0)
     val net2G = NetGenome(b2.data, Map("in2" -> MutationAccessInput(), "out2" -> MutationAccessOutput()))
@@ -359,13 +360,13 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldCrossResultInWorkingNet(): Unit ={
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
-    b2.netName = "net2"
+    b2.netId = "net2"
     b2.addInput("in1").chain("net2_11",1.0,0.0).chain("net2_12",1.0,0.0).chain("out1",0.5,0.81)
     b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).connect("out1",1.0)
     val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
@@ -380,13 +381,13 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldCrossResultInWorkingNetWithTrimming(): Unit ={
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
 
     val b2 = NetBuilder()
-    b2.netName = "net2"
+    b2.netId = "net2"
     b2.addInput("in1").chain("net2_12",1.0,0.0)
     b2.use("in1").chain("net2_13",1.0,0.0).chain("net2_14",1.0,0.0).chain("out1",1.0)
     val net2G = NetGenome(b2.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
@@ -401,7 +402,7 @@ class NetGenomeSuite extends JUnitSuite {
 
   @Test def shouldDeleteNeuronFromGenome(): Unit ={
     val b1 = NetBuilder()
-    b1.netName = "net1"
+    b1.netId = "net1"
     b1.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     b1.use("in1").chain("net1_3",1.0,0.0).connect("out1",0.81)
     val net1G = NetGenome(b1.data, Map("in1" -> MutationAccessInput(), "out1" -> MutationAccessOutput()))
@@ -416,7 +417,7 @@ class NetGenomeSuite extends JUnitSuite {
   }
 
   @Test def shouldRename(): Unit ={
-    val data = NetBuilder().addInput("in").chain("mi1").chain("mi2").chain("out").setName("net").data
+    val data = NetBuilder().addInput("in").chain("mi1").chain("mi2").chain("out").netId("net").data
     val genome = NetGenome(data, AccessMap("in","out"))
 
     assertTrue(data.contains("in"))

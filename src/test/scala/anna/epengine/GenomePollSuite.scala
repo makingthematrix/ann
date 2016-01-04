@@ -11,7 +11,7 @@ import org.junit.Assert._
  */
 class GenomePollSuite extends JUnitSuite {
   @Test def shouldMutateWhenCreatingPoll():Unit = {
-    val data = NetBuilder().addInput("in").chain("out",1.0,0.5).setName("simplest").data
+    val data = NetBuilder().addInput("in").chain("out",1.0,0.5).netId("simplest").data
     val accessMap = AccessMap(List("in"),List("out"))
     val mutationsProfile = MutationsProfile(
       "mutateWeight" -> 1.0

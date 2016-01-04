@@ -34,7 +34,7 @@ class StandardEngineSuite extends JUnitSuite {
 
   private lazy val netTemplate = {
     val builder = NetBuilder()
-    builder.netName = "net"
+    builder.netId = "net"
     builder.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     builder.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
     builder.data
@@ -96,7 +96,7 @@ class StandardEngineSuite extends JUnitSuite {
     val outputIds = List("out1")
 
     val builder = NetBuilder()
-    builder.netName = "net"
+    builder.netId = "net"
     builder.addInput("in1").chain("net1_1",1.0,0.0).chain("net1_2",1.0,0.0).chain("out1",0.5,0.81)
     builder.use("in1").chain("net1_3",1.0,0.0).chain("net1_4",1.0,0.0).connect("out1",1.0)
 
