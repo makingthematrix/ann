@@ -15,7 +15,7 @@ import scala.annotation.tailrec
  * Created by gorywoda on 04.01.15.
  */
 
-class NetGenome(var id: String,
+class NetGenome(private var _id: String,
                 var neurons: mutable.ListBuffer[NeuronGenome],
                 val inputs: List[String],
                 var threshold: Double,
@@ -33,7 +33,7 @@ class NetGenome(var id: String,
 
   def findSynapse(from: String, to: String):SynapseGenome = find(from) match {
     case Some(n) => n.getSynapse(to)
-    case None => throw new IllegalArgumentException(s"There is no neuron $from in the net genome $id")
+    case None => throw new IllegalArgumentException(s"There is no neuron $from in the net genome ${_id}")
   }
 
   def isFullAccess(n: NeuronGenome):Boolean = isFullAccess(n.id)
@@ -45,11 +45,13 @@ class NetGenome(var id: String,
   def mutableNeurons = neurons.filter(isMutable).toList
   def notFullAccessNeurons = neurons.filterNot(isFullAccess).toList
 
+  def id = _id
+
   def netId(newNetId: String) = {
     neurons.foreach(_.synapses.foreach(s => if(isFullAccess(s.neuronId)) s.neuronId = replaceNetId(s.neuronId, newNetId)))
     // sequence is important: if we change ids of neurons before changing synapses, we will never know where the synapses lead to
     fullAccessNeurons.foreach(n => { n.id = replaceNetId(n.id, newNetId)})
-    id = newNetId
+    _id = newNetId
     this
   }
 

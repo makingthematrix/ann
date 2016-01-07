@@ -8,7 +8,7 @@ import org.json4s.native.Serialization.{read, writePretty}
  * Created by gorywoda on 13.02.15.
  */
 case class GenomePoll(genomes: List[NetGenome]){
-  def apply(id: String):NetGenome = genomes.find(_.id == id).get
+  def apply(id: String):NetGenome = genomes.find(_.id == id).getOrElse(throw new IllegalArgumentException(s"There is no genome with id $id"))
   def apply(index: Int):NetGenome = genomes(index)
   def size = genomes.size
   def ids = genomes.map(_.id)

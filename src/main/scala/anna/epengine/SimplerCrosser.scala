@@ -22,15 +22,15 @@ class SimplerCrosser(override val poll: GenomePoll, override val results:Map[Str
     val genomesToCross = math.ceil(Context().crossCoefficient * results.size).toInt - 1
     val crossedGenomes = ListBuffer[NetGenome]()
     while(genomesToCross > crossedGenomes.size){
-      val (newG1, newG2) = cross
+      val (newG1, newG2) = cross(iteration, crossedGenomes.size + 1)
       crossedGenomes.append(newG1)
       if(genomesToCross > crossedGenomes.size) crossedGenomes.append(newG2)
     }
 
-    val genomesToClone = results.size - crossedGenomes.size -1
-    val clonedGenomes = if(genomesToClone > 0) {
+    val genomesToClone = results.size - crossedGenomes.size - 1
+    val clonedGenomes = if(genomesToClone > 0) { // not so simple, huh
       rest.zipWithIndex.filterNot(tuple => _crossed.contains(tuple._1.id)).take(genomesToClone).map {
-        case (ng: NetGenome, i: Int) => clone(ng, s"iter${iteration}#${i + 1}Cloned")
+        case (ng: NetGenome, i: Int) => clone(ng, iteration, i + 1)
       }
     } else Nil
 
@@ -40,19 +40,21 @@ class SimplerCrosser(override val poll: GenomePoll, override val results:Map[Str
     List(best) ++ crossedGenomes ++ clonedGenomes
   }
 
-  private def cross:(NetGenome, NetGenome) = {
-    val ng1 = drawGenome
-    val ng2 = drawCrossableGenomeFor(ng1) match {
+  private def cross(iteration: Int, index: Int):(NetGenome, NetGenome) = {
+    val g1 = drawGenome
+    val g2 = drawCrossableGenomeFor(g1) match {
       case Some(genome) => genome
-      case None => ng1 // and then crossing does nothing by definition
+      case None => g1.clone // and then crossing does nothing by definition
     }
-    cross(ng1, ng2)
+    val (ng1, ng2) = cross(g1.clone, g2.clone)
+    ng1.netId(generateNewId(iteration, index, GenomeOrigin.CROSSED, g1, g2))
+    ng2.netId(generateNewId(iteration, index + 1, GenomeOrigin.CROSSED, g1, g2))
+    (ng1, ng2)
   }
 
-  private def clone(genome: NetGenome, newNetId: String) = {
-    debug(this,s"CLONING: genome ${genome.id} as $newNetId")
+  private def clone(genome: NetGenome, iteration: Int, index: Int) = {
     _cloned.add(genome.id)
-    genome.netId(newNetId)
+    genome.netId(generateNewId(iteration, index, GenomeOrigin.CLONED, genome))
   }
 
   private def shuffleNeurons(nlist1: List[NeuronGenome], nlist2: List[NeuronGenome]):List[(NeuronGenome, NeuronGenome)] = {

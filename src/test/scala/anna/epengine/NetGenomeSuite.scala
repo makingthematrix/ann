@@ -433,8 +433,6 @@ class NetGenomeSuite extends JUnitSuite {
     assertTrue(genome.data.contains("newname_mi1"))
     assertTrue(genome.data.contains("newname_mi2"))
     assertTrue(genome.data.contains("out"))
-    assertFalse(genome.data.contains("mi1"))
-    assertFalse(genome.data.contains("mi2"))
 
     genome.netId("newername")
 

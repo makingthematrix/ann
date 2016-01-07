@@ -1,10 +1,16 @@
 package anna.epengine
 
-import anna.logger.LOG._
 import anna.utils.RandomNumber
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+
+object GenomeOrigin extends Enumeration {
+  type GenomeOrigin = Value
+  val CROSSED, CLONED, BEST = Value
+}
+
+import GenomeOrigin._
 
 /**
   * Created by gorywoda on 12/27/15.
@@ -19,6 +25,18 @@ abstract class Crosser(val poll: GenomePoll, val results:Map[String, Double]) {
   def crossed = _crossed.toSet
   protected val _cloned = mutable.Set[String]() // ids of genomes which were cloned during the last call to newGeneration
   def cloned = _cloned.toSet
+
+  // a standard (but not necessary) standard for net genome id is "ng${generation}#${index}#${previous_generation_info}"
+  // where previous_generation_info is:
+  // 1. if the genome was cloned: "${parent_index}Cloned"
+  // 2. if the genome was crossed "${parent1_index}x${parent2_index}Crossed"
+  // 3. if this is the best genome from the previous generation: its full name, together with the generation number
+  def generateNewId(generation: Int, index: Int, origin: GenomeOrigin, ng1: NetGenome, ng2: NetGenome = null) = origin match {
+    case BEST => ng1.id
+    case CLONED => s"ng${generation}#${index}#${Crosser.retrieveIndex(ng1.id)}Cloned"
+    case CROSSED =>
+      s"ng${generation}#${index}#${Crosser.retrieveIndex(ng1.id)}x${Crosser.retrieveIndex(ng2.id)}Crossed"
+  }
 
   protected def drawId = normalizedResults match {
     case None => results.toList(0)._1
@@ -80,4 +98,10 @@ object Crosser {
     case head :: tail => getId(r - head._2, tail)
   }
 
+  val indexRetrievalPattern = "ng\\d+\\#(\\d+).*".r
+
+  def retrieveIndex(netGenomeId: String) = netGenomeId match {
+    case indexRetrievalPattern(index) => index
+    case _ => netGenomeId
+  }
 }
