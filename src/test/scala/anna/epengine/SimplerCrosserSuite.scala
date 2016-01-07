@@ -61,7 +61,7 @@ class SimplerCrosserSuite extends JUnitSuite {
   }
 
   @Test def shouldSwitchCommonNeuronsThreshold(): Unit = {
-    Context.withCrossCoefficient(0.0)
+    Context.withShufflingCoefficient(1.0)
 
     val DATA1_THRESHOLD = 0.0
     val DATA2_THRESHOLD = 1.0
@@ -78,8 +78,26 @@ class SimplerCrosserSuite extends JUnitSuite {
     assertEquals(DATA1_THRESHOLD, new2.data.neuron("mi1").threshold, 0.01)
   }
 
+  @Test def shouldNotSwitchThresholdIfShufflingDisabled(): Unit = {
+    Context.withShufflingCoefficient(0.0)
+
+    val DATA1_THRESHOLD = 0.0
+    val DATA2_THRESHOLD = 1.0
+
+    val data1 = NetBuilder().addInput("in1").chain("mi1",1.0,DATA1_THRESHOLD).chain("out1",0.5,0.81).netId("data1").data
+    val ng1 = NetGenome(data1, accessMap)
+    val data2 = NetBuilder().addInput("in1").chain("mi1",1.0,DATA2_THRESHOLD).chain("out1",0.5,0.81).netId("data2").data
+    val ng2 = NetGenome(data2, accessMap)
+
+    val crosser = Crosser(SimplerCrosser.ID, GenomePoll(Nil), Map())
+    val (new1, new2) = crosser.cross(ng1, ng2)
+
+    assertEquals(DATA1_THRESHOLD, new1.data.neuron("mi1").threshold, 0.01)
+    assertEquals(DATA2_THRESHOLD, new2.data.neuron("mi1").threshold, 0.01)
+  }
+
   @Test def shouldSwitchCommonNeuronsSynapse(): Unit = {
-    Context.withCrossCoefficient(0.0)
+    Context.withShufflingCoefficient(1.0)
 
     val DATA1_WEIGHT = Hush()
     val DATA2_WEIGHT = SynapseWeight(1.0)
@@ -99,10 +117,12 @@ class SimplerCrosserSuite extends JUnitSuite {
     assertEquals(DATA1_WEIGHT, ng2.findSynapse("mi1","out1").weight)
   }
 
+  case class Data(id: String, t: Double, result: Double)
+
   @Test def shouldCrossOnlyTwoBestOnes(): Unit = {
     Context.withCrossCoefficient(1.0)
+    Context.withShufflingCoefficient(1.0)
 
-    case class Data(id: String, t: Double, result: Double)
     val T1 = Data("ng1", 0.1, 1.0)
     val T2 = Data("ng2", 0.2, 0.9)
     val T3 = Data("ng3", 0.3, 0.0)

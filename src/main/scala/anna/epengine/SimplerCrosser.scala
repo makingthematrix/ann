@@ -7,6 +7,7 @@ import anna.utils.RandomNumber
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 /**
   * Created by gorywoda on 12/27/15.
@@ -106,16 +107,22 @@ class SimplerCrosser(override val poll: GenomePoll, override val results:Map[Str
     })
   }
 
-  override def cross(g1: NetGenome, g2: NetGenome):(NetGenome, NetGenome) = {
-    debug(this, s"CROSSING: ${g1.id} with ${g2.id}")
-    val commonIds = g1.fullAccessNeurons.map(n => NetData.removeNetId(n.id)).toSet.intersect(g2.fullAccessNeurons.map(n => NetData.removeNetId(n.id)).toSet)
-    _crossed.add(g1.id)
-    _crossed.add(g2.id)
-    val commonG1Neurons = g1.neurons.filter(n => commonIds.contains(NetData.removeNetId(n.id))).toList
-    val commonG2Neurons = g2.neurons.filter(n => commonIds.contains(NetData.removeNetId(n.id))).toList
+  // this method works on ng1 and ng2 - not on their clones - so in fact there is no need for returning them
+  // but if I try to make clones of them ( val (nng1, nng2) = (ng1.clone, ng2.clone) ) then
+  // SimplerCrosserSuite.shouldSwitchCommonNeuronsSynapse fails. Don't know why.
+  override def cross(ng1: NetGenome, ng2: NetGenome):(NetGenome, NetGenome) = {
+    debug(this, s"CROSSING: ${ng1.id} with ${ng2.id}")
+    _crossed.add(ng1.id)
+    _crossed.add(ng2.id)
+
+    val allCommonIds = ng1.fullAccessNeurons.map(n => NetData.removeNetId(n.id)).toSet.intersect(ng2.fullAccessNeurons.map(n => NetData.removeNetId(n.id)).toSet)
+    val commonIds = Random.shuffle(allCommonIds).take(math.round(allCommonIds.size * Context().shufflingCoefficient).toInt)
+
+    val commonG1Neurons = ng1.neurons.filter(n => commonIds.contains(NetData.removeNetId(n.id))).toList
+    val commonG2Neurons = ng2.neurons.filter(n => commonIds.contains(NetData.removeNetId(n.id))).toList
     val shuffled = shuffleNeurons(commonG1Neurons, commonG2Neurons)
     shuffled.foreach(tuple => switchData(tuple._1, tuple._2))
-    (g1, g2)
+    (ng1, ng2)
   }
 }
 

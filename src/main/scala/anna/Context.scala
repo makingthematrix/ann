@@ -79,7 +79,8 @@ case class EngineDefaults(
   mutationProbability: Probability,
   mutationsPerGenome: IntRange,
   evolutionDir: String,
-  crossCoefficient: Probability // this is not a probability, but the rules are the same
+  crossCoefficient: Probability, // this is not a probability, but the rules are the same
+  shufflingCoefficient: Probability // this too
 ){
   def toJson = writePretty(this)
 }
@@ -134,6 +135,7 @@ case class Context(
   def mutationsPerGenome = engineDefaults.mutationsPerGenome
   def evolutionDir = engineDefaults.evolutionDir
   def crossCoefficient = engineDefaults.crossCoefficient
+  def shufflingCoefficient = engineDefaults.shufflingCoefficient
 
   def slope = neuronDefaults.slope
   def threshold = neuronDefaults.threshold
@@ -218,7 +220,9 @@ object Context {
     set(apply().copy(engineDefaults = that.engineDefaults.copy(evolutionDir = evolutionDir)))
   def withCrossCoefficient(crossCoefficient: Double) =
     set(apply().copy(engineDefaults = that.engineDefaults.copy(crossCoefficient = crossCoefficient)))
-  
+  def withShufflingCoefficient(shufflingCoefficient: Double) =
+    set(apply().copy(engineDefaults = that.engineDefaults.copy(shufflingCoefficient = shufflingCoefficient)))
+
   def withWeightRange(weightRange: DoubleRange) =
     set(apply().copy(synapseGenomeDefaults = that.synapseGenomeDefaults.copy(weightRange = weightRange)))
   def withHushProbability(hushProbability: Probability) =
@@ -322,6 +326,7 @@ object Context {
   val _mutationspergenometo = "mutationsPerGenome.to"
   val _evolutiondir = "evolutionDir"
   val _crosscoefficient = "crossCoefficient"
+  val _shufflingcoefficient = "shufflingCoefficient"
   val _neurondefaults = "neuronDefaults"
   val _defaultslope = "defaultSlope"
   val _defaultthreshold = "defaultThreshold"
@@ -400,10 +405,11 @@ object Context {
     val mutationsPerGenome = engineRoot.getInt(_mutationspergenomefrom) to engineRoot.getInt(_mutationspergenometo)
     val evolutionDir = engineRoot.getString(_evolutiondir)
     val crossCoefficient = engineRoot.getDouble(_crosscoefficient)
+    val shufflingCoefficient = engineRoot.getDouble(_shufflingcoefficient)
 
     val engineDefaults = EngineDefaults(
       initialMutationsNumber, genomePollSize, exercisesSetDir, mutationProbability,
-      mutationsPerGenome, evolutionDir, crossCoefficient
+      mutationsPerGenome, evolutionDir, crossCoefficient, shufflingCoefficient
     )
 
     // neuron defaults
@@ -529,6 +535,7 @@ object Context {
   def set(name: String, d: Double):Unit = name match {
     case `_mutationprobability` => withMutationProbability(d)
     case `_crosscoefficient` => withCrossCoefficient(d)
+    case `_shufflingcoefficient` => withShufflingCoefficient(d)
     case `_defaultslope` => withSlope(d)
     case `_defaultthreshold` => withThreshold(d)
     case `_defaultweight` => withWeight(SynapseWeight(d))
