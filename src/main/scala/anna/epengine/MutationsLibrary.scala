@@ -74,6 +74,18 @@ object MutationsLibrary {
     throw new IllegalArgumentException(s"There is already a mutation with the name $name in the MutationsLibrary")
   } else mutationsMap += (name -> mutation)
 
+  add("addFireWithDelay", (net: NetGenome) => {
+
+  })
+
+  add("deleteFireWithDelay", (net: NetGenome) => {
+
+  })
+
+  add("modifyFireWithDelay", (net: NetGenome) => {
+
+  })
+
   add("addNeuron", (net: NetGenome) => {
     val newId = NetData.neuronId(net.id, net.findFirstFreeId())
     debug(s"MUTATION: addNeuron to ${net.id} -> the new neuron's id is $newId")
@@ -91,6 +103,7 @@ object MutationsLibrary {
     net.addNeuron(newNG)
   })
 
+  // @todo: make it smarter - reconnect the synapses to one of neurons the deleted one sent signals to
   add("deleteNeuron", (net: NetGenome) => chooseNeuron(net, true) match {
     case Some(n) =>
       debug(s"MUTATION: deleteNeuron from ${net.id} -> the deleted neuron's id is ${n.id}")

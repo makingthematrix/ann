@@ -132,8 +132,8 @@ class NetGenome(private var _id: String,
 
     // 4. create genomes with switch neurons
     val allVariables = fullAccessN1 ++ fullAccessN2
-    val leftGenome = NetGenome.breed(this, allVariables.filter( n => leftIds.contains(n.id)).toList)
-    val rightGenome = NetGenome.breed(genome, allVariables.filter( n => rightIds.contains(n.id)).toList)
+    val leftGenome = NetGenome.breed(this, allVariables.filter( n => leftIds.contains(n.id)))
+    val rightGenome = NetGenome.breed(genome, allVariables.filter( n => rightIds.contains(n.id)))
     (leftGenome, rightGenome)
   } else (clone, genome.clone)
 
@@ -143,6 +143,10 @@ class NetGenome(private var _id: String,
 
   def addNeuron(n: NeuronGenome): Unit = {
     neurons += n
+  }
+
+  def addData(data: NetData): Unit = {
+    neurons ++= data.neurons.map(NeuronGenome(_))
   }
 
   @tailrec

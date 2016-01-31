@@ -1,5 +1,6 @@
 package anna.async
 
+import anna.data.NetData
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{After, Before}
@@ -29,6 +30,11 @@ class MySuite extends JUnitSuite {
   }
   
   protected def build() = {
+    _netWrapper = _builder.build("net")
+  }
+
+  protected def build(data: NetData) = {
+    _builder.set(data)
     _netWrapper = _builder.build("net")
   }
 

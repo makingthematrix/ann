@@ -1,7 +1,6 @@
 package anna.async
 
 import anna.data._
-import anna.epengine.NetGenome
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
@@ -135,6 +134,14 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
                .use("line").connect("S",0.5)
                .netId(name).data
 
+  }
+
+  def fireWithDelay(blockName: String, delay: Double) = {
+    val coeff = delay * builder.inputTickMultiplier * 1.55 // a magic number to counteract inherent delays in sending and receiving messages
+    builder.chain(s"${blockName}_in", 1.0, 0.0, HushValue(coeff.toInt)).hush(s"${blockName}_in")
+      .chain(s"${blockName}_mi", 1.0, 0.01).connect(s"${blockName}_mi", 1.0)
+      .chain(s"${blockName}_out", 0.9/coeff, 0.9)
+      .hush(s"${blockName}_mi").hush(s"${blockName}_out")
   }
 }
 
