@@ -16,6 +16,15 @@ import anna.logger.LOG._
 
 import scala.concurrent.duration._
 
+case class FireWithDelayDefaults(
+  addProbability: Probability,
+  deleteProbability: Probability,
+  modifyProbability: Probability,
+  delayRange: IntRange
+){
+  def toJson = writePretty(this)
+}
+
 case class NeuronDefaults(
   slope: Double,
   threshold: Double,
@@ -106,7 +115,8 @@ case class Context(
   synapseGenomeDefaults: SynapseGenomeDefaults,
   neuronGenomeDefaults: NeuronGenomeDefaults,
   netGenomeDefaults: NetGenomeDefaults,
-  dotLineExercisesDefaults: DotLineExercisesDefaults
+  dotLineExercisesDefaults: DotLineExercisesDefaults,
+  fireWithDelayDefaults: FireWithDelayDefaults
 ){
   def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
 
@@ -186,6 +196,11 @@ case class Context(
   def twoVariedSignalsGiveLineImportance = dotLineExercisesDefaults.twoVariedSignalsGiveLineImportance
   def oneVariedSignalWithNoiseGivesDotImportance = dotLineExercisesDefaults.oneVariedSignalWithNoiseGivesDotImportance
   def twoVariedSignalsWithNoiseGiveLineImportance = dotLineExercisesDefaults.twoVariedSignalsWithNoiseGiveLineImportance
+
+  def fwdAddProbability = fireWithDelayDefaults.addProbability
+  def fwdDeleteProbability = fireWithDelayDefaults.deleteProbability
+  def fwdModifyProbability = fireWithDelayDefaults.modifyProbability
+  def fwdDelayRange = fireWithDelayDefaults.delayRange
 }
 
 object Context {
@@ -204,7 +219,7 @@ object Context {
     instance = None
   }
 
-  private def that = instance.get
+  private final def that = instance.get
 
   def withInitialMutationsNumber(initialMutationsNumber: Int) =
     set(apply().copy(engineDefaults = that.engineDefaults.copy(initialMutationsNumber = initialMutationsNumber)))
@@ -315,6 +330,15 @@ object Context {
   def withTwoVariedSignalsWithNoiseGiveLineImportance(twoVariedSignalsWithNoiseGiveLineImportance: Double) =
     set(apply().copy(dotLineExercisesDefaults = that.dotLineExercisesDefaults.copy(twoVariedSignalsWithNoiseGiveLineImportance = twoVariedSignalsWithNoiseGiveLineImportance)))
 
+  def withFwdAddProbability(addProbability: Probability) =
+    set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(addProbability = addProbability)))
+  def withFwdDeleteProbability(deleteProbability: Probability) =
+    set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(deleteProbability = deleteProbability)))
+  def withFwdModifyProbability(modifyProbability: Probability) =
+    set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(modifyProbability = modifyProbability)))
+  def withFwdDelayRange(delayRange: IntRange) =
+    set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(delayRange = delayRange)))
+
   val _awaittimeout = "awaitTimeout"
   val _enginedefaults = "engineDefaults"
   val _initialmutationsnumber = "initialMutationsNumber"
@@ -390,6 +414,13 @@ object Context {
   val _twovariedsignalsgivelineimportance = "twoVariedSignalsGiveLineImportance"
   val _onevariedsignalwithnoisegivesdotimportance = "oneVariedSignalWithNoiseGivesDotImportance"
   val _twovariedsignalswithnoisegivelineimportance = "twoVariedSignalsWithNoiseGiveLineImportance"
+  val _fwddefaults = "fwdDefaults"
+  val _fwdaddprobability = "fwdAddProbability"
+  val _fwddeleteprobability = "fwdDeleteProbability"
+  val _fwdmodifyprobability = "fwdModifyProbability"
+  val _fwddelayrange = "fwdDelayRange"
+  val _fwddelayrangefrom = "fwdDelayRange.from"
+  val _fwddelayrangeto = "fwdDelayRange.to"
 
   private def init(): Unit ={
     val config = ConfigFactory.load()
@@ -506,8 +537,18 @@ object Context {
       twoVariedSignalsWithNoiseGiveLineImportance
     )
 
+    // fire with delay block defaults
+    val fwdRoot = root.getConfig(_fwddefaults)
+
+    val fwdAddProbability = fwdRoot.getDouble(_fwdaddprobability)
+    val fwdDeleteProbability = fwdRoot.getDouble(_fwddeleteprobability)
+    val fwdModifyProbability = fwdRoot.getDouble(_fwdmodifyprobability)
+    val fwdDelayRange = fwdRoot.getInt(_fwddelayrangefrom) to fwdRoot.getInt(_fwddelayrangeto)
+
+    val fwdDefaults = FireWithDelayDefaults(fwdAddProbability, fwdDeleteProbability, fwdModifyProbability, fwdDelayRange)
+
     set(Context(awaitTimeout, engineDefaults, neuronDefaults, synapseGenomeDefaults,
-                neuronGenomeDefaults, netGenomeDefaults, dotLineExercisesDefaults
+                neuronGenomeDefaults, netGenomeDefaults, dotLineExercisesDefaults, fwdDefaults
     ))
   }
 
@@ -518,6 +559,7 @@ object Context {
     case `_hushrange` => withHushRange(r)
     case `_neuronsrange` => withNeuronsRange(r)
     case `_mutationspergenome` => withMutationsPerGenome(r)
+    case `_fwddelayrange` => withFwdDelayRange(r)
   }
 
   def set(name: String, r: DoubleRange):Unit = name match {
@@ -567,6 +609,9 @@ object Context {
     case `_twovariedsignalswithnoisegivelineimportance` => withTwoVariedSignalsWithNoiseGiveLineImportance(d)
     case `_genomepollsize` => withGenomePollSize(d.toInt)
     case `_defaulthushvalue` => withHushValue(HushValue(d.toInt))
+    case `_fwdaddprobability` => withFwdAddProbability(d)
+    case `_fwddeleteprobability` => withFwdDeleteProbability(d)
+    case `_fwdmodifyprobability` => withFwdModifyProbability(d)
   }
 
   def set(map: Map[String,Any]):Unit = map.foreach(tuple =>

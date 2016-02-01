@@ -74,8 +74,24 @@ object MutationsLibrary {
     throw new IllegalArgumentException(s"There is already a mutation with the name $name in the MutationsLibrary")
   } else mutationsMap += (name -> mutation)
 
-  add("addFireWithDelay", (net: NetGenome) => {
+  // ---
 
+  private var firstFreeFWDId = 1
+  private val fwdBlockName = "FireWithDelay"
+
+  add("addFireWithDelay", (net: NetGenome) => {
+    val name = s"${fwdBlockName}${firstFreeFWDId}"
+    val delay = RandomNumber(Context().fwdDelayRange)
+
+    val block = FireWithDelayBlock(name, delay, net.inputTickMultiplier, net.slope)
+    net.addData(block.data)
+
+    val inFrom = RandomNumber(net.neurons)
+    inFrom.connect(net.find(block.inputId).get)
+    val outTo = RandomNumber(net.fullAccessNeurons)
+    net.find(block.outputId).get.connect(outTo)
+    val inHush = RandomNumber(net.neurons - inFrom)
+    inHush.connect(net.find(block.hushId).get)
   })
 
   add("deleteFireWithDelay", (net: NetGenome) => {
@@ -85,6 +101,8 @@ object MutationsLibrary {
   add("modifyFireWithDelay", (net: NetGenome) => {
 
   })
+
+  // ---
 
   add("addNeuron", (net: NetGenome) => {
     val newId = NetData.neuronId(net.id, net.findFirstFreeId())

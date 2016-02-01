@@ -17,10 +17,10 @@ case class FireWithDelayBlock(name: String, delay: Double, inputTickMultiplier: 
 
   def chain(builder: NetBuilder) = {
     val coeff = delay * builder.inputTickMultiplier * 1.55 // a magic number to counteract inherent delays in sending and receiving messages
-    builder.chain(inputId, 1.0, 0.0, HushValue(coeff.toInt)).hush(s"${name}_in")
+    builder.chain(inputId, 1.0, 0.0, HushValue(coeff.toInt)).hush(inputId)
       .chain(s"${name}_mi", 1.0, 0.01).connect(s"${name}_mi", 1.0)
       .chain(outputId, 0.9/coeff, 0.9)
-      .chainHushNeuron(hushId).hush(s"${name}_in").hush(s"${name}_mi").hush(s"${name}_out")
+      .chainHushNeuron(hushId).hush(inputId).hush(s"${name}_mi").hush(outputId)
   }
 
   val inputId = s"${name}_in"
