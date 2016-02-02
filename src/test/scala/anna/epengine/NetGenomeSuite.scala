@@ -21,8 +21,6 @@ class NetGenomeSuite extends JUnitSuite {
   }
 
   val netData = NetBuilder().addInput("in1").chain("mi",1.0,1.0).chain("out1",1.0,1.0).netId("net").data
-
-
   val inputIds = List("in1")
   val outputIds = List("out1")
 

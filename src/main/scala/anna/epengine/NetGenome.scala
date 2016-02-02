@@ -36,6 +36,19 @@ class NetGenome(private var _id: String,
     case None => throw new IllegalArgumentException(s"There is no neuron $from in the net genome ${_id}")
   }
 
+  def isConnected(from: String, to: String) = find(from) match {
+    case Some(n) => n.isConnectedTo(to)
+    case None => false
+  }
+
+  def synapses = neurons.flatMap(_.synapses).toList // mainly for debug purposes
+
+  def findIdsConnectedTo(neuronId: String) = neurons.filter(_.isConnectedTo(neuronId)).map(_.id).toList
+
+  def connect(from: String, to: String) =
+    if(!isConnected(from, to)) find(from).get.connect(find(to).get)
+    else throw new IllegalArgumentException(s"Neurons $from and $to are already connected")
+
   def isFullAccess(n: NeuronGenome):Boolean = isFullAccess(n.id)
   def isFullAccess(nid: String):Boolean = accessMap.getOrElse(nid, MutationAccessFull()) == MutationAccessFull()
   def isMutable(n: NeuronGenome):Boolean = isMutable(n.id)
@@ -166,7 +179,6 @@ class NetGenome(private var _id: String,
   override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, slope, hushValue, forgetting,
                                      tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName, accessMap)
 
-  def synapses = neurons.flatMap(_.synapses).toList // mainly for debug purposes
 }
 
 object NetGenome {

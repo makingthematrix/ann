@@ -1,10 +1,10 @@
-package anna.async
+package anna.epengine
 
 import anna.async.NetBuilderOps._
-import anna.data.{FireWithDelayBlock, HushValue}
-import anna.logger.LOG.debug
-import org.junit.Test
+import anna.async.{MySuite, NetBuilder}
+import anna.data.HushValue
 import org.junit.Assert._
+import org.junit.Test
 
 
 /**
@@ -17,7 +17,7 @@ class FireWithDelaySuite extends MySuite {
     builder.defSlope = defSlope
     val coeff = delay * inputTickMultiplier * 1.55 // a magic number to counteract inherent delays in sending and receiving messages
     builder.addInput("in").chain("mi11", 1.0, 0.0, HushValue(coeff.toInt)).hush("mi11")
-      .chain("mi12", 1.0, 0.01).connect("mi12",1.0)//.loop("loop", 1.0, 0.0, 1.0)
+      .chain("mi12", 1.0, 0.01).connect("mi12",1.0)
       .chain("dot", 0.9/coeff, 0.9)
       .hush("mi12").hush("dot")
       .data
@@ -74,14 +74,12 @@ class FireWithDelaySuite extends MySuite {
     shutdown()
   }
 
-  private def fireWithBlock(blockName: String, delay: Double, inputTickMultiplier: Double = 3.0, defSlope: Double = 5.0) = {
-    FireWithDelayBlock(blockName, delay, inputTickMultiplier, defSlope)
+  private def fireWithBlock(blockName: String, delay: Double, inputTickMultiplier: Double = 3.0) = {
     val builder = NetBuilder()
     builder.inputTickMultiplier = inputTickMultiplier
-    builder.defSlope = defSlope
     builder.addInput("in")
 
-    val block = FireWithDelayBlock(blockName, delay)
+    val block = FireWithDelayBlock(blockName, delay, inputTickMultiplier)
     block.chain(builder)
     (builder.data, block.outputId)
   }
@@ -110,5 +108,68 @@ class FireWithDelaySuite extends MySuite {
     netWrapper.addAfterFire(outputId0)( (_:Double)=>{ assertEquals(0, netWrapper.iteration) } )
     netWrapper.tickUntilCalm("1")
     shutdown()
+  }
+
+  @Test def shouldAddFWDBlock(): Unit = {
+    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,1.0).netId("net").data
+
+    val ng = NetGenome(netDataInOut, AccessMap(List("in"), List("out")))
+    assertEquals(2, ng.data.neurons.size)
+    assertNotEquals(None, ng.find("in"))
+    assertNotEquals(None, ng.find("out"))
+
+    MutationsProfile(
+      "addFireWithDelay" -> 1.0
+    ).mutate(ng)
+
+    assertEquals(2 + FireWithDelayBlock.neuronsInBlock, ng.neurons.size)
+    val blockNames = FireWithDelayBlock.blocksInGenome(ng)
+    assertEquals(1, blockNames.size)
+    val blockName = blockNames.head
+
+    val inputId = FireWithDelayBlock.inputId(blockName)
+    assertNotEquals(None, ng.find(inputId))
+    val ins = ng.findIdsConnectedTo(inputId)
+    assertTrue(ins.contains("in") || ins.contains("out"))
+    assertFalse(ins.contains("in") && ins.contains("out"))
+
+    val outputId = FireWithDelayBlock.outputId(blockName)
+    val outputNeuronOpt = ng.find(outputId)
+    assertNotEquals(None, ng.find(outputId))
+    val outputNeuron = outputNeuronOpt.get
+    assertTrue(outputNeuron.isConnectedTo("out"))
+
+    val hushId = FireWithDelayBlock.hushId(blockName)
+    assertNotEquals(None, ng.find(hushId))
+    val hushes = ng.findIdsConnectedTo(hushId)
+    assertTrue(hushes.contains("in") || hushes.contains("out"))
+    assertFalse(hushes.contains("in") && hushes.contains("out"))
+  }
+
+  @Test def shouldDeleteFWDBlock(): Unit = {
+    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,1.0).netId("net").data
+
+    val ng = NetGenome(netDataInOut, AccessMap(List("in"), List("out")))
+    assertEquals(2, ng.data.neurons.size)
+    assertNotEquals(None, ng.find("in"))
+    assertNotEquals(None, ng.find("out"))
+
+    MutationsProfile(
+      "addFireWithDelay" -> 1.0
+    ).mutate(ng)
+
+    assertEquals(2 + FireWithDelayBlock.neuronsInBlock, ng.neurons.size)
+    val blockNames = FireWithDelayBlock.blocksInGenome(ng)
+    assertEquals(1, blockNames.size)
+
+    MutationsProfile(
+      "deleteFireWithDelay" -> 1.0
+    ).mutate(ng)
+
+    assertEquals(2, ng.data.neurons.size)
+    assertNotEquals(None, ng.find("in"))
+    val in = ng.find("in").get
+    assertNotEquals(None, ng.find("out"))
+    assertTrue(in.isConnectedTo("out"))
   }
 }

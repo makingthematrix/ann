@@ -76,26 +76,42 @@ object MutationsLibrary {
 
   // ---
 
-  private var firstFreeFWDId = 1
-  private val fwdBlockName = "FireWithDelay"
+  add("addFireWithDelay", (net: NetGenome) => if(net.neurons.size >= 2 && net.mutableNeurons.size >= 1){
+    // requirements: at least two neurons in the net and at least one of them full access mutable
 
-  add("addFireWithDelay", (net: NetGenome) => {
-    val name = s"${fwdBlockName}${firstFreeFWDId}"
-    val delay = RandomNumber(Context().fwdDelayRange)
-
-    val block = FireWithDelayBlock(name, delay, net.inputTickMultiplier, net.slope)
-    net.addData(block.data)
+    val block = FireWithDelayBlock(RandomNumber(Context().fwdDelayRange), net.inputTickMultiplier)
+    debug(s"MUTATION: addFireWithDelay to ${net.id} -> the delay is ${block.delay}")
 
     val inFrom = RandomNumber(net.neurons)
-    inFrom.connect(net.find(block.inputId).get)
-    val outTo = RandomNumber(net.fullAccessNeurons)
-    net.find(block.outputId).get.connect(outTo)
+    val outTo = RandomNumber(net.mutableNeurons)
     val inHush = RandomNumber(net.neurons - inFrom)
+
+    net.addData(block.data)
+
+    inFrom.connect(net.find(block.inputId).get)
+    net.find(block.outputId).get.connect(outTo)
     inHush.connect(net.find(block.hushId).get)
   })
 
   add("deleteFireWithDelay", (net: NetGenome) => {
+    val blockNames = FireWithDelayBlock.blocksInGenome(net)
+    if(blockNames.nonEmpty) {
+      val chosenBlockName = RandomNumber(blockNames)
+      debug(s"MUTATION: deleteFireWithDelay with ${net.id} -> removing block $chosenBlockName")
 
+      val blockNeuronIds = net.fullAccessNeurons.map(_.id).filter(_.contains(chosenBlockName))
+      val inFromIds = net.findIdsConnectedTo(FireWithDelayBlock.inputId(chosenBlockName)).filterNot(_.contains(chosenBlockName))
+      val outToIds = (net.find(FireWithDelayBlock.outputId(chosenBlockName)) match {
+        case Some(n) => n.synapses.map(_.neuronId)
+        case None => Nil
+      }).toList.filterNot(_.contains(chosenBlockName))
+
+      blockNeuronIds.foreach(net.deleteNeuron)
+      blockNeuronIds.foreach(net.deleteSynapsesTo)
+      inFromIds.zip(outToIds).foreach {
+        case (inId, outId) => if (inId != outId && !net.isConnected(inId, outId)) net.connect(inId, outId)
+      }
+    }
   })
 
   add("modifyFireWithDelay", (net: NetGenome) => {

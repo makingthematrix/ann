@@ -53,6 +53,8 @@ class NetBuilder {
     case None => throw new IllegalArgumentException("There is no current neuron id set")
   }
 
+  def isCurrent = currentNeuronId != None
+
   def chain(id: String, weight: SynapseTrait, threshold: Double, slope: Double,
             hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplier: Double) = {
     val n1 = current

@@ -40,6 +40,8 @@ case class NetData(id: String,
     case None => None
   }
 
+  def findIdsConnectedTo(neuronId: String) = neurons.filter(_.synapses.map(_.neuronId).contains(neuronId)).map(_.id)
+
   def toJson = writePretty(this)
 
   def filter(ids: Seq[String]) = {

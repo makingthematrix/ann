@@ -414,13 +414,13 @@ object Context {
   val _twovariedsignalsgivelineimportance = "twoVariedSignalsGiveLineImportance"
   val _onevariedsignalwithnoisegivesdotimportance = "oneVariedSignalWithNoiseGivesDotImportance"
   val _twovariedsignalswithnoisegivelineimportance = "twoVariedSignalsWithNoiseGiveLineImportance"
-  val _fwddefaults = "fwdDefaults"
-  val _fwdaddprobability = "fwdAddProbability"
-  val _fwddeleteprobability = "fwdDeleteProbability"
-  val _fwdmodifyprobability = "fwdModifyProbability"
-  val _fwddelayrange = "fwdDelayRange"
-  val _fwddelayrangefrom = "fwdDelayRange.from"
-  val _fwddelayrangeto = "fwdDelayRange.to"
+  val _fwddefaults = "fireWithDelayDefaults"
+  val _fwdaddprobability = "addProbability"
+  val _fwddeleteprobability = "deleteProbability"
+  val _fwdmodifyprobability = "modifyProbability"
+  val _fwddelayrange = "delayRange"
+  val _fwddelayrangefrom = "delayRange.from"
+  val _fwddelayrangeto = "delayRange.to"
 
   private def init(): Unit ={
     val config = ConfigFactory.load()
