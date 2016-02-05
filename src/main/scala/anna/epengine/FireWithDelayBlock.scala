@@ -50,15 +50,9 @@ object FireWithDelayBlock {
   def outputId(name: String) = s"${name}out"
   def hushId(name: String) = s"${name}hush"
 
-  def blocksInGenome(gen: NetGenome):Set[String] = {
-    val blockNeuronIds = gen.neurons.map(_.id).filter(_.contains(blockNamePrefix))
-
-    val blockNumbers: Set[Int] = blockNeuronIds.map {
-      case nameRegex(number) => number.toInt
-      case _ => 0
-    }.toSet
-
-    blockNumbers.filterNot(_ == 0).map(n => s"${blockNamePrefix}#${n}#")
-  }
+  def blocksInGenome(gen: NetGenome) = gen.neurons.flatMap( _.id match {
+    case nameRegex(number) => Some(number.toInt)
+    case _ => None
+  }).toSet[Int].map(n => s"${blockNamePrefix}#${n}#") // @todo: why toSet[Int] works, but toSet does not
 
 }

@@ -14,4 +14,5 @@ Artificial Neural Networks in Akka
   - Voice or music recognition; a network constructed to recognize a characteristic fragment of a melody can then be used to search for covers and plagiarisms.
   - Making quick decisions in a real-world situations with incomplete data received not as one big chunk, but constantly through time; eg. a drone being able to avoid an approaching object during the flight without having to pass the warning to the controller and waiting for the answer.
   - Convincing one of AI research facilities in the world to work with me on this, or similar projects.
-  
+
+If you want to look at only one class in this project  then it's probably [this one](https://github.com/makingthematrix/ann/blob/simplerMutations/src/main/scala/anna/async/Neuron.scala).
