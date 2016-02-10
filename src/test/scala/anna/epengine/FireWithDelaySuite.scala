@@ -37,7 +37,7 @@ class FireWithDelaySuite extends MySuite {
       .hush("mi12").hush("dot")
       .data
   }
-/*
+
   @Test def shouldResultInLongerDelays(): Unit = {
     build(fireWithDelayData(3.0))
     netWrapper.addAfterFire("dot")( (_:Double)=>{ assertEquals(3, netWrapper.iteration) } )
@@ -171,7 +171,7 @@ class FireWithDelaySuite extends MySuite {
     val in = ng.find("in").get
     assertNotEquals(None, ng.find("out"))
     assertTrue(in.isConnectedTo("out"))
-  }*/
+  }
 
   private def prepareFireWithDelayNet(delay: Int) = {
     val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,0.0).netId("net").data
