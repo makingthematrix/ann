@@ -338,6 +338,8 @@ object Context {
     set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(modifyProbability = modifyProbability)))
   def withFwdDelayRange(delayRange: IntRange) =
     set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(delayRange = delayRange)))
+  def withFwdDelay(delay: Int) =
+    set(apply().copy(fireWithDelayDefaults = that.fireWithDelayDefaults.copy(delayRange = delay to delay)))
 
   val _awaittimeout = "awaitTimeout"
   val _enginedefaults = "engineDefaults"

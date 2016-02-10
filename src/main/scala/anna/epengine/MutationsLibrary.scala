@@ -74,6 +74,8 @@ object MutationsLibrary {
     throw new IllegalArgumentException(s"There is already a mutation with the name $name in the MutationsLibrary")
   } else mutationsMap += (name -> mutation)
 
+  def mutate(genome: NetGenome, mutationName: String) = mutationsMap(mutationName)(genome)
+
   // ---
 
   add("addFireWithDelay", (net: NetGenome) => if(net.neurons.size >= 2 && net.mutableNeurons.size >= 1){

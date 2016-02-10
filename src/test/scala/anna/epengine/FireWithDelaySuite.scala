@@ -1,16 +1,31 @@
 package anna.epengine
 
+import anna.Context
 import anna.async.NetBuilderOps._
 import anna.async.{MySuite, NetBuilder}
-import anna.data.HushValue
+import anna.data.{SynapseWeight, HushValue}
+import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
+import org.junit.{After, Before, Test}
 
 
 /**
   * Created by gorywoda on 1/31/16.
   */
 class FireWithDelaySuite extends MySuite {
+  private var _oldContext:Context = _
+
+  @Before override def before() {
+    super.before()
+    _oldContext = Context()
+    LOG.addLogToStdout()
+  }
+
+  @After override def after(): Unit ={
+    super.after()
+    Context.set(_oldContext)
+  }
+
   private def fireWithDelayData(delay: Double, inputTickMultiplier: Double = 3.0, defSlope: Double = 5.0) = {
     val builder = NetBuilder()
     builder.inputTickMultiplier = inputTickMultiplier
@@ -22,7 +37,7 @@ class FireWithDelaySuite extends MySuite {
       .hush("mi12").hush("dot")
       .data
   }
-
+/*
   @Test def shouldResultInLongerDelays(): Unit = {
     build(fireWithDelayData(3.0))
     netWrapper.addAfterFire("dot")( (_:Double)=>{ assertEquals(3, netWrapper.iteration) } )
@@ -84,43 +99,32 @@ class FireWithDelaySuite extends MySuite {
     (builder.data, block.outputId)
   }
 
+  private def shouldFireWithBlock(expectedDelay: Int) = {
+    val (block, outputId) = fireWithBlock("fireWithDelay", expectedDelay)
+    build(block)
+    var fired = false
+    netWrapper.addAfterFire(outputId)( (_:Double)=>{ assertEquals(expectedDelay, netWrapper.iteration); fired = true } )
+    netWrapper.tickUntilCalm("1")
+    shutdown()
+    assertTrue(fired)
+  }
+
   @Test def shouldFireWithBlock(): Unit = {
-    val (block3, outputId3) = fireWithBlock("fireWithDelay",3.0)
-    build(block3)
-    netWrapper.addAfterFire(outputId3)( (_:Double)=>{ assertEquals(3, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    val (block2, outputId2) = fireWithBlock("fireWithDelay",2.0)
-    build(block2)
-    netWrapper.addAfterFire(outputId2)( (_:Double)=>{ assertEquals(2, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    val (block1, outputId1) = fireWithBlock("fireWithDelay",1.0)
-    build(block1)
-    netWrapper.addAfterFire(outputId1)( (_:Double)=>{ assertEquals(1, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    val (block0, outputId0) = fireWithBlock("fireWithDelay",0.0)
-    build(block0)
-    netWrapper.addAfterFire(outputId0)( (_:Double)=>{ assertEquals(0, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
+    shouldFireWithBlock(3)
+    shouldFireWithBlock(2)
+    shouldFireWithBlock(1)
+    shouldFireWithBlock(0)
   }
 
   @Test def shouldAddFWDBlock(): Unit = {
-    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,1.0).netId("net").data
+    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,0.0).netId("net").data
 
     val ng = NetGenome(netDataInOut, AccessMap(List("in"), List("out")))
     assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in"))
     assertNotEquals(None, ng.find("out"))
 
-    MutationsProfile(
-      "addFireWithDelay" -> 1.0
-    ).mutate(ng)
+    MutationsLibrary.mutate(ng, "addFireWithDelay")
 
     assertEquals(2 + FireWithDelayBlock.neuronsInBlock, ng.neurons.size)
     val blockNames = FireWithDelayBlock.blocksInGenome(ng)
@@ -147,29 +151,79 @@ class FireWithDelaySuite extends MySuite {
   }
 
   @Test def shouldDeleteFWDBlock(): Unit = {
-    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,1.0).netId("net").data
+    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,0.0).netId("net").data
 
     val ng = NetGenome(netDataInOut, AccessMap(List("in"), List("out")))
     assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in"))
     assertNotEquals(None, ng.find("out"))
 
-    MutationsProfile(
-      "addFireWithDelay" -> 1.0
-    ).mutate(ng)
+    MutationsLibrary.mutate(ng, "addFireWithDelay")
 
     assertEquals(2 + FireWithDelayBlock.neuronsInBlock, ng.neurons.size)
     val blockNames = FireWithDelayBlock.blocksInGenome(ng)
     assertEquals(1, blockNames.size)
 
-    MutationsProfile(
-      "deleteFireWithDelay" -> 1.0
-    ).mutate(ng)
+    MutationsLibrary.mutate(ng, "deleteFireWithDelay")
 
     assertEquals(2, ng.data.neurons.size)
     assertNotEquals(None, ng.find("in"))
     val in = ng.find("in").get
     assertNotEquals(None, ng.find("out"))
     assertTrue(in.isConnectedTo("out"))
+  }*/
+
+  private def prepareFireWithDelayNet(delay: Int) = {
+    val netDataInOut = NetBuilder().addInput("in").chain("out",1.0,0.0).netId("net").data
+    val ng = NetGenome(netDataInOut, AccessMap(List("in"), List("out")))
+
+    Context.withFwdDelay(delay)
+    MutationsLibrary.mutate(ng, "addFireWithDelay")
+    assertEquals(2 + FireWithDelayBlock.neuronsInBlock, ng.neurons.size)
+
+    val blockNames = FireWithDelayBlock.blocksInGenome(ng)
+    assertEquals(1, blockNames.size)
+    val blockName = blockNames.head
+
+    val blockNameIn = blockName + "in"
+    if(!ng.isConnected("in", blockNameIn)) {
+      ng.connect("in", blockNameIn).get.weight = SynapseWeight(1.0)
+      LOG.debug(this, s"connected in and $blockNameIn with ${ng.findSynapse("in", blockNameIn).weight}")
+    } else {
+      ng.findSynapse("in", blockNameIn).weight = SynapseWeight(1.0)
+      LOG.debug(this, s"set the synapse between in and $blockNameIn to ${ng.findSynapse("in", blockNameIn).weight}")
+    }
+
+    if(ng.isConnected("out", blockNameIn)){
+      ng.find("out").get.deleteSynapse(blockNameIn)
+      LOG.debug(this, s"deleted the synapse between out and $blockNameIn")
+    }
+
+    if(ng.isConnected("in", "out")){
+      ng.find("in").get.deleteSynapse("out")
+      LOG.debug(this, s"deleted the synapse between in and out")
+    }
+
+    if(ng.isConnected("in", blockName + "hush")){
+      ng.find("in").get.deleteSynapse(blockName + "hush")
+      LOG.debug(this, s"deleted the synapse between in and ${blockName}hush")
+    }
+
+    ng
   }
+
+  @Test def shouldUseFWDBlockInNet(): Unit = {
+    val delay = 3
+    val ng = prepareFireWithDelayNet(delay)
+
+    build(ng.data)
+
+    var fired = false
+    netWrapper.addAfterFire("out")( (_:Double)=>{ assertEquals(delay + 1, netWrapper.iteration); fired = true })
+    netWrapper.tickUntilCalm("1")
+    shutdown()
+    assertTrue(fired)
+  }
+
+  // @todo: shouldModifyFWDBlock with a mutation
 }
