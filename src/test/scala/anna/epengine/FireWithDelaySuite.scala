@@ -24,6 +24,7 @@ class FireWithDelaySuite extends MySuite {
   @After override def after(): Unit ={
     super.after()
     Context.set(_oldContext)
+    shutdown()
   }
 
   private def fireWithDelayData(delay: Double, inputTickMultiplier: Double = 3.0, defSlope: Double = 5.0) = {
@@ -38,26 +39,20 @@ class FireWithDelaySuite extends MySuite {
       .data
   }
 
+  private def assertFireWithDelayData(delay: Int) = {
+    build(fireWithDelayData(delay))
+    var iteration = 0
+    netWrapper.addAfterFire("dot")( (_:Double)=>{ iteration =  netWrapper.iteration } )
+    netWrapper.tickUntilCalm("1")
+    shutdown()
+    assertEquals(delay, iteration)
+  }
+
   @Test def shouldResultInLongerDelays(): Unit = {
-    build(fireWithDelayData(3.0))
-    netWrapper.addAfterFire("dot")( (_:Double)=>{ assertEquals(3, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    build(fireWithDelayData(2.0))
-    netWrapper.addAfterFire("dot")( (_:Double)=>{ assertEquals(2, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    build(fireWithDelayData(1.0))
-    netWrapper.addAfterFire("dot")( (_:Double)=>{ assertEquals(1, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    build(fireWithDelayData(0.0))
-    netWrapper.addAfterFire("dot")( (_:Double)=>{ assertEquals(0, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
+    assertFireWithDelayData(3)
+    assertFireWithDelayData(2)
+    assertFireWithDelayData(1)
+    assertFireWithDelayData(0)
   }
 
   private def fireWithOps(blockName: String, delay: Double, inputTickMultiplier: Double = 3.0, defSlope: Double = 5.0) = {
@@ -67,26 +62,20 @@ class FireWithDelaySuite extends MySuite {
     builder.addInput("in").fireWithDelay(blockName, delay).data
   }
 
+  private def assertFireWithOps(delay: Int) = {
+    build(fireWithOps("fireWithDelay",delay))
+    var iteration = 0
+    netWrapper.addAfterFire("fireWithDelay_out")( (_:Double)=>{ iteration =  netWrapper.iteration } )
+    netWrapper.tickUntilCalm("1")
+    shutdown()
+    assertEquals(delay, iteration)
+  }
+
   @Test def shouldFireWithOps(): Unit = {
-    build(fireWithOps("fireWithDelay",3.0))
-    netWrapper.addAfterFire("fireWithDelay_out")( (_:Double)=>{ assertEquals(3, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    build(fireWithOps("fireWithDelay",2.0))
-    netWrapper.addAfterFire("fireWithDelay_out")( (_:Double)=>{ assertEquals(2, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    build(fireWithOps("fireWithDelay",1.0))
-    netWrapper.addAfterFire("fireWithDelay_out")( (_:Double)=>{ assertEquals(1, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
-
-    build(fireWithOps("fireWithDelay",0.0))
-    netWrapper.addAfterFire("fireWithDelay_out")( (_:Double)=>{ assertEquals(0, netWrapper.iteration) } )
-    netWrapper.tickUntilCalm("1")
-    shutdown()
+    assertFireWithOps(3)
+    assertFireWithOps(2)
+    assertFireWithOps(1)
+    assertFireWithOps(0)
   }
 
   private def fireWithBlock(blockName: String, delay: Double, inputTickMultiplier: Double = 3.0) = {
@@ -103,10 +92,12 @@ class FireWithDelaySuite extends MySuite {
     val (block, outputId) = fireWithBlock("fireWithDelay", expectedDelay)
     build(block)
     var fired = false
-    netWrapper.addAfterFire(outputId)( (_:Double)=>{ assertEquals(expectedDelay, netWrapper.iteration); fired = true } )
+    var iteration = 0
+    netWrapper.addAfterFire(outputId)( (_:Double)=>{ iteration = netWrapper.iteration; fired = true } )
     netWrapper.tickUntilCalm("1")
     shutdown()
     assertTrue(fired)
+    assertEquals(expectedDelay, iteration)
   }
 
   @Test def shouldFireWithBlock(): Unit = {
@@ -219,11 +210,36 @@ class FireWithDelaySuite extends MySuite {
     build(ng.data)
 
     var fired = false
-    netWrapper.addAfterFire("out")( (_:Double)=>{ assertEquals(delay + 1, netWrapper.iteration); fired = true })
+    var iteration = 0
+    netWrapper.addAfterFire("out")( (_:Double)=>{ iteration = netWrapper.iteration; fired = true })
     netWrapper.tickUntilCalm("1")
     shutdown()
     assertTrue(fired)
+    assertEquals(delay + 1, iteration)
   }
 
   // @todo: shouldModifyFWDBlock with a mutation
+
+  @Test def shouldModifyWDBlock(): Unit = {
+    val ng = prepareFireWithDelayNet(2)
+    build(ng.data)
+    var fired = false
+    var iteration = 0
+    netWrapper.addAfterFire("out")( (_:Double)=>{ iteration = netWrapper.iteration; fired = true })
+    netWrapper.tickUntilCalm("1")
+    shutdown()
+    assertTrue(fired)
+    assertEquals(3, iteration)
+
+    Context.withFwdDelay(4)
+    MutationsLibrary.mutate(ng, "modifyFireWithDelay")
+    build(ng.data)
+    fired = false
+    iteration = 0
+    netWrapper.addAfterFire("out")( (_:Double)=>{ iteration = netWrapper.iteration; fired = true })
+    netWrapper.tickUntilCalm("1")
+    shutdown()
+    assertTrue(fired)
+    assertEquals(5, iteration)
+  }
 }
