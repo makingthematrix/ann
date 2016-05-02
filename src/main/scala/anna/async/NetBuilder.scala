@@ -11,7 +11,6 @@ class NetBuilder {
   var netId:String = "net"
 
   var defThreshold = Context().threshold
-  var defSlope = Context().slope
   var defHushValue = Context().hushValue
   var defForgetting: ForgetTrait = Context().forgetting
   var defTickTimeMultiplier = 1.0
@@ -55,10 +54,10 @@ class NetBuilder {
 
   def isCurrent = currentNeuronId != None
 
-  def chain(id: String, weight: SynapseTrait, threshold: Double, slope: Double,
+  def chain(id: String, weight: SynapseTrait, threshold: Double,
             hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplier: Double) = {
     val n1 = current
-    addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)
+    addStandard(id, threshold, hushValue, forgetting, tickTimeMultiplier)
     addSynapse(n1.id, id, weight)
     this
   }
@@ -85,12 +84,10 @@ class NetBuilder {
 
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
-                slope: Double = defSlope,
                 hushValue: HushValue =defHushValue,
                 forgetting: ForgetTrait = DontForget(),
                 tickTimeMultiplier: Double = defTickTimeMultiplier):NetBuilder =
-    addStandard(id, threshold, slope, hushValue, forgetting, tickTimeMultiplier)
-
+    addStandard(id, threshold, hushValue, forgetting, tickTimeMultiplier)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
 
@@ -113,12 +110,11 @@ class NetBuilder {
 
   def addStandard(id: String,
                   threshold: Double,
-                  slope:Double,
                   hushValue: HushValue,
                   forgetting: ForgetTrait,
                   tickTimeMultiplier: Double) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeStandard(), id, threshold, slope, hushValue, forgetting, tickTimeMultiplier))
+    add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue, forgetting, tickTimeMultiplier))
     this
   }
 
@@ -145,7 +141,7 @@ class NetBuilder {
     netId,
     neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) ).toList.sortBy( _.id ),
     ins.toList.sorted,
-    defThreshold, defSlope, defHushValue, defForgetting,
+    defThreshold, defHushValue, defForgetting,
     defTickTimeMultiplier, defWeight, inputTickMultiplier,
     activationFunctionName
   )
@@ -165,7 +161,6 @@ class NetBuilder {
     ins ++= data.inputs
 
     defThreshold = data.threshold
-    defSlope = data.slope
     defHushValue = data.hushValue
     defForgetting = data.forgetting
     defTickTimeMultiplier = data.tickTimeMultiplier
@@ -200,11 +195,11 @@ class NetBuilder {
   }
 
   private def newNeuron(neuronType: NeuronType, id: String,
-      threshold: Double =defThreshold, slope: Double =defSlope, hushValue: HushValue =defHushValue,
+      threshold: Double =defThreshold, hushValue: HushValue =defHushValue,
       forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier,
       activationFunctionName: String = activationFunctionName) =
     NeuronData(
-      id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType, activationFunctionName
+      id, threshold, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType, activationFunctionName
     )
 
   private def add(n: NeuronData){

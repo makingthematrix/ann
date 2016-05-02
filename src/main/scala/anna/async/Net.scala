@@ -91,21 +91,20 @@ class Net(val id: String) extends Actor {
   }
 
   private def createNeuron(data:NeuronData) = data.neuronType match {
-    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.tickTimeMultiplier, data.activationFunctionName)
+    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.hushValue, data.forgetting, data.tickTimeMultiplier, data.activationFunctionName)
     case NeuronTypeDummy() => createDummy(data.id, data.hushValue, data.tickTimeMultiplier)
     case NeuronTypeHush() => createHush(data.id)
   }
 
   private def createStandard(id: String,
                            threshold: Double,
-                           slope: Double,
                            hushValue: HushValue,
                            forgetting: ForgetTrait,
                            tickTimeMultiplier: Double,
                            activationFunctionName: String
                            ) = {
     val f = ActivationFunction(activationFunctionName)
-	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, slope, hushValue, forgetting, tickTimeMultiplier, f)))
+	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, hushValue, forgetting, tickTimeMultiplier, f)))
     add(id, ref)
   }
 

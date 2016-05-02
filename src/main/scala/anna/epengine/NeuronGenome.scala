@@ -14,7 +14,6 @@ import scala.collection.mutable
  */
 class NeuronGenome(var id: String,
                    var threshold: Double,
-                   var slope: Double,
                    var hushValue: HushValue,
                    var forgetting: ForgetTrait,
                    var synapses: mutable.ListBuffer[SynapseGenome],
@@ -46,33 +45,32 @@ class NeuronGenome(var id: String,
   }
 
   def toJson = writePretty(this)
-  def data = NeuronData(id, threshold, slope, hushValue, forgetting,
+  def data = NeuronData(id, threshold, hushValue, forgetting,
                         synapses.map(_.data).toList,
                         tickTimeMultiplier, neuronType, activationFunctionName)
-  override def clone = new NeuronGenome(id, threshold, slope, hushValue, forgetting, synapses.map(_.clone),
+  override def clone = new NeuronGenome(id, threshold, hushValue, forgetting, synapses.map(_.clone),
                                         tickTimeMultiplier, neuronType, activationFunctionName)
 }
 
 object NeuronGenome {
-  def apply(id: String, threshold: Double, slope: Double, hushValue: HushValue, forgetting: ForgetTrait,
+  def apply(id: String, threshold: Double, hushValue: HushValue, forgetting: ForgetTrait,
             synapses: List[SynapseData], tickTimeMultiplier: Double, neuronType: NeuronType, activationFunctionName: String) = {
     val sListBuffer = mutable.ListBuffer[SynapseGenome]()
     sListBuffer ++= synapses.map(s => SynapseGenome(s))
-    new NeuronGenome(id, threshold, slope, hushValue, forgetting, sListBuffer, tickTimeMultiplier, neuronType, activationFunctionName)
+    new NeuronGenome(id, threshold, hushValue, forgetting, sListBuffer, tickTimeMultiplier, neuronType, activationFunctionName)
   }
   def apply(gen: NeuronGenome):NeuronGenome = {
     val sListBuffer = mutable.ListBuffer[SynapseGenome]()
     sListBuffer ++= gen.synapses.map(s => SynapseGenome(s))
-    new NeuronGenome(gen.id, gen.threshold, gen.slope, gen.hushValue, gen.forgetting, sListBuffer, gen.tickTimeMultiplier, gen.neuronType, gen.activationFunctionName)
+    new NeuronGenome(gen.id, gen.threshold, gen.hushValue, gen.forgetting, sListBuffer, gen.tickTimeMultiplier, gen.neuronType, gen.activationFunctionName)
   }
 
   def apply(data: NeuronData):NeuronGenome = apply(
-    data.id, data.threshold, data.slope, data.hushValue, data.forgetting, data.synapses, data.tickTimeMultiplier, data.neuronType, data.activationFunctionName
+    data.id, data.threshold, data.hushValue, data.forgetting, data.synapses, data.tickTimeMultiplier, data.neuronType, data.activationFunctionName
   )
 
   def build(id: String) = {
     val threshold = RandomNumber(Context().thresholdRange)
-    val slope = RandomNumber(Context().slopeRange)
     val hushValue = HushValue(RandomNumber(Context().hushRange))
     var forgetting: ForgetTrait = DontForget()
     val t = ForgetValue(RandomNumber(Context().forgettingRange))
@@ -82,7 +80,7 @@ object NeuronGenome {
       (1.0 - Context().dontForgetProbability - Context().forgetAllProbability, () => { forgetting = ForgetValue(RandomNumber(Context().forgettingRange))})
     )
     val tickTimeMultiplier = RandomNumber(Context().tickTimeMultiplierRange)
-    NeuronGenome(id, threshold, slope, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronTypeStandard(), Context().activationFunctionName)
+    NeuronGenome(id, threshold, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronTypeStandard(), Context().activationFunctionName)
   }
 
   def fromJson(jsonStr: String) = read[NeuronGenome](jsonStr)

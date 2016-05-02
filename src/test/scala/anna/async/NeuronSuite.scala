@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 class NeuronSuite extends MySuite {
   case class NeuronData(slope: Double, weight: Double, threshold: Double)
 
-  lazy val f = ActivationFunction(ActivationFunction.SIGMOID)
+  lazy val f = ActivationFunction(ActivationFunction.STEP)
 
   def oneIteration(input: Double, slope: Double, weight: Double) = f(input, slope) * weight
   

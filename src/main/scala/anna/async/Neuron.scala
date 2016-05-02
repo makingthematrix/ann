@@ -13,8 +13,7 @@ import scala.concurrent.duration._
 class Neuron(
     val id: String,
     val netId: String,
-    val threshold: Double, 
-    val slope: Double, 
+    val threshold: Double,
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
     val tickTimeMultiplier: Double,
@@ -57,7 +56,7 @@ class Neuron(
     schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
   }
   
-  protected def calculateOutput:Double = f(buffer, slope)
+  protected def calculateOutput:Double = f(buffer, 0.0)
   
   protected def +=(signal: Double){
     forget()
@@ -183,7 +182,7 @@ class Neuron(
   }
 
   def info = NeuronInfo(
-    id, netId, threshold, slope, hushValue, forgetting, tickTimeMultiplier,
+    id, netId, threshold, hushValue, forgetting, tickTimeMultiplier,
     synapses.map(_.info), buffer, highestBuffer, lastOutput
   )
 
