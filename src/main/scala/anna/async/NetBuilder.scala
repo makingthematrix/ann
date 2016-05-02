@@ -7,6 +7,8 @@ import anna.data._
 import anna.utils.Utils.{assert, await}
 import scala.collection.mutable
 
+import anna.logger.LOG._
+
 class NetBuilder {
   var netId:String = "net"
 
@@ -119,21 +121,21 @@ class NetBuilder {
   }
 
   def build(netName: String =netId) = {
-    //debug(this,s"build $netName")
+    debug(this,s"build $netName")
     val net = NetRef(netName)
-    //debug(this, "building neurons")
+    debug(this, "building neurons")
     val nRefs = neurons.values.map(
       nd => nd.id -> createNeuronInNet(net, nd.withoutSynapses)
     ).toMap
-    //debug(this, "building synapses")
+    debug(this, "building synapses")
     nRefs.values.foreach(nRef => {
       val nsyns = synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight))
-      //debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
+      debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
       nRef.setSynapses(nsyns)
     })
-    //debug(this, "setting inputs")
+    debug(this, "setting inputs")
     net.setInputs(ins.toSeq)
-    //debug(this, "done")
+    debug(this, "done")
     NetWrapper(net, inputTickMultiplier)
   }
 

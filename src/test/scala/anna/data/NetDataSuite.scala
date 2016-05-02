@@ -36,7 +36,7 @@ class NetDataSuite extends JUnitSuite {
 
     val builder = NetBuilder()
 
-    builder.addInput("id1", 1.0).chain("id2",1.0,0.0,5.0,HushValue(2),ForgetValue(0.4),1.0)
+    builder.addInput("id1", 1.0).chain("id2",1.0,0.0,HushValue(2),ForgetValue(0.4),1.0)
 
     print("---- net data ----")
     print(netData.toJson)

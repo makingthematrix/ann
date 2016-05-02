@@ -30,7 +30,6 @@ class FireWithDelaySuite extends MySuite {
   private def fireWithDelayData(delay: Double, inputTickMultiplier: Double = 3.0, defSlope: Double = 5.0) = {
     val builder = NetBuilder()
     builder.inputTickMultiplier = inputTickMultiplier
-    builder.defSlope = defSlope
     val coeff = delay * inputTickMultiplier * 1.55 // a magic number to counteract inherent delays in sending and receiving messages
     builder.addInput("in").chain("mi11", 1.0, 0.0, HushValue(coeff.toInt)).hush("mi11")
       .chain("mi12", 1.0, 0.01).connect("mi12",1.0)
@@ -58,7 +57,6 @@ class FireWithDelaySuite extends MySuite {
   private def fireWithOps(blockName: String, delay: Double, inputTickMultiplier: Double = 3.0, defSlope: Double = 5.0) = {
     val builder = NetBuilder()
     builder.inputTickMultiplier = inputTickMultiplier
-    builder.defSlope = defSlope
     builder.addInput("in").fireWithDelay(blockName, delay).data
   }
 

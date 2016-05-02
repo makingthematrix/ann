@@ -18,7 +18,6 @@ class NeuronGenomeSuite extends JUnitSuite {
     LOG.addLogToStdout()
 
     Context.withThresholdRange(0.0 <=> 0.9)
-    Context.withSlopeRange(1.0 <=> 20.0)
     Context.withHushRange(1 to 5)
     Context.withForgettingRange(0.1 <=> 0.9)
     Context.withDontForgetProbability(0.75)
@@ -28,7 +27,6 @@ class NeuronGenomeSuite extends JUnitSuite {
 
   @Test def shouldTossForNeuron(): Unit = {
     Context.withThresholdRange(0.0 <=> 0.9)
-    Context.withSlopeRange(1.0 <=> 20.0)
     Context.withHushRange(1 to 5)
     Context.withForgettingRange(0.1 <=> 0.9)
     Context.withDontForgetProbability(0.75)
@@ -42,7 +40,6 @@ class NeuronGenomeSuite extends JUnitSuite {
       val ng = NeuronGenome.build("id1")
       assertEquals("id1", ng.id)
       assertTrue(Context().thresholdRange.contains(ng.threshold))
-      assertTrue(Context().slopeRange.contains(ng.slope))
       assertTrue(Context().hushRange.contains(ng.hushValue.iterations))
       ng.forgetting match {
         case DontForget() => dontForgetCount += 1
@@ -70,23 +67,6 @@ class NeuronGenomeSuite extends JUnitSuite {
     assertNotEquals(original, mutated)
   }
 
-  @Test def shouldMutateSlope(): Unit ={
-    val gen = NetGenome(
-      NetBuilder().addMiddle("id1").data
-    )
-
-    val ng = gen.find("id1").get
-    val original = ng.slope
-
-    MutationsProfile(
-      "mutateSlope" -> 1.0
-    ).mutate(gen)
-
-    val mutated = ng.slope
-    assertNotEquals(original, mutated)
-  }
-
-
   @Test def shouldMutateForgetting(): Unit ={
     val gen = NetGenome(
       NetBuilder().addMiddle("id1").data
@@ -108,7 +88,6 @@ class NeuronGenomeSuite extends JUnitSuite {
 
     mutated = ng.forgetting
     assertEquals(DontForget(), mutated)
-
 
     MutationsProfile(
       "mutateForgetValue" -> 1.0

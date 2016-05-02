@@ -9,7 +9,6 @@ import org.scalatest.junit.JUnitSuite
 
 class NetSuite extends JUnitSuite {
   val threshold = Context().threshold
-  val slope = Context().slope
   val weight = Context().weight
   val hushValue = Context().hushValue
   val forgetting = Context().forgetting
@@ -59,8 +58,8 @@ class NetSuite extends JUnitSuite {
   
   @Test def shouldConnectNeuronsWithBuilder(){
     val builder = NetBuilder()
-    builder.addMiddle("id1", threshold,  slope, hushValue, forgetting)
-           .chain("id2", weight, threshold, slope, hushValue, forgetting, 1.0)
+    builder.addMiddle("id1", threshold,  hushValue, forgetting)
+           .chain("id2", weight, threshold, hushValue, forgetting, 1.0)
     val net = builder.build("net").net
     
     val neurons = net.getNeurons

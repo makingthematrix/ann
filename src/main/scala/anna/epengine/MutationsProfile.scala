@@ -76,7 +76,6 @@ object MutationsProfile {
     "mutateWeight" -> 0.2,
     "invertNeuron" -> 0.0,
     "mutateThreshold" -> 0.05,
-    "mutateSlope" -> 0.05,
     "mutateHushValue" -> 0.05,
     "mutateTickTimeMultiplier" -> 0.0,
     "setDontForget" -> 0.05,
