@@ -22,7 +22,6 @@ dist
 *.log
 *.sc
 .worksheet*
-doc/*
 projectFilesBackup/*
 src/main/resources/evolution/*
 contextMatrixTest*
