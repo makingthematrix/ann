@@ -19,7 +19,6 @@ class NetGenome(private var _id: String,
                 var neurons: mutable.ListBuffer[NeuronGenome],
                 val inputs: List[String],
                 var threshold: Double,
-                var slope: Double,
                 var hushValue: HushValue,
                 var forgetting: ForgetTrait,
                 var tickTimeMultiplier: Double,
@@ -174,9 +173,20 @@ class NetGenome(private var _id: String,
   }
 
   def toJson = writePretty(this)
-  def data = NetData(id, neurons.map(_.data).toList, inputs, threshold, slope, hushValue, forgetting,
-                     tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName)
-  override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, slope, hushValue, forgetting,
+  def data = NetData(
+    id=id,
+    neurons=neurons.map(_.data).toList,
+    inputs=inputs,
+    threshold=threshold,
+    hushValue=hushValue,
+    forgetting=forgetting,
+    tickTimeMultiplier=tickTimeMultiplier,
+    weight=weight,
+    inputTickMultiplier=inputTickMultiplier,
+    activationFunctionName=activationFunctionName
+  )
+
+  override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, hushValue, forgetting,
                                      tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName, accessMap)
 
 }
@@ -185,7 +195,7 @@ object NetGenome {
   def apply(data: NetData, accessMap: Map[String, MutationAccess] = Map()) = {
     val nListBuffer = mutable.ListBuffer[NeuronGenome]()
     nListBuffer ++= data.neurons.map(NeuronGenome(_))
-    new NetGenome(data.id, nListBuffer, data.inputs, data.threshold, data.slope, data.hushValue,
+    new NetGenome(data.id, nListBuffer, data.inputs, data.threshold, data.hushValue,
                   data.forgetting, data.tickTimeMultiplier, data.weight, data.inputTickMultiplier,
                   data.activationFunctionName, accessMap)
   }
@@ -218,7 +228,6 @@ object NetGenome {
       newNeurons,
       oldGenome.inputs,
       oldGenome.threshold,
-      oldGenome.slope,
       oldGenome.hushValue,
       oldGenome.forgetting,
       oldGenome.tickTimeMultiplier,

@@ -81,10 +81,6 @@ class SimplerCrosser(override val poll: GenomePoll, override val results:Map[Str
     ng2.threshold = ng1.threshold
     ng1.threshold = t
 
-    val s = ng2.slope
-    ng2.slope = ng1.slope
-    ng1.slope = s
-
     val hv = ng2.hushValue
     ng2.hushValue = ng1.hushValue
     ng1.hushValue = hv

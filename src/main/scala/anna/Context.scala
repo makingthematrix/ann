@@ -26,7 +26,6 @@ case class FireWithDelayDefaults(
 }
 
 case class NeuronDefaults(
-  slope: Double,
   threshold: Double,
   weight: SynapseTrait,
   hushValue: HushValue,
@@ -48,7 +47,6 @@ case class SynapseGenomeDefaults(
 
 case class NeuronGenomeDefaults(
   thresholdRange: DoubleRange,
-  slopeRange: DoubleRange,
   hushRange: IntRange,
   forgettingRange: DoubleRange,
   tickTimeMultiplierRange: DoubleRange,
@@ -56,7 +54,6 @@ case class NeuronGenomeDefaults(
   dontForgetProbability: Probability,
   forgetAllProbability: Probability,
   thresholdProbability: Probability,
-  slopeProbability: Probability,
   forgettingProbability: Probability,
   hushValueProbability: Probability,
   tickTimeMultiplierProbability: Probability,
@@ -147,7 +144,6 @@ case class Context(
   def crossCoefficient = engineDefaults.crossCoefficient
   def shufflingCoefficient = engineDefaults.shufflingCoefficient
 
-  def slope = neuronDefaults.slope
   def threshold = neuronDefaults.threshold
   def weight = neuronDefaults.weight
   def hushValue = neuronDefaults.hushValue
@@ -161,7 +157,6 @@ case class Context(
   def invertSynapseProbability = synapseGenomeDefaults.invertSynapseProbability
 
   def thresholdRange = neuronGenomeDefaults.thresholdRange
-  def slopeRange = neuronGenomeDefaults.slopeRange
   def hushRange = neuronGenomeDefaults.hushRange
   def forgettingRange = neuronGenomeDefaults.forgettingRange
   def tickTimeMultiplierRange = neuronGenomeDefaults.tickTimeMultiplierRange
@@ -169,7 +164,6 @@ case class Context(
   def dontForgetProbability = neuronGenomeDefaults.dontForgetProbability
   def forgetAllProbability = neuronGenomeDefaults.forgetAllProbability
   def thresholdProbability = neuronGenomeDefaults.thresholdProbability
-  def slopeProbability = neuronGenomeDefaults.slopeProbability
   def forgettingProbability = neuronGenomeDefaults.forgettingProbability
   def hushValueProbability = neuronGenomeDefaults.hushValueProbability
   def tickTimeMultiplierProbability = neuronGenomeDefaults.tickTimeMultiplierProbability
@@ -249,8 +243,6 @@ object Context {
 
   def withThresholdRange(thresholdRange: DoubleRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(thresholdRange = thresholdRange)))
-  def withSlopeRange(slopeRange: DoubleRange) =
-    set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(slopeRange = slopeRange)))
   def withHushRange(hushRange: IntRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(hushRange = hushRange)))
   def withForgettingRange(forgettingRange: DoubleRange) =
@@ -264,8 +256,6 @@ object Context {
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(forgetAllProbability = forgetAllProbability)))
   def withThresholdProbability(thresholdProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(thresholdProbability = thresholdProbability)))
-  def withSlopeProbability(slopeProbability: Probability) =
-    set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(slopeProbability = slopeProbability)))
   def withForgettingProbability(forgettingProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(forgettingProbability = forgettingProbability)))
   def withHushValueProbability(hushValueProbability: Probability) =
@@ -298,8 +288,6 @@ object Context {
   def withSynapsesDensity(synapsesDensity: Double) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(synapsesDensity = synapsesDensity)))
 
-  def withSlope(slope: Double) =
-    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(slope = slope)))
   def withThreshold(threshold: Double) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
   def withWeight(weight: SynapseTrait) =
@@ -354,7 +342,6 @@ object Context {
   val _crosscoefficient = "crossCoefficient"
   val _shufflingcoefficient = "shufflingCoefficient"
   val _neurondefaults = "neuronDefaults"
-  val _defaultslope = "defaultSlope"
   val _defaultthreshold = "defaultThreshold"
   val _defaultweight = "defaultWeight"
   val _defaulthushvalue = "defaultHushValue"
@@ -387,7 +374,6 @@ object Context {
   val _dontforgetprobability = "dontForgetProbability"
   val _forgetallprobability = "forgetAllProbability"
   val _thresholdprobability = "thresholdProbability"
-  val _slopeprobability = "slopeProbability"
   val _forgettingprobability = "forgettingProbability"
   val _hushvalueprobability = "hushValueProbability"
   val _ticktimemultiplierprobability = "tickTimeMultiplierProbability"
@@ -447,7 +433,6 @@ object Context {
 
     // neuron defaults
     val neuronRoot = root.getConfig(_neurondefaults)
-    val slope = neuronRoot.getDouble(_defaultslope)
     val threshold = neuronRoot.getDouble(_defaultthreshold)
     val weight = SynapseTrait(neuronRoot.getString(_defaultweight))
     val hushValue = HushValue(neuronRoot.getInt(_defaulthushvalue))
@@ -455,7 +440,7 @@ object Context {
     val tickTime = neuronRoot.getLong(_defaultticktime)
     val activationFunctionName = neuronRoot.getString(_activationfunctionname)
 
-    val neuronDefaults = NeuronDefaults(slope, threshold, weight, hushValue, forgetting, tickTime, activationFunctionName)
+    val neuronDefaults = NeuronDefaults(threshold, weight, hushValue, forgetting, tickTime, activationFunctionName)
 
     // synapse genome defaults
     val synapseDefaultsRoot = root.getConfig(_synapsegenomedefaults)
@@ -471,7 +456,6 @@ object Context {
     val neuronGenomeRoot = root.getConfig(_neurongenomedefaults)
 
     val thresholdRange = neuronGenomeRoot.getDouble(_thresholdrangefrom) <=> neuronGenomeRoot.getDouble(_thresholdrangeto)
-    val slopeRange = neuronGenomeRoot.getDouble(_sloperangefrom) <=> neuronGenomeRoot.getDouble(_sloperangeto)
     val hushRange = neuronGenomeRoot.getInt(_hushrangefrom) to neuronGenomeRoot.getInt(_hushrangeto)
     val forgettingRange = neuronGenomeRoot.getDouble(_forgettingrangefrom) <=> neuronGenomeRoot.getDouble(_forgettingrangeto)
     val tickTimeMultiplierRange = neuronGenomeRoot.getDouble(_tickmultiplierrangefrom) <=> neuronGenomeRoot.getDouble(_ticktimemultiplierrangeto)
@@ -480,7 +464,6 @@ object Context {
     val dontForgetProbability = Probability(neuronGenomeRoot.getDouble(_dontforgetprobability))
     val forgetAllProbability = Probability(neuronGenomeRoot.getDouble(_forgetallprobability))
     val thresholdProbability = Probability(neuronGenomeRoot.getDouble(_thresholdprobability))
-    val slopeProbability = Probability(neuronGenomeRoot.getDouble(_slopeprobability))
     val forgettingProbability = Probability(neuronGenomeRoot.getDouble(_forgettingprobability))
     val hushValueProbability = Probability(neuronGenomeRoot.getDouble(_hushvalueprobability))
     val tickTimeMultiplierProbability = Probability(neuronGenomeRoot.getDouble(_ticktimemultiplierprobability))
@@ -492,9 +475,9 @@ object Context {
     val deleteSynapseProbability = Probability(neuronGenomeRoot.getDouble(_deletesynapseprobability))
 
     val neuronGenomeDefaults = NeuronGenomeDefaults(
-      thresholdRange, slopeRange, hushRange, forgettingRange, tickTimeMultiplierRange,
+      thresholdRange, hushRange, forgettingRange, tickTimeMultiplierRange,
       dontForgetProbability, forgetAllProbability, thresholdProbability,
-      slopeProbability, forgettingProbability, hushValueProbability, tickTimeMultiplierProbability,
+      forgettingProbability, hushValueProbability, tickTimeMultiplierProbability,
       invertNeuronProbability,
       synapseChangeProbability, addSynapseProbability, deleteSynapseProbability
     )
@@ -567,7 +550,6 @@ object Context {
   def set(name: String, r: DoubleRange):Unit = name match {
     case `_weightrange` => withWeightRange(r)
     case `_thresholdrange` => withThresholdRange(r)
-    case `_sloperange` => withSlopeRange(r)
     case `_forgettingrange` => withForgettingRange(r)
   }
 
@@ -580,7 +562,6 @@ object Context {
     case `_mutationprobability` => withMutationProbability(d)
     case `_crosscoefficient` => withCrossCoefficient(d)
     case `_shufflingcoefficient` => withShufflingCoefficient(d)
-    case `_defaultslope` => withSlope(d)
     case `_defaultthreshold` => withThreshold(d)
     case `_defaultweight` => withWeight(SynapseWeight(d))
     case `_defaultforgetting` => withForgetting(ForgetValue(d))
@@ -590,7 +571,6 @@ object Context {
     case `_dontforgetprobability` => withDontForgetProbability(d)
     case `_forgetallprobability` => withForgetAllProbability(d)
     case `_thresholdprobability` => withThresholdProbability(d)
-    case `_slopeprobability` => withSlopeProbability(d)
     case `_forgettingprobability` => withForgettingProbability(d)
     case `_hushvalueprobability` => withHushValueProbability(d)
     case `_invertneuronprobability` => withInvertNeuronProbability(d)

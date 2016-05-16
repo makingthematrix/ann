@@ -231,14 +231,6 @@ object MutationsLibrary {
     case None =>
   })
 
-  add("mutateSlope", (net: NetGenome) => chooseNeuron(net) match {
-    case Some(n) =>
-      val newSlope = RandomNumber(Context().slopeRange)
-      debug(s"MUTATION: mutateSlope for ${net.id} from ${n.slope} to $newSlope")
-      n.slope = newSlope
-    case None =>
-  })
-
   add("mutateHushValue", (net: NetGenome) => chooseNeuron(net) match {
     case Some(n) =>
       val newHushValue = HushValue(RandomNumber(Context().hushRange))

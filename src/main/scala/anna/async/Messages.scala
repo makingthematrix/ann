@@ -47,7 +47,6 @@ object Messages {
   case class NeuronInfo(id: String,
                         netId: String,
                         threshold: Double,
-                        slope: Double,
                         hushValue: HushValue,
                         forgetting: ForgetTrait,
                         tickTimeMultiplier: Double,
