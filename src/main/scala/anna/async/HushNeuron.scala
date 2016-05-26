@@ -13,6 +13,5 @@ extends Neuron(id, netId, 0.0, HushValue(), ForgetAll(), 1.0, ActivationFunction
   override val activeBehaviour: Receive = {
     case Signal(s) => sendHush()
     case HushNow => sendHush()
-    case WakeUp =>
   }
 }

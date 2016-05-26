@@ -78,11 +78,11 @@ object MutationsLibrary {
 
   // ---
 
-  add("addFireWithDelay", (net: NetGenome) => if(net.neurons.size >= 2 && net.mutableNeurons.size >= 1){
+  add("addDelayGate", (net: NetGenome) => if(net.neurons.size >= 2 && net.mutableNeurons.size >= 1){
     // requirements: at least two neurons in the net and at least one of them full access mutable
 
-    val block = FireWithDelayBlock(RandomNumber(Context().fwdDelayRange), net.inputTickMultiplier)
-    debug(s"MUTATION: addFireWithDelay to ${net.id} -> the delay is ${block.delay}")
+    val block = DelayGate(RandomNumber(Context().fwdDelayRange), net.inputTickMultiplier)
+    debug(s"MUTATION: addDelayGate to ${net.id} -> the delay is ${block.delay}")
 
     val inFrom = RandomNumber(net.neurons)
     val outTo = RandomNumber(net.mutableNeurons)
@@ -95,15 +95,15 @@ object MutationsLibrary {
     inHush.connect(net.find(block.hushId).get)
   })
 
-  add("deleteFireWithDelay", (net: NetGenome) => {
-    val blockNames = FireWithDelayBlock.blocksInGenome(net)
+  add("deleteDelayGate", (net: NetGenome) => {
+    val blockNames = DelayGate.blocksInGenome(net)
     if(blockNames.nonEmpty) {
       val chosenBlockName = RandomNumber(blockNames)
-      debug(s"MUTATION: deleteFireWithDelay with ${net.id} -> removing block $chosenBlockName")
+      debug(s"MUTATION: deleteDelayGate with ${net.id} -> removing block $chosenBlockName")
 
       val blockNeuronIds = net.fullAccessNeurons.map(_.id).filter(_.contains(chosenBlockName))
-      val inFromIds = net.findIdsConnectedTo(FireWithDelayBlock.inputId(chosenBlockName)).filterNot(_.contains(chosenBlockName))
-      val outToIds = (net.find(FireWithDelayBlock.outputId(chosenBlockName)) match {
+      val inFromIds = net.findIdsConnectedTo(DelayGate.inputId(chosenBlockName)).filterNot(_.contains(chosenBlockName))
+      val outToIds = (net.find(DelayGate.outputId(chosenBlockName)) match {
         case Some(n) => n.synapses.map(_.neuronId)
         case None => Nil
       }).toList.filterNot(_.contains(chosenBlockName))
@@ -116,7 +116,7 @@ object MutationsLibrary {
     }
   })
 
-  add("modifyFireWithDelay", (net: NetGenome) => {
+  add("modifyDelayGate", (net: NetGenome) => {
 
   })
 

@@ -182,9 +182,9 @@ class SOSSuite extends MySuite {
     builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue((3 * itm).toInt)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot") 
+                     .chain("dot",0.6/(3.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
                      .chain("S",0.5,0.81)
     // lines
     builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
@@ -244,9 +244,12 @@ class SOSSuite extends MySuite {
     SOSNet()
     
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
-    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
-    
+
+    netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!") } )
+    netWrapper.addAfterFire("S")( (_:Double)=>{ println("S!"); sb.append('S') } )
+    netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!") } )
+    netWrapper.addAfterFire("O")( (_:Double)=>{ println("O!"); sb.append('O') } )
+
     netWrapper += s
     netWrapper += o
     netWrapper += s

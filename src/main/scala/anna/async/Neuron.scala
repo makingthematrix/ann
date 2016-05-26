@@ -23,10 +23,14 @@ class Neuron(
   implicit val that = this
   
   protected var buffer = 0.0
+
+  // statistics only
   protected var highestBuffer = 0.0
   protected var lastOutput = 0.0
 
   private val schedulerBuffer = new SchedulerBuffer(context)
+
+  private var isSleeping = false
 
   override def preStart():Unit = {
     NeuronCounter.reg(netId, id, self)
@@ -45,8 +49,10 @@ class Neuron(
   }
   
   private def makeSleep() = {
-    context.become(sleep)
-    schedulerBuffer.schedule((tickTimeMultiplier * Context().tickTime).toLong millis){ self ! WakeUp }
+    val sleepTime = (tickTimeMultiplier * Context().tickTime).toLong
+    LOG += s"$id going to sleep for $sleepTime ms (tickTimeMultiplier: $tickTimeMultiplier, context tick time: ${Context().tickTime})"
+    isSleeping = true
+    context.system.scheduler.scheduleOnce(sleepTime millis){ wakeUp() }
   }
   
   private def makeHush() = {
@@ -55,33 +61,41 @@ class Neuron(
     context.become(hushTime)
     schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
   }
+
+  private def wakeFromHush() = {
+    LOG += s"$id waking up from hush"
+    context.become(receive)
+  }
   
   protected def calculateOutput:Double = f(buffer, 0.0)
   
   protected def +=(signal: Double){
-    forget()
     LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
     buffer += signal
-    tick()
+    if(!isSleeping){
+      tick()
+    }
   }
   
   private def wakeUp(){
     LOG += s"$id waking up"
-    forget()
-	  tick()
-    context.become(receive)
+    isSleeping = false
+    tick()
   }
-  
-  private def tick(){
+
+  private def biggerOrCloseEnough(x: Double, y: Double) = { x > 0.0 && x + 0.001 > y }
+
+  private def tick():Unit = this.synchronized {
+    forget()
     buffer = Utils.minmax(-1.0, buffer, 1.0)
-    if(highestBuffer < buffer) highestBuffer = buffer
-    if(buffer > threshold){
+    if (highestBuffer < buffer) highestBuffer = buffer
+    if (biggerOrCloseEnough(buffer, threshold)) {
       triggerThresholdPassed()
       run()
     }
-    if(forgetting == ForgetAll()) buffer = 0.0
+    if (forgetting == ForgetAll()) buffer = 0.0
   }
-  
+
   private var lastForgetting:Option[Long] = None
   
   private def forget() = forgetting match {
@@ -95,20 +109,21 @@ class Neuron(
     case _ =>
   }
   
-  protected def run(){
+  protected def run(): Unit = {
     val output = calculateOutput
     lastOutput = output
     buffer = 0.0
-    if(synapses.nonEmpty){
-      LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
-      synapses.foreach( _.send(output) )
-    } 
-    triggerAfterFire(output)
+
+    LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
     makeSleep()
+    synapses.foreach( _.send(output) )
+
+    triggerAfterFire(output)
   }
     
   protected def findSynapse(destinationId: String):Option[Synapse] = 
     if(synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
+
   protected def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
   protected def answer(msg: Answer) = NetRef.get match {
@@ -129,32 +144,19 @@ class Neuron(
   }
   
   def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
-  
-  def sleep = sleepBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
 
-  def hushTime = hushBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, sleep")
+  def hushTime = hushBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, hushTime")
   
   val activeBehaviour: Receive = {
     case Signal(s) => this += s
     case HushNow => hushNow()
-    case WakeUp =>
   }
   
   val hushBehaviour: Receive = {
-    case WakeFromHush if sender == self => 
-      LOG +=  s"$id hush wake up"
-      wakeUp()
+    case WakeFromHush => wakeFromHush()
     case Signal(s) => LOG += s"$id, signal hushed: $s" // so it's like sleep, but we ignore signals
   }
-  
-  val sleepBehaviour: Receive = {
-    case WakeUp if sender == self => 
-      LOG +=  s"$id sleep wake up" 
-      wakeUp()
-    case HushNow => hushNow()
-    case Signal(s) => buffer += s
-  }
-   
+
   val commonBehaviour: Receive = {
       case GetId => sender ! Msg(0.0, id)
       case GetData => sender ! info
@@ -185,5 +187,4 @@ class Neuron(
     id, netId, threshold, hushValue, forgetting, tickTimeMultiplier,
     synapses.map(_.info), buffer, highestBuffer, lastOutput
   )
-
 }

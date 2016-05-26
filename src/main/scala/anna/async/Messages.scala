@@ -10,7 +10,6 @@ object Messages {
 
   // commands
   case object HushNow // become silent
-  case object WakeUp
   case object WakeFromHush
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
