@@ -94,7 +94,7 @@ class NetDataSuite extends JUnitSuite {
     builder.use("S").chainHushNeuron("hush_letters").hush("S").hush("O")
     builder.use("O").hush("hush_letters")
   }
-
+/*
   @Test def bigTest() = {
     val builder1 = NetBuilder()
     SOSNetWithHushNeuron(builder1)
@@ -104,8 +104,6 @@ class NetDataSuite extends JUnitSuite {
     builder2.set(netData1)
     val netData2 = builder2.data
     assertEquals(netData1, netData2)
-
-    println(netData2.toJson)
 
     val netWrapper = builder2.build("in")
     val sb = StringBuilder.newBuilder
@@ -127,6 +125,6 @@ class NetDataSuite extends JUnitSuite {
     netWrapper.tickUntilCalm()
     assertEquals("SOS", sb.toString)
     LOG.date()
-  }
+  }*/
 
 }

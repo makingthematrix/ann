@@ -30,40 +30,35 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
-    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).loop("osc",1.0,0.5,-1.0).chain("out1",1.0,0.75)
     build()
-    LOG.debug(this,"here!")
-    
+
     netWrapper += "1,1,1,1,1,1"
       
-    val list = mutable.ListBuffer[Long]()
-    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{ list += LOG.time } )
+    val list = mutable.ListBuffer[Int]()
+    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{
+      list += netWrapper.iteration
+    } )
     
-    LOG.timer()
-    netWrapper.tickUntilCalm()
-    
-    list.foreach(println)
-    
-    val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, (netWrapper.inputTickMultiplier * Context().tickTime * 2).toLong), list.toSeq, tolerance)
-  }
-  
-  @Test def shouldCreateOscillatorWithMethod2(){
-    builder.inputTickMultiplier = 2.0
-    builder.addInput("in").chain("mi1",1.0).oscillator().chain("out1", 1.0, 0.75)
-    build()
-    
-    netWrapper += "1,1,1,1,1,1"
-      
-    val list = mutable.ListBuffer[Long]()
-    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{ list += LOG.time } )
-    
-    LOG.timer()
     netWrapper.tickUntilCalm()
 
-    val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(3, tolerance, (netWrapper.inputTickMultiplier * Context().tickTime * 2).toLong), list.toSeq, tolerance)
+    assertEquals(List(0,2,4), list.toList)
+  }
+  
+  @Test def shouldCreateOscillatorWithMethod2() {
+    builder.addInput("in").chain("mi1", 1.0).oscillator().chain("out1", 1.0, 0.75)
+    build()
+
+    netWrapper += "1,1,1,1,1,1"
+
+    val list = mutable.ListBuffer[Int]()
+    netWrapper.addAfterFire("out1", "fired")((_: Double) => {
+      list += netWrapper.iteration
+    })
+
+    netWrapper.tickUntilCalm()
+
+    assertEquals(List(0, 2, 4), list.toList)
   }
   
   @Test def shouldCreateOscillator2(){

@@ -1,5 +1,6 @@
 package anna.async
 
+import anna.Context
 import anna.async.NetBuilderOps._
 import anna.data.{ForgetValue, HushValue}
 import anna.logger.LOG
@@ -260,7 +261,7 @@ class SOSSuite extends MySuite {
   }
   
   private def SOSNetWithHushNeuron(){
-    setNetWrapper(NetBuilder().SOSNetWithHushNeuron())
+   setNetWrapper(NetBuilder().SOSNetWithHushNeuron())
   }
 
   @Test def shouldHaveSOSWithHushNeuron() = {

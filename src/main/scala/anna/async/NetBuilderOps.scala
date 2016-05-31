@@ -74,7 +74,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   implicit private def fromNetBuilder(builder: NetBuilder):NetBuilderOps = NetBuilderOps.fromNetBuilder(builder)
 
   def SOSNetData(name: String = "net") = {
-    val itm = 3.0
+    val itm = 1.0
     builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
