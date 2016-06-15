@@ -22,7 +22,6 @@ class NetGenome(private var _id: String,
                 var hushValue: HushValue,
                 var forgetting: ForgetTrait,
                 var weight: SynapseTrait,
-                var inputTickMultiplier: Double,
                 val activationFunctionName: String,
                 val accessMap: Map[String, MutationAccess]){
   def find(id: String) = neurons.find(n => n.id == id || removeNetId(n.id) == id)
@@ -173,10 +172,10 @@ class NetGenome(private var _id: String,
 
   def toJson = writePretty(this)
   def data = NetData(id, neurons.map(_.data).toList, inputs, threshold, hushValue,
-                     forgetting, weight, inputTickMultiplier, activationFunctionName)
+                     forgetting, weight, activationFunctionName)
 
   override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, hushValue, forgetting,
-                                      weight, inputTickMultiplier, activationFunctionName, accessMap)
+                                      weight, activationFunctionName, accessMap)
 
 }
 
@@ -185,12 +184,12 @@ object NetGenome {
     val nListBuffer = mutable.ListBuffer[NeuronGenome]()
     nListBuffer ++= data.neurons.map(NeuronGenome(_))
     new NetGenome(data.id, nListBuffer, data.inputs, data.threshold, data.hushValue,
-                  data.forgetting, data.weight, data.inputTickMultiplier,
+                  data.forgetting, data.weight,
                   data.activationFunctionName, accessMap)
   }
 
-  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetGenome =
-    NetGenome(NetData(id, neurons, inputs, inputTickMultiplier), Map())
+  def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetGenome =
+    NetGenome(NetData(id, neurons, inputs), Map())
 
   def breed(oldGenome: NetGenome,
             newFullAccess: List[NeuronGenome]) = {
@@ -220,7 +219,6 @@ object NetGenome {
       oldGenome.hushValue,
       oldGenome.forgetting,
       oldGenome.weight,
-      oldGenome.inputTickMultiplier,
       oldGenome.activationFunctionName,
       oldGenome.accessMap
     )

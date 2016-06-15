@@ -7,18 +7,17 @@ import anna.data.HushValue
 /**
   * Created by gorywoda on 1/31/16.
   */
-case class DelayGate(name: String, delay: Int, inputTickMultiplier: Double){
+case class DelayGate(name: String, delay: Int){
   lazy val data = {
     val builder = NetBuilder()
-    builder.inputTickMultiplier = inputTickMultiplier
     chain(builder)
     builder.data
   }
 
   def chain(builder: NetBuilder) = {
     val middleThreshold = 0.9
-    val hushTime = HushValue((delay * builder.inputTickMultiplier).toInt)
-    val feedbackWeight = middleThreshold / ((delay+1) * builder.inputTickMultiplier)
+    val hushTime = HushValue(delay)
+    val feedbackWeight = middleThreshold / (delay+1)
     if(builder.isCurrent) builder.chain(inputId, 1.0, 0.0, hushTime)
     else builder.addMiddle(id=inputId, threshold=0.0, hushValue=hushTime)
 
@@ -45,13 +44,7 @@ object DelayGate {
   def apply(delay: Int):DelayGate = {
     val newName = nextName()
     firstFreeId += 1
-    DelayGate(newName, delay, 1.0)
-  }
-
-  def apply(delay: Int, inputTickMultiplier: Double):DelayGate = {
-    val newName = nextName()
-    firstFreeId += 1
-    DelayGate(newName, delay, inputTickMultiplier)
+    DelayGate(newName, delay)
   }
 
   def inputId(name: String) = s"${name}in"

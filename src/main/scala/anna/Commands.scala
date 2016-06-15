@@ -245,7 +245,6 @@ object Commands {
   def diff(data1: NetData, data2: NetData) ={
     val sb = StringBuilder.newBuilder
     if(data1.id != data2.id) sb.append(s"net id: ${data1.id} -> ${data2.id}\n")
-    if(data1.inputTickMultiplier != data2.inputTickMultiplier) sb.append(s"input tick multiplier: ${data1.inputTickMultiplier} -> ${data2.inputTickMultiplier}")
     if(data1.neurons.size != data2.neurons.size) sb.append(s"#neurons: ${data1.neurons.size} -> ${data2.neurons.size}\n")
 
     val data1NeuronIds = data1.neurons.map(n => NetData.removeNetId(n.id)).toSet

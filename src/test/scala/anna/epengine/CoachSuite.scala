@@ -23,7 +23,6 @@ class CoachSuite extends MySuite {
 
   @Test def shouldPassNetTest() = {
     // this is the net from DelaySuite.shouldGiveConstantOutput
-    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     build()
 
@@ -64,7 +63,6 @@ class CoachSuite extends MySuite {
   }
 
   @Test def shouldPassConsecutiveTests() = {
-    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     val data = builder.data
 
@@ -81,7 +79,6 @@ class CoachSuite extends MySuite {
   }
 
   @Test def shouldPassExercisesSet() = {
-    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     val data = builder.data
 

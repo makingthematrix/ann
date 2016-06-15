@@ -16,7 +16,6 @@ class NetBuilder {
   var defHushValue = Context().hushValue
   var defForgetting: ForgetTrait = Context().forgetting
   var defWeight:SynapseTrait = Context().weight
-  var inputTickMultiplier = 1.0
   var activationFunctionName = Context().activationFunctionName
 
   private val neurons = mutable.Map[String,NeuronData]()
@@ -132,7 +131,7 @@ class NetBuilder {
     debug(this, "setting inputs")
     net.setInputs(ins.toSeq)
     debug(this, "done")
-    NetWrapper(net, inputTickMultiplier)
+    NetWrapper(net)
   }
 
   def data = NetData(
@@ -140,7 +139,7 @@ class NetBuilder {
     neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) ).toList.sortBy( _.id ),
     ins.toList.sorted,
     defThreshold, defHushValue,
-    defForgetting, defWeight, inputTickMultiplier,
+    defForgetting, defWeight,
     activationFunctionName
   )
 
@@ -162,7 +161,6 @@ class NetBuilder {
     defHushValue = data.hushValue
     defForgetting = data.forgetting
     defWeight = data.weight
-    inputTickMultiplier = data.inputTickMultiplier
     activationFunctionName = data.activationFunctionName
 
     this

@@ -48,7 +48,6 @@ class NeuronSuite extends MySuite {
   }
             
   @Test def delayedSignal() = {
-    builder.inputTickMultiplier = 2.0
     builder.addInput("in")
            .chainDummy("mi11", 0.55)
            .loop("loop",1.0,0.0,0.99)

@@ -18,7 +18,6 @@ case class NetData(id: String,
                    hushValue: HushValue,
                    forgetting: ForgetTrait,
                    weight: SynapseTrait,
-                   inputTickMultiplier: Double,
                    activationFunctionName: String){
   def withId(id: String) = copy(id = id)
   def withNeurons(neurons: List[NeuronData]) = copy(neurons = neurons)
@@ -27,7 +26,6 @@ case class NetData(id: String,
   def withHushValue(hushValue: HushValue) = copy(hushValue = hushValue)
   def withForgetting(forgetting: ForgetTrait) = copy(forgetting = forgetting)
   def withWeight(weight: SynapseWeight) = copy(weight = weight)
-  def withInputTickMultiplier(inputTickMultiplier: Double) = copy(inputTickMultiplier = inputTickMultiplier)
   def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
   def neuron(neuronId: String) = neurons.find(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
@@ -64,16 +62,13 @@ case class NetData(id: String,
     inputs.foreach( inId => assert(neurons.find(_.id == inId) != None, s"The input id $inId does not match any of the neurons in the net $id"))
     // 4. Threshold should be >=0 and <1
     assert(threshold >= 0.0 && threshold < 1.0,s"Threshold should be in <0.0,1.0) but is $threshold in the net $id")
-    // 5. input tick multiplier should be > 0
-    assert(inputTickMultiplier > 0.0, s"inputTick multiplier should be bigger than 0, is $inputTickMultiplier in the net $id")
-
-    // 6. check if all synapses connect to existing neurons
+    // 5. check if all synapses connect to existing neurons
     val nIdSet = neurons.map(_.id).toSet
     neurons.foreach(n => {
       n.synapses.foreach(s => assert(nIdSet.contains(s.neuronId), s"The synapse from ${n.id} to ${s.neuronId} leads to a neuron which does not exist in the net $id"))
     })
 
-    // 7. one neuron should not have two synapses to the same neuron
+    // 6. one neuron should not have two synapses to the same neuron
     neurons.foreach( n => {
       val neuronIds = n.synapses.map(_.neuronId)
       val neuronIdsSet = neuronIds.toSet
@@ -81,7 +76,7 @@ case class NetData(id: String,
       assert(doubledIds.isEmpty, s"In the neuron ${n.id}, more than one synapse leads to the same neuron: $doubledIds")
     })
 
-    // @todo: 8. check if there is no neuron with no synapse leading to it
+    // @todo: 7. check if there is no neuron with no synapse leading to it
     // disabled until I figure out how to (and if at all) filter out non-accessible output neurons
     // - they can happen, they cannot be deleted, but they don't necessarily are invalid
     //val idLeft = neurons.foldLeft(nIdSet)( (idSet: Set[String], n: NeuronData) => idSet -- n.synapses.map(_.neuronId)) -- inputs
@@ -94,11 +89,7 @@ object NetData {
   def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
     NetData(id, neurons, inputs, Context().threshold,
             Context().hushValue, Context().forgetting, Context().weight,
-            1.0, Context().activationFunctionName)
-  def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetData =
-    NetData(id, neurons, inputs, Context().threshold,
-            Context().hushValue, Context().forgetting, Context().weight,
-            inputTickMultiplier, Context().activationFunctionName)
+            Context().activationFunctionName)
 
   def fromJson(jsonStr: String) = read[NetData](jsonStr)
 

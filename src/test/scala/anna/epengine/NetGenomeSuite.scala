@@ -28,7 +28,6 @@ class NetGenomeSuite extends MySuite {
     val netDataInOut = NetBuilder().addInput("in1").chain("out1",1.0,1.0).netId("net").data
     Context.withNeuronsRange(3 to 3)
     Context.withSynapsesDensity(2.5)
-    Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome(netDataInOut, AccessMap(inputIds, outputIds))
     assertEquals(2, ng.data.neurons.size)
@@ -52,7 +51,6 @@ class NetGenomeSuite extends MySuite {
   @Test def shouldDeleteNeuron(): Unit ={
     Context.withNeuronsRange (3 to 3)
     Context.withSynapsesDensity (2.5)
-    Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome(netData, AccessMap(inputIds, outputIds))
     assertEquals(3, ng.data.neurons.size)

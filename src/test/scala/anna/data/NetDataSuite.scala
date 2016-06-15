@@ -71,19 +71,17 @@ class NetDataSuite extends JUnitSuite {
   }
 
   private def SOSNetWithHushNeuron(builder: NetBuilder){
-    val itm = 3.0
-    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2)).hush("mi11")
       .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-      .chain("dot",0.6/(2.0*itm),0.6)
+      .chain("dot",0.6/2.0,0.6)
       .chain("S",0.5,0.81)
     builder.addHushNeuron("dot_hush").hush("mi12").hush("loop").hush("dot")
     builder.use("dot").hush("dot_hush")
 
     // lines
-    builder.use("in").chain("mi21",0.55,0.58,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+    builder.use("in").chain("mi21",0.55,0.58,HushValue(),ForgetValue(0.4)).hush("mi21")
       .chain("line",1.0,0.0).hush("line")
       .chain("O",0.6,0.81)
 

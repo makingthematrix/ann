@@ -22,7 +22,6 @@ class NeuronGenomeSuite extends MySuite {
     Context.withForgettingRange(0.1 <=> 0.9)
     Context.withDontForgetProbability(0.75)
     Context.withForgetAllProbability(0.05)
-    Context.withTickTimeMultiplierRange(0.5 <=> 2.0)
   }
 
   @Test def shouldTossForNeuron(): Unit = {
@@ -31,7 +30,6 @@ class NeuronGenomeSuite extends MySuite {
     Context.withForgettingRange(0.1 <=> 0.9)
     Context.withDontForgetProbability(0.75)
     Context.withForgetAllProbability(0.05)
-    Context.withTickTimeMultiplierRange(0.5 <=> 2.0)
 
     val totalCount = 1000
     var dontForgetCount = 0
