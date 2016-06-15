@@ -12,7 +12,6 @@ class NetSuite extends JUnitSuite {
   val weight = Context().weight
   val hushValue = Context().hushValue
   val forgetting = Context().forgetting
-  val tickTime = Context().tickTime
   val timeout = Context().timeout
 
   @Test def shouldCreateNet(){
@@ -27,8 +26,8 @@ class NetSuite extends JUnitSuite {
   @Test def shouldCreateNeurons(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, hushValue, forgetting, tickTime, ActivationFunction.STEP)
-    val n2 = net.createNeuron("id2", threshold, hushValue, forgetting, tickTime, ActivationFunction.STEP)
+    val n1 = net.createNeuron("id1", threshold, hushValue, forgetting, ActivationFunction.STEP)
+    val n2 = net.createNeuron("id2", threshold, hushValue, forgetting, ActivationFunction.STEP)
     
     val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons
@@ -58,8 +57,8 @@ class NetSuite extends JUnitSuite {
   
   @Test def shouldConnectNeuronsWithBuilder(){
     val builder = NetBuilder()
-    builder.addMiddle("id1", threshold,  hushValue, forgetting)
-           .chain("id2", weight, threshold, hushValue, forgetting, 1.0)
+    builder.addMiddle("id1", threshold, hushValue, forgetting)
+           .chain("id2", weight, threshold, hushValue, forgetting)
     val net = builder.build("net").net
     
     val neurons = net.getNeurons

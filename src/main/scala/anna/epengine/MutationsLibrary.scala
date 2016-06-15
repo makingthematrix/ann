@@ -239,14 +239,6 @@ object MutationsLibrary {
     case None =>
   })
 
-  add("mutateTickTimeMultiplier", (net: NetGenome) => chooseNeuron(net) match {
-    case Some(n) =>
-      val newTickTimeMultiplier = RandomNumber(Context().tickTimeMultiplierRange)
-      debug(s"MUTATION: mutateHushValue for ${n.id} from ${n.tickTimeMultiplier} to $newTickTimeMultiplier")
-      n.tickTimeMultiplier = newTickTimeMultiplier
-    case None =>
-  })
-
   add("setDontForget", (net: NetGenome) => chooseNeuron(net) match {
     case Some(n) =>
       debug(s"MUTATION: setDontForget for ${n.id} from ${n.forgetting} to ${DontForget()}")

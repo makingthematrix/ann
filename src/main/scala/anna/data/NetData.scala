@@ -8,13 +8,15 @@ import org.json4s.native.Serialization.{read, writePretty}
 /**
  * Created by gorywoda on 03.01.15.
  */
+
+
+
 case class NetData(id: String,
                    neurons: List[NeuronData],
                    inputs: List[String], // time wasted refactoring this to Set[String]: 3h; please update when needed
                    threshold: Double,
                    hushValue: HushValue,
                    forgetting: ForgetTrait,
-                   tickTimeMultiplier: Double,
                    weight: SynapseTrait,
                    inputTickMultiplier: Double,
                    activationFunctionName: String){
@@ -24,7 +26,6 @@ case class NetData(id: String,
   def withThreshold(threshold: Double) = copy(threshold = threshold)
   def withHushValue(hushValue: HushValue) = copy(hushValue = hushValue)
   def withForgetting(forgetting: ForgetTrait) = copy(forgetting = forgetting)
-  def withTickTimeMultiplier(tickTimeMultiplier: Double) = copy(tickTimeMultiplier = tickTimeMultiplier)
   def withWeight(weight: SynapseWeight) = copy(weight = weight)
   def withInputTickMultiplier(inputTickMultiplier: Double) = copy(inputTickMultiplier = inputTickMultiplier)
   def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
@@ -63,18 +64,16 @@ case class NetData(id: String,
     inputs.foreach( inId => assert(neurons.find(_.id == inId) != None, s"The input id $inId does not match any of the neurons in the net $id"))
     // 4. Threshold should be >=0 and <1
     assert(threshold >= 0.0 && threshold < 1.0,s"Threshold should be in <0.0,1.0) but is $threshold in the net $id")
-    // 5. tick time multiplier should be > 0
-    assert(tickTimeMultiplier > 0.0, s"Tick time multiplier should be bigger than 0, is $tickTimeMultiplier in the net $id")
-    // 6. input tick multiplier should be > 0
+    // 5. input tick multiplier should be > 0
     assert(inputTickMultiplier > 0.0, s"inputTick multiplier should be bigger than 0, is $inputTickMultiplier in the net $id")
 
-    // 7. check if all synapses connect to existing neurons
+    // 6. check if all synapses connect to existing neurons
     val nIdSet = neurons.map(_.id).toSet
     neurons.foreach(n => {
       n.synapses.foreach(s => assert(nIdSet.contains(s.neuronId), s"The synapse from ${n.id} to ${s.neuronId} leads to a neuron which does not exist in the net $id"))
     })
 
-    // 8. one neuron should not have two synapses to the same neuron
+    // 7. one neuron should not have two synapses to the same neuron
     neurons.foreach( n => {
       val neuronIds = n.synapses.map(_.neuronId)
       val neuronIdsSet = neuronIds.toSet
@@ -82,7 +81,7 @@ case class NetData(id: String,
       assert(doubledIds.isEmpty, s"In the neuron ${n.id}, more than one synapse leads to the same neuron: $doubledIds")
     })
 
-    // @todo: 9. check if there is no neuron with no synapse leading to it
+    // @todo: 8. check if there is no neuron with no synapse leading to it
     // disabled until I figure out how to (and if at all) filter out non-accessible output neurons
     // - they can happen, they cannot be deleted, but they don't necessarily are invalid
     //val idLeft = neurons.foldLeft(nIdSet)( (idSet: Set[String], n: NeuronData) => idSet -- n.synapses.map(_.neuronId)) -- inputs
@@ -94,11 +93,11 @@ object NetData {
   def apply(id: String):NetData = NetData(id, Nil, Nil)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
     NetData(id, neurons, inputs, Context().threshold,
-            Context().hushValue, Context().forgetting, 1.0, Context().weight,
+            Context().hushValue, Context().forgetting, Context().weight,
             1.0, Context().activationFunctionName)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String], inputTickMultiplier: Double):NetData =
     NetData(id, neurons, inputs, Context().threshold,
-            Context().hushValue, Context().forgetting, 1.0, Context().weight,
+            Context().hushValue, Context().forgetting, Context().weight,
             inputTickMultiplier, Context().activationFunctionName)
 
   def fromJson(jsonStr: String) = read[NetData](jsonStr)

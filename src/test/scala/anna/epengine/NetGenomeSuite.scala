@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.NetBuilder
+import anna.async.{MySuite, NetBuilder}
 import anna.async.NetBuilderOps._
 import anna.data.{Hush, NetData, SynapseData}
 import anna.logger.LOG
@@ -15,8 +15,8 @@ import org.scalatest.junit.JUnitSuite
 /**
  * Created by gorywoda on 16.02.15.
  */
-class NetGenomeSuite extends JUnitSuite {
-  @Before def before() {
+class NetGenomeSuite extends MySuite {
+  @Before override def before() {
     LOG.addLogToStdout()
   }
 

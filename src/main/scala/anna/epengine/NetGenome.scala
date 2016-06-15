@@ -21,7 +21,6 @@ class NetGenome(private var _id: String,
                 var threshold: Double,
                 var hushValue: HushValue,
                 var forgetting: ForgetTrait,
-                var tickTimeMultiplier: Double,
                 var weight: SynapseTrait,
                 var inputTickMultiplier: Double,
                 val activationFunctionName: String,
@@ -173,21 +172,11 @@ class NetGenome(private var _id: String,
   }
 
   def toJson = writePretty(this)
-  def data = NetData(
-    id=id,
-    neurons=neurons.map(_.data).toList,
-    inputs=inputs,
-    threshold=threshold,
-    hushValue=hushValue,
-    forgetting=forgetting,
-    tickTimeMultiplier=tickTimeMultiplier,
-    weight=weight,
-    inputTickMultiplier=inputTickMultiplier,
-    activationFunctionName=activationFunctionName
-  )
+  def data = NetData(id, neurons.map(_.data).toList, inputs, threshold, hushValue,
+                     forgetting, weight, inputTickMultiplier, activationFunctionName)
 
   override def clone = new NetGenome(id, neurons.map(_.clone), inputs, threshold, hushValue, forgetting,
-                                     tickTimeMultiplier, weight, inputTickMultiplier, activationFunctionName, accessMap)
+                                      weight, inputTickMultiplier, activationFunctionName, accessMap)
 
 }
 
@@ -196,7 +185,7 @@ object NetGenome {
     val nListBuffer = mutable.ListBuffer[NeuronGenome]()
     nListBuffer ++= data.neurons.map(NeuronGenome(_))
     new NetGenome(data.id, nListBuffer, data.inputs, data.threshold, data.hushValue,
-                  data.forgetting, data.tickTimeMultiplier, data.weight, data.inputTickMultiplier,
+                  data.forgetting, data.weight, data.inputTickMultiplier,
                   data.activationFunctionName, accessMap)
   }
 
@@ -230,7 +219,6 @@ object NetGenome {
       oldGenome.threshold,
       oldGenome.hushValue,
       oldGenome.forgetting,
-      oldGenome.tickTimeMultiplier,
       oldGenome.weight,
       oldGenome.inputTickMultiplier,
       oldGenome.activationFunctionName,

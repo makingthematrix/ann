@@ -16,7 +16,6 @@ class Neuron(
     val threshold: Double,
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
-    val tickTimeMultiplier: Double,
     protected val f:(Double,Double)=>Double,
     protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
@@ -49,14 +48,13 @@ class Neuron(
   }
   
   private def makeSleep() = {
-    val sleepTime = (tickTimeMultiplier * Context().tickTime).toLong
-    LOG += s"$id going to sleep for $sleepTime ms (tickTimeMultiplier: $tickTimeMultiplier, context tick time: ${Context().tickTime})"
+    LOG += s"$id going to sleep for ${Context().tickTime} ms"
     isSleeping = true
-    context.system.scheduler.scheduleOnce(sleepTime millis){ wakeUp() }
+    context.system.scheduler.scheduleOnce(Context().tickTime millis){ wakeUp() }
   }
   
   private def makeHush() = {
-    val t = (tickTimeMultiplier * Context().tickTime).toLong * hushValue.iterations
+    val t = Context().tickTime * hushValue.iterations
     LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
     context.become(hushTime)
     schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
@@ -102,8 +100,8 @@ class Neuron(
     case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = offset.toDouble/(tickTimeMultiplier * Context().tickTime) * forgetValue
-      LOG += s"forgetting, offset=$offset, sleepTime=${tickTimeMultiplier * Context().tickTime}, forgetValue=$forgetValue, so delta is $delta"
+      val delta = (offset.toDouble/Context().tickTime) * forgetValue
+      LOG += s"forgetting, offset=$offset, sleepTime=${Context().tickTime}, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>
@@ -184,7 +182,7 @@ class Neuron(
   }
 
   def info = NeuronInfo(
-    id, netId, threshold, hushValue, forgetting, tickTimeMultiplier,
+    id, netId, threshold, hushValue, forgetting,
     synapses.map(_.info), buffer, highestBuffer, lastOutput
   )
 }

@@ -8,17 +8,9 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
                   weight: SynapseTrait =builder.defWeight,
                   threshold: Double =builder.defThreshold,
                   hushValue: HushValue =builder.defHushValue, 
-                  forgetting: ForgetTrait =builder.defForgetting,
-                  tickTimeMultiplier: Double =builder.defTickTimeMultiplier):NetBuilder =
-    builder.chain(id, weight, threshold, hushValue, forgetting, tickTimeMultiplier)
+                  forgetting: ForgetTrait =builder.defForgetting):NetBuilder =
+    builder.chain(id, weight, threshold, hushValue, forgetting)
 
-  def chain(id: String, 
-            weight: Double,
-            threshold: Double,
-            hushValue: HushValue,
-            forgetting: ForgetTrait,
-            tickTimeMultiplier: Double):NetBuilder =
-    chainMiddle(id, SynapseWeight(weight), threshold, hushValue, forgetting, tickTimeMultiplier)
   def chain(id: String,
             weight: Double,
             threshold: Double,

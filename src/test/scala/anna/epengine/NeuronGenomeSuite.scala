@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.NetBuilder
+import anna.async.{MySuite, NetBuilder}
 import anna.data._
 import anna.logger.LOG
 import anna.utils.DoubleRange._
@@ -12,9 +12,9 @@ import org.scalatest.junit.JUnitSuite
 /**
  * Created by gorywoda on 16.02.15.
  */
-class NeuronGenomeSuite extends JUnitSuite {
+class NeuronGenomeSuite extends MySuite {
 
-  @Before def before() {
+  @Before override def before() {
     LOG.addLogToStdout()
 
     Context.withThresholdRange(0.0 <=> 0.9)

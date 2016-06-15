@@ -1,11 +1,11 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.{NetWrapper, NetBuilder}
+import anna.async.{MySuite, NetBuilder, NetWrapper}
 import anna.data.NetData
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{Test, After, Before}
+import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
 import anna.async.NetBuilderOps._
 
@@ -13,16 +13,16 @@ import anna.async.NetBuilderOps._
 /**
   * Created by gorywoda on 1/8/16.
   */
-class SimplerEngineSuite extends JUnitSuite {
+class SimplerEngineSuite extends MySuite {
 
   private var _oldContext:Context = _
 
-  @Before def before() {
+  @Before override def before() {
     _oldContext = Context()
     LOG.addLogToStdout()
   }
 
-  @After def after(): Unit ={
+  @After override def after(): Unit ={
     Context.set(_oldContext)
   }
 

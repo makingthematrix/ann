@@ -20,8 +20,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldMakeNetDataFromJson() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1",0.0,HushValue(1),DontForget(), List(s1), 1.0, NeuronTypeDummy(), unused)
-    val n2 = NeuronData("id2",0.0,HushValue(2),ForgetValue(0.4), 1.0, step)
+    val n1 = NeuronData("id1",0.0, HushValue(1), DontForget(), List(s1), NeuronTypeDummy(), unused)
+    val n2 = NeuronData("id2",0.0, HushValue(2), ForgetValue(0.4), step)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val json = netData.toJson
@@ -30,13 +30,13 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldMakeNetDataWithBuilder() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1",HushValue(1),1.0).withSynapses(List(s1))
-    val n2 = NeuronData("id2",0.0,HushValue(2),ForgetValue(0.4), 1.0, step)
+    val n1 = NeuronData("id1", HushValue(1)).withSynapses(List(s1))
+    val n2 = NeuronData("id2",0.0, HushValue(2), ForgetValue(0.4), step)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()
 
-    builder.addInput("id1", 1.0).chain("id2",1.0,0.0,HushValue(2),ForgetValue(0.4),1.0)
+    builder.addInput("id1").chain("id2",1.0,0.0,HushValue(2),ForgetValue(0.4))
 
     print("---- net data ----")
     print(netData.toJson)
@@ -48,8 +48,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldBuildNetWithData() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1", 0.0, HushValue(1), ForgetAll(), List(s1), 1.0, NeuronTypeDummy(), unused)
-    val n2 = NeuronData("id2", 0.0, HushValue(2), ForgetValue(0.4), Nil, 1.0, NeuronTypeStandard(), step)
+    val n1 = NeuronData("id1", 0.0, HushValue(1), ForgetAll(), List(s1), NeuronTypeDummy(), unused)
+    val n2 = NeuronData("id2", 0.0, HushValue(2), ForgetValue(0.4), Nil, NeuronTypeStandard(), step)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()

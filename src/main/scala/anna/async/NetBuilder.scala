@@ -15,7 +15,6 @@ class NetBuilder {
   var defThreshold = Context().threshold
   var defHushValue = Context().hushValue
   var defForgetting: ForgetTrait = Context().forgetting
-  var defTickTimeMultiplier = 1.0
   var defWeight:SynapseTrait = Context().weight
   var inputTickMultiplier = 1.0
   var activationFunctionName = Context().activationFunctionName
@@ -57,9 +56,9 @@ class NetBuilder {
   def isCurrent = currentNeuronId != None
 
   def chain(id: String, weight: SynapseTrait, threshold: Double,
-            hushValue: HushValue, forgetting: ForgetTrait, tickTimeMultiplier: Double) = {
+            hushValue: HushValue, forgetting: ForgetTrait) = {
     val n1 = current
-    addStandard(id, threshold, hushValue, forgetting, tickTimeMultiplier)
+    addStandard(id, threshold, hushValue, forgetting)
     addSynapse(n1.id, id, weight)
     this
   }
@@ -78,8 +77,8 @@ class NetBuilder {
     this
   }
 
-  def addInput(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier):NetBuilder = {
-    addDummy(id, tickTimeMultiplier)
+  def addInput(id: String):NetBuilder = {
+    addDummy(id)
     ins += id
     this
   }
@@ -87,9 +86,8 @@ class NetBuilder {
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
                 hushValue: HushValue =defHushValue,
-                forgetting: ForgetTrait = DontForget(),
-                tickTimeMultiplier: Double = defTickTimeMultiplier):NetBuilder =
-    addStandard(id, threshold, hushValue, forgetting, tickTimeMultiplier)
+                forgetting: ForgetTrait = DontForget()):NetBuilder =
+    addStandard(id, threshold, hushValue, forgetting)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
 
@@ -99,12 +97,11 @@ class NetBuilder {
     this
   }
 
-  def addDummy(id: String, tickTimeMultiplier: Double = defTickTimeMultiplier) = {
+  def addDummy(id: String) = {
     throwIfAlreadyExists(id)
     add(newNeuron(neuronType=NeuronTypeDummy(),
                   id=id, threshold=0.0,
                   forgetting=ForgetAll(),
-                  tickTimeMultiplier=tickTimeMultiplier,
                   activationFunctionName = ActivationFunction.UNUSED
     ))
     this
@@ -113,10 +110,9 @@ class NetBuilder {
   def addStandard(id: String,
                   threshold: Double,
                   hushValue: HushValue,
-                  forgetting: ForgetTrait,
-                  tickTimeMultiplier: Double) = {
+                  forgetting: ForgetTrait) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue, forgetting, tickTimeMultiplier))
+    add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue, forgetting))
     this
   }
 
@@ -143,8 +139,8 @@ class NetBuilder {
     netId,
     neurons.values.map( n => n.withSynapses(synapses.getOrElse(n.id, Nil).toList) ).toList.sortBy( _.id ),
     ins.toList.sorted,
-    defThreshold, defHushValue, defForgetting,
-    defTickTimeMultiplier, defWeight, inputTickMultiplier,
+    defThreshold, defHushValue,
+    defForgetting, defWeight, inputTickMultiplier,
     activationFunctionName
   )
 
@@ -165,7 +161,6 @@ class NetBuilder {
     defThreshold = data.threshold
     defHushValue = data.hushValue
     defForgetting = data.forgetting
-    defTickTimeMultiplier = data.tickTimeMultiplier
     defWeight = data.weight
     inputTickMultiplier = data.inputTickMultiplier
     activationFunctionName = data.activationFunctionName
@@ -198,10 +193,10 @@ class NetBuilder {
 
   private def newNeuron(neuronType: NeuronType, id: String,
       threshold: Double =defThreshold, hushValue: HushValue =defHushValue,
-      forgetting: ForgetTrait =defForgetting, tickTimeMultiplier: Double = defTickTimeMultiplier,
+      forgetting: ForgetTrait =defForgetting,
       activationFunctionName: String = activationFunctionName) =
     NeuronData(
-      id, threshold, hushValue, forgetting, Nil, tickTimeMultiplier, neuronType, activationFunctionName
+      id, threshold, hushValue, forgetting, Nil, neuronType, activationFunctionName
     )
 
   private def add(n: NeuronData){
