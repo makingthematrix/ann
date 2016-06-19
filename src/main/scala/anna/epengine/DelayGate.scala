@@ -15,9 +15,8 @@ case class DelayGate(name: String, delay: Int){
   }
 
   def chain(builder: NetBuilder) = {
-    val middleThreshold = 0.9
     val hushTime = HushValue(delay)
-    val feedbackWeight = middleThreshold / (delay+1)
+    val feedbackWeight = DelayGate.middleThreshold / (delay+1)
     if(builder.isCurrent) builder.chain(inputId, 1.0, 0.0, hushTime)
     else builder.addMiddle(id=inputId, threshold=0.0, hushValue=hushTime)
 
