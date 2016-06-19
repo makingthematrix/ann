@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.NetBuilder
+import anna.async.{MySuite, NetBuilder}
 import anna.data._
 import anna.logger.LOG
 import anna.utils.DoubleRange._
@@ -12,9 +12,9 @@ import org.scalatest.junit.JUnitSuite
 /**
  * Created by gorywoda on 16.02.15.
  */
-class NeuronGenomeSuite extends JUnitSuite {
+class NeuronGenomeSuite extends MySuite {
 
-  @Before def before() {
+  @Before override def before() {
     LOG.addLogToStdout()
 
     Context.withThresholdRange(0.0 <=> 0.9)
@@ -22,7 +22,6 @@ class NeuronGenomeSuite extends JUnitSuite {
     Context.withForgettingRange(0.1 <=> 0.9)
     Context.withDontForgetProbability(0.75)
     Context.withForgetAllProbability(0.05)
-    Context.withTickTimeMultiplierRange(0.5 <=> 2.0)
   }
 
   @Test def shouldTossForNeuron(): Unit = {
@@ -31,7 +30,6 @@ class NeuronGenomeSuite extends JUnitSuite {
     Context.withForgettingRange(0.1 <=> 0.9)
     Context.withDontForgetProbability(0.75)
     Context.withForgetAllProbability(0.05)
-    Context.withTickTimeMultiplierRange(0.5 <=> 2.0)
 
     val totalCount = 1000
     var dontForgetCount = 0

@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.NetBuilder
+import anna.async.{MySuite, NetBuilder}
 import anna.async.NetBuilderOps._
 import anna.data.{Hush, NetData, SynapseData}
 import anna.logger.LOG
@@ -15,8 +15,8 @@ import org.scalatest.junit.JUnitSuite
 /**
  * Created by gorywoda on 16.02.15.
  */
-class NetGenomeSuite extends JUnitSuite {
-  @Before def before() {
+class NetGenomeSuite extends MySuite {
+  @Before override def before() {
     LOG.addLogToStdout()
   }
 
@@ -28,7 +28,6 @@ class NetGenomeSuite extends JUnitSuite {
     val netDataInOut = NetBuilder().addInput("in1").chain("out1",1.0,1.0).netId("net").data
     Context.withNeuronsRange(3 to 3)
     Context.withSynapsesDensity(2.5)
-    Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome(netDataInOut, AccessMap(inputIds, outputIds))
     assertEquals(2, ng.data.neurons.size)
@@ -52,7 +51,6 @@ class NetGenomeSuite extends JUnitSuite {
   @Test def shouldDeleteNeuron(): Unit ={
     Context.withNeuronsRange (3 to 3)
     Context.withSynapsesDensity (2.5)
-    Context.withInputTickMultiplierRange(2.0 <=> 2.0)
 
     val ng = NetGenome(netData, AccessMap(inputIds, outputIds))
     assertEquals(3, ng.data.neurons.size)

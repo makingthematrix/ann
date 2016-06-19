@@ -82,7 +82,7 @@ object MutationsLibrary {
   add("addDelayGate", (net: NetGenome) => if(net.neurons.size >= 2 && net.mutableNeurons.size >= 1){
     // requirements: at least two neurons in the net and at least one of them full access mutable
 
-    val block = DelayGate(RandomNumber(Context().fwdDelayRange), net.inputTickMultiplier)
+    val block = DelayGate(RandomNumber(Context().fwdDelayRange))
     debug(s"MUTATION: addDelayGate to ${net.id} -> the delay is ${block.delay}")
 
     val inFrom = RandomNumber(net.neurons)
@@ -159,12 +159,6 @@ object MutationsLibrary {
       net.deleteNeuron(n.id)
       net.deleteSynapsesTo(n.id)
     case None =>
-  })
-
-  add("mutateInputTickMultiplier", (net: NetGenome) => {
-      val newInputTickMultiplier = RandomNumber(Context().inputTickMultiplierRange)
-      debug(s"MUTATION: mutateInputTickMultiplier for ${net.id} from ${net.inputTickMultiplier} to $newInputTickMultiplier")
-      net.inputTickMultiplier = newInputTickMultiplier
   })
 
   private def invertSynapseWeight(weight: SynapseTrait) = weight match {
@@ -249,14 +243,6 @@ object MutationsLibrary {
       val newHushValue = HushValue(RandomNumber(Context().hushRange))
       debug(s"MUTATION: mutateHushValue for ${n.id} from ${n.hushValue} to $newHushValue")
       n.hushValue = newHushValue
-    case None =>
-  })
-
-  add("mutateTickTimeMultiplier", (net: NetGenome) => chooseNeuron(net) match {
-    case Some(n) =>
-      val newTickTimeMultiplier = RandomNumber(Context().tickTimeMultiplierRange)
-      debug(s"MUTATION: mutateHushValue for ${n.id} from ${n.tickTimeMultiplier} to $newTickTimeMultiplier")
-      n.tickTimeMultiplier = newTickTimeMultiplier
     case None =>
   })
 

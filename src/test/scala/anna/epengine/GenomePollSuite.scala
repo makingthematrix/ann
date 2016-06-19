@@ -1,6 +1,6 @@
 package anna.epengine
 
-import anna.async.NetBuilder
+import anna.async.{MySuite, NetBuilder}
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
 import anna.async.NetBuilderOps._
@@ -9,7 +9,7 @@ import org.junit.Assert._
 /**
  * Created by gorywoda on 12/15/15.
  */
-class GenomePollSuite extends JUnitSuite {
+class GenomePollSuite extends MySuite {
   @Test def shouldMutateWhenCreatingPoll():Unit = {
     val data = NetBuilder().addInput("in").chain("out",1.0,0.5).netId("simplest").data
     val accessMap = AccessMap(List("in"),List("out"))

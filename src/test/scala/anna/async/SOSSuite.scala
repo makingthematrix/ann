@@ -13,15 +13,13 @@ class SOSSuite extends MySuite {
   val o = "1,1,0,1,1,0,1,1,0"
 
   private def dotLineNet(){
-    val itm = 3.0
-    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
+                     .chain("dot",0.6/2.0,0.6).hush("mi12").hush("loop").hush("dot")
     // lines
-    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm))
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4))
                      .hush("mi21")
                      .chain("line",1.0,0.0).hush("line")
                      
@@ -104,13 +102,11 @@ class SOSSuite extends MySuite {
   }
   
   private def SNet(){
-    val itm = 3.0
-    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chain("dot",0.6/(2.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
+                     .chain("dot",0.6/2.0,0.6).hush("mi12").hush("loop").hush("dot")
                      .chain("S",0.5,0.81)
     build()
     
@@ -142,11 +138,9 @@ class SOSSuite extends MySuite {
   }
   
   private def ONet(){
-    val itm = 3.0
-    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // lines
-    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4)).hush("mi21")
                      .chain("line",1.0,0.0).hush("line")    
                      .chain("O",0.6,0.81)
     build()
@@ -179,16 +173,14 @@ class SOSSuite extends MySuite {
   }
   
   private def SOSNet(){
-    val itm = 3.0
-    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue((3 * itm).toInt)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(3)).hush("mi11")
                      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-                     .chain("dot",0.6/(3.0*itm),0.6).hush("mi12").hush("loop").hush("dot")
+                     .chain("dot",0.6/3.0,0.6).hush("mi12").hush("loop").hush("dot")
                      .chain("S",0.5,0.81)
     // lines
-    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+    builder.use("in").chain("mi21",0.5,0.55,HushValue(),ForgetValue(0.4)).hush("mi21")
                      .chain("line",1.0,0.0).hush("line")
                      .chain("O",0.6,0.81)
                      

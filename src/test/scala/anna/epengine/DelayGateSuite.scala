@@ -45,12 +45,11 @@ class DelayGateSuite extends MySuite {
     assertDelayGateWithOps(0)
   }
 
-  private def delayGateWithBlock(delay: Int, inputTickMultiplier: Double = 1.0) = {
+  private def delayGateWithBlock(delay: Int) = {
     val builder = NetBuilder()
-    builder.inputTickMultiplier = inputTickMultiplier
     builder.addInput("in")
 
-    val block = DelayGate(delay, inputTickMultiplier)
+    val block = DelayGate(delay)
     block.chain(builder)
     (builder.data, block)
   }

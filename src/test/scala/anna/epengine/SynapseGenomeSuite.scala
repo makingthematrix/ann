@@ -1,7 +1,7 @@
 package anna.epengine
 
 import anna.Context
-import anna.async.NetBuilder
+import anna.async.{MySuite, NetBuilder}
 import anna.async.NetBuilderOps._
 import anna.data.{Hush, SynapseWeight}
 import anna.logger.LOG
@@ -14,8 +14,8 @@ import org.scalatest.junit.JUnitSuite
 /**
  * Created by gorywoda on 16.02.15.
  */
-class SynapseGenomeSuite extends JUnitSuite {
-  @Before def before() {
+class SynapseGenomeSuite extends MySuite {
+  @Before override def before() {
     LOG.addLogToStdout()
 
     Context.withWeightRange(-1.0 <=> 1.0)

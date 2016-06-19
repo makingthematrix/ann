@@ -1,8 +1,8 @@
 package anna.epengine
 
 import anna.async.NetBuilderOps._
-import anna.async.{NetBuilder, NetWrapper}
-import anna.data.{NetData, Hush, SynapseWeight}
+import anna.async.{MySuite, NetBuilder, NetWrapper}
+import anna.data.{Hush, NetData, SynapseWeight}
 import anna.logger.LOG
 import anna.Context
 import org.junit.Assert._
@@ -12,16 +12,16 @@ import org.scalatest.junit.JUnitSuite
 
 // @todo: check what it does: org.scalatest.tools.Runner$.doRunRunRunDaDoRunRun
 
-class StandardEngineSuite extends JUnitSuite {
+class StandardEngineSuite extends MySuite {
 
   private var _oldContext:Context = _
 
-  @Before def before() {
+  @Before override def before() {
     _oldContext = Context()
     LOG.addLogToStdout()
   }
 
-  @After def after(): Unit ={
+  @After override def after(): Unit ={
     Context.set(_oldContext)
   }
 

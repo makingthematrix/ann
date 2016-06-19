@@ -11,7 +11,6 @@ case class NeuronData(
     hushValue: HushValue,
     forgetting: ForgetTrait,
     synapses: List[SynapseData],
-    tickTimeMultiplier: Double,
     neuronType: NeuronType,
     activationFunctionName: String
 ){
@@ -21,7 +20,6 @@ case class NeuronData(
   def withForgetting(forgetting: ForgetTrait) = copy(forgetting = forgetting)
   def withSynapses(synapses: List[SynapseData]) = copy(synapses = synapses)
   def withoutSynapses = withSynapses(Nil)
-  def withTickTimeMultiplier(tickTimeMultiplier: Double) = copy(tickTimeMultiplier = tickTimeMultiplier)
   def withNeuronType(neuronType: NeuronType) = copy(neuronType = neuronType)
   def withActivationFunctionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
 
@@ -36,25 +34,22 @@ object NeuronData {
             hushValue: HushValue, 
             forgetting: ForgetTrait,
             synapses: List[SynapseData],
-            tickTimeMultiplier: Double,
             activationFunctionName: String):NeuronData
-    = apply(id, threshold, hushValue, forgetting, synapses, tickTimeMultiplier, NeuronTypeStandard(), activationFunctionName)
+    = apply(id, threshold, hushValue, forgetting, synapses, NeuronTypeStandard(), activationFunctionName)
 
   def apply(id: String, 
             threshold: Double,
             hushValue: HushValue,
             forgetting: ForgetTrait,
-            tickTimeMultiplier: Double,
             activationFunctionName: String):NeuronData
-    = apply(id, threshold, hushValue, forgetting, Nil, tickTimeMultiplier, NeuronTypeStandard(), activationFunctionName)
+    = apply(id, threshold, hushValue, forgetting, Nil, NeuronTypeStandard(), activationFunctionName)
 
   def apply(id: String,  
-            hushValue: HushValue,
-            tickTimeMultiplier: Double):NeuronData
-    = apply(id, 0.0, hushValue, ForgetAll(), Nil, tickTimeMultiplier, NeuronTypeDummy(), ActivationFunction.UNUSED)
+            hushValue: HushValue):NeuronData
+    = apply(id, 0.0, hushValue, ForgetAll(), Nil, NeuronTypeDummy(), ActivationFunction.UNUSED)
   
   def apply(id: String):NeuronData
-    = apply(id, 0.0, Context().hushValue, ForgetAll(), Nil, 1.0, NeuronTypeHush(), ActivationFunction.UNUSED)
+    = apply(id, 0.0, Context().hushValue, ForgetAll(), Nil, NeuronTypeHush(), ActivationFunction.UNUSED)
 
   def fromJson(jsonStr: String) = read[NeuronData](jsonStr)
 }

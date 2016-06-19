@@ -8,17 +8,9 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
                   weight: SynapseTrait =builder.defWeight,
                   threshold: Double =builder.defThreshold,
                   hushValue: HushValue =builder.defHushValue, 
-                  forgetting: ForgetTrait =builder.defForgetting,
-                  tickTimeMultiplier: Double =builder.defTickTimeMultiplier):NetBuilder =
-    builder.chain(id, weight, threshold, hushValue, forgetting, tickTimeMultiplier)
+                  forgetting: ForgetTrait =builder.defForgetting):NetBuilder =
+    builder.chain(id, weight, threshold, hushValue, forgetting)
 
-  def chain(id: String, 
-            weight: Double,
-            threshold: Double,
-            hushValue: HushValue,
-            forgetting: ForgetTrait,
-            tickTimeMultiplier: Double):NetBuilder =
-    chainMiddle(id, SynapseWeight(weight), threshold, hushValue, forgetting, tickTimeMultiplier)
   def chain(id: String,
             weight: Double,
             threshold: Double,
@@ -74,19 +66,17 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   implicit private def fromNetBuilder(builder: NetBuilder):NetBuilderOps = NetBuilderOps.fromNetBuilder(builder)
 
   def SOSNetData(name: String = "net") = {
-    val itm = 1.0
-    builder.inputTickMultiplier = itm
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,HushValue((2 * itm).toInt)).hush("mi11")
+    builder.use("in").chain("mi11",1.0,0.0,HushValue(2)).hush("mi11")
       .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-      .chain("dot",0.6/(2.0*itm),0.6)
+      .chain("dot",0.6/2.0,0.6)
       .chain("S",0.5,0.81)
     builder.addHushNeuron("dot_hush").hush("mi12").hush("loop").hush("dot")
     builder.use("dot").hush("dot_hush")
 
     // lines
-    builder.use("in").chain("mi21",0.55,0.58,HushValue(),ForgetValue(0.4 / itm)).hush("mi21")
+    builder.use("in").chain("mi21",0.55,0.58,HushValue(),ForgetValue(0.4)).hush("mi21")
       .chain("line",1.0,0.0).hush("line")
       .chain("O",0.6,0.81)
 
@@ -112,9 +102,6 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   }
 
   def SOSNetTemplateData(name: String = "net") = {
-    val itm = 3.0
-    builder.inputTickMultiplier = itm
-
     builder.addInput("in").chain("dot",1.0,0.5).chain("S",1.0,0.5)
                .use("in").chain("line",1.0,0.5).chain("O",1.0,0.5)
                .use("dot").connect("O",0.5)
@@ -124,7 +111,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   }
 
   def delayGate(name: String, delay: Int) = {
-    DelayGate(name, delay, builder.inputTickMultiplier).chain(builder)
+    DelayGate(name, delay).chain(builder)
   }
 }
 

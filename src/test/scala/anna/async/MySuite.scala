@@ -3,6 +3,7 @@ package anna.async
 import anna.data.NetData
 import anna.logger.LOG
 import org.junit.Assert._
+import org.hamcrest.CoreMatchers._
 import org.junit.{After, Before}
 import org.scalatest.junit.JUnitSuite
 
@@ -59,4 +60,6 @@ class MySuite extends JUnitSuite {
   protected def init() = {
     LOG.timer()
   }
+
+  protected def assertNotEquals[T](a: T, b: T) = assertThat(a, is(not(b)))
 }

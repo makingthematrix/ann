@@ -49,14 +49,12 @@ case class NeuronGenomeDefaults(
   thresholdRange: DoubleRange,
   hushRange: IntRange,
   forgettingRange: DoubleRange,
-  tickTimeMultiplierRange: DoubleRange,
 
   dontForgetProbability: Probability,
   forgetAllProbability: Probability,
   thresholdProbability: Probability,
   forgettingProbability: Probability,
   hushValueProbability: Probability,
-  tickTimeMultiplierProbability: Probability,
   invertNeuronProbability: Probability,
 
   synapseChangeProbability: Probability,
@@ -70,8 +68,6 @@ case class NetGenomeDefaults(
   addNeuronProbability: Probability,
   deleteNeuronProbability: Probability,
   mutateNeuronProbability: Probability,
-  inputTickMultiplierProbability: Probability,
-  inputTickMultiplierRange: DoubleRange,
   neuronsRange: IntRange,
   synapsesDensity: Double
 ){
@@ -159,14 +155,12 @@ case class Context(
   def thresholdRange = neuronGenomeDefaults.thresholdRange
   def hushRange = neuronGenomeDefaults.hushRange
   def forgettingRange = neuronGenomeDefaults.forgettingRange
-  def tickTimeMultiplierRange = neuronGenomeDefaults.tickTimeMultiplierRange
 
   def dontForgetProbability = neuronGenomeDefaults.dontForgetProbability
   def forgetAllProbability = neuronGenomeDefaults.forgetAllProbability
   def thresholdProbability = neuronGenomeDefaults.thresholdProbability
   def forgettingProbability = neuronGenomeDefaults.forgettingProbability
   def hushValueProbability = neuronGenomeDefaults.hushValueProbability
-  def tickTimeMultiplierProbability = neuronGenomeDefaults.tickTimeMultiplierProbability
   def invertNeuronProbability = neuronGenomeDefaults.invertNeuronProbability
 
   def synapseChangeProbability = neuronGenomeDefaults.synapseChangeProbability
@@ -176,8 +170,6 @@ case class Context(
   def addNeuronProbability = netGenomeDefaults.addNeuronProbability
   def deleteNeuronProbability = netGenomeDefaults.deleteNeuronProbability
   def mutateNeuronProbability = netGenomeDefaults.mutateNeuronProbability
-  def inputTickMultiplierProbability = netGenomeDefaults.inputTickMultiplierProbability
-  def inputTickMultiplierRange = netGenomeDefaults.inputTickMultiplierRange
 
   def neuronsRange = netGenomeDefaults.neuronsRange
   def synapsesDensity = netGenomeDefaults.synapsesDensity
@@ -247,8 +239,6 @@ object Context {
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(hushRange = hushRange)))
   def withForgettingRange(forgettingRange: DoubleRange) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(forgettingRange = forgettingRange)))
-  def withTickTimeMultiplierRange(tickTimeMultiplierRange: DoubleRange) =
-    set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(tickTimeMultiplierRange = tickTimeMultiplierRange)))
 
   def withDontForgetProbability(dontForgetProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(dontForgetProbability = dontForgetProbability)))
@@ -260,8 +250,6 @@ object Context {
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(forgettingProbability = forgettingProbability)))
   def withHushValueProbability(hushValueProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(hushValueProbability = hushValueProbability)))
-  def withTickTimeMultiplierProbability(tickTimeMultiplierProbability: Probability) =
-    set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(tickTimeMultiplierProbability = tickTimeMultiplierProbability)))
   def withInvertNeuronProbability(invertNeuronProbability: Probability) =
     set(apply().copy(neuronGenomeDefaults = that.neuronGenomeDefaults.copy(invertNeuronProbability = invertNeuronProbability)))
   
@@ -278,10 +266,6 @@ object Context {
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(deleteNeuronProbability = deleteNeuronProbability)))
   def withMutateNeuronProbability(mutateNeuronProbability: Probability) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(mutateNeuronProbability = mutateNeuronProbability)))
-  def withInputTickMultiplierProbability(inputTickMultiplierProbability: Probability) =
-    set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(inputTickMultiplierProbability = inputTickMultiplierProbability)))
-  def withInputTickMultiplierRange(inputTickMultiplierRange: DoubleRange) =
-    set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(inputTickMultiplierRange = inputTickMultiplierRange)))
 
   def withNeuronsRange(neuronsRange: IntRange) =
     set(apply().copy(netGenomeDefaults = that.netGenomeDefaults.copy(neuronsRange = neuronsRange)))
@@ -368,15 +352,11 @@ object Context {
   val _forgettingrange = "forgettingRange"
   val _forgettingrangefrom = "forgettingRange.from"
   val _forgettingrangeto = "forgettingRange.to"
-  val _tickmultiplierrange = "tickTimeMultiplierRange"
-  val _tickmultiplierrangefrom = "tickTimeMultiplierRange.from"
-  val _ticktimemultiplierrangeto = "tickTimeMultiplierRange.to"
   val _dontforgetprobability = "dontForgetProbability"
   val _forgetallprobability = "forgetAllProbability"
   val _thresholdprobability = "thresholdProbability"
   val _forgettingprobability = "forgettingProbability"
   val _hushvalueprobability = "hushValueProbability"
-  val _ticktimemultiplierprobability = "tickTimeMultiplierProbability"
   val _invertneuronprobability = "invertNeuronProbability"
   val _synapsechangeprobability = "synapseChangeProbability"
   val _addsynapseprobability = "addSynapseProbability"
@@ -385,10 +365,6 @@ object Context {
   val _addneuronprobability = "addNeuronProbability"
   val _deleteneuronprobability = "deleteNeuronProbability"
   val _mutateneuronprobability = "mutateNeuronProbability"
-  val _inputtickmultiplierprobability = "inputTickMultiplierProbability"
-  val _inputtickmultiplierrange = "inputTickMultiplierRange"
-  val _inputtickmultiplierrangefrom = "inputTickMultiplierRange.from"
-  val _inputtickmultiplierrangeto = "inputTickMultiplierRange.to"
   val _neuronsrange = "neuronsRange"
   val _neuronsrangefrom = "neuronsRange.from"
   val _neuronsrangeto = "neuronsRange.to"
@@ -458,7 +434,6 @@ object Context {
     val thresholdRange = neuronGenomeRoot.getDouble(_thresholdrangefrom) <=> neuronGenomeRoot.getDouble(_thresholdrangeto)
     val hushRange = neuronGenomeRoot.getInt(_hushrangefrom) to neuronGenomeRoot.getInt(_hushrangeto)
     val forgettingRange = neuronGenomeRoot.getDouble(_forgettingrangefrom) <=> neuronGenomeRoot.getDouble(_forgettingrangeto)
-    val tickTimeMultiplierRange = neuronGenomeRoot.getDouble(_tickmultiplierrangefrom) <=> neuronGenomeRoot.getDouble(_ticktimemultiplierrangeto)
 
     // neuron genome defaults - probabilities
     val dontForgetProbability = Probability(neuronGenomeRoot.getDouble(_dontforgetprobability))
@@ -466,7 +441,6 @@ object Context {
     val thresholdProbability = Probability(neuronGenomeRoot.getDouble(_thresholdprobability))
     val forgettingProbability = Probability(neuronGenomeRoot.getDouble(_forgettingprobability))
     val hushValueProbability = Probability(neuronGenomeRoot.getDouble(_hushvalueprobability))
-    val tickTimeMultiplierProbability = Probability(neuronGenomeRoot.getDouble(_ticktimemultiplierprobability))
     val invertNeuronProbability = Probability(neuronGenomeRoot.getDouble(_invertneuronprobability))
 
     // neuron genome defaults - probabilities of mutating a synapse
@@ -475,9 +449,9 @@ object Context {
     val deleteSynapseProbability = Probability(neuronGenomeRoot.getDouble(_deletesynapseprobability))
 
     val neuronGenomeDefaults = NeuronGenomeDefaults(
-      thresholdRange, hushRange, forgettingRange, tickTimeMultiplierRange,
+      thresholdRange, hushRange, forgettingRange,
       dontForgetProbability, forgetAllProbability, thresholdProbability,
-      forgettingProbability, hushValueProbability, tickTimeMultiplierProbability,
+      forgettingProbability, hushValueProbability,
       invertNeuronProbability,
       synapseChangeProbability, addSynapseProbability, deleteSynapseProbability
     )
@@ -488,15 +462,13 @@ object Context {
     val addNeuronProbability = Probability(netGenomeRoot.getDouble(_addneuronprobability))
     val deleteNeuronProbability = Probability(netGenomeRoot.getDouble(_deleteneuronprobability))
     val mutateNeuronProbability = Probability(netGenomeRoot.getDouble(_mutateneuronprobability))
-    val inputTickMultiplierProbability = Probability(netGenomeRoot.getDouble(_inputtickmultiplierprobability))
-    val inputTickMultiplierRange = netGenomeRoot.getDouble(_inputtickmultiplierrangefrom) <=> netGenomeRoot.getDouble(_inputtickmultiplierrangeto)
 
     val neuronsRange = netGenomeRoot.getInt(_neuronsrangefrom) to netGenomeRoot.getInt(_neuronsrangeto)
     val synapsesDensity = netGenomeRoot.getDouble(_synapsesdensity)
 
     val netGenomeDefaults = NetGenomeDefaults(
-      addNeuronProbability, deleteNeuronProbability, mutateNeuronProbability, inputTickMultiplierProbability,
-      inputTickMultiplierRange, neuronsRange, synapsesDensity
+      addNeuronProbability, deleteNeuronProbability,
+      mutateNeuronProbability, neuronsRange, synapsesDensity
     )
 
     // dot-line exercises defaults

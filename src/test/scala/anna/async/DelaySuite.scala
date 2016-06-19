@@ -11,7 +11,6 @@ import scala.collection.mutable
 class DelaySuite extends MySuite {  
   
   @Test def shouldGiveConstantOutput(){
-	  builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).chain("out1",1.0,0.75)
     build()
     
@@ -26,7 +25,7 @@ class DelaySuite extends MySuite {
     list.foreach(println)
     
     val tolerance = 10L
-    assertEqualsWithTolerance(produceSeq(6, tolerance, (netWrapper.inputTickMultiplier * Context().tickTime).toLong), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(6, tolerance, Context().tickTime), list.toSeq, tolerance)
   }
   
   @Test def shouldCreateOscillatorWithMethod1(){
@@ -62,7 +61,6 @@ class DelaySuite extends MySuite {
   }
   
   @Test def shouldCreateOscillator2(){
-    builder.inputTickMultiplier = 2.0
     builder.addInput("in1").chain("mi1",1.0).loop("osc",1.0,0.5,-1.0).chain("out1",1.0,0.75)
     builder.use("osc").chain("mi2",1.0).chain("out2",1.0,0.75)
     build()

@@ -30,14 +30,13 @@ class NetRef(val id: String, val ref: ActorRef) {
     threshold: Double,
     hushValue: HushValue,
     forgetting: ForgetTrait,
-    tickTime: Long,
     activationFunctionName: String
   ) = await[NeuronRef](ref, CreateNeuron(NeuronData(
-    id, threshold, hushValue, forgetting, tickTime, activationFunctionName
+    id, threshold, hushValue, forgetting, activationFunctionName
   )))
 
-  def createDummy(id: String, hushValue: HushValue, tickTime: Long) =
-    await[NeuronRef](ref, CreateNeuron(NeuronData(id, hushValue, tickTime)))
+  def createDummy(id: String, hushValue: HushValue) =
+    await[NeuronRef](ref, CreateNeuron(NeuronData(id, hushValue)))
 
   def createHushNeuron(id: String) = await[NeuronRef](ref, CreateNeuron(NeuronData(id)))
   

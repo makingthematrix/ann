@@ -6,7 +6,7 @@ import anna.utils.Utils._
 
 import scala.collection.mutable
 
-class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
+class NetWrapper(val net: NetRef) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
   
@@ -49,7 +49,7 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
   def tick(n: Int):Unit = for(i <- 1 to n) {
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
-    Thread.sleep((inputTickMultiplier * Context().tickTime).toLong)
+    Thread.sleep(Context().tickTime)
     _iteration = _iteration + 1
   }
 
@@ -96,8 +96,8 @@ class NetWrapper(val net: NetRef, val inputTickMultiplier: Double) {
 }
 
 object NetWrapper {
-  def apply(net: NetRef, inputTickMultiplier: Double) = {
-    val ani = new NetWrapper(net, inputTickMultiplier)
+  def apply(net: NetRef) = {
+    val ani = new NetWrapper(net)
     ani.regSign('0',0.0)
     ani.regSign('1', 1.0)
     ani

@@ -48,7 +48,6 @@ object Messages {
                         threshold: Double,
                         hushValue: HushValue,
                         forgetting: ForgetTrait,
-                        tickTimeMultiplier: Double,
                         synapses: List[SynapseInfo],
                         buffer: Double,
                         highestBuffer: Double,

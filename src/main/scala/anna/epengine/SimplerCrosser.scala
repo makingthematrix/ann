@@ -89,10 +89,6 @@ class SimplerCrosser(override val poll: GenomePoll, override val results:Map[Str
     ng2.forgetting = ng1.forgetting
     ng1.forgetting = f
 
-    val ttm = ng2.tickTimeMultiplier
-    ng2.tickTimeMultiplier = ng1.tickTimeMultiplier
-    ng1.tickTimeMultiplier = ttm
-
     val commonSynapsesIds = ng1.synapses.map(s => NetData.removeNetId(s.neuronId)).toSet.intersect(ng2.synapses.map(s => NetData.removeNetId(s.neuronId)).toSet)
     commonSynapsesIds.foreach(id => {
       val sFrom = ng1.getSynapse(id)
