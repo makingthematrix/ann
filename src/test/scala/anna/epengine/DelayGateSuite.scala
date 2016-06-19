@@ -27,11 +27,7 @@ class DelayGateSuite extends MySuite {
     shutdown()
   }
 
-  private def delayGateWithOps(blockName: String, delay: Int, inputTickMultiplier: Double = 1.0) = {
-    val builder = NetBuilder()
-    builder.inputTickMultiplier = inputTickMultiplier
-    builder.addInput("in").delayGate(blockName, delay).data
-  }
+  private def delayGateWithOps(blockName: String, delay: Int) = NetBuilder().addInput("in").delayGate(blockName, delay).data
 
   private def assertDelayGateWithOps(delay: Int) = {
     build(delayGateWithOps("delayGate",delay))
@@ -64,15 +60,6 @@ class DelayGateSuite extends MySuite {
     build(data)
     var fired = false
     var iteration = 0
-    /*LOG.allow(block.inputId)
-    netWrapper.addAfterFire(block.inputId)( (_:Double)=>{
-      LOG.debug(s"iteration: ${netWrapper.iteration}, ${block.inputId} fired")
-    })
-    LOG.allow(block.middleId)
-    netWrapper.addAfterFire(block.middleId)( (_:Double)=>{
-      LOG.debug(s"iteration: ${netWrapper.iteration}, ${block.middleId} fired")
-    })
-    LOG.allow(block.outputId)*/
     netWrapper.addAfterFire(block.outputId)( (_:Double)=>{
       LOG.debug(s"iteration: ${netWrapper.iteration}, ${block.outputId} fired")
       iteration = netWrapper.iteration
@@ -214,7 +201,7 @@ class DelayGateSuite extends MySuite {
     assertTrue(fired)
     assertEquals(2, iteration)
 
-    /*Context.withFwdDelay(4)
+    Context.withFwdDelay(4)
     MutationsLibrary.mutate(ng, "modifyDelayGate")
     build(ng.data)
     fired = false
@@ -223,6 +210,6 @@ class DelayGateSuite extends MySuite {
     netWrapper.tickUntilCalm("1")
     shutdown()
     assertTrue(fired)
-    assertEquals(4, iteration)*/
+    assertEquals(4, iteration)
   }
 }

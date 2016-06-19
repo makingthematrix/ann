@@ -1,9 +1,10 @@
 package anna.epengine
 
 import anna.Context
-import anna.data._
+import anna.data.{HushValue, _}
 import anna.logger.LOG._
 import anna.utils.RandomNumber
+
 import scala.collection.mutable
 
 /**
@@ -117,7 +118,19 @@ object MutationsLibrary {
   })
 
   add("modifyDelayGate", (net: NetGenome) => {
+    val blockNames = DelayGate.blocksInGenome(net)
+    if(blockNames.nonEmpty) {
+      val chosenBlockName = RandomNumber(blockNames)
+      debug(s"MUTATION: modifyDelayGate with ${net.id} -> modifying block $chosenBlockName")
+      val delay = RandomNumber(Context().fwdDelayRange)
+      val hushTime = HushValue((delay * net.inputTickMultiplier).toInt)
+      val feedbackWeight = DelayGate.middleThreshold / ((delay+1) * net.inputTickMultiplier)
 
+      val dg = DelayGate(chosenBlockName, delay, net.inputTickMultiplier)
+      net.find(dg.outputId).get.
+
+
+    }
   })
 
   // ---

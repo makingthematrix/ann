@@ -16,14 +16,13 @@ case class DelayGate(name: String, delay: Int, inputTickMultiplier: Double){
   }
 
   def chain(builder: NetBuilder) = {
-    val middleThreshold = 0.9
     val hushTime = HushValue((delay * builder.inputTickMultiplier).toInt)
-    val feedbackWeight = middleThreshold / ((delay+1) * builder.inputTickMultiplier)
+    val feedbackWeight = DelayGate.middleThreshold / ((delay+1) * builder.inputTickMultiplier)
     if(builder.isCurrent) builder.chain(inputId, 1.0, 0.0, hushTime)
     else builder.addMiddle(id=inputId, threshold=0.0, hushValue=hushTime)
 
     builder.use(inputId).hush(inputId).chain(s"${name}mi", 1.0, 0.01).connect(s"${name}mi", 1.0)
-           .chain(outputId, feedbackWeight, middleThreshold)
+           .chain(outputId, feedbackWeight, DelayGate.middleThreshold)
            .chainHushNeuron(hushId).hush(inputId).hush(s"${name}mi").hush(outputId)
   }
 
@@ -37,6 +36,8 @@ object DelayGate {
   val blockNamePrefix = "DelayGate"
   val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
   val neuronsInBlock = 4
+
+  val middleThreshold = 0.9
 
   def nextName() = s"${blockNamePrefix}#${firstFreeId}#"
 
