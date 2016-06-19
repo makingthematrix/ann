@@ -123,13 +123,11 @@ object MutationsLibrary {
       val chosenBlockName = RandomNumber(blockNames)
       debug(s"MUTATION: modifyDelayGate with ${net.id} -> modifying block $chosenBlockName")
       val delay = RandomNumber(Context().fwdDelayRange)
-      val hushTime = HushValue((delay * net.inputTickMultiplier).toInt)
-      val feedbackWeight = DelayGate.middleThreshold / ((delay+1) * net.inputTickMultiplier)
+      val hushTime = HushValue(delay)
+      val feedbackWeight = DelayGate.middleThreshold / (delay+1)
 
-      val dg = DelayGate(chosenBlockName, delay, net.inputTickMultiplier)
-      net.find(dg.outputId).get.
-
-
+      val dg = DelayGate(chosenBlockName, delay)
+      net.find(dg.outputId).get
     }
   })
 

@@ -43,6 +43,7 @@ class Neuron(
   private def hushNow(){
     LOG += s"$id hushNow, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
+    LOG += s"$id: buffer is now $buffer"
     if(hushValue.iterations == 0) makeSleep() else makeHush()
     triggerHushRequested()
   }
@@ -68,8 +69,9 @@ class Neuron(
   protected def calculateOutput:Double = f(buffer, 0.0)
   
   protected def +=(signal: Double){
-    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
+    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold, forgetting is $forgetting"
     buffer += signal
+    LOG += s"$id: buffer is now $buffer"
     if(!isSleeping){
       tick()
     }
@@ -92,6 +94,8 @@ class Neuron(
       run()
     }
     if (forgetting == ForgetAll()) buffer = 0.0
+    LOG += s"after the tick: $id: buffer is now $buffer"
+
   }
 
   private var lastForgetting:Option[Long] = None
@@ -131,6 +135,8 @@ class Neuron(
 
   private def reset(): Unit ={
     buffer = 0.0
+    LOG += s"reset; $id: buffer is now $buffer"
+
     context.become(receive)
     schedulerBuffer.clear()
     answer(Success(id))

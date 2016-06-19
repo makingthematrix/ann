@@ -1,5 +1,6 @@
 package anna.async
 
+import anna.Context
 import anna.data.NetData
 import anna.logger.LOG
 import org.junit.Assert._
@@ -10,22 +11,27 @@ import org.scalatest.junit.JUnitSuite
 class MySuite extends JUnitSuite {
   private var _builder: NetBuilder = _
   def builder = _builder
-  private var _netWrapper: NetWrapper = _
+  private var _netWrapper: NetWrapper = null
   def netWrapper = _netWrapper
-  
+  private var _oldContext:Context = _
+
+
   @Before def before(){
     LOG.addLogToStdout()
     _builder = NetBuilder()
+    _oldContext = Context()
   }
   
   @After def after(){
     if(_netWrapper != null) _netWrapper.shutdown()
     _builder = null
     _netWrapper = null
+    Context.set(_oldContext)
+    shutdown()
     LOG.date()
   }
 
-  def shutdown(): Unit ={
+  protected def shutdown(): Unit ={
     if(_netWrapper != null) _netWrapper.shutdown()
     _netWrapper = null
   }

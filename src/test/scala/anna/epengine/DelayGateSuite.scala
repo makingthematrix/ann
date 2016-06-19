@@ -3,30 +3,16 @@ package anna.epengine
 import anna.Context
 import anna.async.NetBuilderOps._
 import anna.async.{MySuite, NetBuilder}
-import anna.data.{SynapseWeight, HushValue}
+import anna.data.SynapseWeight
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{After, Before, Test}
+import org.junit.Test
 
 
 /**
   * Created by gorywoda on 1/31/16.
   */
 class DelayGateSuite extends MySuite {
-  private var _oldContext:Context = _
-
-  @Before override def before() {
-    super.before()
-    _oldContext = Context()
-    LOG.addLogToStdout()
-  }
-
-  @After override def after(): Unit ={
-    super.after()
-    Context.set(_oldContext)
-    shutdown()
-  }
-
   private def delayGateWithOps(blockName: String, delay: Int) = NetBuilder().addInput("in").delayGate(blockName, delay).data
 
   private def assertDelayGateWithOps(delay: Int) = {
@@ -188,7 +174,7 @@ class DelayGateSuite extends MySuite {
   }
 
   // @todo: shouldModifyFWDBlock with a mutation
-
+/*
   @Test def shouldModifyWDBlock(): Unit = {
     val ng = prepareDelayGateNet(2)
     build(ng.data)
@@ -210,5 +196,5 @@ class DelayGateSuite extends MySuite {
     shutdown()
     assertTrue(fired)
     assertEquals(4, iteration)
-  }
+  }*/
 }

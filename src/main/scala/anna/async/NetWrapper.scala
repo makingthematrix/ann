@@ -38,13 +38,24 @@ class NetWrapper(val net: NetRef) {
   private val signRegister = mutable.Map[Char,Double]()
   
   def regSign(sign: Char,input: Double) = signRegister += (sign -> input)
-  def +=(input: String) = input.split(",").toSeq.map( 
-    _.toCharArray().toSeq.map( c => 
-      if(signRegister.contains(c)) signRegister(c) 
+
+  def +=(input: String) = input.split(",").toSeq.map(
+    _.toCharArray().toSeq.map( c =>
+      if(signRegister.contains(c)) signRegister(c)
       else throw new IllegalArgumentException(s"No input registered with sign $c")
   )).foreach( add )
+
+  def +=(c: Char) = {
+    if(signRegister.contains(c)) add(Seq(signRegister(c)))
+    else throw new IllegalArgumentException(s"No input registered with sign $c")
+  }
+
   def deregSign(sign: Char) = signRegister -= sign
 
+  def tick(c: Char):Unit = {
+    this += c
+    tick(1)
+  }
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n) {
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
