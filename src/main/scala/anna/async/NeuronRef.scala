@@ -12,7 +12,9 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
   
-  def hush() = ref ! HushNow
+  def hush() = {
+    ref ! HushNow
+  }
   
   protected def calculateOutput = Double.NaN // we don't do that here 
   

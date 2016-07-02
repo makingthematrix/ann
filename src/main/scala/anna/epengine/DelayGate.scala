@@ -16,13 +16,15 @@ case class DelayGate(name: String, delay: Int){
 
   def chain(builder: NetBuilder) = {
     val hushTime = HushValue(delay)
-    val feedbackWeight = DelayGate.middleThreshold / (delay+1)
+    val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
     if(builder.isCurrent) builder.chain(inputId, 1.0, 0.0, hushTime)
     else builder.addMiddle(id=inputId, threshold=0.0, hushValue=hushTime)
 
-    builder.use(inputId).hush(inputId).chain(s"${name}mi", 1.0, 0.01).connect(s"${name}mi", 1.0)
-           .chain(outputId, feedbackWeight, DelayGate.middleThreshold)
-           .chainHushNeuron(hushId).hush(inputId).hush(s"${name}mi").hush(outputId)
+    val middleId = s"${name}mi"
+
+    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
+           .chain(outputId, feedbackWeight, DelayGate.middleThreshold).hush(middleId)
+           .addHushNeuron(hushId).hush(inputId).hush(middleId).hush(outputId)
   }
 
   val inputId = DelayGate.inputId(name)
