@@ -22,7 +22,7 @@ case class DelayGate(name: String, delay: Int){
 
     val middleId = s"${name}mi"
 
-    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
+    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0).friend(inputId)
            .chain(outputId, feedbackWeight, DelayGate.middleThreshold).hush(middleId)
            .addHushNeuron(hushId).hush(inputId).hush(middleId).hush(outputId)
   }

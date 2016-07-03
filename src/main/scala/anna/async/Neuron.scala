@@ -17,7 +17,8 @@ class Neuron(
     val hushValue: HushValue, 
     val forgetting: ForgetTrait,
     protected val f:(Double,Double)=>Double,
-    protected var synapses: List[Synapse] = List[Synapse]()
+    protected var synapses: List[Synapse] = List[Synapse](),
+    protected var friends: Set[String] = Set[String]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
@@ -63,6 +64,7 @@ class Neuron(
 
   private def wakeFromHush() = {
     LOG += s"$id waking up from hush"
+    isSleeping = false
     context.become(receive)
   }
   
@@ -95,7 +97,6 @@ class Neuron(
     }
     if (forgetting == ForgetAll()) buffer = 0.0
     LOG += s"after the tick: $id: buffer is now $buffer"
-
   }
 
   private var lastForgetting:Option[Long] = None
@@ -118,7 +119,7 @@ class Neuron(
 
     LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
     makeSleep()
-    synapses.foreach( _.send(output) )
+    synapses.foreach( _.send(output, id) )
 
     triggerAfterFire(output)
   }
@@ -152,13 +153,21 @@ class Neuron(
   def hushTime = hushBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, hushTime")
   
   val activeBehaviour: Receive = {
-    case Signal(s) => this += s
-    case HushNow => hushNow()
+    case Signal(s, _) => this += s
+    case HushRequest => hushNow()
   }
   
   val hushBehaviour: Receive = {
     case WakeFromHush => wakeFromHush()
-    case Signal(s) => LOG += s"$id, signal hushed: $s" // so it's like sleep, but we ignore signals
+    case Signal(s, senderId) =>
+      LOG += s"$id, signal during hush. friends: $friends, sender: $senderId"
+      if(friends.contains(senderId)){
+        LOG += s"$id, waking up from being hushed because a friend called"
+        wakeFromHush()
+        this += s
+      } else {
+        LOG += s"$id, signal hushed: $s" // so it's like sleep, but we ignore signals
+      }
   }
 
   val commonBehaviour: Receive = {
@@ -167,6 +176,7 @@ class Neuron(
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses.toList
+      case SetFriends(friends) => this.friends = friends
       case AddAfterFireTrigger(triggerId, trigger) => 
         addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)

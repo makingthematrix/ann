@@ -11,9 +11,11 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def info = await[NeuronInfo](ref, GetData)
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
-  
+
+  def setFriends(friends: Set[String]) = ref ! SetFriends(friends)
+
   def hush() = {
-    ref ! HushNow
+    ref ! HushRequest
   }
   
   protected def calculateOutput = Double.NaN // we don't do that here 
@@ -44,6 +46,6 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     case Failure(str) => error(this,s"reset failure: $str"); false
   }
   
-  def +=(signal: Double) = ref ! Signal(signal)
+  def +=(signal: Double) = ref ! Signal(signal, id)
   def !(any: Any) = ref ! any
 }

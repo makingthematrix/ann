@@ -6,14 +6,14 @@ import anna.data.{Hush, SynapseTrait, SynapseWeight}
 class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
   protected var strongestSignal = 0.0
 
-  private def msg(signal: Double) = weight match {
-    case Hush() => HushNow
-    case w: SynapseWeight => Signal(signal * w.weight) 
+  private def msg(signal: Double, senderId: String) = weight match {
+    case Hush() => HushRequest
+    case w: SynapseWeight => Signal(signal * w.weight, senderId)
   }
   
-  def send(signal: Double) = {
+  def send(signal: Double, senderId: String) = {
     if(strongestSignal < signal) strongestSignal = signal
-    dest ! msg(signal)
+    dest ! msg(signal, senderId)
   }
   
   override def toString() = s"Synapse(${dest.id}, $weight)"

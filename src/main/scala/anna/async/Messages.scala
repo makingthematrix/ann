@@ -5,11 +5,11 @@ import anna.data.{ForgetTrait, HushValue, NeuronData, SynapseTrait}
 
 object Messages {
   // signals
-  case class Signal(s: Double)
+  case class Signal(s: Double, senderId: String)
   case class SignalSeq(input: Seq[Double])
 
   // commands
-  case object HushNow // become silent
+  case object HushRequest // become silent
   case object WakeFromHush
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
@@ -20,6 +20,7 @@ object Messages {
   case object Reset
   case object RemoveAllTriggers
   case class SetSynapses(synapses: Seq[Synapse])
+  case class SetFriends(friends: Set[String])
   
   // questions
   case object GetId

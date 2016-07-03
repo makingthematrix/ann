@@ -18,7 +18,9 @@ class NeuronGenome(var id: String,
                    var forgetting: ForgetTrait,
                    var synapses: mutable.ListBuffer[SynapseGenome],
                    val neuronType: NeuronType,
-                   val activationFunctionName: String) {
+                   val activationFunctionName: String,
+                   var friends: mutable.Set[String]
+                  ) {
   def isConnectedTo(id: String) = synapses.exists(s => s.neuronId == id || NetData.removeNetId(s.neuronId) == id)
 
   def addSynapse(gen: SynapseGenome) = {
@@ -45,26 +47,31 @@ class NeuronGenome(var id: String,
 
   def toJson = writePretty(this)
   def data = NeuronData(id, threshold, hushValue, forgetting,
-                        synapses.map(_.data).toList, neuronType, activationFunctionName)
+                        synapses.map(_.data).toList, neuronType, activationFunctionName, friends.toSet)
   override def clone = new NeuronGenome(id, threshold, hushValue, forgetting, synapses.map(_.clone),
-                                        neuronType, activationFunctionName)
+                                        neuronType, activationFunctionName, friends)
 }
 
 object NeuronGenome {
   def apply(id: String, threshold: Double, hushValue: HushValue, forgetting: ForgetTrait,
-            synapses: List[SynapseData], neuronType: NeuronType, activationFunctionName: String) = {
+            synapses: List[SynapseData], neuronType: NeuronType, activationFunctionName: String, friends: Set[String]) = {
     val sListBuffer = mutable.ListBuffer[SynapseGenome]()
     sListBuffer ++= synapses.map(s => SynapseGenome(s))
-    new NeuronGenome(id, threshold, hushValue, forgetting, sListBuffer, neuronType, activationFunctionName)
+    val friendSet = mutable.Set[String]()
+    friendSet ++= friends
+    new NeuronGenome(id, threshold, hushValue, forgetting, sListBuffer, neuronType, activationFunctionName, friendSet)
   }
+
   def apply(gen: NeuronGenome):NeuronGenome = {
     val sListBuffer = mutable.ListBuffer[SynapseGenome]()
     sListBuffer ++= gen.synapses.map(s => SynapseGenome(s))
-    new NeuronGenome(gen.id, gen.threshold, gen.hushValue, gen.forgetting, sListBuffer, gen.neuronType, gen.activationFunctionName)
+    val friendSet = mutable.Set[String]()
+    friendSet ++= gen.friends
+    new NeuronGenome(gen.id, gen.threshold, gen.hushValue, gen.forgetting, sListBuffer, gen.neuronType, gen.activationFunctionName, friendSet)
   }
 
   def apply(data: NeuronData):NeuronGenome = apply(
-    data.id, data.threshold, data.hushValue, data.forgetting, data.synapses, data.neuronType, data.activationFunctionName
+    data.id, data.threshold, data.hushValue, data.forgetting, data.synapses, data.neuronType, data.activationFunctionName, data.friends
   )
 
   def build(id: String) = {
@@ -77,7 +84,7 @@ object NeuronGenome {
       (Context().forgetAllProbability, () => { forgetting = ForgetAll() }),
       (1.0 - Context().dontForgetProbability - Context().forgetAllProbability, () => { forgetting = ForgetValue(RandomNumber(Context().forgettingRange))})
     )
-    NeuronGenome(id, threshold, hushValue, forgetting, Nil, NeuronTypeStandard(), Context().activationFunctionName)
+    NeuronGenome(id, threshold, hushValue, forgetting, Nil, NeuronTypeStandard(), Context().activationFunctionName, Set[String]())
   }
 
   def fromJson(jsonStr: String) = read[NeuronGenome](jsonStr)

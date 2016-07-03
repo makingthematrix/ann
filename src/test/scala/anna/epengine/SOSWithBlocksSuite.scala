@@ -89,7 +89,7 @@ class SOSWithBlocksSuite extends MySuite {
 
   private def buildDotLine() = {
     val dotBlockName = "DotBlock"
-    val expectedDelay = 3
+    val expectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
     val dotHushId = DelayGate.hushId(dotBlockName)
     val dotInputId = DelayGate.inputId(dotBlockName)
@@ -111,7 +111,7 @@ class SOSWithBlocksSuite extends MySuite {
     LOG.allow(lineHushId)
     LOG.allow(dotInputId)
     LOG.allow(lineInputId)
-    LOG.allow("SBlockmi")
+    LOG.allow("DotBlockmi")
 
     val results = new DotLineResults;
 
