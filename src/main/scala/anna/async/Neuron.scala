@@ -45,7 +45,7 @@ class Neuron(
     LOG += s"$id hushNow, hushValue.iterations is ${hushValue.iterations}"
     buffer = 0.0
     LOG += s"$id: buffer is now $buffer"
-    if(hushValue.iterations == 0) makeSleep() else makeHush()
+    makeHush()
     triggerHushRequested()
   }
   
@@ -57,9 +57,11 @@ class Neuron(
   
   private def makeHush() = {
     val t = Context().tickTime * hushValue.iterations
-    LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
-    context.become(hushTime)
-    schedulerBuffer.schedule(t millis){ self ! WakeFromHush }
+    if(t > 0){
+      LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
+      context.become(hushTime)
+      schedulerBuffer.schedule(t millis){ wakeFromHush() }
+    }
   }
 
   private def wakeFromHush() = {

@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.data._
-import anna.epengine.{DelayGate, SignalSum}
+import anna.epengine.{DelayGate, DelayGateWithBreak, SignalSum}
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
@@ -110,7 +110,11 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
 
   }
 
-  def delayGate(name: String, delay: Int) = DelayGate(name, delay).chain(builder)
+  def delayGate(name: String, delay: Int, inputWeight: Double = 1.0, inputTreshold: Double = 0.0) =
+    DelayGate(name, delay).chain(builder, inputWeight, inputTreshold)
+
+  def delayGateWithBreak(name: String, delay: Int, inputWeight: Double = 1.0, inputTreshold: Double = 0.0) =
+    DelayGateWithBreak(name, delay).chain(builder, inputWeight, inputTreshold)
 
   def signalSum(name: String, requiredSignals: Int) = SignalSum(name, requiredSignals).chain(builder)
 }

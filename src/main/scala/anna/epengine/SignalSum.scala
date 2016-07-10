@@ -2,25 +2,28 @@ package anna.epengine
 
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
+import anna.data.{ForgetValue, HushValue}
 
 /**
   * Created by gorywoda on 6/19/16.
   */
 case class SignalSum(name: String, requiredSignalsNumber: Int){
+  import SignalSum.middleThreshold
+
   lazy val data = {
     val builder = NetBuilder()
     chain(builder)
     builder.data
   }
 
-  def chain(builder: NetBuilder) = {
-    val middleSynapseWeigth = SignalSum.middleThreshold/requiredSignalsNumber
+  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+    val middleSynapseWeigth = middleThreshold/requiredSignalsNumber
 
-    if(builder.isCurrent) builder.chain(inputId, 1.0, 0.0)
-    else builder.addMiddle(id=inputId, threshold=0.0)
+    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, HushValue(0))
+    else builder.addMiddle(id=inputId, threshold=0.0, hushValue = HushValue(0))
 
-    builder.use(inputId).chain(outputId, middleSynapseWeigth, SignalSum.middleThreshold)
-           .chainHushNeuron(hushId).hush(inputId).hush(outputId)
+    builder.use(inputId).chain(outputId, middleSynapseWeigth, middleThreshold, HushValue(0))
+           .addHushNeuron(hushId).hush(inputId).hush(outputId)
   }
 
   val inputId = SignalSum.inputId(name)
