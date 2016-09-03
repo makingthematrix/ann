@@ -102,14 +102,18 @@ class Neuron(
   }
 
   private var lastForgetting:Option[Long] = None
-  
+
   private def forget() = forgetting match {
-    case ForgetValue(_) if lastForgetting == None => lastForgetting = Some(System.currentTimeMillis())
+    case ForgetValue(0.0) => // the same as DontForget
+    case ForgetValue(forgetValue) if lastForgetting == None =>
+      buffer = if(buffer > 0.0) math.max(buffer - forgetValue, 0.0) else math.min(buffer + forgetValue, 0.0)
+      lastForgetting = Some(System.currentTimeMillis())
     case ForgetValue(forgetValue) =>
       val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = (offset.toDouble/Context().tickTime) * forgetValue
+      val delta = math.round(offset.toDouble/Context().tickTime) * forgetValue // @todo: shouldn't there be a way to simply check the number of passed iterations?
       LOG += s"forgetting, offset=$offset, sleepTime=${Context().tickTime}, forgetValue=$forgetValue, so delta is $delta"
       buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
+      LOG += s"after forgetting buffer is $buffer"
       lastForgetting = Some(System.currentTimeMillis())
     case _ =>
   }

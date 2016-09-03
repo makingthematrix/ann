@@ -9,6 +9,8 @@ import anna.utils.Utils.{assert, await}
 
 import scala.collection.mutable
 
+import anna.logger.LOG
+
 class NetBuilder {
   var netId:String = "net"
 
@@ -117,6 +119,7 @@ class NetBuilder {
                   threshold: Double,
                   hushValue: HushValue,
                   forgetting: ForgetTrait) = {
+    LOG.info("new neuron: " + id)
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue, forgetting))
     this

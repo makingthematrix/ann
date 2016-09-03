@@ -17,26 +17,24 @@ case class DelayGateWithBreak(name: String, delay: Int){
   }
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    val hushTime = HushValue(delay)
+    val hushTime = HushValue(delay - 1)
     val feedbackWeight = middleThreshold / (delay + 1)
     if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, hushTime)
     else builder.addMiddle(id=inputId, threshold=inputThreshold, hushValue=hushTime)
 
     val middleId = s"${name}mi"
 
-    builder.use(inputId).delayGate(innerDGName, delay, 1.0, 0.0)
-      .use(inputId).chain(breakId, middleThreshold / 2.0, middleThreshold).hush(inputId).hush(innerDGHushId)
+    builder.use(inputId).delayGate(DelayGateWithBreak.innerDGName(name), delay, 1.0, 0.0)
+      .use(inputId).chain(breakId, middleThreshold / 2.0, middleThreshold, HushValue(0)).hush(inputId).hush(innerDGHushId)
       .addHushNeuron(hushId).hush(inputId).hush(innerDGHushId).hush(breakId)
       .use(outputId).hush(breakId)
   }
 
-  val innerDGName = name + "innerDG"
-
   val inputId = DelayGateWithBreak.inputId(name)
-  val outputId = DelayGate.outputId(innerDGName)
+  val outputId = DelayGateWithBreak.outputId(name)
   val hushId = DelayGateWithBreak.hushId(name)
   val breakId = DelayGateWithBreak.breakId(name)
-  val innerDGHushId = DelayGate.hushId(innerDGName)
+  val innerDGHushId = DelayGate.hushId(DelayGateWithBreak.innerDGName(name))
 }
 
 object DelayGateWithBreak {
@@ -57,10 +55,12 @@ object DelayGateWithBreak {
   }
 
   def inputId(name: String) = s"${name}in"
-  def middleId(name: String) = s"${name}mi"
-  def outputId(name: String) = s"${name}out"
+  def middleId(name: String) = innerDGName(name) + "mi"
+  def outputId(name: String) = innerDGName(name) + "out"
   def hushId(name: String) = s"${name}hush"
   def breakId(name: String) = s"${name}break"
+
+  def innerDGName(name: String) = name + "innerDG"
 
   def blocksInGenome(gen: NetGenome) = gen.neurons.flatMap( _.id match {
     case nameRegex(number) => Some(number.toInt)

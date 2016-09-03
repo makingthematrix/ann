@@ -1,14 +1,14 @@
 package anna.epengine
 
+/**
+  * Created by gorywoda on 9/3/16.
+  */
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
-import anna.data.HushValue
+import anna.data.{ForgetValue, HushValue}
 
-/**
-  * Created by gorywoda on 6/19/16.
-  */
-case class SignalSum(name: String, requiredSignalsNumber: Int){
-  import SignalSum.middleThreshold
+case class ConstantCurrent(name: String, requiredSignalsNumber: Int){
+  import ConstantCurrent.middleThreshold
 
   lazy val data = {
     val builder = NetBuilder()
@@ -17,25 +17,27 @@ case class SignalSum(name: String, requiredSignalsNumber: Int){
   }
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    val middleSynapseWeigth = middleThreshold/requiredSignalsNumber
+    val middleSynapseWeigth = middleThreshold
+    val forgetValue = ForgetValue(middleThreshold*(1.0-1.0/requiredSignalsNumber))
 
     if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, HushValue(0))
     else builder.addMiddle(id=inputId, threshold=0.0, hushValue = HushValue(0))
 
-    builder.use(inputId).chain(outputId, middleSynapseWeigth, middleThreshold, HushValue(0))
+    builder.use(inputId)
+      .chain(outputId, middleSynapseWeigth, middleThreshold, HushValue(0), forgetValue)
       .addHushNeuron(hushId).hush(inputId).hush(outputId)
       .use(outputId)
   }
 
-  val inputId = SignalSum.inputId(name)
-  val outputId = SignalSum.outputId(name)
-  val hushId = SignalSum.hushId(name)
+  val inputId = ConstantCurrent.inputId(name)
+  val outputId = ConstantCurrent.outputId(name)
+  val hushId = ConstantCurrent.hushId(name)
 }
 
-object SignalSum {
+object ConstantCurrent {
   val middleThreshold = 0.9
 
-  val blockNamePrefix = "SignalSum"
+  val blockNamePrefix = "ConstantCurrent"
   val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
   val neuronsInBlock = 3
 
@@ -43,10 +45,10 @@ object SignalSum {
 
   private var firstFreeId = 1
 
-  def apply(requiredSignalsNumber: Int):SignalSum = {
+  def apply(requiredSignalsNumber: Int):ConstantCurrent = {
     val newName = nextName()
     firstFreeId += 1
-    SignalSum(newName, requiredSignalsNumber)
+    ConstantCurrent(newName, requiredSignalsNumber)
   }
 
   def inputId(name: String) = s"${name}in"
@@ -56,5 +58,6 @@ object SignalSum {
   def blocksInGenome(gen: NetGenome) = gen.neurons.flatMap( _.id match {
     case nameRegex(number) => Some(number.toInt)
     case _ => None
-  }).toSet[Int].map(n => s"${blockNamePrefix}#${n}#") // @todo: why toSet[Int] works, but toSet does not
+  }).toSet[Int].map(n => s"${blockNamePrefix}#${n}#")
 }
+

@@ -58,6 +58,7 @@ class NetWrapper(val net: NetRef) {
   }
   def tick():Unit = tick(1)
   def tick(n: Int):Unit = for(i <- 1 to n) {
+    LOG.debug(s"----- iteration ${_iteration} -----")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
     Thread.sleep(Context().tickTime)
