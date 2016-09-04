@@ -271,6 +271,8 @@ class SOSWithBlocksSuite extends MySuite {
     assertEquals(1, results.oFired)
   }
 
+  /* This is the test which proves it all works :) */
+
   @Test def shouldSOSWithSO(): Unit = {
     val buffer = StringBuilder.newBuilder
     val results = buildSO(Some(buffer))

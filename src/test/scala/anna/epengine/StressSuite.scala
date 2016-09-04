@@ -16,7 +16,7 @@ import org.junit.Assert._
  */
 
 class StressSuite extends JUnitSuite {
-  
+
   private val runStressTests = false
   /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
 
