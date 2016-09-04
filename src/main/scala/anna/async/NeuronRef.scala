@@ -1,8 +1,6 @@
 package anna.async
 
 import akka.actor.{ActorRef, actorRef2Scala}
-import akka.pattern.ask
-import anna.Context
 import anna.async.Messages._
 import anna.logger.LOG._
 import anna.utils.Utils.await

@@ -3,7 +3,6 @@ package anna.blocks
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
 import anna.data.HushValue
-import anna.epengine.NetGenome
 
 /**
   * Created by gorywoda on 6/19/16.
@@ -54,8 +53,4 @@ object SignalSum {
   def outputId(name: String) = s"${name}out"
   def hushId(name: String) = s"${name}hush"
 
-  def blocksInGenome(gen: NetGenome) = gen.neurons.flatMap( _.id match {
-    case nameRegex(number) => Some(number.toInt)
-    case _ => None
-  }).toSet[Int].map(n => s"${blockNamePrefix}#${n}#") // @todo: why toSet[Int] works, but toSet does not
 }

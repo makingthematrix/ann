@@ -7,46 +7,8 @@ import org.junit.Assert._
 import org.junit.Test
 
 class DotNetSuite extends MySuite {
-  val s = "1,0,0,1,0,0,1,0,0"
-  val o = "1,1,0,1,1,0,1,1,0"
-
-/*
-  private def dotNet2() = {
-    builder.addInput("in1")
-    // dots
-    builder.use("in1").chain("mi11",0.6,0.5).loop("loop1",1.0,0.5,1.0).chain("mi12",1.0,0.75).chain("out1",1.0)
-    builder.use("out1").connect("mi11", -0.49)
-    builder.use("out1").connect("mi12", -1.0)
-
-    build()
-    debug("----------")
-    val sb = StringBuilder.newBuilder
-    net.addAfterFire("out1"){
-      println("KROPA!")
-      sb.append('.')
-     }
-
-    sb
-  }
-
-  @Test def shouldDotThenNothing(){
-    val sb = dotNet2()
-    
-    in += "1"
-    init()
-    in.tickUntilCalm()
-    assertEquals(".",sb.toString)
-  }
-  
-  @Test def shouldDot3Times(){
-    val sb = dotNet2()
-    
-    in += s
-
-    init()
-    in.tickUntilCalm()
-    assertEquals("...",sb.toString)
-  }*/
+  val s = "1,0,0,0,1,0,0,0,1,0,0,0"
+  val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 
   private def dotNet3(){
     builder.addInput("in")
@@ -72,9 +34,11 @@ class DotNetSuite extends MySuite {
     println(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
 
-
     dots = 0
     netWrapper += o
+
+    // without the other part of the network which would recognize the "line" signals,
+    // lines should also be recognized as dots - maybe the additional '1's mean only that the signal is noised
 
     val interval2 = netWrapper.tickUntilCalm()
     println(s"interval: $interval, dots: $dots")

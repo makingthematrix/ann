@@ -2,8 +2,7 @@ package anna.async
 
 import akka.actor._
 import anna.async.Messages._
-import anna.data.{ForgetTrait, HushValue, NeuronData}
-import anna.logger.LOG
+import anna.data.{HushValue, NeuronData}
 
 import scala.collection.mutable
 
@@ -91,19 +90,16 @@ class Net(val id: String) extends Actor {
   }
 
   private def createNeuron(data:NeuronData) = data.neuronType match {
-    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.hushValue, data.forgetting, data.activationFunctionName)
+    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.hushValue)
     case NeuronTypeDummy() => createDummy(data.id, data.hushValue)
     case NeuronTypeHush() => createHush(data.id)
   }
 
   private def createStandard(id: String,
                            threshold: Double,
-                           hushValue: HushValue,
-                           forgetting: ForgetTrait,
-                           activationFunctionName: String
+                           hushValue: HushValue
                            ) = {
-    val f = ActivationFunction(activationFunctionName)
-	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, hushValue, forgetting, f)))
+	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, hushValue)))
     add(id, ref)
   }
 

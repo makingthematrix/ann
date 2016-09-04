@@ -14,9 +14,7 @@ class Neuron(
     val id: String,
     val netId: String,
     val threshold: Double,
-    val hushValue: HushValue, 
-    val forgetting: ForgetTrait,
-    protected val f:(Double,Double)=>Double,
+    val hushValue: HushValue,
     protected var synapses: List[Synapse] = List[Synapse](),
     protected var friends: Set[String] = Set[String]()
 ) extends Actor with NeuronTriggers {
@@ -70,10 +68,10 @@ class Neuron(
     context.become(receive)
   }
   
-  protected def calculateOutput:Double = f(buffer, 0.0)
+  protected def calculateOutput:Double = ActivationFunction.step(buffer, 0.0)
   
   protected def +=(signal: Double){
-    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold, forgetting is $forgetting"
+    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
     buffer += signal
     LOG += s"$id: buffer is now $buffer"
     if(!isSleeping){
@@ -90,32 +88,13 @@ class Neuron(
   private def biggerOrCloseEnough(x: Double, y: Double) = { x > 0.0 && x + 0.001 > y }
 
   private def tick():Unit = this.synchronized {
-    forget()
     buffer = Utils.minmax(-1.0, buffer, 1.0)
     if (highestBuffer < buffer) highestBuffer = buffer
     if (biggerOrCloseEnough(buffer, threshold)) {
       triggerThresholdPassed()
       run()
     }
-    if (forgetting == ForgetAll()) buffer = 0.0
     LOG += s"after the tick: $id: buffer is now $buffer"
-  }
-
-  private var lastForgetting:Option[Long] = None
-
-  private def forget() = forgetting match {
-    case ForgetValue(0.0) => // the same as DontForget
-    case ForgetValue(forgetValue) if lastForgetting == None =>
-      buffer = if(buffer > 0.0) math.max(buffer - forgetValue, 0.0) else math.min(buffer + forgetValue, 0.0)
-      lastForgetting = Some(System.currentTimeMillis())
-    case ForgetValue(forgetValue) =>
-      val offset = System.currentTimeMillis() - lastForgetting.get
-      val delta = math.round(offset.toDouble/Context().tickTime) * forgetValue // @todo: shouldn't there be a way to simply check the number of passed iterations?
-      LOG += s"forgetting, offset=$offset, sleepTime=${Context().tickTime}, forgetValue=$forgetValue, so delta is $delta"
-      buffer = if(buffer > 0.0) Math.max(buffer - delta, 0.0) else Math.min(buffer + delta, 0.0)
-      LOG += s"after forgetting buffer is $buffer"
-      lastForgetting = Some(System.currentTimeMillis())
-    case _ =>
   }
   
   protected def run(): Unit = {
@@ -204,7 +183,7 @@ class Neuron(
   }
 
   def info = NeuronInfo(
-    id, netId, threshold, hushValue, forgetting,
+    id, netId, threshold, hushValue,
     synapses.map(_.info), buffer, highestBuffer, lastOutput
   )
 }

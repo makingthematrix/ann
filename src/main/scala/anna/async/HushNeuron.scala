@@ -1,11 +1,11 @@
 package anna.async
 
 import anna.async.Messages._
-import anna.data.{ForgetAll, HushValue}
+import anna.data.HushValue
 import anna.logger.LOG
 
 class HushNeuron(override val id: String, override val netId: String)
-extends Neuron(id, netId, 0.0, HushValue(), ForgetAll(), ActivationFunction(ActivationFunction.UNUSED)) {
+extends Neuron(id, netId, 0.0, HushValue()) {
   private def sendHush() = {
     synapses.foreach( s => {
       LOG += s"sending hush to ${s.dest.id}"

@@ -1,18 +1,17 @@
 package anna.async
 
 import anna.async.NetBuilderOps._
-import anna.data.ForgetValue
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.junit.Test
 
 class LineNetSuite extends MySuite {
-  val s = "1,0,0,1,0,0,1,0,0"
-  val o = "1,1,0,1,1,0,1,1,0"
+  val s = "1,0,0,0,1,0,0,0,1,0,0,0"
+  val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 
   private def lineNet2() = {
     builder.addInput("in1")
-           .chain("mi21",0.4,0.6,ForgetValue(0.1)).hush("mi21")
+           .chain("mi21",0.4,0.6).hush("mi21")
            .chain("out2",1.0)
     build()
     debug("----------")
@@ -46,7 +45,7 @@ class LineNetSuite extends MySuite {
   private def lineNet3(){
 
     builder.addInput("in")
-           .chain("mi21",0.5,0.55,ForgetValue(0.2))
+           .chain("mi21",0.5,0.55)
            .hush("mi21")
            .chain("line",1.0,0.0).hush("line")
     build()
@@ -69,8 +68,10 @@ class LineNetSuite extends MySuite {
     lines = 0
     netWrapper += s
     netWrapper.tickUntilCalm()
-    println(s"dots: $lines")
-    assertEquals(0, lines)
+    println(s"lines: $lines")
+    assertEquals(1, lines)
+    // Without the other part of the network recognizing 'dots', two consecutive '1's, even with an interval
+    // between them, should be recognized as a line. The interval may mean that the signal is noised.
   }
 
 

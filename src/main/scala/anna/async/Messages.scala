@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.async.NeuronTriggers.{AfterFireTrigger, Trigger}
-import anna.data.{ForgetTrait, HushValue, NeuronData, SynapseTrait}
+import anna.data.{HushValue, NeuronData, SynapseTrait}
 
 object Messages {
   // signals
@@ -48,7 +48,6 @@ object Messages {
                         netId: String,
                         threshold: Double,
                         hushValue: HushValue,
-                        forgetting: ForgetTrait,
                         synapses: List[SynapseInfo],
                         buffer: Double,
                         highestBuffer: Double,

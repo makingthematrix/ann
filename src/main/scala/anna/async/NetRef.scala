@@ -1,11 +1,9 @@
 package anna.async
 
 import akka.actor.{ActorRef, Props}
-import akka.pattern.ask
 import anna.Context
 import anna.async.Messages._
-import anna.data.{ForgetTrait, HushValue, NeuronData}
-import anna.logger.LOG
+import anna.data.{HushValue, NeuronData}
 import anna.logger.LOG._
 import anna.utils.Utils.await
 
@@ -28,12 +26,8 @@ class NetRef(val id: String, val ref: ActorRef) {
   def createNeuron(
     id: String,
     threshold: Double,
-    hushValue: HushValue,
-    forgetting: ForgetTrait,
-    activationFunctionName: String
-  ) = await[NeuronRef](ref, CreateNeuron(NeuronData(
-    id, threshold, hushValue, forgetting, activationFunctionName
-  )))
+    hushValue: HushValue
+  ) = await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, hushValue, Nil)))
 
   def createDummy(id: String, hushValue: HushValue) =
     await[NeuronRef](ref, CreateNeuron(NeuronData(id, hushValue)))

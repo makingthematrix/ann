@@ -16,9 +16,7 @@ class NetBuilder {
 
   var defThreshold = Context().threshold
   var defHushValue = Context().hushValue
-  var defForgetting: ForgetTrait = Context().forgetting
   var defWeight:SynapseTrait = Context().weight
-  var activationFunctionName = Context().activationFunctionName
 
   private val neurons = mutable.Map[String,NeuronData]()
   private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
@@ -64,9 +62,9 @@ class NetBuilder {
   }
 
   def chain(id: String, weight: SynapseTrait, threshold: Double,
-            hushValue: HushValue, forgetting: ForgetTrait) = {
+            hushValue: HushValue) = {
     val n1 = current
-    addStandard(id, threshold, hushValue, forgetting)
+    addStandard(id, threshold, hushValue)
     addSynapse(n1.id, id, weight)
     this
   }
@@ -93,35 +91,31 @@ class NetBuilder {
 
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
-                hushValue: HushValue =defHushValue,
-                forgetting: ForgetTrait = DontForget()):NetBuilder =
-    addStandard(id, threshold, hushValue, forgetting)
+                hushValue: HushValue =defHushValue):NetBuilder =
+    addStandard(id, threshold, hushValue)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
 
   def addHushNeuron(id: String) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeHush(), id, activationFunctionName = ActivationFunction.UNUSED))
+    add(newNeuron(NeuronTypeHush(), id))
     this
   }
 
   def addDummy(id: String) = {
     throwIfAlreadyExists(id)
     add(newNeuron(neuronType=NeuronTypeDummy(),
-                  id=id, threshold=0.0,
-                  forgetting=ForgetAll(),
-                  activationFunctionName = ActivationFunction.UNUSED
+                  id=id, threshold=0.0
     ))
     this
   }
 
   def addStandard(id: String,
                   threshold: Double,
-                  hushValue: HushValue,
-                  forgetting: ForgetTrait) = {
+                  hushValue: HushValue) = {
     LOG.info("new neuron: " + id)
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue, forgetting))
+    add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue))
     this
   }
 
@@ -158,9 +152,7 @@ class NetBuilder {
     ).toList.sortBy( _.id ),
     ins.toList.sorted,
     defThreshold, defHushValue,
-    defForgetting, defWeight,
-    activationFunctionName
-  )
+    defWeight)
 
   def set(data: NetData) = {
     netId = data.id
@@ -179,9 +171,7 @@ class NetBuilder {
 
     defThreshold = data.threshold
     defHushValue = data.hushValue
-    defForgetting = data.forgetting
     defWeight = data.weight
-    activationFunctionName = data.activationFunctionName
 
     this
   }
@@ -211,11 +201,9 @@ class NetBuilder {
   }
 
   private def newNeuron(neuronType: NeuronType, id: String,
-      threshold: Double =defThreshold, hushValue: HushValue =defHushValue,
-      forgetting: ForgetTrait =defForgetting,
-      activationFunctionName: String = activationFunctionName) =
+      threshold: Double =defThreshold, hushValue: HushValue =defHushValue) =
     NeuronData(
-      id, threshold, hushValue, forgetting, Nil, neuronType, activationFunctionName, Set.empty[String]
+      id, threshold, hushValue, Nil, neuronType, Set.empty[String]
     )
 
   private def add(n: NeuronData){

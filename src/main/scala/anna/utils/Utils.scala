@@ -9,7 +9,6 @@ import akka.pattern.ask
 import anna.Context
 import anna.async._
 import anna.data._
-import anna.epengine.{MutationAccessInput, MutationAccessOutput, MutationAccessFull}
 import anna.logger.LOG
 import anna.logger.LOG._
 import org.apache.commons.io.FileUtils
@@ -131,21 +130,14 @@ object Utils {
     !dir.exists()
   }
 
-  //implicit val formats = Serialization.formats(NoTypeHints)
   implicit val formats = Serialization.formats(
     ShortTypeHints(
       List(
         classOf[SynapseWeight],
         classOf[Hush],
-        classOf[DontForget],
-        classOf[ForgetAll],
-        classOf[ForgetValue],
         classOf[NeuronTypeStandard],
         classOf[NeuronTypeDummy],
-        classOf[NeuronTypeHush],
-        classOf[MutationAccessFull],
-        classOf[MutationAccessInput],
-        classOf[MutationAccessOutput]
+        classOf[NeuronTypeHush]
       )
     )
   )

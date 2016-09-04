@@ -1,10 +1,8 @@
 package anna.async
 
 import anna.async.NetBuilderOps._
-import anna.data.ForgetAll
 import anna.utils.DoubleRange
 import anna.utils.DoubleRange._
-import anna.utils.Utils._
 import org.junit.Assert._
 import org.junit.Test
 
@@ -14,9 +12,7 @@ import scala.annotation.tailrec
 class NeuronSuite extends MySuite {
   case class NeuronData(slope: Double, weight: Double, threshold: Double)
 
-  lazy val f = ActivationFunction(ActivationFunction.STEP)
-
-  def oneIteration(input: Double, slope: Double, weight: Double) = f(input, slope) * weight
+  def oneIteration(input: Double, slope: Double, weight: Double) = ActivationFunction.step(input, slope) * weight
   
   @tailrec
   final def countIterations(input: Double, data: NeuronData, currentIteration: Int =0)(implicit timeout: Int):Int =
@@ -51,7 +47,7 @@ class NeuronSuite extends MySuite {
     builder.addInput("in")
            .chainDummy("mi11", 0.55)
            .loop("loop",1.0,0.0,0.99)
-           .chain("out",1.0,0.66,ForgetAll())
+           .chain("out",1.0,0.66)
     builder.use("mi11").hush("in")
     builder.use("out").connect("mi11",-1.0).connect("loop",-1.0)
     build()

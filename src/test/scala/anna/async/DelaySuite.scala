@@ -27,23 +27,7 @@ class DelaySuite extends MySuite {
     val tolerance = Context().tickTime
     assertEqualsWithTolerance(produceSeq(6, tolerance, Context().tickTime), list.toSeq, tolerance)
   }
-  
-  @Test def shouldCreateOscillatorWithMethod1(){
-    builder.addInput("in1").chain("mi1",1.0).loop("osc",1.0,0.5,-1.0).chain("out1",1.0,0.75)
-    build()
 
-    netWrapper += "1,1,1,1,1,1"
-      
-    val list = mutable.ListBuffer[Int]()
-    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{
-      list += netWrapper.iteration
-    } )
-    
-    netWrapper.tickUntilCalm()
-
-    assertEquals(List(0,2,4), list.toList)
-  }
-  
   @Test def shouldCreateOscillatorWithMethod2() {
     builder.addInput("in").chain("mi1", 1.0).oscillator().chain("out1", 1.0, 0.75)
     build()

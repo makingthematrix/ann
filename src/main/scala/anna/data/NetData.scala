@@ -9,25 +9,18 @@ import org.json4s.native.Serialization.{read, writePretty}
  * Created by gorywoda on 03.01.15.
  */
 
-
-
 case class NetData(id: String,
                    neurons: List[NeuronData],
                    inputs: List[String], // time wasted refactoring this to Set[String]: 3h; please update when needed
                    threshold: Double,
                    hushValue: HushValue,
-                   forgetting: ForgetTrait,
-                   weight: SynapseTrait,
-                   activationFunctionName: String){
+                   weight: SynapseTrait){
   def withId(id: String) = copy(id = id)
   def withNeurons(neurons: List[NeuronData]) = copy(neurons = neurons)
   def withInputs(inputs: List[String]) = copy(inputs = inputs)
   def withThreshold(threshold: Double) = copy(threshold = threshold)
   def withHushValue(hushValue: HushValue) = copy(hushValue = hushValue)
-  def withForgetting(forgetting: ForgetTrait) = copy(forgetting = forgetting)
   def withWeight(weight: SynapseWeight) = copy(weight = weight)
-  def withActivationFuntionName(activationFunctionName: String) = copy(activationFunctionName = activationFunctionName)
-
   def neuron(neuronId: String) = neurons.find(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
                                         .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))
   def contains(neuronId: String) = neurons.exists(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
@@ -88,8 +81,7 @@ object NetData {
   def apply(id: String):NetData = NetData(id, Nil, Nil)
   def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
     NetData(id, neurons, inputs, Context().threshold,
-            Context().hushValue, Context().forgetting, Context().weight,
-            Context().activationFunctionName)
+            Context().hushValue, Context().weight)
 
   def fromJson(jsonStr: String) = read[NetData](jsonStr)
 

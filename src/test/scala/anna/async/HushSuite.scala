@@ -12,14 +12,13 @@ import scala.concurrent.{Await, Promise}
 class HushSuite extends MySuite {
   val threshold = Context().threshold
   val hushValue = Context().hushValue
-  val forgetting = Context().forgetting
   val timeout = Context().timeout
 
   @Test def shouldSendHush(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, hushValue, forgetting, ActivationFunction.STEP)
-    val n2 = net.createNeuron("id2", threshold, hushValue, forgetting, ActivationFunction.STEP)
+    val n1 = net.createNeuron("id1", threshold, hushValue)
+    val n2 = net.createNeuron("id2", threshold, hushValue)
     
     n1.setSynapses(List(Synapse(n2,Hush())))
     net.setInputs(List(n1.id))
@@ -60,9 +59,9 @@ class HushSuite extends MySuite {
   @Test def shouldUseHushNeuron(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, hushValue, forgetting, ActivationFunction.STEP)
+    val n1 = net.createNeuron("id1", threshold, hushValue)
     val hushNeuron = net.createHushNeuron("hushneuron")
-    val n2 = net.createNeuron("id2", threshold, hushValue, forgetting, ActivationFunction.STEP)
+    val n2 = net.createNeuron("id2", threshold, hushValue)
     
     n1.setSynapses(List(Synapse(hushNeuron)))
     hushNeuron.setSynapses(List(Synapse(n2)))

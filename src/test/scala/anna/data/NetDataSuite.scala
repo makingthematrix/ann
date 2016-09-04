@@ -15,13 +15,10 @@ class NetDataSuite extends JUnitSuite {
     LOG.addLogToStdout()
   }
 
-  val step = ActivationFunction.STEP
-  val unused = ActivationFunction.UNUSED
-
   @Test def shouldMakeNetDataFromJson() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1",0.0, HushValue(1), DontForget(), List(s1), NeuronTypeDummy(), unused, Set.empty[String])
-    val n2 = NeuronData("id2",0.0, HushValue(2), ForgetValue(0.4), step)
+    val n1 = NeuronData("id1",0.0, HushValue(1), List(s1), NeuronTypeDummy(), Set.empty[String])
+    val n2 = NeuronData("id2",0.0, HushValue(2), Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val json = netData.toJson
@@ -31,12 +28,12 @@ class NetDataSuite extends JUnitSuite {
   @Test def shouldMakeNetDataWithBuilder() = {
     val s1 = SynapseData("id2",1.0)
     val n1 = NeuronData("id1", HushValue(1)).withSynapses(List(s1))
-    val n2 = NeuronData("id2",0.0, HushValue(2), ForgetValue(0.4), step)
+    val n2 = NeuronData("id2",0.0, HushValue(2), Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()
 
-    builder.addInput("id1").chain("id2",1.0,0.0,HushValue(2),ForgetValue(0.4))
+    builder.addInput("id1").chain("id2",1.0,0.0,HushValue(2))
 
     print("---- net data ----")
     print(netData.toJson)
@@ -48,8 +45,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldBuildNetWithData() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1", 0.0, HushValue(1), ForgetAll(), List(s1), NeuronTypeDummy(), unused, Set.empty[String])
-    val n2 = NeuronData("id2", 0.0, HushValue(2), ForgetValue(0.4), Nil, NeuronTypeStandard(), step, Set.empty[String])
+    val n1 = NeuronData("id1", 0.0, HushValue(1), List(s1), NeuronTypeDummy(), Set.empty[String])
+    val n2 = NeuronData("id2", 0.0, HushValue(2), Nil, NeuronTypeStandard(), Set.empty[String])
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()
@@ -81,7 +78,7 @@ class NetDataSuite extends JUnitSuite {
     builder.use("dot").hush("dot_hush")
 
     // lines
-    builder.use("in").chain("mi21",0.55,0.58,HushValue(),ForgetValue(0.4)).hush("mi21")
+    builder.use("in").chain("mi21",0.55,0.58,HushValue()).hush("mi21")
       .chain("line",1.0,0.0).hush("line")
       .chain("O",0.6,0.81)
 
@@ -92,37 +89,5 @@ class NetDataSuite extends JUnitSuite {
     builder.use("S").chainHushNeuron("hush_letters").hush("S").hush("O")
     builder.use("O").hush("hush_letters")
   }
-/*
-  @Test def bigTest() = {
-    val builder1 = NetBuilder()
-    SOSNetWithHushNeuron(builder1)
-    val netData1 = builder1.data
-
-    val builder2 = NetBuilder()
-    builder2.set(netData1)
-    val netData2 = builder2.data
-    assertEquals(netData1, netData2)
-
-    val netWrapper = builder2.build("in")
-    val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S') } )
-    netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O') } )
-    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
-    netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!") } )
-    netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!") } )
-
-
-    val s = "1,0,0,1,0,0,1,0,0"
-    val o = "1,1,0,1,1,0,1,1,0"
-
-    netWrapper += s
-    netWrapper += o
-    netWrapper += s
-
-    LOG.timer()
-    netWrapper.tickUntilCalm()
-    assertEquals("SOS", sb.toString)
-    LOG.date()
-  }*/
 
 }
