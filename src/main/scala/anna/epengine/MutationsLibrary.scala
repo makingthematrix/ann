@@ -1,6 +1,7 @@
 package anna.epengine
 
 import anna.Context
+import anna.blocks.DelayGate
 import anna.data.{HushValue, _}
 import anna.logger.LOG._
 import anna.utils.RandomNumber

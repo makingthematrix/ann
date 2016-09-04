@@ -18,6 +18,8 @@ class SynapseGenomeSuite extends MySuite {
   @Before override def before() {
     LOG.addLogToStdout()
 
+    Context.reset()
+
     Context.withWeightRange(-1.0 <=> 1.0)
     Context.withHushProbability(0.1)
   }

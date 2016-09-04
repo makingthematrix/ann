@@ -18,16 +18,21 @@ import org.scalatest.junit.JUnitSuite
 class NetGenomeSuite extends MySuite {
   @Before override def before() {
     LOG.addLogToStdout()
+
+    Context.reset()
+
+    Context.withNeuronsRange(3 to 3)
+    Context.withSynapsesDensity(2.5)
+
+    netData = NetBuilder().addInput("in1").chain("mi",1.0,1.0).chain("out1",1.0,1.0).netId("net").data
   }
 
-  val netData = NetBuilder().addInput("in1").chain("mi",1.0,1.0).chain("out1",1.0,1.0).netId("net").data
+  var netData:NetData = _
   val inputIds = List("in1")
   val outputIds = List("out1")
 
   @Test def shouldAddNeuron(): Unit ={
     val netDataInOut = NetBuilder().addInput("in1").chain("out1",1.0,1.0).netId("net").data
-    Context.withNeuronsRange(3 to 3)
-    Context.withSynapsesDensity(2.5)
 
     val ng = NetGenome(netDataInOut, AccessMap(inputIds, outputIds))
     assertEquals(2, ng.data.neurons.size)

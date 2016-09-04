@@ -1,8 +1,9 @@
-package anna.epengine
+package anna.blocks
 
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
 import anna.data.HushValue
+import anna.epengine.NetGenome
 
 /**
   * Created by gorywoda on 7/10/16.

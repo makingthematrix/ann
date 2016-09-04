@@ -16,6 +16,10 @@ import org.junit.Assert._
  */
 
 class StressSuite extends JUnitSuite {
+  
+  private val runStressTests = false
+  /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
+
   private var _oldContext:Context = _
 
   @Before def before() {
@@ -50,7 +54,7 @@ class StressSuite extends JUnitSuite {
     genome.netId("dotline").data
   }
 
-  @Test def shouldSurvive1000Restarts(): Unit = {
+  @Test def shouldSurvive1000Restarts(): Unit = if(runStressTests){
     assertEquals(0, NeuronCounter.size)
     var counter = 0
     try {
@@ -71,7 +75,7 @@ class StressSuite extends JUnitSuite {
     assertEquals(0, NeuronCounter.size)
   }
 
-  @Test def shouldSurvive1000RestartsWithWork(): Unit = {
+  @Test def shouldSurvive1000RestartsWithWork(): Unit = if(runStressTests){
     assertEquals(0, NeuronCounter.size)
     var counter = 0
     try {
@@ -92,7 +96,7 @@ class StressSuite extends JUnitSuite {
     assertEquals(0, NeuronCounter.size)
   }
 
-  @Test def shouldNotCrashSearchBestContext(): Unit = {
+  @Test def shouldNotCrashSearchBestContext(): Unit = if(runStressTests){
     val iterations = 20
     val cv1 = ContextDoubleRange(_mutationprobability, 0.2 <=> 0.8, 3)
     val cv2 = ContextDoubleRange(_crosscoefficient, 0.2 <=> 0.8, 3)

@@ -16,12 +16,7 @@ class NeuronGenomeSuite extends MySuite {
 
   @Before override def before() {
     LOG.addLogToStdout()
-
-    Context.withThresholdRange(0.0 <=> 0.9)
-    Context.withHushRange(1 to 5)
-    Context.withForgettingRange(0.1 <=> 0.9)
-    Context.withDontForgetProbability(0.75)
-    Context.withForgetAllProbability(0.05)
+    Context.reset()
   }
 
   @Test def shouldTossForNeuron(): Unit = {
@@ -49,7 +44,13 @@ class NeuronGenomeSuite extends MySuite {
     assertTrue((0 to 100).contains(forgetAllCount))
   }
 
-  @Test def shouldMutateThreshold(): Unit ={
+  @Test def shouldMutateThreshold(): Unit = {
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+
     val gen = NetGenome(
       NetBuilder().addMiddle("id1").data
     )
@@ -65,7 +66,13 @@ class NeuronGenomeSuite extends MySuite {
     assertNotEquals(original, mutated)
   }
 
-  @Test def shouldMutateForgetting(): Unit ={
+  @Test def shouldMutateForgetting(): Unit = {
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+
     val gen = NetGenome(
       NetBuilder().addMiddle("id1").data
     )
@@ -98,6 +105,11 @@ class NeuronGenomeSuite extends MySuite {
   }
 
   @Test def shouldMutateHush(){
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+
     Context.withHushRange(1 to 1)
 
     val gen = NetGenome(
@@ -121,6 +133,12 @@ class NeuronGenomeSuite extends MySuite {
   }
 
   @Test def shouldAddSynapse(): Unit ={
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+
     val gen = NetGenome(
       NetBuilder().addInput("id1").addMiddle("id2").data, Map("id1" -> MutationAccessInput())
     )
@@ -153,6 +171,12 @@ class NeuronGenomeSuite extends MySuite {
 
 
   @Test def shoulDeleteSynapse(): Unit ={
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+
     val gen = NetGenome(
       NetBuilder().addMiddle("id1").addMiddle("id2").use("id1").hush("id2").data
     )
@@ -178,6 +202,12 @@ class NeuronGenomeSuite extends MySuite {
   }
 
   @Test def shouldChangeSynapseWeight(): Unit ={
+    Context.withThresholdRange(0.0 <=> 0.9)
+    Context.withHushRange(1 to 5)
+    Context.withForgettingRange(0.1 <=> 0.9)
+    Context.withDontForgetProbability(0.75)
+    Context.withForgetAllProbability(0.05)
+
     val gen = NetGenome(
       NetBuilder().addMiddle("id1").addMiddle("id2").use("id1").hush("id2").data
     )

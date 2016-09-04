@@ -1,7 +1,7 @@
 package anna.async
 
+import anna.blocks.{ConstantCurrent, DelayGate, DelayGateWithBreak, SignalSum}
 import anna.data._
-import anna.epengine.{DelayGate, DelayGateWithBreak, SignalSum, ConstantCurrent}
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,

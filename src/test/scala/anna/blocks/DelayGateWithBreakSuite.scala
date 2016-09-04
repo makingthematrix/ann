@@ -1,10 +1,10 @@
-package anna.epengine
+package anna.blocks
 
+import anna.async.NetBuilderOps._
 import anna.async.{MySuite, NetBuilder}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import anna.async.NetBuilderOps._
 
 /**
   * Created by gorywoda on 7/10/16.

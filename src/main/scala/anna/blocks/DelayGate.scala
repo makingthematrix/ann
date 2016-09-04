@@ -1,8 +1,9 @@
-package anna.epengine
+package anna.blocks
 
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
 import anna.data.HushValue
+import anna.epengine.NetGenome
 
 /**
   * Created by gorywoda on 1/31/16.
@@ -15,15 +16,15 @@ case class DelayGate(name: String, delay: Int){
   }
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    //val hushTime = HushValue(delay)
-    val feedbackWeight = DelayGate.middleThreshold / (delay)
-    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold)
-    else builder.addMiddle(id=inputId, threshold=inputThreshold)
+    val hushTime = HushValue(delay)
+    val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
+    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, hushTime)
+    else builder.addMiddle(id=inputId, threshold=inputThreshold, hushValue=hushTime)
 
-    builder.use(inputId).chain(middleId, 1.0, 0.0).connect(middleId, 1.0)
-           .chain(outputId, feedbackWeight, DelayGate.middleThreshold)
+    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0).friend(inputId)
+           .chain(outputId, feedbackWeight, DelayGate.middleThreshold).hush(middleId)
            .addHushNeuron(hushId).hush(inputId).hush(middleId).hush(outputId)
-           .use(outputId).hush(hushId) // always end chaining with setting the current neuron at the main output of the block
+           .use(outputId) // always end chaining with setting the current neuron at the main output of the block
   }
 
   val inputId = DelayGate.inputId(name)

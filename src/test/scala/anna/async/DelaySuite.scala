@@ -24,7 +24,7 @@ class DelaySuite extends MySuite {
     
     list.foreach(println)
     
-    val tolerance = 10L
+    val tolerance = Context().tickTime
     assertEqualsWithTolerance(produceSeq(6, tolerance, Context().tickTime), list.toSeq, tolerance)
   }
   

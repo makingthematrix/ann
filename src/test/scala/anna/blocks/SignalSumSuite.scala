@@ -1,10 +1,10 @@
-package anna.epengine
+package anna.blocks
 
 import anna.async.NetBuilderOps._
-import org.junit.Test
 import anna.async.{MySuite, NetBuilder}
 import anna.logger.LOG
 import org.junit.Assert._
+import org.junit.Test
 
 /**
   * Created by gorywoda on 6/19/16.
@@ -16,17 +16,19 @@ class SignalSumSuite extends MySuite {
     var fired = false
     netWrapper.addAfterFire(outNeuronId)( (_:Double)=>{ fired = true } )
 
-    for(i <- 1 until requiredSignals){
-      netWrapper.tick('1')
-      assertFalse(fired)
-    }
-
-    netWrapper.tick('1')
+    val inputVector = List.fill(requiredSignals)("1").mkString(",")
+    LOG.debug("inputVector: " + inputVector)
+    netWrapper.tickUntilCalm(inputVector)
     assertTrue(fired)
 
-    fired = false
-    netWrapper.tick('1')
-    assertFalse(fired)
+    if(requiredSignals > 1) {
+      fired = false
+
+      val inputVectorMinus1 = List.fill(requiredSignals - 1)("1").mkString(",")
+      LOG.debug("inputVectorMinus1: " + inputVectorMinus1)
+      netWrapper.tickUntilCalm(inputVectorMinus1)
+      assertFalse(fired)
+    }
   }
 
   @Test def shouldSignalSumWithOps(): Unit ={
@@ -51,9 +53,9 @@ class SignalSumSuite extends MySuite {
   }
 
   @Test def shouldFireWithBlock(): Unit = {
-    for(i <- 1 to 5){
-      shouldFireAfterRequiredSignalsBlock(i)
-    }
+    shouldFireAfterRequiredSignalsBlock(3)
+    shouldFireAfterRequiredSignalsBlock(2)
+    shouldFireAfterRequiredSignalsBlock(1)
   }
 
 

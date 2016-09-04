@@ -1,9 +1,10 @@
-package anna.epengine
+package anna.blocks
 
 import anna.Context
 import anna.async.NetBuilderOps._
 import anna.async.{MySuite, NetBuilder}
 import anna.data.SynapseWeight
+import anna.epengine.{AccessMap, MutationsLibrary, NetGenome}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test

@@ -67,7 +67,6 @@ object MutationsProfile {
   val simpleMutations = MutationsProfile(
     "addNeuron" -> 0.1,
     "deleteNeuron" -> 0.1,
-    "mutateInputTickMultiplier" -> 0.0,
     "addSynapse" -> 0.1,
     "deleteSynapse" -> 0.1,
     "invertSynapse" -> 0.0,
@@ -77,7 +76,6 @@ object MutationsProfile {
     "invertNeuron" -> 0.0,
     "mutateThreshold" -> 0.05,
     "mutateHushValue" -> 0.05,
-    "mutateTickTimeMultiplier" -> 0.0,
     "setDontForget" -> 0.05,
     "mutateForgetValue" -> 0.05,
     "setForgetAll" -> 0.05
