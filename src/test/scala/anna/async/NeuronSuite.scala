@@ -10,24 +10,23 @@ import scala.annotation.tailrec
 
 
 class NeuronSuite extends MySuite {
-  case class NeuronData(slope: Double, weight: Double, threshold: Double)
+  case class NeuronData(weight: Double, threshold: Double)
 
-  def oneIteration(input: Double, slope: Double, weight: Double) = ActivationFunction.step(input, slope) * weight
+  def oneIteration(input: Double, weight: Double) = weight
   
   @tailrec
   final def countIterations(input: Double, data: NeuronData, currentIteration: Int =0)(implicit timeout: Int):Int =
     if(currentIteration == timeout) Int.MaxValue
     else if(input >= data.threshold) currentIteration
-    else countIterations(oneIteration(input, data.slope, data.weight), data, currentIteration + 1)
+    else countIterations(oneIteration(input, data.weight), data, currentIteration + 1)
   
-  def neuronDataIter(slopeRange: DoubleRange, weightRange: DoubleRange, thresholdRange: DoubleRange, resolution: Int) = 
-      for { s <- slopeRange.iterator(resolution)
-            w <- weightRange.iterator(resolution)
-            t <- thresholdRange.iterator(resolution) } yield NeuronData(s, w, t)
+  def neuronDataIter(weightRange: DoubleRange, thresholdRange: DoubleRange, resolution: Int) =
+      for{ w <- weightRange.iterator(resolution)
+           t <- thresholdRange.iterator(resolution) } yield NeuronData(w, t)
     
   @Test def findLongestLoop() = {
     implicit val timeout = 10
-    val iter = neuronDataIter(5.0<=>10.0, 0.8<=>1.0, 0.5<=>0.9, 20)
+    val iter = neuronDataIter(0.8<=>1.0, 0.5<=>0.9, 20)
     val input = 0.55
     
     var maxIterations = 0

@@ -1,6 +1,5 @@
 package anna.data
 
-import anna.async.ActivationFunction
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{Before, Test}

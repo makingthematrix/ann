@@ -1,7 +1,7 @@
 package anna.data
 
 import anna.async.NetBuilderOps._
-import anna.async.{ActivationFunction, NetBuilder, NeuronTypeDummy, NeuronTypeStandard}
+import anna.async.{NetBuilder, NeuronTypeDummy, NeuronTypeStandard}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{Before, Test}

@@ -22,10 +22,6 @@ class Neuron(
   
   protected var buffer = 0.0
 
-  // statistics only
-  protected var highestBuffer = 0.0
-  protected var lastOutput = 0.0
-
   private val schedulerBuffer = new SchedulerBuffer(context)
 
   private var isSleeping = false
@@ -67,9 +63,7 @@ class Neuron(
     isSleeping = false
     context.become(receive)
   }
-  
-  protected def calculateOutput:Double = ActivationFunction.step(buffer, 0.0)
-  
+
   protected def +=(signal: Double){
     LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
     buffer += signal
@@ -89,7 +83,7 @@ class Neuron(
 
   private def tick():Unit = this.synchronized {
     buffer = Utils.minmax(-1.0, buffer, 1.0)
-    if (highestBuffer < buffer) highestBuffer = buffer
+
     if (biggerOrCloseEnough(buffer, threshold)) {
       triggerThresholdPassed()
       run()
@@ -98,8 +92,7 @@ class Neuron(
   }
   
   protected def run(): Unit = {
-    val output = calculateOutput
-    lastOutput = output
+    val output = 1.0
     buffer = 0.0
 
     LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
@@ -182,8 +175,5 @@ class Neuron(
     case other => LOG += s"$state, unrecognized message: $other"
   }
 
-  def info = NeuronInfo(
-    id, netId, threshold, hushValue,
-    synapses.map(_.info), buffer, highestBuffer, lastOutput
-  )
+  def info = NeuronInfo(id, netId, threshold, hushValue, synapses.map(_.info), buffer)
 }

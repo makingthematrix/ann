@@ -49,10 +49,8 @@ object Messages {
                         threshold: Double,
                         hushValue: HushValue,
                         synapses: List[SynapseInfo],
-                        buffer: Double,
-                        highestBuffer: Double,
-                        lastOutput: Double)
-  case class SynapseInfo(neuronId: String, weight: SynapseTrait, strongestSignal: Double)
+                        buffer: Double)
+  case class SynapseInfo(neuronId: String, weight: SynapseTrait)
 
 
   // triggers
