@@ -20,7 +20,7 @@ case class DelayGate(name: String, delay: Int){
     if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, hushTime)
     else builder.addMiddle(id=inputId, threshold=inputThreshold, hushValue=hushTime)
 
-    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)//.friend(inputId)
+    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
            .chain(outputId, feedbackWeight, DelayGate.middleThreshold).hush(middleId)
            .addHushNeuron(hushId).hush(inputId).hush(middleId).hush(outputId)
            .use(outputId) // always end chaining with setting the current neuron at the main output of the block

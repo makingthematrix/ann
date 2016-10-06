@@ -10,8 +10,7 @@ case class NeuronData(
     threshold: Double,
     hushValue: HushValue,
     synapses: List[SynapseData],
-    neuronType: NeuronType,
-    friends: Set[String]
+    neuronType: NeuronType
 ){
   def withId(id: String) = copy(id = id)
   def withThreshold(threshold: Double) = copy(threshold = threshold)
@@ -19,8 +18,6 @@ case class NeuronData(
   def withSynapses(synapses: List[SynapseData]) = copy(synapses = synapses)
   def withoutSynapses = withSynapses(Nil)
   def withNeuronType(neuronType: NeuronType) = copy(neuronType = neuronType)
-  def withFriends(friends: Set[String]) = copy(friends = friends)
-  def withoutFriends = withFriends(Set.empty[String])
 
   def toJson = writePretty(this)
 
@@ -31,23 +28,16 @@ object NeuronData {
   def apply(id: String,
             threshold: Double,
             hushValue: HushValue,
-            synapses: List[SynapseData],
-            friends: Set[String]
+            synapses: List[SynapseData]
            ):NeuronData
-  = apply(id, threshold, hushValue, synapses, NeuronTypeStandard(), friends)
-
-  def apply(id: String, 
-            threshold: Double,
-            hushValue: HushValue,
-            synapses: List[SynapseData]):NeuronData
-    = apply(id, threshold, hushValue, synapses, NeuronTypeStandard(), Set.empty[String])
+  = apply(id, threshold, hushValue, synapses, NeuronTypeStandard())
 
   def apply(id: String,  
             hushValue: HushValue):NeuronData
-    = apply(id, 0.0, hushValue, Nil, NeuronTypeDummy(), Set.empty[String])
+    = apply(id, 0.0, hushValue, Nil, NeuronTypeDummy())
   
   def apply(id: String):NeuronData
-    = apply(id, 0.0, Context().hushValue, Nil, NeuronTypeHush(), Set.empty[String])
+    = apply(id, 0.0, Context().hushValue, Nil, NeuronTypeHush())
 
   def fromJson(jsonStr: String) = read[NeuronData](jsonStr)
 }

@@ -10,8 +10,6 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
 
-  def setFriends(friends: Set[String]) = ref ! SetFriends(friends)
-
   def hush() = {
     ref ! HushRequest
   }

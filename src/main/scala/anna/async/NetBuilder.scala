@@ -20,7 +20,6 @@ class NetBuilder {
 
   private val neurons = mutable.Map[String,NeuronData]()
   private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
-  private val friendIds = mutable.Map[String,mutable.Set[String]]()
   private val ins = mutable.Set[String]()
 
   private var currentNeuronId:Option[String] = None
@@ -54,12 +53,6 @@ class NetBuilder {
   }
 
   def isCurrent = currentNeuronId != None
-
-  def friend(id: String) = {
-    assert(contains(id), s"There is no neuron with id $id")
-    friendIds.getOrElseUpdate(current.id, mutable.Set[String]()).add(id)
-    this
-  }
 
   def chain(id: String, weight: SynapseTrait, threshold: Double,
             hushValue: HushValue) = {
@@ -132,12 +125,6 @@ class NetBuilder {
       debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
       nRef.setSynapses(nsyns)
     })
-    debug(this, "setting friends")
-    friendIds.keys.foreach(neuronId => {
-      val friendSet: Set[String] = friendIds(neuronId).toSet
-      if(friendSet.nonEmpty) nRefs(neuronId).setFriends(friendSet)
-    })
-
     debug(this, "setting inputs")
     net.setInputs(ins.toSeq)
     debug(this, "done")
@@ -148,7 +135,6 @@ class NetBuilder {
     netId,
     neurons.values.map( n =>
       n.withSynapses(synapses.getOrElse(n.id, Nil).toList)
-       .withFriends(friendIds.getOrElse(n.id, Set.empty[String]).toSet)
     ).toList.sortBy( _.id ),
     ins.toList.sorted,
     defThreshold, defHushValue,
@@ -164,7 +150,6 @@ class NetBuilder {
       val buffer = mutable.ListBuffer[SynapseData]()
       n.synapses.foreach( buffer += _ )
       synapses += ( n.id -> buffer )
-      friendIds.getOrElseUpdate(n.id, mutable.Set[String]()) ++= n.friends
     })
 
     ins ++= data.inputs
@@ -184,7 +169,6 @@ class NetBuilder {
   def clear() = {
     neurons.clear()
     synapses.clear()
-    friendIds.clear()
     ins.clear()
     this
   }
@@ -202,9 +186,7 @@ class NetBuilder {
 
   private def newNeuron(neuronType: NeuronType, id: String,
       threshold: Double =defThreshold, hushValue: HushValue =defHushValue) =
-    NeuronData(
-      id, threshold, hushValue, Nil, neuronType, Set.empty[String]
-    )
+    NeuronData(id, threshold, hushValue, Nil, neuronType)
 
   private def add(n: NeuronData){
     neurons.put(n.id, n)

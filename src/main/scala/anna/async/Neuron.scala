@@ -15,8 +15,7 @@ class Neuron(
     val netId: String,
     val threshold: Double,
     val hushValue: HushValue,
-    protected var synapses: List[Synapse] = List[Synapse](),
-    protected var friends: Set[String] = Set[String]()
+    protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
   
@@ -138,14 +137,7 @@ class Neuron(
   val hushBehaviour: Receive = {
     case WakeFromHush => wakeFromHush()
     case Signal(s, senderId) =>
-      LOG += s"$id, signal during hush. friends: $friends, sender: $senderId"
-      if(friends.contains(senderId)){
-        LOG += s"$id, waking up from being hushed because a friend called"
-        wakeFromHush()
-        this += s
-      } else {
         LOG += s"$id, signal hushed: $s" // so it's like sleep, but we ignore signals
-      }
   }
 
   val commonBehaviour: Receive = {
@@ -154,8 +146,7 @@ class Neuron(
       case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses.toList
-      case SetFriends(friends) => this.friends = friends
-      case AddAfterFireTrigger(triggerId, trigger) => 
+      case AddAfterFireTrigger(triggerId, trigger) =>
         addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)
       case RemoveAfterFireTrigger(triggerId) =>

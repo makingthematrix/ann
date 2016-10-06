@@ -20,8 +20,7 @@ object Messages {
   case object Reset
   case object RemoveAllTriggers
   case class SetSynapses(synapses: Seq[Synapse])
-  case class SetFriends(friends: Set[String])
-  
+
   // questions
   case object GetId
   case object GetInput
