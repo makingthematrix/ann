@@ -25,3 +25,5 @@ dist
 projectFilesBackup/*
 src/main/resources/evolution/*
 contextMatrixTest*
+.cache-main
+.cache-tests
