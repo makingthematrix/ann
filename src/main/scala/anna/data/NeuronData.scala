@@ -5,16 +5,10 @@ import anna.async._
 import anna.utils.Utils.formats
 import org.json4s.native.Serialization.{read, writePretty}
 
-case class NeuronData(
-                       id: String,
-                       threshold: Double,
-                       silenceIterations: SilenceIterations,
-                       synapses: List[SynapseData],
-                       neuronType: NeuronType
-){
+case class NeuronData(id: String, threshold: Double, silenceIterations: Int, synapses: List[SynapseData], neuronType: NeuronType){
   def withId(id: String) = copy(id = id)
   def withThreshold(threshold: Double) = copy(threshold = threshold)
-  def withSilenceIterations(silenceIterations: SilenceIterations) = copy(silenceIterations = silenceIterations)
+  def withSilenceIterations(silenceIterations: Int) = copy(silenceIterations = silenceIterations)
   def withSynapses(synapses: List[SynapseData]) = copy(synapses = synapses)
   def withoutSynapses = withSynapses(Nil)
   def withNeuronType(neuronType: NeuronType) = copy(neuronType = neuronType)
@@ -25,14 +19,10 @@ case class NeuronData(
 }
 
 object NeuronData {
-  def apply(id: String,
-            threshold: Double,
-            silenceIterations: SilenceIterations,
-            synapses: List[SynapseData]
-           ):NeuronData
+  def apply(id: String, threshold: Double, silenceIterations: Int, synapses: List[SynapseData]):NeuronData
   = apply(id, threshold, silenceIterations, synapses, NeuronTypeStandard())
 
-  def apply(id: String, silenceIterations: SilenceIterations):NeuronData
+  def apply(id: String, silenceIterations: Int):NeuronData
     = apply(id, 0.0, silenceIterations, Nil, NeuronTypeDummy())
   
   def apply(id: String):NeuronData = apply(id, 0.0, Context().silenceIterations, Nil, NeuronTypeSilencing())

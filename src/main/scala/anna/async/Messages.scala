@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.async.NeuronTriggers.{AfterFireTrigger, Trigger}
-import anna.data.{SilenceIterations, NeuronData, SynapseTrait}
+import anna.data.{NeuronData, SynapseTrait}
 
 object Messages {
   // signals
@@ -45,7 +45,7 @@ object Messages {
   case class NeuronInfo(id: String,
                         netId: String,
                         threshold: Double,
-                        silenceIterations: SilenceIterations,
+                        silenceIterations: Int,
                         synapses: List[SynapseInfo],
                         buffer: Double)
   case class SynapseInfo(neuronId: String, weight: SynapseTrait)

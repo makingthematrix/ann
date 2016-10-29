@@ -13,13 +13,13 @@ case class NetData(id: String,
                    neurons: List[NeuronData],
                    inputs: List[String], // time wasted refactoring this to Set[String]: 3h; please update when needed
                    threshold: Double,
-                   silenceIterations: SilenceIterations,
+                   silenceIterations: Int,
                    weight: SynapseTrait){
   def withId(id: String) = copy(id = id)
   def withNeurons(neurons: List[NeuronData]) = copy(neurons = neurons)
   def withInputs(inputs: List[String]) = copy(inputs = inputs)
   def withThreshold(threshold: Double) = copy(threshold = threshold)
-  def withSilenceIterations(silenceIterations: SilenceIterations) = copy(silenceIterations = silenceIterations)
+  def withSilenceIterations(silenceIterations: Int) = copy(silenceIterations = silenceIterations)
   def withWeight(weight: SynapseWeight) = copy(weight = weight)
   def neuron(neuronId: String) = neurons.find(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
                                         .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))

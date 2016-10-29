@@ -14,7 +14,7 @@ class Neuron(
               val id: String,
               val netId: String,
               val threshold: Double,
-              val silenceIterations: SilenceIterations,
+              val silenceIterations: Int,
               protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
@@ -35,13 +35,13 @@ class Neuron(
   }
 
   private def becomeSilent(){
-    LOG += s"$id becomeSilent, silenceIterations is ${silenceIterations.iterations}"
+    LOG += s"$id becomeSilent, silenceIterations is ${silenceIterations}"
     buffer = 0.0
     LOG += s"$id: buffer is now $buffer"
 
-    val t = Context().iterationTime * silenceIterations.iterations
+    val t = Context().iterationTime * silenceIterations
     if(t > 0){
-      LOG += s"$id becoming silent for ${silenceIterations.iterations} iterations ($t millis)"
+      LOG += s"$id becoming silent for ${silenceIterations} iterations ($t millis)"
       context.become(silence)
       schedulerBuffer.schedule(t millis){ wakeFromSilence() }
     }

@@ -17,8 +17,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldMakeNetDataFromJson() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1",0.0, SilenceIterations(1), List(s1), NeuronTypeDummy())
-    val n2 = NeuronData("id2",0.0, SilenceIterations(2), Nil)
+    val n1 = NeuronData("id1",0.0, 1, List(s1), NeuronTypeDummy())
+    val n2 = NeuronData("id2",0.0, 2, Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val json = netData.toJson
@@ -27,13 +27,13 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldMakeNetDataWithBuilder() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1", SilenceIterations(1)).withSynapses(List(s1))
-    val n2 = NeuronData("id2",0.0, SilenceIterations(2), Nil)
+    val n1 = NeuronData("id1", 1).withSynapses(List(s1))
+    val n2 = NeuronData("id2",0.0, 2, Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()
 
-    builder.addInput("id1").chain("id2",1.0,0.0,SilenceIterations(2))
+    builder.addInput("id1").chain("id2", 1.0, 0.0, 2)
 
     print("---- net data ----")
     print(netData.toJson)
@@ -45,8 +45,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldBuildNetWithData() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1", 0.0, SilenceIterations(1), List(s1), NeuronTypeDummy())
-    val n2 = NeuronData("id2", 0.0, SilenceIterations(2), Nil, NeuronTypeStandard())
+    val n1 = NeuronData("id1", 0.0, 1, List(s1), NeuronTypeDummy())
+    val n2 = NeuronData("id2", 0.0, 2, Nil, NeuronTypeStandard())
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()
@@ -70,7 +70,7 @@ class NetDataSuite extends JUnitSuite {
   private def SOSNetWithHushNeuron(builder: NetBuilder){
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,SilenceIterations(2)).silence("mi11")
+    builder.use("in").chain("mi11",1.0, 0.0, 2).silence("mi11")
       .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
       .chain("dot",0.6/2.0,0.6)
       .chain("S",0.5,0.81)
@@ -78,7 +78,7 @@ class NetDataSuite extends JUnitSuite {
     builder.use("dot").silence("dot_silence")
 
     // lines
-    builder.use("in").chain("mi21",0.55,0.58,SilenceIterations()).silence("mi21")
+    builder.use("in").chain("mi21",0.55,0.58).silence("mi21")
       .chain("line",1.0,0.0).silence("line")
       .chain("O",0.6,0.81)
 

@@ -7,14 +7,14 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
                   weight: SynapseTrait =builder.defWeight,
                   threshold: Double =builder.defThreshold,
-                  hushValue: SilenceIterations =builder.defSilenceIterations):NetBuilder =
-    builder.chain(id, weight, threshold, hushValue)
+                  silenceIterations: Int=builder.defSilenceIterations):NetBuilder =
+    builder.chain(id, weight, threshold, silenceIterations)
 
   def chain(id: String,
             weight: Double,
             threshold: Double,
-            hushValue: SilenceIterations):NetBuilder =
-    chainMiddle(id, SynapseWeight(weight), threshold, hushValue)
+            silenceIterations: Int):NetBuilder =
+    chainMiddle(id, SynapseWeight(weight), threshold, silenceIterations)
   def chain(id: String,
             weight: Double,
             threshold: Double):NetBuilder =

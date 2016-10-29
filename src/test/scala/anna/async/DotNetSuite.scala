@@ -1,7 +1,6 @@
 package anna.async
 
 import anna.async.NetBuilderOps._
-import anna.data.SilenceIterations
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.junit.Test
@@ -13,7 +12,7 @@ class DotNetSuite extends MySuite {
   private def dotNet3(){
     builder.addInput("in")
     // dots
-    builder.use("in").chain("mi11",1.0,0.0,SilenceIterations(2)).silence("mi11")
+    builder.use("in").chain("mi11", 1.0, 0.0, 2).silence("mi11")
       .chain("mi12",1.0,0.0).loop("loop1",1.0,0.0,1.0)
       .chain("dot",0.6/2.0,0.6).silence("mi12").silence("loop1").silence("dot")
     build()

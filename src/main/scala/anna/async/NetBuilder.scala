@@ -55,14 +55,14 @@ class NetBuilder {
   def isCurrent = currentNeuronId != None
 
   def chain(id: String, weight: SynapseTrait, threshold: Double,
-            silenceIterations: SilenceIterations) = {
+            silenceIterations: Int) = {
     val n1 = current
     addStandard(id, threshold, silenceIterations)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainDummy(id: String, weight: Double, hushValue: SilenceIterations =defSilenceIterations) = {
+  def chainDummy(id: String, weight: Double, hushValue: Int =defSilenceIterations) = {
     val n1 = current
     addDummy(id)
     addSynapse(n1.id, id, weight)
@@ -84,7 +84,7 @@ class NetBuilder {
 
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
-                silenceIterations: SilenceIterations =defSilenceIterations):NetBuilder =
+                silenceIterations: Int =defSilenceIterations):NetBuilder =
     addStandard(id, threshold, silenceIterations)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
@@ -105,7 +105,7 @@ class NetBuilder {
 
   def addStandard(id: String,
                   threshold: Double,
-                  silenceIterations: SilenceIterations) = {
+                  silenceIterations: Int) = {
     LOG.info("new neuron: " + id)
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
@@ -185,7 +185,7 @@ class NetBuilder {
   }
 
   private def newNeuron(neuronType: NeuronType, id: String,
-      threshold: Double =defThreshold, silenceIterations: SilenceIterations =defSilenceIterations) =
+      threshold: Double =defThreshold, silenceIterations: Int =defSilenceIterations) =
     NeuronData(id, threshold, silenceIterations, Nil, neuronType)
 
   private def add(n: NeuronData){

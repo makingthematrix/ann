@@ -2,7 +2,6 @@ package anna.blocks
 
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
-import anna.data.SilenceIterations
 
 /**
   * Created by gorywoda on 6/19/16.
@@ -19,10 +18,10 @@ case class SignalSum(name: String, requiredSignalsNumber: Int){
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
     val middleSynapseWeigth = middleThreshold/requiredSignalsNumber
 
-    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, SilenceIterations(0))
-    else builder.addMiddle(id=inputId, threshold=0.0, silenceIterations = SilenceIterations(0))
+    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, 0)
+    else builder.addMiddle(id=inputId, threshold=0.0, silenceIterations = 0)
 
-    builder.use(inputId).chain(outputId, middleSynapseWeigth, middleThreshold, SilenceIterations(0))
+    builder.use(inputId).chain(outputId, middleSynapseWeigth, middleThreshold, 0)
       .addSilencingNeuron(silencingId).silence(inputId).silence(outputId)
       .use(outputId)
   }

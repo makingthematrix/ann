@@ -13,7 +13,7 @@ import anna.logger.LOG._
 
 import scala.concurrent.duration._
 
-case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterations: SilenceIterations, iterationTime: Long){
+case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterations: Int, iterationTime: Long){
   def toJson = writePretty(this)
 }
 
@@ -66,7 +66,7 @@ object Context {
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
   def withWeight(weight: SynapseTrait) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(weight = weight)))
-  def withSilenceIterations(silenceIterations: SilenceIterations) =
+  def withSilenceIterations(silenceIterations: Int) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(silenceIterations = silenceIterations)))
   def withIterationTime(iterationTime: Long) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(iterationTime = iterationTime)))
@@ -88,7 +88,7 @@ object Context {
     val neuronRoot = root.getConfig(_neurondefaults)
     val threshold = neuronRoot.getDouble(_defaultthreshold)
     val weight = SynapseTrait(neuronRoot.getString(_defaultweight))
-    val silenceIterations = SilenceIterations(neuronRoot.getInt(_defaultsilenceiterations))
+    val silenceIterations = neuronRoot.getInt(_defaultsilenceiterations)
     val iterationTime = neuronRoot.getLong(_defaultiterationtime)
 
     val neuronDefaults = NeuronDefaults(threshold, weight, silenceIterations, iterationTime)
@@ -100,7 +100,7 @@ object Context {
   def withJson(jsonStr: String) = set(fromJson(jsonStr))
 
   def set(name: String, n: Int):Unit = name match {
-    case _defaultsilenceiterations => withSilenceIterations(SilenceIterations(n))
+    case _defaultsilenceiterations => withSilenceIterations(n)
   }
   
   def set(name: String, d: Double):Unit = name match {

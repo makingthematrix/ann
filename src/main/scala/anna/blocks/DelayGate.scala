@@ -2,7 +2,6 @@ package anna.blocks
 
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
-import anna.data.SilenceIterations
 
 /**
   * Created by gorywoda on 1/31/16.
@@ -15,10 +14,9 @@ case class DelayGate(name: String, delay: Int){
   }
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    val silenceIterations = SilenceIterations(delay)
     val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
-    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, silenceIterations)
-    else builder.addMiddle(id=inputId, threshold=inputThreshold, silenceIterations=silenceIterations)
+    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, delay)
+    else builder.addMiddle(id=inputId, threshold=inputThreshold, silenceIterations=delay)
 
     builder.use(inputId).silence(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
            .chain(outputId, feedbackWeight, DelayGate.middleThreshold).silence(middleId)
