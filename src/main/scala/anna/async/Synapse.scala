@@ -1,12 +1,12 @@
 package anna.async
 
 import anna.async.Messages._
-import anna.data.{Hush, SynapseTrait, SynapseWeight}
+import anna.data.{Silence, SynapseTrait, SynapseWeight}
 
 class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
 
   private def msg(signal: Double, senderId: String) = weight match {
-    case Hush() => HushRequest
+    case Silence() => SilenceRequest
     case w: SynapseWeight => Signal(signal * w.weight, senderId)
   }
   

@@ -13,7 +13,7 @@ case class NeuronTypeDummy() extends NeuronType {
   def toJson = writePretty(this)
 }
 
-case class NeuronTypeHush() extends NeuronType {
+case class NeuronTypeSilencing() extends NeuronType {
   def toJson = writePretty(this)
 }
 
@@ -21,7 +21,7 @@ object NeuronType {
   def parse(str: String) = str match {
     case "STANDARD" => NeuronTypeStandard()
     case "DUMMY" => NeuronTypeDummy()
-    case "HUSH" => NeuronTypeHush()
+    case "SILENCING" => NeuronTypeSilencing()
   }
 
   def fromJson(str: String) = read[NeuronType](str)

@@ -61,18 +61,18 @@ class NetWrapper(val net: NetRef) {
     LOG.debug(s"----- iteration ${_iteration} -----")
     val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
     net.signal(input)
-    Thread.sleep(Context().tickTime)
+    Thread.sleep(Context().iterationTime)
     _iteration = _iteration + 1
   }
 
   var timeout = 100
 
-  def tickUntilCalm(inputVector: String):Int = {
+  def iterateUntilCalm(inputVector: String):Int = {
     this += inputVector
-    tickUntilCalm()
+    iterateUntilCalm()
   }
 
-  def tickUntilCalm():Int = {
+  def iterateUntilCalm():Int = {
     var neuronFired = false
     net.addAfterFireToAll("tickUntilCalm")( (_:Double)=>{ neuronFired = true })
 
@@ -93,8 +93,8 @@ class NetWrapper(val net: NetRef) {
   def addAfterFire(id: String, name: String)(f: (Double) => Any): Unit = net.addAfterFire(id, name)(f)
   def addAfterFire(id: String)(f: (Double) => Any): Unit = addAfterFire(id, id)(f)
 
-  def addHushRequested(id: String, name: String)(f: => Any): Unit = net.addHushRequested(id, name)(f)
-  def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)
+  def addSilenceRequested(id: String, name: String)(f: => Any): Unit = net.addSilenceRequested(id, name)(f)
+  def addSilenceRequested(id: String)(f: => Any):Unit  = addSilenceRequested(id, id)(f)
 
   def shutdown() = {
     net.shutdown()

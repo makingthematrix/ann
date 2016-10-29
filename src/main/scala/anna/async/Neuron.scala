@@ -11,14 +11,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class Neuron(
-    val id: String,
-    val netId: String,
-    val threshold: Double,
-    val hushValue: HushValue,
-    protected var synapses: List[Synapse] = List[Synapse]()
+              val id: String,
+              val netId: String,
+              val threshold: Double,
+              val silenceIterations: SilenceIterations,
+              protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
-  
+
   protected var buffer = 0.0
 
   private val schedulerBuffer = new SchedulerBuffer(context)
@@ -34,31 +34,29 @@ class Neuron(
     NeuronCounter.unreg(netId, id)
   }
 
-  private def hushNow(){
-    LOG += s"$id hushNow, hushValue.iterations is ${hushValue.iterations}"
+  private def becomeSilent(){
+    LOG += s"$id becomeSilent, silenceIterations is ${silenceIterations.iterations}"
     buffer = 0.0
     LOG += s"$id: buffer is now $buffer"
-    makeHush()
-    triggerHushRequested()
-  }
-  
-  private def makeSleep() = {
-    LOG += s"$id going to sleep for ${Context().tickTime} ms"
-    isSleeping = true
-    context.system.scheduler.scheduleOnce(Context().tickTime millis){ wakeUp() }
-  }
-  
-  private def makeHush() = {
-    val t = Context().tickTime * hushValue.iterations
+
+    val t = Context().iterationTime * silenceIterations.iterations
     if(t > 0){
-      LOG += s"$id making hush for ${hushValue.iterations} iterations ($t millis)"
-      context.become(hushTime)
-      schedulerBuffer.schedule(t millis){ wakeFromHush() }
+      LOG += s"$id becoming silent for ${silenceIterations.iterations} iterations ($t millis)"
+      context.become(silence)
+      schedulerBuffer.schedule(t millis){ wakeFromSilence() }
     }
+
+    triggerSilenceRequested()
   }
 
-  private def wakeFromHush() = {
-    LOG += s"$id waking up from hush"
+  private def makeSleep() = {
+    LOG += s"$id going to sleep for ${Context().iterationTime} ms"
+    isSleeping = true
+    context.system.scheduler.scheduleOnce(Context().iterationTime millis){ wakeUp() } //@todo: change to schedulerBuffer
+  }
+
+  private def wakeFromSilence() = {
+    LOG += s"$id waking up from a silence request"
     isSleeping = false
     context.become(receive)
   }
@@ -71,7 +69,7 @@ class Neuron(
       tick()
     }
   }
-  
+
   private def wakeUp(){
     LOG += s"$id waking up"
     isSleeping = false
@@ -89,7 +87,7 @@ class Neuron(
     }
     LOG += s"after the tick: $id: buffer is now $buffer"
   }
-  
+
   protected def run(): Unit = {
     val output = 1.0
     buffer = 0.0
@@ -100,8 +98,8 @@ class Neuron(
 
     triggerAfterFire(output)
   }
-    
-  protected def findSynapse(destinationId: String):Option[Synapse] = 
+
+  protected def findSynapse(destinationId: String):Option[Synapse] =
     if(synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
 
   protected def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
@@ -124,20 +122,19 @@ class Neuron(
     removeAllTriggers()
     answer(Success(id))
   }
-  
+
   def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
 
-  def hushTime = hushBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, hushTime")
-  
+  def silence = silentBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, silence")
+
   val activeBehaviour: Receive = {
     case Signal(s, _) => this += s
-    case HushRequest => hushNow()
+    case SilenceRequest => becomeSilent()
   }
-  
-  val hushBehaviour: Receive = {
-    case WakeFromHush => wakeFromHush()
+
+  val silentBehaviour: Receive = {
     case Signal(s, senderId) =>
-        LOG += s"$id, signal hushed: $s" // so it's like sleep, but we ignore signals
+        LOG += s"$id, signal ignored: $s"
   }
 
   val commonBehaviour: Receive = {
@@ -152,19 +149,19 @@ class Neuron(
       case RemoveAfterFireTrigger(triggerId) =>
         removeAfterFire(triggerId)
         sender ! Success(triggerId)
-      case AddHushRequestedTrigger(triggerId, trigger) => 
-        addHushRequested(triggerId, trigger)
+      case AddSilenceRequestedTrigger(triggerId, trigger) =>
+        addSilenceRequested(triggerId, trigger)
         sender ! Success(triggerId)
-      case RemoveHushRequestedTrigger(triggerId) =>
-        removeHushRequested(triggerId)
+      case RemoveSilenceRequestedTrigger(triggerId) =>
+        removeSilenceRequested(triggerId)
         sender ! Success(triggerId)
       case RemoveAllTriggers => removeTriggers()
       case Reset => reset()
   }
-  
+
   def otherBehaviour(state: String): Receive = {
     case other => LOG += s"$state, unrecognized message: $other"
   }
 
-  def info = NeuronInfo(id, netId, threshold, hushValue, synapses.map(_.info), buffer)
+  def info = NeuronInfo(id, netId, threshold, silenceIterations, synapses.map(_.info), buffer)
 }

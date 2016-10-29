@@ -18,7 +18,7 @@ class NetDataOps(val data: NetData){
 
     netWrapper += input
 
-    netWrapper.tickUntilCalm()
+    netWrapper.iterateUntilCalm()
     netWrapper.shutdown()
 
     sb.toString()
@@ -60,7 +60,7 @@ object Commands {
       val n2 = if(data2.contains(neuronId2)) data2.neuron(neuronId2) else data2.neuron(nid)
       if(n1 != n2){
         if(n1.threshold != n2.threshold) sb.append(s"$nid threshold: ${n1.threshold} -> ${n2.threshold}\n")
-        if(n1.hushValue != n2.hushValue) sb.append(s"$nid hushValue: ${n1.hushValue} -> ${n2.hushValue}\n")
+        if(n1.silenceIterations != n2.silenceIterations) sb.append(s"$nid silenceIterations: ${n1.silenceIterations} -> ${n2.silenceIterations}\n")
 
         val n1SynapsesMap = n1.synapses.map(s => (s.neuronId -> s.weight)).toMap
         val n2SynapsesMap = n2.synapses.map(s => (s.neuronId -> s.weight)).toMap

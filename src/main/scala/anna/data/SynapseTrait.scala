@@ -14,13 +14,13 @@ case class SynapseWeight(weight: Double) extends SynapseTrait {
   def toJson = writePretty(this)
 }
 
-case class Hush() extends SynapseTrait {
+case class Silence() extends SynapseTrait {
   def toJson = writePretty(this)
 }
 
 object SynapseTrait {
   def apply(str: String) = str match {
-    case "Hush" => Hush()
+    case "Silence" => Silence()
     case str => SynapseWeight(str.toDouble)
   }
 

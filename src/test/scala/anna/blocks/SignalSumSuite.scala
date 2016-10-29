@@ -18,7 +18,7 @@ class SignalSumSuite extends MySuite {
 
     val inputVector = List.fill(requiredSignals)("1").mkString(",")
     LOG.debug("inputVector: " + inputVector)
-    netWrapper.tickUntilCalm(inputVector)
+    netWrapper.iterateUntilCalm(inputVector)
     assertTrue(fired)
 
     if(requiredSignals > 1) {
@@ -26,7 +26,7 @@ class SignalSumSuite extends MySuite {
 
       val inputVectorMinus1 = List.fill(requiredSignals - 1)("1").mkString(",")
       LOG.debug("inputVectorMinus1: " + inputVectorMinus1)
-      netWrapper.tickUntilCalm(inputVectorMinus1)
+      netWrapper.iterateUntilCalm(inputVectorMinus1)
       assertFalse(fired)
     }
   }

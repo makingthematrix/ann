@@ -32,7 +32,7 @@ class SOSWithBlocksSuite extends MySuite {
       fired = true
     })
 
-    netWrapper.tickUntilCalm("1")
+    netWrapper.iterateUntilCalm("1")
 
     assertTrue(fired)
     assertEquals(2, iteration)
@@ -58,11 +58,11 @@ class SOSWithBlocksSuite extends MySuite {
 
     LOG.allow(outputId)
 
-    netWrapper.tickUntilCalm("1,1")
+    netWrapper.iterateUntilCalm("1,1")
     assertTrue(fired)
 
     fired = false
-    netWrapper.tickUntilCalm("1")
+    netWrapper.iterateUntilCalm("1")
     assertFalse(fired)
   }
 
@@ -77,22 +77,22 @@ class SOSWithBlocksSuite extends MySuite {
     val dotBlockName = "DotBlock"
     val expectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
-    val dotHushId = DelayGate.hushId(dotBlockName)
+    val dotHushId = DelayGate.silencingId(dotBlockName)
     val dotInputId = DelayGate.inputId(dotBlockName)
     val dotMiddleId = DelayGate.middleId(dotBlockName)
 
     val lineBlockName = "LineBlock"
     val requiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
-    val lineHushId = SignalSum.hushId(lineBlockName)
+    val lineHushId = SignalSum.silencingId(lineBlockName)
     val lineInputId = SignalSum.inputId(lineBlockName)
 
     super.build(
       NetBuilder().addInput("in")
         .delayGate(dotBlockName, expectedDelay)
         .use("in").signalSum(lineBlockName, requiredSignals)
-        .use(dotOutputId).hush(lineHushId)
-        .use(lineOutputId).hush(dotHushId)
+        .use(dotOutputId).silence(lineHushId)
+        .use(lineOutputId).silence(dotHushId)
         .data
     )
 
@@ -119,49 +119,49 @@ class SOSWithBlocksSuite extends MySuite {
 
   @Test def shouldDotWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1")
+    netWrapper.iterateUntilCalm("1")
     assertEquals(1, results.dotFired)
     assertEquals(0, results.lineFired)
   }
 
   @Test def shouldLineWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1,1")
+    netWrapper.iterateUntilCalm("1,1")
     assertEquals(0, results.dotFired)
     assertEquals(1, results.lineFired)
   }
 
   @Test def shouldTwoDotsWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1,0,0,0,1")
+    netWrapper.iterateUntilCalm("1,0,0,0,1")
     assertEquals(2, results.dotFired)
     assertEquals(0, results.lineFired)
   }
 
   @Test def shouldLineAndDotWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1,1,0,0,1")
+    netWrapper.iterateUntilCalm("1,1,0,0,1")
     assertEquals(1, results.dotFired)
     assertEquals(1, results.lineFired)
   }
 
   @Test def shouldDotAndLineWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1,0,0,0,1,1")
+    netWrapper.iterateUntilCalm("1,0,0,0,1,1")
     assertEquals(1, results.dotFired)
     assertEquals(1, results.lineFired)
   }
 
   @Test def shouldThreeDotsWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1,0,0,0,1,0,0,0,1")
+    netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
     assertEquals(3, results.dotFired)
     assertEquals(0, results.lineFired)
   }
 
   @Test def shouldThreeLinesWithDotLine(): Unit = {
     val results = buildDotLine()
-    netWrapper.tickUntilCalm("1,1,0,0,1,1,0,0,1,1")
+    netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
     assertEquals(0, results.dotFired)
     assertEquals(3, results.lineFired)
   }
@@ -170,38 +170,38 @@ class SOSWithBlocksSuite extends MySuite {
     val dotBlockName = "Dot-"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
-    val dotHushId = DelayGate.hushId(dotBlockName)
+    val dotHushId = DelayGate.silencingId(dotBlockName)
     val dotInputId = DelayGate.inputId(dotBlockName)
     val dotMiddleId = DelayGate.middleId(dotBlockName)
 
     val lineBlockName = "Line-"
     val lineRequiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
-    val lineHushId = SignalSum.hushId(lineBlockName)
+    val lineHushId = SignalSum.silencingId(lineBlockName)
     val lineInputId = SignalSum.inputId(lineBlockName)
 
     val sBlockName = "S-"
     val sRequiredSignals = 3
     val sOutputId = SignalSum.outputId(sBlockName)
-    val sHushId = SignalSum.hushId(sBlockName)
+    val sHushId = SignalSum.silencingId(sBlockName)
     val sInputId = SignalSum.inputId(sBlockName)
 
     val oBlockName = "O-"
     val oRequiredSignals = 3
     val oOutputId = SignalSum.outputId(oBlockName)
-    val oHushId = SignalSum.hushId(oBlockName)
+    val oHushId = SignalSum.silencingId(oBlockName)
     val oInputId = SignalSum.inputId(oBlockName)
 
     super.build(
       NetBuilder().addInput("in")
         .delayGate(dotBlockName, dotExpectedDelay)
         .use("in").signalSum(lineBlockName, lineRequiredSignals)
-        .use(dotOutputId).hush(lineHushId)
-        .use(lineOutputId).hush(dotHushId)
+        .use(dotOutputId).silence(lineHushId)
+        .use(lineOutputId).silence(dotHushId)
         .use(dotOutputId).signalSum(sBlockName, sRequiredSignals)
         .use(lineOutputId).signalSum(oBlockName, oRequiredSignals)
-        .use(sOutputId).hush(oHushId)
-        .use(oOutputId).hush(sHushId)
+        .use(sOutputId).silence(oHushId)
+        .use(oOutputId).silence(sHushId)
         .data
     )
 
@@ -246,7 +246,7 @@ class SOSWithBlocksSuite extends MySuite {
 
   @Test def shouldSWithSO(): Unit = {
     val results = buildSO()
-    netWrapper.tickUntilCalm("1,0,0,0,1,0,0,0,1")
+    netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
     assertEquals(3, results.dotFired)
     assertEquals(0, results.lineFired)
     assertEquals(1, results.sFired)
@@ -255,7 +255,7 @@ class SOSWithBlocksSuite extends MySuite {
 
   @Test def shouldOWithSO(): Unit = {
     val results = buildSO()
-    netWrapper.tickUntilCalm("1,1,0,0,1,1,0,0,1,1")
+    netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
     assertEquals(0, results.dotFired)
     assertEquals(3, results.lineFired)
     assertEquals(0, results.sFired)
@@ -264,7 +264,7 @@ class SOSWithBlocksSuite extends MySuite {
 
   @Test def shouldSOWithSO(): Unit = {
     val results = buildSO()
-    netWrapper.tickUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1")
+    netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1")
     assertEquals(3, results.dotFired)
     assertEquals(3, results.lineFired)
     assertEquals(1, results.sFired)
@@ -276,7 +276,7 @@ class SOSWithBlocksSuite extends MySuite {
   @Test def shouldSOSWithSO(): Unit = {
     val buffer = StringBuilder.newBuilder
     val results = buildSO(Some(buffer))
-    netWrapper.tickUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,1")
+    netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,1")
     assertEquals(6, results.dotFired)
     assertEquals(3, results.lineFired)
     assertEquals(2, results.sFired)

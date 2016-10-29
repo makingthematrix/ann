@@ -13,24 +13,16 @@ import anna.logger.LOG._
 
 import scala.concurrent.duration._
 
-case class NeuronDefaults(
-  threshold: Double,
-  weight: SynapseTrait,
-  hushValue: HushValue,
-  tickTime: Long
-){
+case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterations: SilenceIterations, iterationTime: Long){
   def toJson = writePretty(this)
 }
 
-case class Context(
-  awaitTimeout: Long,
-  neuronDefaults: NeuronDefaults
-){
+case class Context(awaitTimeout: Long, neuronDefaults: NeuronDefaults){
   def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
   def threshold = neuronDefaults.threshold
   def weight = neuronDefaults.weight
-  def hushValue = neuronDefaults.hushValue
-  def tickTime = neuronDefaults.tickTime
+  def silenceIterations = neuronDefaults.silenceIterations
+  def iterationTime = neuronDefaults.iterationTime
 
   private var systemOpt: Option[ActorSystem] = None
 
@@ -74,17 +66,17 @@ object Context {
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
   def withWeight(weight: SynapseTrait) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(weight = weight)))
-  def withHushValue(hushValue: HushValue) =
-    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(hushValue = hushValue)))
-  def withTickTime(tickTime: Long) =
-    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(tickTime = tickTime)))
+  def withSilenceIterations(silenceIterations: SilenceIterations) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(silenceIterations = silenceIterations)))
+  def withIterationTime(iterationTime: Long) =
+    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(iterationTime = iterationTime)))
 
   val _awaittimeout = "awaitTimeout"
   val _neurondefaults = "neuronDefaults"
   val _defaultthreshold = "defaultThreshold"
   val _defaultweight = "defaultWeight"
-  val _defaulthushvalue = "defaultHushValue"
-  val _defaultticktime = "defaultTickTime"
+  val _defaultsilenceiterations = "defaultSilenceIterations"
+  val _defaultiterationtime = "defaultIterationTime"
 
   private def init(): Unit ={
     val config = ConfigFactory.load()
@@ -96,10 +88,10 @@ object Context {
     val neuronRoot = root.getConfig(_neurondefaults)
     val threshold = neuronRoot.getDouble(_defaultthreshold)
     val weight = SynapseTrait(neuronRoot.getString(_defaultweight))
-    val hushValue = HushValue(neuronRoot.getInt(_defaulthushvalue))
-    val tickTime = neuronRoot.getLong(_defaultticktime)
+    val silenceIterations = SilenceIterations(neuronRoot.getInt(_defaultsilenceiterations))
+    val iterationTime = neuronRoot.getLong(_defaultiterationtime)
 
-    val neuronDefaults = NeuronDefaults(threshold, weight, hushValue, tickTime)
+    val neuronDefaults = NeuronDefaults(threshold, weight, silenceIterations, iterationTime)
 
     set(Context(awaitTimeout, neuronDefaults))
   }
@@ -108,7 +100,7 @@ object Context {
   def withJson(jsonStr: String) = set(fromJson(jsonStr))
 
   def set(name: String, n: Int):Unit = name match {
-    case `_defaulthushvalue` => withHushValue(HushValue(n))
+    case _defaultsilenceiterations => withSilenceIterations(SilenceIterations(n))
   }
   
   def set(name: String, d: Double):Unit = name match {

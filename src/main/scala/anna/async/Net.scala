@@ -2,7 +2,7 @@ package anna.async
 
 import akka.actor._
 import anna.async.Messages._
-import anna.data.{HushValue, NeuronData}
+import anna.data.{SilenceIterations, NeuronData}
 
 import scala.collection.mutable
 
@@ -90,26 +90,23 @@ class Net(val id: String) extends Actor {
   }
 
   private def createNeuron(data:NeuronData) = data.neuronType match {
-    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.hushValue)
-    case NeuronTypeDummy() => createDummy(data.id, data.hushValue)
-    case NeuronTypeHush() => createHush(data.id)
+    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.silenceIterations)
+    case NeuronTypeDummy() => createDummy(data.id, data.silenceIterations)
+    case NeuronTypeSilencing() => createSilencing(data.id)
   }
 
-  private def createStandard(id: String,
-                           threshold: Double,
-                           hushValue: HushValue
-                           ) = {
-	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, hushValue)))
+  private def createStandard(id: String, threshold: Double, silenceIterations: SilenceIterations) = {
+	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, silenceIterations)))
     add(id, ref)
   }
 
-  private def createDummy(id: String, hushValue: HushValue) = {
+  private def createDummy(id: String, silenceIterations: SilenceIterations) = {
 	  val ref = context.actorOf(Props(new DummyNeuron(id, this.id)))
     add(id, ref)
   }
 
-  private def createHush(id: String) = {
-    val ref = context.actorOf(Props(new HushNeuron(id, this.id)))
+  private def createSilencing(id: String) = {
+    val ref = context.actorOf(Props(new SilencingNeuron(id, this.id)))
     add(id, ref)
   }
 

@@ -10,7 +10,7 @@ import org.scalatest.junit.JUnitSuite
 class NetSuite extends JUnitSuite {
   val threshold = Context().threshold
   val weight = Context().weight
-  val hushValue = Context().hushValue
+  val silenceIterations = Context().silenceIterations
   val timeout = Context().timeout
 
   @Test def shouldCreateNet(){
@@ -21,43 +21,43 @@ class NetSuite extends JUnitSuite {
 
     net.shutdown()
   }
-  
+
   @Test def shouldCreateNeurons(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, hushValue)
-    val n2 = net.createNeuron("id2", threshold, hushValue)
-    
+    val n1 = net.createNeuron("id1", threshold, silenceIterations)
+    val n2 = net.createNeuron("id2", threshold, silenceIterations)
+
     val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons
     assertEquals(2, neurons.size)
-    
+
     val ids = neurons.map{ _.id }
     assertTrue(ids.contains(n1.id))
     assertTrue(ids.contains(n2.id))
-    
+
     net.shutdown()
   }
-  
+
   @Test def shouldCreateNeuronsWithBuilder(){
     val builder = NetBuilder()
-    builder.addMiddle("id1", threshold, hushValue)
-           .addMiddle("id2", threshold, hushValue)
+    builder.addMiddle("id1", threshold, silenceIterations)
+           .addMiddle("id2", threshold, silenceIterations)
     val net = builder.build("net").net
-    
+
     val neurons = net.getNeurons
     assertEquals(2, neurons.size)
     val ids = neurons.map{ _.id }
     assertTrue(ids.contains("id1"))
     assertTrue(ids.contains("id2"))
-    
+
     net.shutdown()
   }
-  
+
   @Test def shouldConnectNeuronsWithBuilder(){
     val builder = NetBuilder()
-    builder.addMiddle("id1", threshold, hushValue)
-           .chain("id2", weight, threshold, hushValue)
+    builder.addMiddle("id1", threshold, silenceIterations)
+           .chain("id2", weight, threshold, silenceIterations)
     val net = builder.build("net").net
     
     val neurons = net.getNeurons

@@ -11,7 +11,7 @@ class LineNetSuite extends MySuite {
 
   private def lineNet2() = {
     builder.addInput("in1")
-           .chain("mi21",0.4,0.6).hush("mi21")
+           .chain("mi21",0.4,0.6).silence("mi21")
            .chain("out2",1.0)
     build()
     debug("----------")
@@ -29,7 +29,7 @@ class LineNetSuite extends MySuite {
     
     netWrapper += "1,1,0,0,0,0"
     init()
-    netWrapper.tickUntilCalm()
+    netWrapper.iterateUntilCalm()
     assertEquals("-",sb.toString)
   }
   
@@ -38,7 +38,7 @@ class LineNetSuite extends MySuite {
     
     netWrapper += "1,1,0,1,1,0,1,1,0"
     init()
-    netWrapper.tickUntilCalm()
+    netWrapper.iterateUntilCalm()
     assertEquals("---",sb.toString)
   }
 
@@ -46,8 +46,8 @@ class LineNetSuite extends MySuite {
 
     builder.addInput("in")
            .chain("mi21",0.5,0.55)
-           .hush("mi21")
-           .chain("line",1.0,0.0).hush("line")
+           .silence("mi21")
+           .chain("line",1.0,0.0).silence("line")
     build()
 
   }
@@ -61,13 +61,13 @@ class LineNetSuite extends MySuite {
 
     netWrapper += o
     init()
-    val interval = netWrapper.tickUntilCalm()
+    val interval = netWrapper.iterateUntilCalm()
     println(s"interval: $interval, lines: $lines")
     assertEquals(3, lines)
 
     lines = 0
     netWrapper += s
-    netWrapper.tickUntilCalm()
+    netWrapper.iterateUntilCalm()
     println(s"lines: $lines")
     assertEquals(1, lines)
     // Without the other part of the network recognizing 'dots', two consecutive '1's, even with an interval

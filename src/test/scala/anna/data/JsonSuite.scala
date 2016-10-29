@@ -32,11 +32,11 @@ class JsonSuite extends JUnitSuite {
         |{
         |  "neuronId":"id2",
         |  "weight":{
-        |    "jsonClass":"Hush"
+        |    "jsonClass":"Silence"
         |  }
         |}
       """.stripMargin.trim
-    val data2 = SynapseData("id2",Hush())
+    val data2 = SynapseData("id2",Silence())
     assertEquals(expectedJson2, data2.toJson)
   }
 
@@ -59,12 +59,12 @@ class JsonSuite extends JUnitSuite {
         |{
         |  "neuronId":"id2",
         |  "weight":{
-        |    "jsonClass":"Hush"
+        |    "jsonClass":"Silence"
         |  }
         |}
       """.stripMargin.trim
     val data2 = SynapseData.fromJson(json2)
-    assertEquals(SynapseData("id2",Hush()), data2)
+    assertEquals(SynapseData("id2",Silence()), data2)
 
     val d4 = SynapseData("id1",1.0)
     val json4 = d4.toJson
@@ -72,7 +72,7 @@ class JsonSuite extends JUnitSuite {
   }
 
   @Test def shouldMakeJsonFromNeuronData() = {
-    val n1 = NeuronData("id1",0.0,HushValue(1), Nil)
+    val n1 = NeuronData("id1",0.0,SilenceIterations(1), Nil)
     val json = n1.toJson
     val n2 = NeuronData.fromJson(json)
     assertEquals(n1, n2)

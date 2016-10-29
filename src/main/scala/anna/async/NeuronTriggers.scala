@@ -7,7 +7,7 @@ import scala.collection.mutable
 trait NeuronTriggers {
   private val afterFire = mutable.Map[String, AfterFireTrigger]()
   private val thresholdPassed = mutable.Map[String, Trigger]()
-  private val hushRequested = mutable.Map[String, Trigger]()
+  private val silenceRequested = mutable.Map[String, Trigger]()
   
   private def add(id: String, f: Trigger, triggers: mutable.Map[String, Trigger]) =
     if(triggers.contains(id)) throw new IllegalArgumentException(s"There was already registered a trigger $id")
@@ -31,16 +31,16 @@ trait NeuronTriggers {
   def clearThresholdPassed() = clear(thresholdPassed) 
   def triggerThresholdPassed() = trigger(thresholdPassed)
   
-  def addHushRequested(id: String, f: Trigger) = add(id, f, hushRequested)
-  def isHushRequested(id: String) = is(id, hushRequested)
-  def removeHushRequested(id: String) = remove(id, hushRequested)
-  def clearHushRequested() = clear(hushRequested)
-  def triggerHushRequested() = trigger(hushRequested)
+  def addSilenceRequested(id: String, f: Trigger) = add(id, f, silenceRequested)
+  def isSilenceRequested(id: String) = is(id, silenceRequested)
+  def removeSilenceRequested(id: String) = remove(id, silenceRequested)
+  def clearSilenceRequested() = clear(silenceRequested)
+  def triggerSilenceRequested() = trigger(silenceRequested)
 
   def removeAllTriggers() = {
     afterFire.clear()
     thresholdPassed.clear()
-    hushRequested.clear()
+    silenceRequested.clear()
   }
 }
 

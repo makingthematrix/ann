@@ -15,7 +15,7 @@ class NetBuilder {
   var netId:String = "net"
 
   var defThreshold = Context().threshold
-  var defHushValue = Context().hushValue
+  var defSilenceIterations = Context().silenceIterations
   var defWeight:SynapseTrait = Context().weight
 
   private val neurons = mutable.Map[String,NeuronData]()
@@ -39,7 +39,7 @@ class NetBuilder {
     this
   }
 
-  def hush(id: String) = connect(id, Hush())
+  def silence(id: String) = connect(id, Silence())
 
   def connect(id: String, weight: SynapseTrait) = {
     assert(contains(id),s"There is no neuron with id $id")
@@ -55,24 +55,24 @@ class NetBuilder {
   def isCurrent = currentNeuronId != None
 
   def chain(id: String, weight: SynapseTrait, threshold: Double,
-            hushValue: HushValue) = {
+            silenceIterations: SilenceIterations) = {
     val n1 = current
-    addStandard(id, threshold, hushValue)
+    addStandard(id, threshold, silenceIterations)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainDummy(id: String, weight: Double, hushValue: HushValue =defHushValue) = {
+  def chainDummy(id: String, weight: Double, hushValue: SilenceIterations =defSilenceIterations) = {
     val n1 = current
     addDummy(id)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainHushNeuron(id: String) = {
+  def chainSilencingNeuron(id: String) = {
     val n1 = current
-    addHushNeuron(id)
-    addSynapse(n1.id, id, Hush())
+    addSilencingNeuron(id)
+    addSynapse(n1.id, id, Silence())
     this
   }
 
@@ -84,14 +84,14 @@ class NetBuilder {
 
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
-                hushValue: HushValue =defHushValue):NetBuilder =
-    addStandard(id, threshold, hushValue)
+                silenceIterations: SilenceIterations =defSilenceIterations):NetBuilder =
+    addStandard(id, threshold, silenceIterations)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
 
-  def addHushNeuron(id: String) = {
+  def addSilencingNeuron(id: String) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeHush(), id))
+    add(newNeuron(NeuronTypeSilencing(), id))
     this
   }
 
@@ -105,10 +105,10 @@ class NetBuilder {
 
   def addStandard(id: String,
                   threshold: Double,
-                  hushValue: HushValue) = {
+                  silenceIterations: SilenceIterations) = {
     LOG.info("new neuron: " + id)
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeStandard(), id, threshold, hushValue))
+    add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
     this
   }
 
@@ -137,7 +137,7 @@ class NetBuilder {
       n.withSynapses(synapses.getOrElse(n.id, Nil).toList)
     ).toList.sortBy( _.id ),
     ins.toList.sorted,
-    defThreshold, defHushValue,
+    defThreshold, defSilenceIterations,
     defWeight)
 
   def set(data: NetData) = {
@@ -155,7 +155,7 @@ class NetBuilder {
     ins ++= data.inputs
 
     defThreshold = data.threshold
-    defHushValue = data.hushValue
+    defSilenceIterations = data.silenceIterations
     defWeight = data.weight
 
     this
@@ -185,8 +185,8 @@ class NetBuilder {
   }
 
   private def newNeuron(neuronType: NeuronType, id: String,
-      threshold: Double =defThreshold, hushValue: HushValue =defHushValue) =
-    NeuronData(id, threshold, hushValue, Nil, neuronType)
+      threshold: Double =defThreshold, silenceIterations: SilenceIterations =defSilenceIterations) =
+    NeuronData(id, threshold, silenceIterations, Nil, neuronType)
 
   private def add(n: NeuronData){
     neurons.put(n.id, n)

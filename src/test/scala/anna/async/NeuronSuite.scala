@@ -47,7 +47,7 @@ class NeuronSuite extends MySuite {
            .chainDummy("mi11", 0.55)
            .loop("loop",1.0,0.0,0.99)
            .chain("out",1.0,0.66)
-    builder.use("mi11").hush("in")
+    builder.use("mi11").silence("in")
     builder.use("out").connect("mi11",-1.0).connect("loop",-1.0)
     build()
     
@@ -64,7 +64,7 @@ class NeuronSuite extends MySuite {
     })
     netWrapper += "1"
     init()
-    val interval = netWrapper.tickUntilCalm()
+    val interval = netWrapper.iterateUntilCalm()
     println(s"interval: $interval, good loops: $goodLoops, bad loops: $badLoops")
     assertEquals(0, badLoops)
   }

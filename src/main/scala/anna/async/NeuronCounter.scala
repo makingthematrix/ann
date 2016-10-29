@@ -58,8 +58,6 @@ object NeuronCounter {
     instanceOpt = Some(nc)
   }
 
- // private var index = 1
-
   def apply() = instanceOpt match {
     case Some(instance) => instance
     case None =>

@@ -1,9 +1,7 @@
 package anna.blocks
 
-import anna.Context
 import anna.async.NetBuilderOps._
 import anna.async.{MySuite, NetBuilder}
-import anna.data.SynapseWeight
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
@@ -19,7 +17,7 @@ class DelayGateSuite extends MySuite {
     build(delayGateWithOps("delayGate",delay))
     var iteration = 0
     netWrapper.addAfterFire("delayGateout")( (_:Double)=>{ iteration =  netWrapper.iteration } )
-    netWrapper.tickUntilCalm("1")
+    netWrapper.iterateUntilCalm("1")
     shutdown()
     assertEquals(delay, iteration)
   }
@@ -50,7 +48,7 @@ class DelayGateSuite extends MySuite {
       iteration = netWrapper.iteration
       fired = true
     })
-    netWrapper.tickUntilCalm("1")
+    netWrapper.iterateUntilCalm("1")
     shutdown()
     assertTrue(fired)
     assertEquals(expectedDelay, iteration)

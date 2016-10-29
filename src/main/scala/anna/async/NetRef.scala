@@ -3,7 +3,7 @@ package anna.async
 import akka.actor.{ActorRef, Props}
 import anna.Context
 import anna.async.Messages._
-import anna.data.{HushValue, NeuronData}
+import anna.data.{SilenceIterations, NeuronData}
 import anna.logger.LOG._
 import anna.utils.Utils.await
 
@@ -24,15 +24,15 @@ class NetRef(val id: String, val ref: ActorRef) {
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
   def createNeuron(
-    id: String,
-    threshold: Double,
-    hushValue: HushValue
-  ) = await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, hushValue, Nil)))
+                    id: String,
+                    threshold: Double,
+                    silenceIterations: SilenceIterations
+  ) = await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, silenceIterations, Nil)))
 
-  def createDummy(id: String, hushValue: HushValue) =
-    await[NeuronRef](ref, CreateNeuron(NeuronData(id, hushValue)))
+  def createDummy(id: String, silenceIterations: SilenceIterations) =
+    await[NeuronRef](ref, CreateNeuron(NeuronData(id, silenceIterations)))
 
-  def createHushNeuron(id: String) = await[NeuronRef](ref, CreateNeuron(NeuronData(id)))
+  def createSilencingNeuron(id: String) = await[NeuronRef](ref, CreateNeuron(NeuronData(id)))
   
   def setInputs(seq: Seq[String]) = await[Answer](ref, SetInputs(seq))
   
@@ -55,11 +55,11 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
   def addAfterFire(id: String)(f: (Double) => Any):Unit = addAfterFire(id, id)(f)
 
-  def addHushRequested(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
-    case Some(neuronRef) => neuronRef.addHushRequested(name)(f)
+  def addSilenceRequested(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addSilenceRequested(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
-  def addHushRequested(id: String)(f: => Any):Unit  = addHushRequested(id, id)(f)
+  def addSilenceRequested(id: String)(f: => Any):Unit  = addSilenceRequested(id, id)(f)
 
   def reset() = await[Success](ref,Reset)
   def removeAllTriggers() = await[Success](ref, RemoveAllTriggers)

@@ -7,22 +7,22 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
                   weight: SynapseTrait =builder.defWeight,
                   threshold: Double =builder.defThreshold,
-                  hushValue: HushValue =builder.defHushValue):NetBuilder =
+                  hushValue: SilenceIterations =builder.defSilenceIterations):NetBuilder =
     builder.chain(id, weight, threshold, hushValue)
 
   def chain(id: String,
             weight: Double,
             threshold: Double,
-            hushValue: HushValue):NetBuilder =
+            hushValue: SilenceIterations):NetBuilder =
     chainMiddle(id, SynapseWeight(weight), threshold, hushValue)
   def chain(id: String,
             weight: Double,
             threshold: Double):NetBuilder =
-    chainMiddle(id, SynapseWeight(weight), threshold, builder.defHushValue)
+    chainMiddle(id, SynapseWeight(weight), threshold, builder.defSilenceIterations)
   def chain(id: String):NetBuilder = chainMiddle(id)
   def chain(id: String, weight: Double):NetBuilder = chainMiddle(id, SynapseWeight(weight))
 
-  def chainHush(id: String, threshold: Double):NetBuilder = chainMiddle(id, Hush(), threshold)
+  def chainHush(id: String, threshold: Double):NetBuilder = chainMiddle(id, Silence(), threshold)
 
   def loop(id: String, 
            w1: SynapseTrait =builder.defWeight,
@@ -31,7 +31,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     val n1 = builder.current
     if(builder.inputSet.contains(n1.id)) throw new IllegalArgumentException("You can loop only in the middle layer")
     
-    chainMiddle(id, w1, threshold, builder.defHushValue)
+    chainMiddle(id, w1, threshold, builder.defSilenceIterations)
     
     builder.connect(n1.id, w2).use(n1.id)
   }

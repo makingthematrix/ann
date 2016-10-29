@@ -10,8 +10,8 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def getSynapses = await[MsgSynapses](ref, GetSynapses).synapses
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
 
-  def hush() = {
-    ref ! HushRequest
+  def requestSilence() = {
+    ref ! SilenceRequest
   }
   
   protected def calculateOutput = Double.NaN // we don't do that here 
@@ -24,13 +24,13 @@ class NeuronRef(val id: String, val ref: ActorRef) {
     case Success(id) => true
     case Failure(str) => error(this,s"removeAfterFire failure: $str"); false    
   }
-  def addHushRequested(triggerId: String)(f: => Any) = await[Answer](ref, AddHushRequestedTrigger(triggerId, () => f)) match {
+  def addSilenceRequested(triggerId: String)(f: => Any) = await[Answer](ref, AddSilenceRequestedTrigger(triggerId, () => f)) match {
     case Success(id) => true
-    case Failure(str) => error(this,s"addHushRequested failure: $str"); false
+    case Failure(str) => error(this,s"addSilenceRequested failure: $str"); false
   }
-  def removeHushRequested(name: String) = await[Answer](ref, RemoveHushRequestedTrigger(name)) match {
+  def removeSilenceRequested(name: String) = await[Answer](ref, RemoveSilenceRequestedTrigger(name)) match {
     case Success(id) => true
-    case Failure(str) => error(this,s"removeHushRequested failure: $str"); false    
+    case Failure(str) => error(this,s"removeSilenceRequested failure: $str"); false
   }
   def removeAllTriggers() = await[Answer](ref, RemoveAllTriggers) match {
     case Success(id) => true

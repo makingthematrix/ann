@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.async.NeuronTriggers.{AfterFireTrigger, Trigger}
-import anna.data.{HushValue, NeuronData, SynapseTrait}
+import anna.data.{SilenceIterations, NeuronData, SynapseTrait}
 
 object Messages {
   // signals
@@ -9,8 +9,7 @@ object Messages {
   case class SignalSeq(input: Seq[Double])
 
   // commands
-  case object HushRequest // become silent
-  case object WakeFromHush
+  case object SilenceRequest // become silent
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
   case class CreateNeuron(data: NeuronData)
@@ -46,7 +45,7 @@ object Messages {
   case class NeuronInfo(id: String,
                         netId: String,
                         threshold: Double,
-                        hushValue: HushValue,
+                        silenceIterations: SilenceIterations,
                         synapses: List[SynapseInfo],
                         buffer: Double)
   case class SynapseInfo(neuronId: String, weight: SynapseTrait)
@@ -55,7 +54,7 @@ object Messages {
   // triggers
   case class AddAfterFireTrigger(id: String, f: AfterFireTrigger)
   case class RemoveAfterFireTrigger(id: String)
-  case class AddHushRequestedTrigger(id: String, f: Trigger)
-  case class RemoveHushRequestedTrigger(id: String)
+  case class AddSilenceRequestedTrigger(id: String, f: Trigger)
+  case class RemoveSilenceRequestedTrigger(id: String)
 
 }

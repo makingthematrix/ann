@@ -134,10 +134,10 @@ object Utils {
     ShortTypeHints(
       List(
         classOf[SynapseWeight],
-        classOf[Hush],
+        classOf[Silence],
         classOf[NeuronTypeStandard],
         classOf[NeuronTypeDummy],
-        classOf[NeuronTypeHush]
+        classOf[NeuronTypeSilencing]
       )
     )
   )

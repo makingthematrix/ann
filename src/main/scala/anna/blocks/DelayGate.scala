@@ -2,7 +2,7 @@ package anna.blocks
 
 import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
-import anna.data.HushValue
+import anna.data.SilenceIterations
 
 /**
   * Created by gorywoda on 1/31/16.
@@ -15,21 +15,21 @@ case class DelayGate(name: String, delay: Int){
   }
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    val hushTime = HushValue(delay)
+    val silenceIterations = SilenceIterations(delay)
     val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
-    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, hushTime)
-    else builder.addMiddle(id=inputId, threshold=inputThreshold, hushValue=hushTime)
+    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, silenceIterations)
+    else builder.addMiddle(id=inputId, threshold=inputThreshold, silenceIterations=silenceIterations)
 
-    builder.use(inputId).hush(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
-           .chain(outputId, feedbackWeight, DelayGate.middleThreshold).hush(middleId)
-           .addHushNeuron(hushId).hush(inputId).hush(middleId).hush(outputId)
+    builder.use(inputId).silence(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
+           .chain(outputId, feedbackWeight, DelayGate.middleThreshold).silence(middleId)
+           .addSilencingNeuron(silencingId).silence(inputId).silence(middleId).silence(outputId)
            .use(outputId) // always end chaining with setting the current neuron at the main output of the block
   }
 
   val inputId = DelayGate.inputId(name)
   val middleId = DelayGate.middleId(name)
   val outputId = DelayGate.outputId(name)
-  val hushId = DelayGate.hushId(name)
+  val silencingId = DelayGate.silencingId(name)
 }
 
 object DelayGate {
@@ -52,6 +52,6 @@ object DelayGate {
   def inputId(name: String) = s"${name}in"
   def middleId(name: String) = s"${name}mi"
   def outputId(name: String) = s"${name}out"
-  def hushId(name: String) = s"${name}hush"
+  def silencingId(name: String) = s"${name}silencing"
 
 }
