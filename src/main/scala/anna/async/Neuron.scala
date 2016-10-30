@@ -3,27 +3,24 @@ package anna.async
 import akka.actor._
 import anna.Context
 import anna.async.Messages._
-import anna.data._
 import anna.logger.LOG
 import anna.utils.Utils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class Neuron(
-              val id: String,
-              val netId: String,
-              val threshold: Double,
-              val silenceIterations: Int,
-              protected var synapses: List[Synapse] = List[Synapse]()
+class Neuron(val id: String,
+             val netId: String,
+             val threshold: Double,
+             val silenceIterations: Int,
+             protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
 
   protected var buffer = 0.0
-
-  private val schedulerBuffer = new SchedulerBuffer(context)
-
+  private def printBuffer = Utils.round(buffer)
   private var isSleeping = false
+  private val schedulerBuffer = new SchedulerBuffer(context)
 
   override def preStart():Unit = {
     NeuronCounter.reg(netId, id, self)
@@ -35,13 +32,12 @@ class Neuron(
   }
 
   private def becomeSilent(){
-    LOG += s"$id becomeSilent, silenceIterations is ${silenceIterations}"
+    LOG += s"becomeSilent, silenceIterations is ${silenceIterations}"
     buffer = 0.0
-    LOG += s"$id: buffer is now $buffer"
+    LOG += s"(becomeSilent) buffer is now $printBuffer"
 
     val t = Context().iterationTime * silenceIterations
     if(t > 0){
-      LOG += s"$id becoming silent for ${silenceIterations} iterations ($t millis)"
       context.become(silence)
       schedulerBuffer.schedule(t millis){ wakeFromSilence() }
     }
@@ -50,28 +46,26 @@ class Neuron(
   }
 
   private def makeSleep() = {
-    LOG += s"$id going to sleep for ${Context().iterationTime} ms"
+    LOG += s"going to sleep for ${Context().iterationTime} ms"
     isSleeping = true
     context.system.scheduler.scheduleOnce(Context().iterationTime millis){ wakeUp() } //@todo: change to schedulerBuffer
   }
 
   private def wakeFromSilence() = {
-    LOG += s"$id waking up from a silence request"
+    LOG += s"waking up from a silence request"
     isSleeping = false
     context.become(receive)
   }
 
   protected def +=(signal: Double){
-    LOG += s"$id adding signal $signal to buffer $buffer, threshold is $threshold"
+    LOG += s"adding signal $signal to buffer $printBuffer, threshold is $threshold"
     buffer += signal
-    LOG += s"$id: buffer is now $buffer"
-    if(!isSleeping){
-      tick()
-    }
+    LOG += s"(+=) buffer is now $printBuffer"
+    if(!isSleeping) tick()
   }
 
   private def wakeUp(){
-    LOG += s"$id waking up"
+    LOG += "waking up"
     isSleeping = false
     tick()
   }
@@ -82,21 +76,16 @@ class Neuron(
     buffer = Utils.minmax(-1.0, buffer, 1.0)
 
     if (biggerOrCloseEnough(buffer, threshold)) {
-      triggerThresholdPassed()
-      run()
+      buffer = 0.0
+
+      LOG += s"Fire!"
+      makeSleep()
+      synapses.foreach( _.send(1.0, id) )
+
+      triggerAfterFire()
     }
-    LOG += s"after the tick: $id: buffer is now $buffer"
-  }
 
-  protected def run(): Unit = {
-    val output = 1.0
-    buffer = 0.0
-
-    LOG += s"$id trigger output $output, synapses size: ${synapses.size}"
-    makeSleep()
-    synapses.foreach( _.send(output, id) )
-
-    triggerAfterFire(output)
+    LOG += s"(tick) buffer is now $printBuffer"
   }
 
   protected def findSynapse(destinationId: String):Option[Synapse] =
@@ -111,7 +100,7 @@ class Neuron(
 
   private def reset(): Unit ={
     buffer = 0.0
-    LOG += s"reset; $id: buffer is now $buffer"
+    LOG += s"(reset) buffer is now $printBuffer"
 
     context.become(receive)
     schedulerBuffer.clear()
@@ -128,13 +117,18 @@ class Neuron(
   def silence = silentBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, silence")
 
   val activeBehaviour: Receive = {
-    case Signal(s, _) => this += s
-    case SilenceRequest => becomeSilent()
+    case Signal(s, senderId) =>
+      LOG += s"signal $s from $senderId received"
+      this += s
+    case SilenceRequest =>
+      LOG += s"silence request received"
+      becomeSilent()
   }
 
   val silentBehaviour: Receive = {
     case Signal(s, senderId) =>
-        LOG += s"$id, signal ignored: $s"
+      LOG += s"signal $s from $senderId ignored"
+      triggerSignalIgnored()
   }
 
   val commonBehaviour: Receive = {
@@ -144,6 +138,7 @@ class Neuron(
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses.toList
       case AddAfterFireTrigger(triggerId, trigger) =>
+        LOG += s"AddAfterFireTrigger $triggerId received"
         addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)
       case RemoveAfterFireTrigger(triggerId) =>
@@ -154,6 +149,12 @@ class Neuron(
         sender ! Success(triggerId)
       case RemoveSilenceRequestedTrigger(triggerId) =>
         removeSilenceRequested(triggerId)
+        sender ! Success(triggerId)
+      case AddSignalIgnoredTrigger(triggerId, trigger) =>
+        addSignalIgnored(triggerId, trigger)
+        sender ! Success(triggerId)
+      case RemoveSignalIgnoredTrigger(triggerId) =>
+        removeSignalIgnored(triggerId)
         sender ! Success(triggerId)
       case RemoveAllTriggers => removeTriggers()
       case Reset => reset()

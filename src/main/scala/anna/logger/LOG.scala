@@ -15,23 +15,33 @@ object LogLevel extends Enumeration {
 object LOG {
   var logLevel = LogLevel.DEBUG 
   val outs = new mutable.ListBuffer[LogOutput]()
-  var logDate = true
+  var logTime = true
   var showLogLevel = false
   var trackAll = true
-  
+
+  private var fetchIterationFunction:Option[() => Int] = None
+  def logIteration = fetchIterationFunction != None
+  def startLoggingIterations(f:() => Int) = {
+    fetchIterationFunction = Some(f)
+  }
+  def stopLogingIterations() = {
+    fetchIterationFunction = None
+  }
+
+
   private val trackedClasses = mutable.Set[String]()
-  
+
   def track(c: Class[_]) = {
     val className = c.getName()
     trackedClasses += (if(className.endsWith("$")) className.substring(0,className.size-1) else className)
     trackAll = false
   }
-  
+
   def stopTracking(c: Class[_]) = trackedClasses -= c.getName
-  
+
   def isTracking(className: String):Boolean = trackedClasses.contains(className)
   def isTracking(c: Class[_]):Boolean = trackedClasses.contains(c.getName)
-  
+
   def resetTracked() = {
     trackedClasses.clear
     trackAll = true
@@ -42,7 +52,7 @@ object LOG {
     outs.clear
     outs += new SystemLogOutput()
   }
-  
+
   def findOut(id: String) = this.synchronized {
     outs.find( _.id == id )
   }
@@ -51,22 +61,22 @@ object LOG {
     case Some(o) => o
     case None => outs += out; out
   }
-  
+
   private val _allowedIds = mutable.Set[String]()
-  
+
   def allow(id: String):Unit = _allowedIds += id
   def allow(ids: String*):Unit = ids.foreach( allow(_) )
   def allow[N <: Neuron](implicit n: N):Unit = allow(n.id)
-  
+
   def allowedIds = _allowedIds.toSet
   def clearAllowedIds() = _allowedIds.clear()
   def removeAllowedId(id: String) = _allowedIds -= id
   def allowed(id: String):Boolean = _allowedIds.contains(id)
   def allowed[N <: Neuron](n: N):Boolean = allowed(n.id)
-  
+
   def +=(str: String)(implicit n: Neuron) = log(str, n)
-  def log(str: String, n: Neuron):Unit = if(allowed(n)) log(str, logLevel)
-  
+  def log(str: String, n: Neuron):Unit = if(allowed(n)) log(n.id + ": " + str, logLevel)
+
   def removeOut(out: LogOutput) = findOut(out.id) match{
     case None => false;
     case Some(o) => o.close(); outs -= o; true
@@ -75,28 +85,29 @@ object LOG {
   def addLogToHTML(id: String) = addOut(new HTMLLogOutput(id))
 
   def addLogToFile(fileName: String) = addOut(new FileLogOutput(fileName))
-  
+
   def addLogToStdout() = addOut(new StdoutLogOutput())
-	
+
   def log(str: String, logLevel: LogLevel.Value):Unit = this.synchronized {
     if(logLevel > this.logLevel) return
     val sb = StringBuilder.newBuilder
     if(showLogLevel) sb ++= logLevel.toString() + '>'
-    if(logDate) sb ++= dateTag + '>'
+    if(logTime) sb ++= dateTag + '>'
+    if(logIteration) sb++= fetchIterationFunction.get().toString + '>'
     sb ++= str
     outs.foreach{ _.println(sb.toString) }
   }
   
   private var offset:Option[Long] = None
-  
+
   def timer(){
     offset = Some(System.currentTimeMillis())
   }
-  
+
   def date(){
     offset = None
   }
-  
+
   def time = offset match {
     case Some(t) => (System.currentTimeMillis() - t)
     case None => throw new IllegalArgumentException("Logger.time called with no timer set")

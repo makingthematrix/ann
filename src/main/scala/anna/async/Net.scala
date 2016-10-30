@@ -112,7 +112,9 @@ class Net(val id: String) extends Actor {
 
   private def signal(in: Seq[Double]){
     assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
-    ins.zip(in).foreach( tuple => tuple._1 += tuple._2 )
+    ins.zip(in).foreach {
+      case (inputNeuron: NeuronRef, signal: Double) => inputNeuron ! Signal(signal, "Input")
+    }
   }
 
   private def setInputs(ids: Seq[String]){

@@ -137,8 +137,10 @@ class NetBuilder {
       n.withSynapses(synapses.getOrElse(n.id, Nil).toList)
     ).toList.sortBy( _.id ),
     ins.toList.sorted,
-    defThreshold, defSilenceIterations,
-    defWeight)
+    defThreshold,
+    defSilenceIterations,
+    defWeight
+  )
 
   def set(data: NetData) = {
     netId = data.id

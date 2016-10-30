@@ -46,7 +46,7 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
 
   def addAfterFireToAll(name: String) (f: (Double)=> Any) = getNeurons.foreach(_.addAfterFire(name)(f))
-  def addAfterFire(id: String, name: String)(f: (Double)=> Any):Unit = find(id).neuronOpt match {
+  def addAfterFire(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addAfterFire(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
@@ -58,11 +58,21 @@ class NetRef(val id: String, val ref: ActorRef) {
   }
   def addSilenceRequested(id: String)(f: => Any):Unit  = addSilenceRequested(id, id)(f)
 
+  def addSignalIgnored(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
+    case Some(neuronRef) => neuronRef.addSignalIgnored(name)(f)
+    case None => error(this,s"Unable to find neuron with id $id")
+  }
+  def addSignalIgnored(id: String)(f: => Any):Unit  = addSignalIgnored(id, id)(f)
+
   def reset() = await[Success](ref,Reset)
   def removeAllTriggers() = await[Success](ref, RemoveAllTriggers)
 
   def removeAfterFire(id:String) = await[Success](ref, RemoveAfterFireTrigger(id))
   def removeAfterFireFromAll(name: String) = getNeurons.foreach(_.removeAfterFire(name))
+  def removeSilenceRequested(id:String) = await[Success](ref, RemoveSilenceRequestedTrigger(id))
+  def removeSilenceRequestedFromAll(name: String) = getNeurons.foreach(_.removeSilenceRequested(name))
+  def removeSignalIgnored(id:String) = await[Success](ref, RemoveSignalIgnoredTrigger(id))
+  def removeSignalIgnoredFromAll(name: String) = getNeurons.foreach(_.removeSignalIgnored(name))
 }
 
 object NetRef {

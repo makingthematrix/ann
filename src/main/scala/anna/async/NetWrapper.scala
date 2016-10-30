@@ -14,7 +14,11 @@ class NetWrapper(val net: NetRef) {
   
   private var _iteration = 0
   def iteration = _iteration 
-  
+
+  def resetIterations() = {
+    _iteration = 0
+  }
+
   def find(id: String) = net.find(id).neuronOpt match {
     case Some(nref) => nref
     case None => throw new IllegalArgumentException(s"There is no output neuron with id $id")
@@ -57,12 +61,15 @@ class NetWrapper(val net: NetRef) {
     tick(1)
   }
   def tick():Unit = tick(1)
-  def tick(n: Int):Unit = for(i <- 1 to n) {
+  def tick(n: Int):Unit = {
+    for(i <- 1 to n) {
+      LOG.debug(s"----- iteration ${_iteration} -----")
+      val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
+      net.signal(input)
+      Thread.sleep(Context().iterationTime)
+      _iteration = _iteration + 1
+    }
     LOG.debug(s"----- iteration ${_iteration} -----")
-    val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
-    net.signal(input)
-    Thread.sleep(Context().iterationTime)
-    _iteration = _iteration + 1
   }
 
   var timeout = 100
@@ -90,11 +97,14 @@ class NetWrapper(val net: NetRef) {
     counter
   }
 
-  def addAfterFire(id: String, name: String)(f: (Double) => Any): Unit = net.addAfterFire(id, name)(f)
-  def addAfterFire(id: String)(f: (Double) => Any): Unit = addAfterFire(id, id)(f)
+  def addAfterFire(id: String, name: String)(f: => Any): Unit = net.addAfterFire(id, name)(f)
+  def addAfterFire(id: String)(f: => Any): Unit = addAfterFire(id, id)(f)
 
   def addSilenceRequested(id: String, name: String)(f: => Any): Unit = net.addSilenceRequested(id, name)(f)
   def addSilenceRequested(id: String)(f: => Any):Unit  = addSilenceRequested(id, id)(f)
+
+  def addSignalIgnored(id: String, name: String)(f: => Any): Unit = net.addSignalIgnored(id, name)(f)
+  def addSignalIgnored(id: String)(f: => Any):Unit  = addSignalIgnored(id, id)(f)
 
   def shutdown() = {
     net.shutdown()

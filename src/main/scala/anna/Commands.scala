@@ -1,87 +1,222 @@
 package anna
 
-import anna.async.NetBuilder
+import anna.async.{NetBuilder, NetWrapper}
 import anna.data.NetData
-
+import anna.logger.LOG._
+import anna.async.NetBuilderOps._
+import anna.blocks.{DelayGate, SignalSum}
+import anna.logger.LOG
 /**
  * Created by gorywoda on 06.06.15.
  */
 
-class NetDataOps(val data: NetData){
-  def <<(input: String) = {
-    val netWrapper = NetBuilder().set(data).build()
-    val sb = StringBuilder.newBuilder
-    if(data.contains("S")) netWrapper.addAfterFire("S")( (_:Double)=>{ sb.append('S'); println('S') } )
-    if(data.contains("O")) netWrapper.addAfterFire("O")( (_:Double)=>{ sb.append('O'); println('O') } )
-    if(data.contains("dot")) netWrapper.addAfterFire("dot")( (_:Double)=>{ sb.append('.'); println('.') } )
-    if(data.contains("line")) netWrapper.addAfterFire("line")( (_:Double)=>{ sb.append('-'); println('-') } )
-
-    netWrapper += input
-
-    netWrapper.iterateUntilCalm()
-    netWrapper.shutdown()
-
-    sb.toString()
-  }
-}
 
 object Commands {
 
-  implicit def data2Ops(data: NetData):NetDataOps = new NetDataOps(data)
+  private var netWrapperOpt: Option[NetWrapper] = None
+  private var netDataOpt: Option[NetData] = None
 
-  def context = Context()
+  val DELAY_GATE = "Delay Gate"
+  val SIGNAL_SUM = "Signal Sum"
+  val DOT_AND_LINE = "Dot & Line"
+  val SOS = "SOS"
 
-  def print(data: NetData):Unit = println(data.toJson)
-  def see(context: Context):Unit = println(context.toJson)
+  def delayGate(delay: Int) = NetBuilder().netId(DELAY_GATE).addInput("IN").delayGate("DG", delay).data
+  def signalSum(requiredSignals: Int) = NetBuilder().netId(SIGNAL_SUM).addInput("IN").signalSum("SS", requiredSignals).data
+  def dotAndLine =
+    NetBuilder().netId(DOT_AND_LINE)
+      .addInput("IN").delayGate("DOT", 2)
+      .use("IN").signalSum("LINE", 2)
+      .use(DelayGate.outputId("DOT")).silence(SignalSum.silencingId("LINE"))
+      .use(SignalSum.outputId("LINE")).silence(DelayGate.silencingId("DOT"))
+      .data
+  def sos = {
+    val dotBlockName = "DOT"
+    val dotExpectedDelay = 2
+    val dotOutputId = DelayGate.outputId(dotBlockName)
+    val dotHushId = DelayGate.silencingId(dotBlockName)
+    val dotInputId = DelayGate.inputId(dotBlockName)
+    val dotMiddleId = DelayGate.middleId(dotBlockName)
 
-  def build(data: NetData) = NetBuilder().set(data).build()
+    val lineBlockName = "LINE"
+    val lineRequiredSignals = 2
+    val lineOutputId = SignalSum.outputId(lineBlockName)
+    val lineHushId = SignalSum.silencingId(lineBlockName)
+    val lineInputId = SignalSum.inputId(lineBlockName)
 
-  def diff(data1: NetData, data2: NetData) ={
-    val sb = StringBuilder.newBuilder
-    if(data1.id != data2.id) sb.append(s"net id: ${data1.id} -> ${data2.id}\n")
-    if(data1.neurons.size != data2.neurons.size) sb.append(s"#neurons: ${data1.neurons.size} -> ${data2.neurons.size}\n")
+    val sBlockName = "S"
+    val sRequiredSignals = 3
+    val sOutputId = SignalSum.outputId(sBlockName)
+    val sHushId = SignalSum.silencingId(sBlockName)
+    val sInputId = SignalSum.inputId(sBlockName)
 
-    val data1NeuronIds = data1.neurons.map(n => NetData.removeNetId(n.id)).toSet
-    val data2NeuronIds = data2.neurons.map(n => NetData.removeNetId(n.id)).toSet
-    if(data1NeuronIds != data2NeuronIds){
-      sb.append(s"neurons: ${data1NeuronIds.toList.sorted} -> ${data2NeuronIds.toList.sorted}\n")
-      (data1NeuronIds -- data2NeuronIds).foreach( nid => sb.append(s"$nid deleted\n"))
-      (data2NeuronIds -- data1NeuronIds).foreach( nid => {
-        val n = data2.neuron(NetData.neuronId(data2.id, nid))
-        sb.append(s"$nid added: $n\n")
-      })
-    }
+    val oBlockName = "O"
+    val oRequiredSignals = 3
+    val oOutputId = SignalSum.outputId(oBlockName)
+    val oHushId = SignalSum.silencingId(oBlockName)
+    val oInputId = SignalSum.inputId(oBlockName)
 
-    data1NeuronIds.intersect(data2NeuronIds).foreach(nid => {
-      val neuronId1 = NetData.neuronId(data1.id, nid)
-      // constant neurons have no netId before neuronId so but we don't know which are they so we have to check both possibilities
-      val n1 = if(data1.contains(neuronId1)) data1.neuron(neuronId1) else data1.neuron(nid)
-      val neuronId2 = NetData.neuronId(data2.id, nid)
-      val n2 = if(data2.contains(neuronId2)) data2.neuron(neuronId2) else data2.neuron(nid)
-      if(n1 != n2){
-        if(n1.threshold != n2.threshold) sb.append(s"$nid threshold: ${n1.threshold} -> ${n2.threshold}\n")
-        if(n1.silenceIterations != n2.silenceIterations) sb.append(s"$nid silenceIterations: ${n1.silenceIterations} -> ${n2.silenceIterations}\n")
+    NetBuilder().netId(SOS)
+      .addInput("IN").delayGate(dotBlockName, dotExpectedDelay)
+      .use("IN").signalSum(lineBlockName, lineRequiredSignals)
+      .use(dotOutputId).silence(lineHushId)
+      .use(lineOutputId).silence(dotHushId)
+      .use(dotOutputId).signalSum(sBlockName, sRequiredSignals)
+      .use(lineOutputId).signalSum(oBlockName, oRequiredSignals)
+      .use(sOutputId).silence(oHushId)
+      .use(oOutputId).silence(sHushId)
+      .data
+  }
 
-        val n1SynapsesMap = n1.synapses.map(s => (s.neuronId -> s.weight)).toMap
-        val n2SynapsesMap = n2.synapses.map(s => (s.neuronId -> s.weight)).toMap
+  private def wrapper = netWrapperOpt.getOrElse(throw new IllegalArgumentException("NetWrapper not set"))
 
-        if(n1SynapsesMap.keySet != n2SynapsesMap.keySet){
-          sb.append(s"$nid synapses: ${n1SynapsesMap.keys.toList.sorted} -> ${n2SynapsesMap.keys.toList.sorted}\n")
-          (n1SynapsesMap.keySet -- n2SynapsesMap.keySet).foreach(sid => sb.append(s"${nid}->${sid} deleted\n"))
-          (n2SynapsesMap.keySet -- n1SynapsesMap.keySet).foreach(sid => {
-            sb.append(s"${nid}->${sid} added ${n2SynapsesMap(sid)}\n")
-          })
-        }
-
-        n1SynapsesMap.keySet.intersect(n2SynapsesMap.keySet).foreach(sid => {
-          val s1 = n1SynapsesMap(sid)
-          val s2 = n2SynapsesMap(sid)
-          if(s1 != s2) sb.append(s"${nid}->${sid} weight: ${n1SynapsesMap(sid)} -> ${n2SynapsesMap(sid)}\n")
-        })
-      }
+  private def setupTriggers(inputId: String, silencingId: String, outputId: String) = {
+    LOG.debug("trigger setup")
+    wrapper.addAfterFire(outputId)( ()=>{
+      LOG.debug(s"iteration: ${wrapper.iteration}, $outputId fired")
     })
 
-    sb.toString
+    wrapper.addSilenceRequested(silencingId)( ()=>{
+      LOG.debug(s"iteration: ${wrapper.iteration}, $silencingId silence requested")
+    })
+
+    wrapper.addSignalIgnored(inputId)( ()=>{
+      LOG.debug(s"iteration: ${wrapper.iteration}, $inputId signal ignored")
+    })
   }
+
+  private def setupDelayGate(netData: NetData) = {
+    LOG.timer()
+    netDataOpt = Some(netData)
+    netWrapperOpt = Some(NetBuilder().set(netData).build())
+
+    setupTriggers(
+      DelayGate.inputId("DG"),
+      DelayGate.silencingId("DG"),
+      DelayGate.outputId("DG")
+    )
+
+    LOG.clearAllowedIds()
+    LOG.allow(
+      "IN",
+      DelayGate.inputId("DG"),
+      DelayGate.silencingId("DG"),
+      DelayGate.middleId("DG"),
+      DelayGate.outputId("DG")
+    )
+  }
+
+  private def setupSignalSum(netData: NetData) = {
+    LOG.timer()
+    netDataOpt = Some(netData)
+    netWrapperOpt = Some(NetBuilder().set(netData).build())
+
+    setupTriggers(
+      SignalSum.inputId("SS"),
+      SignalSum.silencingId("SS"),
+      SignalSum.outputId("SS")
+    )
+
+    LOG.clearAllowedIds()
+    LOG.allow(
+      "IN",
+      SignalSum.inputId("SS"),
+      SignalSum.silencingId("SS"),
+      SignalSum.outputId("SS")
+    )
+  }
+
+  private def setupDotAndLine(netData: NetData) = {
+    LOG.timer()
+    netDataOpt = Some(netData)
+    netWrapperOpt = Some(NetBuilder().set(netData).build())
+
+    val dotInputId = DelayGate.inputId("DOT")
+    val dotMiddleId = DelayGate.middleId("DOT")
+    val dotSilencingId = DelayGate.silencingId("DOT")
+    val dotOutputId = DelayGate.outputId("DOT")
+
+    setupTriggers(dotInputId, dotSilencingId, dotOutputId)
+
+    val lineInputId = SignalSum.inputId("LINE")
+    val lineSilencingId = SignalSum.silencingId("LINE")
+    val lineOutputId = SignalSum.outputId("LINE")
+
+    setupTriggers(lineInputId, lineSilencingId, lineOutputId)
+
+    LOG.clearAllowedIds()
+    LOG.allow(
+      "IN",
+      dotInputId, dotMiddleId, dotOutputId, dotSilencingId,
+      lineInputId, lineOutputId, lineSilencingId
+    )
+  }
+
+  private def setupSOS(netData: NetData) = {
+    LOG.timer()
+    netDataOpt = Some(netData)
+    netWrapperOpt = Some(NetBuilder().set(netData).build())
+
+    val dotInputId = DelayGate.inputId("DOT")
+    val dotMiddleId = DelayGate.middleId("DOT")
+    val dotSilencingId = DelayGate.silencingId("DOT")
+    val dotOutputId = DelayGate.outputId("DOT")
+
+    setupTriggers(dotInputId, dotSilencingId, dotOutputId)
+
+    val lineInputId = SignalSum.inputId("LINE")
+    val lineSilencingId = SignalSum.silencingId("LINE")
+    val lineOutputId = SignalSum.outputId("LINE")
+
+    setupTriggers(lineInputId, lineSilencingId, lineOutputId)
+
+    val sInputId = SignalSum.inputId("S")
+    val sSilencingId = SignalSum.silencingId("S")
+    val sOutputId = SignalSum.outputId("S")
+
+    setupTriggers(sInputId, sSilencingId, sOutputId)
+
+    val oInputId = SignalSum.inputId("O")
+    val oSilencingId = SignalSum.silencingId("O")
+    val oOutputId = SignalSum.outputId("O")
+
+    setupTriggers(oInputId, oSilencingId, oOutputId)
+
+    LOG.clearAllowedIds()
+    LOG.allow(
+      "IN",
+      dotInputId, dotMiddleId, dotOutputId, dotSilencingId,
+      lineInputId, lineOutputId, lineSilencingId,
+      sInputId, sOutputId, sSilencingId,
+      oInputId, oOutputId, oSilencingId
+    )
+  }
+
+  def setup(netData: NetData) = netData.id match {
+    case DELAY_GATE => setupDelayGate(netData)
+    case SIGNAL_SUM => setupSignalSum(netData)
+    case DOT_AND_LINE => setupDotAndLine(netData)
+    case SOS => setupSOS(netData)
+    case other => error(s"netId not recognized: $other")
+  }
+
+  def send(sequence: String) = {
+    val validSequence = sequence.replaceAll(",","").toCharArray.mkString(",") // just to make sure
+    wrapper.resetIterations()
+    LOG.timer()
+    LOG.startLoggingIterations(() => wrapper.iteration)
+    wrapper.iterateUntilCalm(validSequence)
+    Thread.sleep(Context().iterationTime)
+  }
+
+  def print(netData: NetData):Unit = {
+    LOG.debug(netData.toJson)
+  }
+
+  def print: Unit = netDataOpt match {
+    case Some(netData) => print(netData)
+    case None =>
+  }
+
 
 }

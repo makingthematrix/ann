@@ -11,7 +11,7 @@ import org.junit.Test
   */
 class SOSWithBlocksSuite extends MySuite {
 
-  private def buildDot(afterFireTrigger: (Double) => Any) = {
+  private def buildDot(afterFireTrigger: () => Any) = {
     val dotBlockName = "DotBlock"
     val expectedDelay = 2
     val outputId = DelayGate.outputId(dotBlockName)
@@ -27,7 +27,7 @@ class SOSWithBlocksSuite extends MySuite {
   @Test def shouldFireOnDot(): Unit = {
     var fired = false
     var iteration = 0
-    buildDot( (_:Double)=>{
+    buildDot( ()=>{
       iteration = netWrapper.iteration
       fired = true
     })
@@ -38,7 +38,7 @@ class SOSWithBlocksSuite extends MySuite {
     assertEquals(2, iteration)
   }
 
-  private def buildLine(afterFireTrigger: (Double) => Any) = {
+  private def buildLine(afterFireTrigger: () => Any) = {
     val lineBlockName = "LineBlock"
     val requiredSignals = 2
     val outputId = DelayGate.outputId(lineBlockName)
@@ -54,7 +54,7 @@ class SOSWithBlocksSuite extends MySuite {
   @Test def shouldFireOnLine(): Unit = {
     var fired = false
 
-    val outputId = buildLine((_:Double)=>{ fired = true })
+    val outputId = buildLine(()=>{ fired = true })
 
     LOG.allow(outputId)
 
@@ -77,39 +77,39 @@ class SOSWithBlocksSuite extends MySuite {
     val dotBlockName = "DotBlock"
     val expectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
-    val dotHushId = DelayGate.silencingId(dotBlockName)
+    val dotSilencingId = DelayGate.silencingId(dotBlockName)
     val dotInputId = DelayGate.inputId(dotBlockName)
     val dotMiddleId = DelayGate.middleId(dotBlockName)
 
     val lineBlockName = "LineBlock"
     val requiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
-    val lineHushId = SignalSum.silencingId(lineBlockName)
+    val lineSilencingId = SignalSum.silencingId(lineBlockName)
     val lineInputId = SignalSum.inputId(lineBlockName)
 
     super.build(
       NetBuilder().addInput("in")
         .delayGate(dotBlockName, expectedDelay)
         .use("in").signalSum(lineBlockName, requiredSignals)
-        .use(dotOutputId).silence(lineHushId)
-        .use(lineOutputId).silence(dotHushId)
+        .use(dotOutputId).silence(lineSilencingId)
+        .use(lineOutputId).silence(dotSilencingId)
         .data
     )
 
-    LOG.allow(dotOutputId, lineOutputId, dotHushId, dotInputId, dotMiddleId)
+    LOG.allow(dotOutputId, lineOutputId, dotSilencingId, dotInputId, dotMiddleId)
 
     val results = new TestResults;
 
-    netWrapper.addAfterFire("in")((_:Double) =>{
+    netWrapper.addAfterFire("in")(()=>{
       LOG.debug(s"${netWrapper.iteration}: Incoming!")
     })
 
-    netWrapper.addAfterFire(dotOutputId)((_:Double)=>{
+    netWrapper.addAfterFire(dotOutputId)(()=>{
       LOG.debug(s"${netWrapper.iteration}: Dot!")
       results.dotFired += 1
     })
 
-    netWrapper.addAfterFire(lineOutputId)((_:Double)=>{
+    netWrapper.addAfterFire(lineOutputId)(()=>{
       LOG.debug(s"${netWrapper.iteration}: Line!")
       results.lineFired += 1
     })
@@ -209,21 +209,21 @@ class SOSWithBlocksSuite extends MySuite {
 
     val results = new TestResults;
 
-    netWrapper.addAfterFire("in")((_:Double) =>{
+    netWrapper.addAfterFire("in")(() =>{
       LOG.debug(s"${netWrapper.iteration}: Incoming!")
     })
 
-    netWrapper.addAfterFire(dotOutputId)((_:Double)=>{
+    netWrapper.addAfterFire(dotOutputId)(()=>{
       LOG.debug(s"${netWrapper.iteration}: Dot!")
       results.dotFired += 1
     })
 
-    netWrapper.addAfterFire(lineOutputId)((_:Double)=>{
+    netWrapper.addAfterFire(lineOutputId)(()=>{
       LOG.debug(s"${netWrapper.iteration}: Line!")
       results.lineFired += 1
     })
 
-    netWrapper.addAfterFire(sOutputId)((_:Double)=>{
+    netWrapper.addAfterFire(sOutputId)(()=>{
       LOG.debug(s"${netWrapper.iteration}: S!")
       results.sFired += 1
       outputBuffer match {
@@ -232,7 +232,7 @@ class SOSWithBlocksSuite extends MySuite {
       }
     })
 
-    netWrapper.addAfterFire(oOutputId)((_:Double)=>{
+    netWrapper.addAfterFire(oOutputId)(()=>{
       LOG.debug(s"${netWrapper.iteration}: O!")
       results.oFired += 1
       outputBuffer match {
