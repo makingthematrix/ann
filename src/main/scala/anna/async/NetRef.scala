@@ -45,12 +45,12 @@ class NetRef(val id: String, val ref: ActorRef) {
     case None => throw new IllegalArgumentException(s"Unable to find neuron with id $id")
   }
 
-  def addAfterFireToAll(name: String) (f: (Double)=> Any) = getNeurons.foreach(_.addAfterFire(name)(f))
+  def addAfterFireToAll(name: String) (f: => Any) = getNeurons.foreach(_.addAfterFire(name)(f))
   def addAfterFire(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addAfterFire(name)(f)
     case None => error(this,s"Unable to find neuron with id $id")
   }
-  def addAfterFire(id: String)(f: (Double) => Any):Unit = addAfterFire(id, id)(f)
+  def addAfterFire(id: String)(f: => Any):Unit = addAfterFire(id, id)(f)
 
   def addSilenceRequested(id: String, name: String)(f: => Any):Unit = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.addSilenceRequested(name)(f)

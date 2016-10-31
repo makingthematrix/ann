@@ -17,7 +17,7 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
       
     val list = mutable.ListBuffer[Long]()
-    netWrapper.addAfterFire("out1","fired")( (_:Double)=>{ list += LOG.time } )
+    netWrapper.addAfterFire("out1","fired"){ list += LOG.time }
     
     LOG.timer()
     netWrapper.iterateUntilCalm()
@@ -25,7 +25,7 @@ class DelaySuite extends MySuite {
     list.foreach(println)
 
     val tolerance = Context().iterationTime
-    assertEqualsWithTolerance(produceSeq(6, tolerance, Context().iterationTime), list.toSeq, tolerance)
+    assertEqualsWithTolerance(produceSeq(6, tolerance, Context().iterationTime), list, tolerance)
   }
 
   @Test def shouldCreateOscillatorWithMethod2() {
@@ -35,9 +35,9 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
 
     val list = mutable.ListBuffer[Int]()
-    netWrapper.addAfterFire("out1", "fired")((_: Double) => {
+    netWrapper.addAfterFire("out1", "fired"){
       list += netWrapper.iteration
-    })
+    }
 
     netWrapper.iterateUntilCalm()
 
@@ -52,8 +52,8 @@ class DelaySuite extends MySuite {
     netWrapper += "1,1,1,1,1,1"
 
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("out1","fired 1")( (_:Double)=>{ sb.append('1') } )
-    netWrapper.addAfterFire("out1","fired 0")( (_:Double)=>{ sb.append('0') } )
+    netWrapper.addAfterFire("out1","fired 1"){ sb.append('1') }
+    netWrapper.addAfterFire("out1","fired 0"){ sb.append('0') }
 
     LOG.timer()
     netWrapper.iterateUntilCalm()

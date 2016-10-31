@@ -23,16 +23,17 @@ class SchedulerBuffer(context : ActorContext){
     timestamp
   }
 
-  def unschedule(timestamp: Long) = if(map.contains(timestamp)){
-    refresh()
-    val c = map(timestamp)
-    if(!c.isCancelled) c.cancel()
-    map -= timestamp
+  def unschedule(timestamp: Long) = synchronized {
+    if(map.contains(timestamp)){
+      val c = map(timestamp)
+      if(!c.isCancelled) c.cancel()
+      map -= timestamp
+    }
   }
 
-  def refresh() = {
+  def refresh() = synchronized {
     val t = System.currentTimeMillis()
-    map.keys.filter(_ < t).foreach( map -= _)
+    map.keys.filter(_ < t).foreach( unschedule )
   }
 
   def clear() = {

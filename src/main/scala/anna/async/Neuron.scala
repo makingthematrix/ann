@@ -18,10 +18,7 @@ class Neuron(val id: String,
   implicit val that = this
 
   protected var buffer = 0.0
-  private def printBuffer = Utils.round(buffer)
-  private var isSleeping = false
   private val schedulerBuffer = new SchedulerBuffer(context)
-
   override def preStart():Unit = {
     NeuronCounter.reg(netId, id, self)
   }
@@ -31,10 +28,32 @@ class Neuron(val id: String,
     NeuronCounter.unreg(netId, id)
   }
 
+  private def printBuffer = Utils.round(buffer)
+
+  private var sleepingTimestamp: Option[Long] = None
+  private def isSleeping = sleepingTimestamp != None
+
+  private def makeSleep() = {
+    LOG += s"going to sleep for ${Context().iterationTime} ms"
+    sleepingTimestamp = Some(schedulerBuffer.schedule(Context().iterationTime millis){ wakeUp() })
+  }
+
+  private def wakeUp(){
+    LOG += "waking up"
+    sleepingTimestamp = None
+    tick()
+  }
+
   private def becomeSilent(){
     LOG += s"becomeSilent, silenceIterations is ${silenceIterations}"
     buffer = 0.0
     LOG += s"(becomeSilent) buffer is now $printBuffer"
+
+    // if the neuron was sleeping, it's cancelled
+    if(isSleeping){
+      schedulerBuffer.unschedule(sleepingTimestamp.get)
+      sleepingTimestamp = None
+    }
 
     val t = Context().iterationTime * silenceIterations
     if(t > 0){
@@ -45,29 +64,16 @@ class Neuron(val id: String,
     triggerSilenceRequested()
   }
 
-  private def makeSleep() = {
-    LOG += s"going to sleep for ${Context().iterationTime} ms"
-    isSleeping = true
-    context.system.scheduler.scheduleOnce(Context().iterationTime millis){ wakeUp() } //@todo: change to schedulerBuffer
-  }
-
   private def wakeFromSilence() = {
     LOG += s"waking up from a silence request"
-    isSleeping = false
     context.become(receive)
   }
 
   protected def +=(signal: Double){
     LOG += s"adding signal $signal to buffer $printBuffer, threshold is $threshold"
     buffer += signal
-    LOG += s"(+=) buffer is now $printBuffer"
+    LOG += s"(after adding) buffer is now $printBuffer"
     if(!isSleeping) tick()
-  }
-
-  private def wakeUp(){
-    LOG += "waking up"
-    isSleeping = false
-    tick()
   }
 
   private def biggerOrCloseEnough(x: Double, y: Double) = { x > 0.0 && x + 0.001 > y }
@@ -138,7 +144,6 @@ class Neuron(val id: String,
       case GetSynapses => sender ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses.toList
       case AddAfterFireTrigger(triggerId, trigger) =>
-        LOG += s"AddAfterFireTrigger $triggerId received"
         addAfterFire(triggerId, trigger)
         sender ! Success(triggerId)
       case RemoveAfterFireTrigger(triggerId) =>

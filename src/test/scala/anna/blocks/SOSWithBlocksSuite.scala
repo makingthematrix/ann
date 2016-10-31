@@ -11,7 +11,7 @@ import org.junit.Test
   */
 class SOSWithBlocksSuite extends MySuite {
 
-  private def buildDot(afterFireTrigger: () => Any) = {
+  private def buildDot(afterFireTrigger: => Any) = {
     val dotBlockName = "DotBlock"
     val expectedDelay = 2
     val outputId = DelayGate.outputId(dotBlockName)
@@ -27,10 +27,10 @@ class SOSWithBlocksSuite extends MySuite {
   @Test def shouldFireOnDot(): Unit = {
     var fired = false
     var iteration = 0
-    buildDot( ()=>{
+    buildDot{
       iteration = netWrapper.iteration
       fired = true
-    })
+    }
 
     netWrapper.iterateUntilCalm("1")
 
@@ -38,7 +38,7 @@ class SOSWithBlocksSuite extends MySuite {
     assertEquals(2, iteration)
   }
 
-  private def buildLine(afterFireTrigger: () => Any) = {
+  private def buildLine(afterFireTrigger: => Any) = {
     val lineBlockName = "LineBlock"
     val requiredSignals = 2
     val outputId = DelayGate.outputId(lineBlockName)
@@ -54,7 +54,7 @@ class SOSWithBlocksSuite extends MySuite {
   @Test def shouldFireOnLine(): Unit = {
     var fired = false
 
-    val outputId = buildLine(()=>{ fired = true })
+    val outputId = buildLine{ fired = true }
 
     LOG.allow(outputId)
 
@@ -100,19 +100,19 @@ class SOSWithBlocksSuite extends MySuite {
 
     val results = new TestResults;
 
-    netWrapper.addAfterFire("in")(()=>{
+    netWrapper.addAfterFire("in"){
       LOG.debug(s"${netWrapper.iteration}: Incoming!")
-    })
+    }
 
-    netWrapper.addAfterFire(dotOutputId)(()=>{
+    netWrapper.addAfterFire(dotOutputId){
       LOG.debug(s"${netWrapper.iteration}: Dot!")
       results.dotFired += 1
-    })
+    }
 
-    netWrapper.addAfterFire(lineOutputId)(()=>{
+    netWrapper.addAfterFire(lineOutputId){
       LOG.debug(s"${netWrapper.iteration}: Line!")
       results.lineFired += 1
-    })
+    }
 
     results
   }
@@ -209,37 +209,37 @@ class SOSWithBlocksSuite extends MySuite {
 
     val results = new TestResults;
 
-    netWrapper.addAfterFire("in")(() =>{
+    netWrapper.addAfterFire("in"){
       LOG.debug(s"${netWrapper.iteration}: Incoming!")
-    })
+    }
 
-    netWrapper.addAfterFire(dotOutputId)(()=>{
+    netWrapper.addAfterFire(dotOutputId){
       LOG.debug(s"${netWrapper.iteration}: Dot!")
       results.dotFired += 1
-    })
+    }
 
-    netWrapper.addAfterFire(lineOutputId)(()=>{
+    netWrapper.addAfterFire(lineOutputId){
       LOG.debug(s"${netWrapper.iteration}: Line!")
       results.lineFired += 1
-    })
+    }
 
-    netWrapper.addAfterFire(sOutputId)(()=>{
+    netWrapper.addAfterFire(sOutputId){
       LOG.debug(s"${netWrapper.iteration}: S!")
       results.sFired += 1
       outputBuffer match {
         case Some(buffer) => buffer.append('S')
         case None =>
       }
-    })
+    }
 
-    netWrapper.addAfterFire(oOutputId)(()=>{
+    netWrapper.addAfterFire(oOutputId){
       LOG.debug(s"${netWrapper.iteration}: O!")
       results.oFired += 1
       outputBuffer match {
         case Some(buffer) => buffer.append('O')
         case None =>
       }
-    })
+    }
 
     results
   }

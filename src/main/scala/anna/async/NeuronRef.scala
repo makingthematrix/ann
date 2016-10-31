@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, actorRef2Scala}
 import anna.async.Messages._
 import anna.logger.LOG._
 import anna.utils.Utils.await
+import anna.async.NeuronTriggers.Trigger
 
 class NeuronRef(val id: String, val ref: ActorRef) {
   def info = await[NeuronInfo](ref, GetData)

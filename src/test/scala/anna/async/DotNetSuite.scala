@@ -26,11 +26,11 @@ class DotNetSuite extends MySuite {
     netWrapper += s
 
     init()
-    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
-    netWrapper.addAfterFire("dot")( (_:Double)=>{ println("KROPA!"); dots += 1; } )
+    netWrapper.addAfterFire("in"){ debug("received input") }
+    netWrapper.addAfterFire("dot"){ debug("Dot!"); dots += 1 }
 
     val interval = netWrapper.iterateUntilCalm()
-    println(s"interval: $interval, dots: $dots")
+    debug(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
 
     dots = 0
@@ -40,7 +40,7 @@ class DotNetSuite extends MySuite {
     // lines should also be recognized as dots - maybe the additional '1's mean only that the signal is noised
 
     val interval2 = netWrapper.iterateUntilCalm()
-    println(s"interval: $interval, dots: $dots")
+    debug(s"interval: $interval, dots: $dots")
     assertEquals(3, dots)
   }
 }

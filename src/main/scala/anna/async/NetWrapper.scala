@@ -60,16 +60,16 @@ class NetWrapper(val net: NetRef) {
     this += c
     tick(1)
   }
+
   def tick():Unit = tick(1)
+
   def tick(n: Int):Unit = {
     for(i <- 1 to n) {
-      LOG.debug(s"----- iteration ${_iteration} -----")
       val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
       net.signal(input)
       Thread.sleep(Context().iterationTime)
       _iteration = _iteration + 1
     }
-    LOG.debug(s"----- iteration ${_iteration} -----")
   }
 
   var timeout = 100
@@ -81,7 +81,7 @@ class NetWrapper(val net: NetRef) {
 
   def iterateUntilCalm():Int = {
     var neuronFired = false
-    net.addAfterFireToAll("tickUntilCalm")( (_:Double)=>{ neuronFired = true })
+    net.addAfterFireToAll("tickUntilCalm"){ neuronFired = true }
 
     var (calmTick, counter) = (0, 0)
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){

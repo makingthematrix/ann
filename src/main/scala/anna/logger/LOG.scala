@@ -91,9 +91,10 @@ object LOG {
   def log(str: String, logLevel: LogLevel.Value):Unit = this.synchronized {
     if(logLevel > this.logLevel) return
     val sb = StringBuilder.newBuilder
-    if(showLogLevel) sb ++= logLevel.toString() + '>'
-    if(logTime) sb ++= dateTag + '>'
-    if(logIteration) sb++= fetchIterationFunction.get().toString + '>'
+    if(showLogLevel) sb ++= "level " + logLevel.toString() + ':'
+    if(logTime) sb ++= "time " + dateTag + ':'
+    if(logIteration) sb++= "iter " + fetchIterationFunction.get().toString + ':'
+    sb ++= ">\t"
     sb ++= str
     outs.foreach{ _.println(sb.toString) }
   }

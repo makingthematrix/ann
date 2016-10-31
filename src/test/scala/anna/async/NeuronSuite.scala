@@ -3,11 +3,11 @@ package anna.async
 import anna.async.NetBuilderOps._
 import anna.utils.DoubleRange
 import anna.utils.DoubleRange._
+import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.junit.Test
 
 import scala.annotation.tailrec
-
 
 class NeuronSuite extends MySuite {
   case class NeuronData(weight: Double, threshold: Double)
@@ -53,19 +53,17 @@ class NeuronSuite extends MySuite {
     
     var (goodLoops, badLoops) = (0, 0)
     var done = false
-    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
-    netWrapper.addAfterFire("loop")( (_:Double)=>{
-      println("here") 
+    netWrapper.addAfterFire("in"){ println("Incoming!") }
+    netWrapper.addAfterFire("loop"){
       if(!done) goodLoops += 1 else badLoops += 1
-    })
-    netWrapper.addAfterFire("out")( (_:Double)=>{
-      println("DONE") 
+    }
+    netWrapper.addAfterFire("out"){
       done = true
-    })
+    }
     netWrapper += "1"
     init()
     val interval = netWrapper.iterateUntilCalm()
-    println(s"interval: $interval, good loops: $goodLoops, bad loops: $badLoops")
+    debug(s"interval: $interval, good loops: $goodLoops, bad loops: $badLoops")
     assertEquals(0, badLoops)
   }
             

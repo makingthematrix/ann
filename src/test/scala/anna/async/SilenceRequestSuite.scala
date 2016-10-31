@@ -14,7 +14,7 @@ class SilenceRequestSuite extends MySuite {
   val silenceIterations = Context().silenceIterations
   val timeout = Context().timeout
 
-  @Test def shouldSendHush(){
+  @Test def shouldSendSilenceRequest(){
     val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
@@ -34,6 +34,8 @@ class SilenceRequestSuite extends MySuite {
 
     val silenceRequestReceived = Await.result(p.future, timeout.duration)
     assertTrue(silenceRequestReceived)
+
+    net.shutdown()
   }
 
   @Test def shouldSendSilenceRequestThroughBuilder(){
@@ -43,10 +45,10 @@ class SilenceRequestSuite extends MySuite {
 
     var silenceRequestReceived = false
 
-    netWrapper.addSilenceRequested("id2"){
+    netWrapper.addSilenceRequested("id2")(()=>{
       LOG.debug("received silence request in id2")
       silenceRequestReceived = true
-    }
+    })
 
     netWrapper += "1"
 
@@ -78,6 +80,8 @@ class SilenceRequestSuite extends MySuite {
 
     val silenceRequestReceived = Await.result(p.future, timeout.duration)
     assertTrue(silenceRequestReceived)
+
+    net.shutdown()
   }
 
   @Test def shouldUseSilencingNeuronWithBuilder(){
@@ -86,10 +90,10 @@ class SilenceRequestSuite extends MySuite {
 
     var silenceRequestReceived = false
 
-    netWrapper.addSilenceRequested("id2"){
+    netWrapper.addSilenceRequested("id2")(()=>{
       LOG.debug("received silence request in id2")
       silenceRequestReceived = true
-    }
+    })
 
     netWrapper += "1"
      

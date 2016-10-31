@@ -14,7 +14,7 @@ class SignalSumSuite extends MySuite {
 
   private def assertFiredAfterRequiredSignals(outNeuronId: String, requiredSignals: Int) = {
     var fired = false
-    netWrapper.addAfterFire(outNeuronId)( (_:Double)=>{ fired = true } )
+    netWrapper.addAfterFire(outNeuronId){ fired = true }
 
     val inputVector = List.fill(requiredSignals)("1").mkString(",")
     LOG.debug("inputVector: " + inputVector)

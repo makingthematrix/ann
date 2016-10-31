@@ -16,10 +16,10 @@ class LineNetSuite extends MySuite {
     build()
     debug("----------")
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("out2")( (_:Double)=>{
-      println("KRECHA!")
+    netWrapper.addAfterFire("out2"){
+      debug("Line!")
       sb.append('-')
-    })
+    }
     
     sb
   }
@@ -56,19 +56,19 @@ class LineNetSuite extends MySuite {
     lineNet3()
     debug("------------")
     var lines = 0
-    netWrapper.addAfterFire("in")( (_:Double)=>{ println("INCOMING!") } )
-    netWrapper.addAfterFire("line")( (_:Double)=>{ println("KRECHA!"); lines += 1; } )
+    netWrapper.addAfterFire("in"){ debug("Incoming!") } 
+    netWrapper.addAfterFire("line"){ debug("Line!"); lines += 1; } 
 
     netWrapper += o
     init()
     val interval = netWrapper.iterateUntilCalm()
-    println(s"interval: $interval, lines: $lines")
+    debug(s"interval: $interval, lines: $lines")
     assertEquals(3, lines)
 
     lines = 0
     netWrapper += s
     netWrapper.iterateUntilCalm()
-    println(s"lines: $lines")
+    debug(s"lines: $lines")
     assertEquals(1, lines)
     // Without the other part of the network recognizing 'dots', two consecutive '1's, even with an interval
     // between them, should be recognized as a line. The interval may mean that the signal is noised.

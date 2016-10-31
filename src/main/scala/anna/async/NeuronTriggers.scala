@@ -12,17 +12,13 @@ trait NeuronTriggers {
   
   private def add(id: String, f: Trigger, triggers: mutable.Map[String, Trigger]) =
     if(triggers.contains(id)) throw new IllegalArgumentException(s"There was already registered a trigger $id")
-    else {
-      LOG.debug(s"registering trigger $id")
-      triggers.put(id, f)
-    }
+    else { triggers.put(id, f) }
 
   private def is(id: String, triggers: mutable.Map[String, Trigger]) = triggers.contains(id) 
   private def remove(id: String, triggers: mutable.Map[String, Trigger]) = triggers.remove(id)
   private def clear(triggers: mutable.Map[String, Trigger]) = triggers.clear()
   private def trigger(triggers: mutable.Map[String, Trigger]) = {
-    LOG.debug("triggering: " + triggers.keys.toString())
-    triggers.values.foreach( _() )
+    triggers.values.foreach( f => f() )
   }
   
   def addAfterFire(id: String, f: Trigger) = add(id, f, afterFire)
