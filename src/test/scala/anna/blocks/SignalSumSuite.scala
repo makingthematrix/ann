@@ -33,7 +33,7 @@ class SignalSumSuite extends MySuite {
 
   @Test def shouldSignalSumWithOps(): Unit ={
     build(signalSumWithOps("SignalSum",3))
-    assertFiredAfterRequiredSignals("SignalSumout",3)
+    assertFiredAfterRequiredSignals("SignalSum2",3)
   }
 
   private def signalSumWithBlock(requiredSignals: Int) = {

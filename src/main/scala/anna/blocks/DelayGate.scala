@@ -47,9 +47,9 @@ object DelayGate {
     DelayGate(newName, delay)
   }
 
-  def inputId(name: String) = s"${name}in"
-  def middleId(name: String) = s"${name}mi"
-  def outputId(name: String) = s"${name}out"
-  def silencingId(name: String) = s"${name}silencing"
+  def inputId(name: String) = s"${name}1"
+  def middleId(name: String) = s"${name}2"
+  def outputId(name: String) = s"${name}3"
+  def silencingId(name: String) = s"${name}s"
 
 }

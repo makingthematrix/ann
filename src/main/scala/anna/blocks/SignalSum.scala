@@ -48,8 +48,8 @@ object SignalSum {
     SignalSum(newName, requiredSignalsNumber)
   }
 
-  def inputId(name: String) = s"${name}in"
-  def outputId(name: String) = s"${name}out"
-  def silencingId(name: String) = s"${name}silencing"
+  def inputId(name: String) = s"${name}1"
+  def outputId(name: String) = s"${name}2"
+  def silencingId(name: String) = s"${name}s"
 
 }

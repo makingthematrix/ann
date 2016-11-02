@@ -14,7 +14,6 @@ import anna.logger.LOG
 object Commands {
 
   private var netWrapperOpt: Option[NetWrapper] = None
-  private var netDataOpt: Option[NetData] = None
 
   val DELAY_GATE = "Delay Gate"
   val SIGNAL_SUM = "Signal Sum"
@@ -25,7 +24,7 @@ object Commands {
 
   def signalSum(requiredSignals: Int) = NetBuilder().netId(SIGNAL_SUM).addInput("IN").signalSum("SS", requiredSignals).data
 
-  def dotAndLine =
+  lazy val dotAndLine =
     NetBuilder().netId(DOT_AND_LINE)
       .addInput("IN").delayGate("DOT", 2)
       .use("IN").signalSum("LINE", 2)
@@ -33,7 +32,7 @@ object Commands {
       .use(SignalSum.outputId("LINE")).silence(DelayGate.silencingId("DOT"))
       .data
 
-  def sos = {
+  lazy val sos = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
@@ -81,10 +80,9 @@ object Commands {
   def output = outputBuffer.toString
   def clearOutput() = outputBuffer.clear()
 
-  private def initializeNetwork(netData: NetData) = {
+  def initializeNetwork(netData: NetData) = {
     LOG.timer()
     clearOutput()
-    netDataOpt = Some(netData)
     netWrapperOpt = Some(NetBuilder().set(netData).build())
     LOG.clearAllowedIds()
   }
@@ -202,6 +200,7 @@ object Commands {
     val validSequence = sequence.replaceAll(",","").toCharArray.mkString(",") // just to make sure
     wrapper.reset()
     wrapper.resetIterations()
+    clearOutput()
     LOG.timer()
     LOG.startLoggingIterations(() => wrapper.iteration)
     wrapper.iterateUntilCalm(validSequence)
@@ -210,12 +209,52 @@ object Commands {
 
   def print(netData: NetData):Unit = {
     LOG.debug(netData.toJson)
+    LOG.clearAllowedIds()
   }
 
-  def print: Unit = netDataOpt match {
-    case Some(netData) => print(netData)
-    case None =>
-  }
-
+  lazy val help =
+    """
+      | You can use pre-constructed networks:
+      | 1. sos
+      | 2. dotAndLine
+      | and plus utility methods for network construction:
+      | 3. delayGate(delay: Int)
+      | 4. signalSum(requestedSum: Int)
+      | All four give you an object of the type NetData which you can then pass to the setup method:
+      | > setup(sos)
+      | > setup(dotAndLine)
+      | > setup(delayGate(2))
+      | > setup(signalSum(3))
+      | This will build the network and display the list of neuron ids.
+      |
+      | The setup method works only for these four networks. If you want to build one of your own, please look into
+      | the code to learn how to use NetBuilder and then call initializeNetwork(netData: NetData). Please note that
+      | the setup method adds triggers to output neurons (different for each network). If you build a network by hand,
+      | you have to do this by hand as well.
+      |
+      | The output neurons for the networks are, respectively:
+      | 1. sos: S2 (sends 'S' to the output) and O2 (sends 'O')
+      | 2. dotAndLine: DOT3 (sends '.') and LINE2 (sends '-')
+      | 3. delayGate(_): DG3 (sends '1')
+      | 4. signalSum(_): SS2 (sends '1')
+      |
+      | You can also print the JSON form of each network, eg.:
+      | > print(delayGate(2))
+      |
+      | After the setup, you can send input vectors to the network and see how it handles them. Since all four networks
+      | have only one input neuron, you can use a utility method and send the whole input vectors' sequence in form
+      | of a string, eg.:
+      | > send("100010001000110011001100100010001000")
+      | The string will be parsed into signals which will be sent to the input neuron and from there to other neurons
+      | in the network. Then you can see the output by typing:
+      | > output
+      |
+      | During the processing the console will display logs from the neurons, about what signals they received and sent,
+      | their internal state, etc. You can control logs from which neurons you want to see, by typing:
+      | > LOG.allow(neuronId: String)
+      | > LOG.removedAllowedId(neuronId: String)
+      | > LOG.clearAllowedIds()
+      | Do that between the setup and the send methods. The next setup will reset the list.
+    """.stripMargin
 
 }

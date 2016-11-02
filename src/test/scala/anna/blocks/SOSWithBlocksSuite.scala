@@ -12,7 +12,7 @@ import org.junit.Test
 class SOSWithBlocksSuite extends MySuite {
 
   private def buildDot(afterFireTrigger: => Any) = {
-    val dotBlockName = "DotBlock"
+    val dotBlockName = "DOT"
     val expectedDelay = 2
     val outputId = DelayGate.outputId(dotBlockName)
 
@@ -39,9 +39,9 @@ class SOSWithBlocksSuite extends MySuite {
   }
 
   private def buildLine(afterFireTrigger: => Any) = {
-    val lineBlockName = "LineBlock"
+    val lineBlockName = "LINE"
     val requiredSignals = 2
-    val outputId = DelayGate.outputId(lineBlockName)
+    val outputId = SignalSum.outputId(lineBlockName)
 
     super.build(NetBuilder().addInput("in").signalSum(lineBlockName, 2).data)
     assertNotNull(netWrapper.find(outputId))
@@ -74,14 +74,14 @@ class SOSWithBlocksSuite extends MySuite {
   }
 
   private def buildDotLine() = {
-    val dotBlockName = "DotBlock"
+    val dotBlockName = "DOT"
     val expectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
     val dotSilencingId = DelayGate.silencingId(dotBlockName)
     val dotInputId = DelayGate.inputId(dotBlockName)
     val dotMiddleId = DelayGate.middleId(dotBlockName)
 
-    val lineBlockName = "LineBlock"
+    val lineBlockName = "LINE"
     val requiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
     val lineSilencingId = SignalSum.silencingId(lineBlockName)
@@ -167,26 +167,26 @@ class SOSWithBlocksSuite extends MySuite {
   }
 
   private def buildSO(outputBuffer:Option[StringBuilder] = None) = {
-    val dotBlockName = "Dot-"
+    val dotBlockName = "DOT"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
     val dotHushId = DelayGate.silencingId(dotBlockName)
     val dotInputId = DelayGate.inputId(dotBlockName)
     val dotMiddleId = DelayGate.middleId(dotBlockName)
 
-    val lineBlockName = "Line-"
+    val lineBlockName = "LINE"
     val lineRequiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
     val lineHushId = SignalSum.silencingId(lineBlockName)
     val lineInputId = SignalSum.inputId(lineBlockName)
 
-    val sBlockName = "S-"
+    val sBlockName = "S"
     val sRequiredSignals = 3
     val sOutputId = SignalSum.outputId(sBlockName)
     val sHushId = SignalSum.silencingId(sBlockName)
     val sInputId = SignalSum.inputId(sBlockName)
 
-    val oBlockName = "O-"
+    val oBlockName = "O"
     val oRequiredSignals = 3
     val oOutputId = SignalSum.outputId(oBlockName)
     val oHushId = SignalSum.silencingId(oBlockName)

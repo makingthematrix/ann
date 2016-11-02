@@ -16,8 +16,8 @@ class DelayGateSuite extends MySuite {
   private def assertDelayGateWithOps(delay: Int) = {
     build(delayGateWithOps("delayGate",delay))
     var iteration = 0
-    LOG.allow("delayGateout")
-    netWrapper.addAfterFire("delayGateout"){ iteration =  netWrapper.iteration }
+    LOG.allow("delayGate3")
+    netWrapper.addAfterFire("delayGate3"){ iteration =  netWrapper.iteration }
     netWrapper.iterateUntilCalm("1")
     shutdown()
     assertEquals(delay, iteration)
