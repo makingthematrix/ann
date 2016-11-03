@@ -210,13 +210,16 @@ object Commands {
     Thread.sleep(Context().iterationTime)
   }
 
-  def shutdown() = wrapper.shutdown()
+  def shutdown() = netWrapperOpt match {
+    case Some(netWrapper) => netWrapper.shutdown()
+    case _ =>
+  }
 
   def neuronsIds = wrapper.neuronIds
 
   def print(netData: NetData):Unit = LOG.debug(netData.toJson)
 
-  lazy val help =
+  def help = println(
     """
       | You can use pre-constructed networks:
       | 1. sos
@@ -259,6 +262,6 @@ object Commands {
       | > LOG.removedAllowedId(neuronId: String)
       | > LOG.clearAllowedIds()
       | Do that between the setup and the send methods. The next setup will reset the list.
-    """.stripMargin
+    """.stripMargin)
 
 }

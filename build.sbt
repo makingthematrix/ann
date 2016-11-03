@@ -28,4 +28,5 @@ initialCommands in console :=
     |import anna.utils.RandomNumber
     |import anna.async.NeuronCounter
     |LOG.addLogToStdout()
+    |println("Type 'help' for instructions")
   """.stripMargin
