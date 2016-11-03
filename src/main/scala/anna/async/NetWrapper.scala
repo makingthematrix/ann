@@ -115,6 +115,8 @@ class NetWrapper(val net: NetRef) {
   def removeAllTriggers() = net.removeAllTriggers()
 
   def empty = inputQueue.isEmpty
+
+  def neuronIds = net.neuronsIds
 }
 
 object NetWrapper {

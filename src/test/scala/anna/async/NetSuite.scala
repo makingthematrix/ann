@@ -45,7 +45,7 @@ class NetSuite extends JUnitSuite {
            .addMiddle("id2", threshold, silenceIterations)
     val net = builder.build("net").net
 
-    val neurons = net.getNeurons
+    val neurons = net.neurons
     assertEquals(2, neurons.size)
     val ids = neurons.map{ _.id }
     assertTrue(ids.contains("id1"))
@@ -60,7 +60,7 @@ class NetSuite extends JUnitSuite {
            .chain("id2", weight, threshold, silenceIterations)
     val net = builder.build("net").net
     
-    val neurons = net.getNeurons
+    val neurons = net.neurons
     assertEquals(2, neurons.size)
     
     val n1Opt = neurons.find(_.id == "id1")

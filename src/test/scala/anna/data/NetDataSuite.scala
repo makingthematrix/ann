@@ -53,7 +53,7 @@ class NetDataSuite extends JUnitSuite {
     builder.set(netData)
 
     val netWrapper = builder.build("in")
-    val neurons = netWrapper.net.getNeurons
+    val neurons = netWrapper.net.neurons
     assertEquals(2, neurons.size)
     assertEquals(List("id1","id2"), neurons.map(_.id).sorted)
 

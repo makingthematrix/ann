@@ -188,12 +188,15 @@ object Commands {
     )
   }
 
-  def setup(netData: NetData) = netData.id match {
-    case DELAY_GATE => setupDelayGate(netData)
-    case SIGNAL_SUM => setupSignalSum(netData)
-    case DOT_AND_LINE => setupDotAndLine(netData)
-    case SOS => setupSOS(netData)
-    case other => error(s"netId not recognized: $other")
+  def setup(netData: NetData) = {
+    shutdown()
+    netData.id match {
+      case DELAY_GATE => setupDelayGate(netData)
+      case SIGNAL_SUM => setupSignalSum(netData)
+      case DOT_AND_LINE => setupDotAndLine(netData)
+      case SOS => setupSOS(netData)
+      case other => error(s"netId not recognized: $other")
+    }
   }
 
   def send(sequence: String) = {
@@ -207,10 +210,11 @@ object Commands {
     Thread.sleep(Context().iterationTime)
   }
 
-  def print(netData: NetData):Unit = {
-    LOG.debug(netData.toJson)
-    LOG.clearAllowedIds()
-  }
+  def shutdown() = wrapper.shutdown()
+
+  def neuronsIds = wrapper.neuronIds
+
+  def print(netData: NetData):Unit = LOG.debug(netData.toJson)
 
   lazy val help =
     """

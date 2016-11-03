@@ -116,17 +116,20 @@ class NetBuilder {
     debug(this,s"build $netName")
     val net = NetRef(netName)
     debug(this, "building neurons")
-    val nRefs = neurons.values.map(
-      nd => nd.id -> createNeuronInNet(net, nd.withoutSynapses)
-    ).toMap
+    val nRefs = neurons.values.map( nd => {
+      debug(this, s"creating ${nd.id}")
+      nd.id -> createNeuronInNet(net, nd.withoutSynapses)
+    }).toMap
     debug(this, "building synapses")
     nRefs.values.foreach(nRef => {
       val nsyns = synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight))
       debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
       nRef.setSynapses(nsyns)
     })
-    debug(this, "setting inputs")
-    net.setInputs(ins.toSeq)
+
+    val insSeq = ins.toSeq
+    debug(this, s"setting inputs: $insSeq")
+    net.setInputs(insSeq)
     debug(this, "done")
     NetWrapper(net)
   }
