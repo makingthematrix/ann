@@ -199,14 +199,26 @@ object Commands {
     }
   }
 
-  def send(sequence: String) = {
-    val validSequence = sequence.replaceAll(",","").toCharArray.mkString(",") // just to make sure
+  private def resetBeforeWork(sequence: String) = {
     wrapper.reset()
     wrapper.resetIterations()
     clearOutput()
     LOG.timer()
     LOG.startLoggingIterations(() => wrapper.iteration)
+    sequence.replaceAll(",","").toCharArray.mkString(",") // just to make sure
+  }
+
+  def send(sequence: String):Unit = {
+    val validSequence = resetBeforeWork(sequence)
     wrapper.iterateUntilCalm(validSequence)
+    Thread.sleep(Context().iterationTime)
+  }
+
+  def send(sequence: String, repeatTimes: Int):Unit = {
+    val validSequence = resetBeforeWork(sequence)
+    for(i <- 1 to repeatTimes){
+      wrapper.iterateUntilCalm(validSequence)
+    }
     Thread.sleep(Context().iterationTime)
   }
 
@@ -216,11 +228,15 @@ object Commands {
   }
 
   def neuronsIds = wrapper.neuronIds
+  def maxIterations = wrapper.maxIterations
+  def setMaxIterations(maxIterations: Int) = {
+    wrapper.maxIterations = maxIterations
+  }
 
   def print(netData: NetData):Unit = LOG.debug(netData.toJson)
 
   def help = println(
-    """
+    s"""
       | You can use pre-constructed networks:
       | 1. sos
       | 2. dotAndLine
@@ -255,6 +271,12 @@ object Commands {
       | The string will be parsed into signals which will be sent to the input neuron and from there to other neurons
       | in the network. Then you can see the output by typing:
       | > output
+      |
+      | If you want to send longer input sequences, please modify the maximum number of iterations:
+      | > setMaxIterations(_)
+      | The variable was introduced in order to prevent infinite processing which is possible with customized networks.
+      | The default number is $maxIterations. You can check it by typing:
+      | > maxIterations
       |
       | During the processing the console will display logs from the neurons, about what signals they received and sent,
       | their internal state, etc. You can control logs from which neurons you want to see, by typing:

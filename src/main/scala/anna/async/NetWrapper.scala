@@ -9,14 +9,17 @@ import scala.collection.mutable
 class NetWrapper(val net: NetRef) {
   lazy val ids = net.inputIds
   lazy val size = net.inputSize
-  
+
+  private val signRegister = mutable.Map[Char,Double]()
   private val inputQueue = mutable.Queue[Seq[Double]]()
-  
-  private var _iteration = 0
-  def iteration = _iteration 
+  private var _iteration = 1
+
+  var maxIterations = 100
+
+  def iteration = _iteration
 
   def resetIterations() = {
-    _iteration = 0
+    _iteration = 1
   }
 
   def find(id: String) = net.find(id).neuronOpt match {
@@ -38,9 +41,7 @@ class NetWrapper(val net: NetRef) {
   def +=(t: (Double,Double,Double)) = add(Seq(t._1,t._2,t._3))
   
   def generateEmptyInput:Seq[Double] = for(i <- 1 to size) yield 0.0
-  
-  private val signRegister = mutable.Map[Char,Double]()
-  
+
   def regSign(sign: Char,input: Double) = signRegister += (sign -> input)
 
   def +=(input: String) = input.split(",").toSeq.map(
@@ -61,18 +62,20 @@ class NetWrapper(val net: NetRef) {
     tick(1)
   }
 
+  private def popInput() = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
+
   def tick():Unit = tick(1)
 
   def tick(n: Int):Unit = {
     for(i <- 1 to n) {
-      val input = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
-      net.signal(input)
+      val input = popInput()
+      if(input.sum > 0.0) { // so if the input is empty we do nothing
+        net.signal(input)
+      }
       Thread.sleep(Context().iterationTime)
       _iteration = _iteration + 1
     }
   }
-
-  var timeout = 100
 
   def iterateUntilCalm(inputVector: String):Int = {
     this += inputVector
@@ -84,7 +87,7 @@ class NetWrapper(val net: NetRef) {
     net.addAfterFireToAll("tickUntilCalm"){ neuronFired = true }
 
     var (calmTick, counter) = (0, 0)
-    while(inputQueue.nonEmpty || (calmTick < 3 && counter < timeout)){
+    while(inputQueue.nonEmpty || (calmTick < 3 && counter < maxIterations)){
       neuronFired = false
       tick()
       if(neuronFired) calmTick = 0 else calmTick += 1
