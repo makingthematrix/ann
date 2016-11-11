@@ -228,9 +228,9 @@ object Commands {
   }
 
   def neuronsIds = wrapper.neuronIds
-  def maxIterations = wrapper.maxIterations
+  def maxIterations = Context().maxRunIterations
   def setMaxIterations(maxIterations: Int) = {
-    wrapper.maxIterations = maxIterations
+    Context.withMaxRunIterations(maxIterations)
   }
 
   def print(netData: NetData):Unit = LOG.debug(netData.toJson)

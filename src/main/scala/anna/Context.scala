@@ -17,7 +17,7 @@ case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterat
   def toJson = writePretty(this)
 }
 
-case class Context(awaitTimeout: Long, neuronDefaults: NeuronDefaults){
+case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: NeuronDefaults){
   def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
   def threshold = neuronDefaults.threshold
   def weight = neuronDefaults.weight
@@ -62,6 +62,10 @@ object Context {
 
   private final def that = instance.get
 
+  def withAwaitTimeout(timeout: Long) =
+    set(apply().copy(awaitTimeout = timeout))
+  def withMaxRunIterations(iterations: Long) =
+    set(apply().copy(maxRunIterations = iterations))
   def withThreshold(threshold: Double) =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
   def withWeight(weight: SynapseTrait) =
@@ -72,6 +76,7 @@ object Context {
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(iterationTime = iterationTime)))
 
   val _awaittimeout = "awaitTimeout"
+  val _maxruniterations = "maxRunIterations"
   val _neurondefaults = "neuronDefaults"
   val _defaultthreshold = "defaultThreshold"
   val _defaultweight = "defaultWeight"
@@ -83,6 +88,7 @@ object Context {
     val root = config.getConfig("context")
 
     val awaitTimeout = root.getInt(_awaittimeout)
+    val maxRunIterations = root.getInt(_maxruniterations)
 
     // neuron defaults
     val neuronRoot = root.getConfig(_neurondefaults)
@@ -93,14 +99,16 @@ object Context {
 
     val neuronDefaults = NeuronDefaults(threshold, weight, silenceIterations, iterationTime)
 
-    set(Context(awaitTimeout, neuronDefaults))
+    set(Context(awaitTimeout, maxRunIterations, neuronDefaults))
   }
 
   def fromJson(jsonStr: String) = read[Context](jsonStr)
   def withJson(jsonStr: String) = set(fromJson(jsonStr))
 
   def set(name: String, n: Int):Unit = name match {
-    case _defaultsilenceiterations => withSilenceIterations(n)
+    case `_awaittimeout` => withAwaitTimeout(n)
+    case `_maxruniterations` => withMaxRunIterations(n)
+    case `_defaultsilenceiterations` => withSilenceIterations(n)
   }
   
   def set(name: String, d: Double):Unit = name match {

@@ -14,8 +14,6 @@ class NetWrapper(val net: NetRef) {
   private val inputQueue = mutable.Queue[Seq[Double]]()
   private var _iteration = 1
 
-  var maxIterations = 100
-
   def iteration = _iteration
 
   def resetIterations() = {
@@ -87,6 +85,7 @@ class NetWrapper(val net: NetRef) {
     net.addAfterFireToAll("tickUntilCalm"){ neuronFired = true }
 
     var (calmTick, counter) = (0, 0)
+    val maxIterations = Context().maxRunIterations
     while(inputQueue.nonEmpty || (calmTick < 3 && counter < maxIterations)){
       neuronFired = false
       tick()
