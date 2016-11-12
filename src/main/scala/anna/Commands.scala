@@ -240,7 +240,7 @@ object Commands {
       | You can use pre-constructed networks:
       | 1. sos
       | 2. dotAndLine
-      | and plus utility methods for network construction:
+      | and utility methods for network construction:
       | 3. delayGate(delay: Int)
       | 4. signalSum(requestedSum: Int)
       | All four give you an object of the type NetData which you can then pass to the setup method:
@@ -261,7 +261,7 @@ object Commands {
       | 3. delayGate(_): DG3 (sends '1')
       | 4. signalSum(_): SS2 (sends '1')
       |
-      | You can also print the JSON form of each network, eg.:
+      | You can also print the JSON form of each network, e.g.:
       | > print(delayGate(2))
       |
       | After the setup, you can send input vectors to the network and see how it handles them. Since all four networks

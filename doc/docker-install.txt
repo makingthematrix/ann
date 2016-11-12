@@ -1,5 +1,10 @@
+This is a short instruction on how to install ANNA with docker. No Dockerfile yet.
+
+From the shell:
 docker pull ubuntu
 docker run -i -t [image id] /bin/bash
+
+From docker (as root):
 echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 642AC823
 apt-get update
