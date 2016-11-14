@@ -14,46 +14,21 @@ If you want to look at only one class in this project  then it's probably [this 
 
 ### Install Instructions
   1. You will need Java JDK 7+ and sbt 0.13.13 or newer.
-    * OpenJDK – for Linux: http://openjdk.java.net/install/
-    * Java (Oracle) – for any platform (Linux also): 
-      http://www.oracle.com/technetwork/java/javase/downloads/index.html
-    * sbt:
-      * http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html
-      * http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html
-      The MSI installer is no longer supported, as far as I know, so you have to download and unpack the zip file.
-      * http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html
-      
-  2. You can check if sbt works simply typing **sbt** in the command line:
-    ```
-    bash-4.3# sbt
-    > sbt-version
-    [info] 0.13.8
-    ```
-    
-  3. Download the ANNA project, either through GIT:
-  
-    ```
-    git clone https://github.com/makingthematrix/ann.git
-    ```
-    
-    or by downloading the zip file: https://github.com/makingthematrix/ann/archive/SOSWithBlock_1.0.zip
-    
-    The current stable branch is `SOSWithBlock_1.0`.
- 
- 
-  4. Go to the main project directory (“ann”) and type:
-    ```
-    sbt compile
-    ```
-    **sbt** will download and install Scala and Akka if you haven't done it before. Be patient.
-        
-    Then type:
-    ```
-    sbt console
-    ```
-    You will see the welcome screen. Type `help`.
-
+    * [OpenJDK]– for Linux
+    * [Java (Oracle)] – for any platform (Linux also)
+    * [sbt - Linux]
+    * [sbt - Windows] 
+        * The MSI installer is no longer supported, as far as I know, so you have to download and unpack the zip file.
+    * [sbt - Mac] 
+  2. You can check if sbt works simply typing **sbt** in the command line
+  3. Download the ANNA project, either through GIT, or by downloading the zip file. The current stable branch is `SOSWithBlock_1.0`.
+  4. Go to the main project directory (“ann”) and type `sbt compile`. **sbt** will download and install Scala and Akka if you haven't done it before. Be patient. Then type `sbt console`. You will see the welcome screen. Type `help`.
 
    [Abstract]: <https://github.com/makingthematrix/ann/blob/SOSWithBlock_1.0/doc/ArtificialNeuralNetworksInAkka-abstract.pdf>
    [Full article]: <https://github.com/makingthematrix/ann/blob/SOSWithBlock_1.0/doc/ArtificialNeuralNetworksInAkka.pdf>
    [Further ideas]: <https://github.com/makingthematrix/ann/blob/SOSWithBlock_1.0/doc/FurtherIdeas.pdf>
+   [OpenJDK]: <http://openjdk.java.net/install/>
+   [Java (Oracle)]: <http://www.oracle.com/technetwork/java/javase/downloads/index.html>
+   [sbt - Linux]: <http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html>
+   [sbt - Windows]: <http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Windows.html>
+   [sbt - Mac]: <http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Mac.html>
