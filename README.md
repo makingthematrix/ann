@@ -13,7 +13,7 @@ Artificial Neural Networks in Akka
 If you want to look at only one class in this project  then it's probably [this one](https://github.com/makingthematrix/ann/blob/SOSWithBlock_1.0/src/main/scala/anna/async/Neuron.scala).
 
 ### Install Instructions
-  1. You will need Java JDK 7+ and sbt 0.13.13 or newer.
+  1. You will need Java JDK 7+ and sbt 0.13.8 or newer.
     * [OpenJDK]– for Linux
     * [Java (Oracle)] – for any platform (Linux also)
     * [sbt - Linux]
