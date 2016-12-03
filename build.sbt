@@ -6,12 +6,12 @@ lazy val root = (project in file(".")).
   )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.3",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.3",
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-  "com.typesafe" % "config" % "1.3.0",
+  "com.typesafe.akka" %% "akka-actor" % "2.4.14",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.14",
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+  "com.typesafe" % "config" % "1.3.1",
   "junit" % "junit" % "4.11" % "test",
-  "com.novocode" % "junit-interface" % "0.10" % "test",
+  "com.novocode" % "junit-interface" % "0.11" % "test",
   "org.apache.commons" % "commons-io" % "1.3.2",
   "org.json4s" %% "json4s-native" % "3.3.0"
 )
