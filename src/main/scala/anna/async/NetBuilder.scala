@@ -6,7 +6,7 @@ import anna.data.SynapseData.fromDouble
 import anna.data._
 import anna.logger.LOG._
 import anna.utils.Utils.{assert, await}
-
+import akka.pattern.ask
 import scala.collection.mutable
 
 import anna.logger.LOG
@@ -115,11 +115,13 @@ class NetBuilder {
   def build(netName: String =netId) = {
     debug(this,s"build $netName")
     val net = NetRef(netName)
+
     debug(this, "building neurons")
     val nRefs = neurons.values.map( nd => {
       debug(this, s"creating ${nd.id}")
       nd.id -> createNeuronInNet(net, nd.withoutSynapses)
     }).toMap
+
     debug(this, "building synapses")
     nRefs.values.foreach(nRef => {
       val nsyns = synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight))

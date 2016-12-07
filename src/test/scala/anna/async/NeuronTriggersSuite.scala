@@ -1,17 +1,18 @@
 package anna.async
 
 import anna.Context
-import anna.data.{Silence, SynapseWeight}
+import anna.data.SynapseWeight
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 import scala.concurrent.{Await, Promise}
 
 /**
   * Created by gorywoda on 10/31/16.
   */
-class NeuronTriggersSuite extends MySuite {
+class NeuronTriggersSuite extends JUnitSuite {
   val timeout = Context().timeout
 
   @Test def shouldTriggerAfterFireWithNetWrapper(){
@@ -28,6 +29,8 @@ class NeuronTriggersSuite extends MySuite {
 
     val afterFireReceived = Await.result(p.future, timeout.duration)
     assertTrue(afterFireReceived)
+
+    wrapper.shutdown()
   }
 
   @Test def shouldTriggerAfterFireWithNeuron(){
@@ -50,6 +53,8 @@ class NeuronTriggersSuite extends MySuite {
 
     val silenceRequestReceived = Await.result(p.future, timeout.duration)
     assertTrue(silenceRequestReceived)
+
+    net.shutdown()
   }
 
   @Test def shouldTriggerAfterFireWithNet(){
@@ -73,5 +78,7 @@ class NeuronTriggersSuite extends MySuite {
 
     val silenceRequestReceived = Await.result(p.future, timeout.duration)
     assertTrue(silenceRequestReceived)
+
+    net.shutdown()
   }
 }

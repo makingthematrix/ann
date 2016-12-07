@@ -1,18 +1,23 @@
 package anna.blocks
 
+import anna.Context
 import anna.async.NetBuilderOps._
-import anna.async.{MySuite, NetBuilder}
+import anna.async.{NetBuilder, NetWrapper}
+import anna.data.NetData
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
+import org.junit.{After, Before, Test}
+import org.scalatest.junit.JUnitSuite
 
 /**
   * Created by gorywoda on 6/19/16.
   */
-class SignalSumSuite extends MySuite {
-  private def signalSumWithOps(blockName: String, requiredSignals: Int) = NetBuilder().addInput("in").signalSum(blockName, requiredSignals).data
+class SignalSumSuite extends JUnitSuite {
 
-  private def assertFiredAfterRequiredSignals(outNeuronId: String, requiredSignals: Int) = {
+  private def signalSumWithOps(blockName: String, requiredSignals: Int) =
+    NetBuilder().addInput("in").signalSum(blockName, requiredSignals).build()
+
+  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int) = {
     var fired = false
     netWrapper.addAfterFire(outNeuronId){ fired = true }
 
@@ -32,8 +37,9 @@ class SignalSumSuite extends MySuite {
   }
 
   @Test def shouldSignalSumWithOps(): Unit ={
-    build(signalSumWithOps("SignalSum",3))
-    assertFiredAfterRequiredSignals("SignalSum2",3)
+    val netWrapper = signalSumWithOps("SignalSum", 3)
+    assertFiredAfterRequiredSignals(netWrapper, "SignalSum2", 3)
+    netWrapper.shutdown()
   }
 
   private def signalSumWithBlock(requiredSignals: Int) = {
@@ -42,14 +48,13 @@ class SignalSumSuite extends MySuite {
 
     val block = SignalSum(requiredSignals)
     block.chain(builder)
-    (builder.data, block)
+    (builder.build(), block)
   }
 
   private def shouldFireAfterRequiredSignalsBlock(requiredSignals: Int) = {
-    val (data, block) = signalSumWithBlock(requiredSignals)
-    build(data)
-    assertFiredAfterRequiredSignals(block.outputId, requiredSignals)
-    shutdown()
+    val (netWrapper, block) = signalSumWithBlock(requiredSignals)
+    assertFiredAfterRequiredSignals(netWrapper, block.outputId, requiredSignals)
+    netWrapper.shutdown()
   }
 
   @Test def shouldFireWithBlock(): Unit = {

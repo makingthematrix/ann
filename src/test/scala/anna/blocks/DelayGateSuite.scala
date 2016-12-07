@@ -1,26 +1,31 @@
 package anna.blocks
 
+import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
-import anna.async.{MySuite, NetBuilder}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
+import org.scalatest.junit.JUnitSuite
 
 
 /**
   * Created by gorywoda on 1/31/16.
   */
-class DelayGateSuite extends MySuite {
-  private def delayGateWithOps(blockName: String, delay: Int) = NetBuilder().addInput("in").delayGate(blockName, delay).data
+class DelayGateSuite extends JUnitSuite {
+
+  private def delayGateWithOps(blockName: String, delay: Int) =
+    NetBuilder().addInput("in").delayGate(blockName, delay).build()
 
   private def assertDelayGateWithOps(delay: Int) = {
-    build(delayGateWithOps("delayGate",delay))
+    val netWrapper = delayGateWithOps("delayGate",delay)
     var iteration = 0
     LOG.allow("delayGate3")
     netWrapper.addAfterFire("delayGate3"){ iteration =  netWrapper.iteration }
     netWrapper.iterateUntilCalm("1")
-    shutdown()
-    assertEquals(delay, iteration)
+
+    assertEquals(delay, iteration-1)
+
+    netWrapper.shutdown()
   }
 
   @Test def shouldDelayGateWithOps(): Unit = {
@@ -36,12 +41,12 @@ class DelayGateSuite extends MySuite {
 
     val block = DelayGate(delay)
     block.chain(builder)
-    (builder.data, block)
+    (builder.build(), block)
   }
 
   private def shouldFireWithBlock(expectedDelay: Int) = {
-    val (data, block) = delayGateWithBlock(expectedDelay)
-    build(data)
+    val (netWrapper, block) = delayGateWithBlock(expectedDelay)
+
     var fired = false
     var iteration = 0
     netWrapper.addAfterFire(block.outputId){
@@ -50,9 +55,11 @@ class DelayGateSuite extends MySuite {
       fired = true
     }
     netWrapper.iterateUntilCalm("1")
-    shutdown()
+
     assertTrue(fired)
-    assertEquals(expectedDelay, iteration)
+    assertEquals(expectedDelay, iteration-1)
+
+    netWrapper.shutdown()
   }
 
   @Test def shouldFireWithBlock(): Unit = {

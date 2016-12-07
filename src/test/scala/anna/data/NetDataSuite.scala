@@ -58,36 +58,13 @@ class NetDataSuite extends JUnitSuite {
     assertEquals(List("id1","id2"), neurons.map(_.id).sorted)
 
     val sb = StringBuilder.newBuilder
-    netWrapper.addAfterFire("id2")( (_:Double)=>{ sb.append(".") } )
+    netWrapper.addAfterFire("id2"){ sb.append(".") }
 
-    netWrapper += "1,1,1"
-
-    netWrapper.tick(20)
+    netWrapper.iterateUntilCalm("1,1,1")
 
     assertEquals("...",sb.toString)
-  }
 
-  private def SOSNetWithHushNeuron(builder: NetBuilder){
-    builder.addInput("in")
-    // dots
-    builder.use("in").chain("mi11",1.0, 0.0, 2).silence("mi11")
-      .chain("mi12",1.0,0.0).loop("loop",1.0,0.0,1.0)
-      .chain("dot",0.6/2.0,0.6)
-      .chain("S",0.5,0.81)
-    builder.addSilencingNeuron("dot_silence").silence("mi12").silence("loop").silence("dot")
-    builder.use("dot").silence("dot_silence")
-
-    // lines
-    builder.use("in").chain("mi21",0.55,0.58).silence("mi21")
-      .chain("line",1.0,0.0).silence("line")
-      .chain("O",0.6,0.81)
-
-    // if line then not dot
-    builder.use("line").silence("dot_silence")
-
-    // if S then not O, if O then not S...
-    builder.use("S").chainSilencingNeuron("hush_letters").silence("S").silence("O")
-    builder.use("O").silence("hush_letters")
+    netWrapper.shutdown()
   }
 
 }

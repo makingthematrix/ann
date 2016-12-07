@@ -92,8 +92,6 @@ class NetWrapper(val net: NetRef) {
       if(neuronFired) calmTick = 0 else calmTick += 1
       counter += 1
     }
-    
-    net.reset()
 
     net.removeAfterFireFromAll("tickUntilCalm")
     counter
