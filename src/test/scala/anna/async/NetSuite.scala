@@ -2,6 +2,7 @@ package anna.async
 
 import anna.Context
 import anna.async.Messages._
+import anna.data.SilenceIterations
 import anna.utils.Utils.await
 import org.junit.Assert._
 import org.junit.Test
@@ -10,7 +11,7 @@ import org.scalatest.junit.JUnitSuite
 class NetSuite extends JUnitSuite {
   val threshold = Context().threshold
   val weight = Context().weight
-  val silenceIterations = Context().silenceIterations
+  val silenceIterations = SilenceIterations(Context().silenceIterations)
   val timeout = Context().timeout
 
   @Test def shouldCreateNet(){
@@ -25,8 +26,8 @@ class NetSuite extends JUnitSuite {
   @Test def shouldCreateNeurons(){
     val net = NetRef("net1")
 
-    val n1 = net.createNeuron("id1", threshold, silenceIterations)
-    val n2 = net.createNeuron("id2", threshold, silenceIterations)
+    val n1 = net.createNeuron("id1", threshold, silenceIterations.iterations)
+    val n2 = net.createNeuron("id2", threshold, silenceIterations.iterations)
 
     val msg = await[MsgNeurons](net, GetNeurons)
     val neurons = msg.neurons

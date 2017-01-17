@@ -7,12 +7,9 @@ import anna.utils.Utils._
 import scala.collection.mutable
 
 class NetWrapper(val net: NetRef) {
-  lazy val ids = net.inputIds
+  lazy val inputIds = net.inputIds
   lazy val size = net.inputSize
-
-  private val signRegister = mutable.Map[Char,Double]()
-  private val inputQueue = mutable.Queue[Seq[Double]]()
-  private var _iteration = 1
+  lazy val neuronIds = net.neuronsIds
 
   def iteration = _iteration
 
@@ -116,7 +113,10 @@ class NetWrapper(val net: NetRef) {
 
   def empty = inputQueue.isEmpty
 
-  def neuronIds = net.neuronsIds
+  private val signRegister = mutable.Map[Char,Double]()
+  private val inputQueue = mutable.Queue[Seq[Double]]()
+  private var _iteration = 1
+
 }
 
 object NetWrapper {

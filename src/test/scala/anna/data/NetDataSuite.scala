@@ -17,8 +17,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldMakeNetDataFromJson() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1",0.0, 1, List(s1), NeuronTypeDummy())
-    val n2 = NeuronData("id2",0.0, 2, Nil)
+    val n1 = NeuronData("id1",0.0, SilenceIterations(1), List(s1), NeuronTypeDummy())
+    val n2 = NeuronData("id2",0.0, SilenceIterations(2), Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val json = netData.toJson
@@ -27,8 +27,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldMakeNetDataWithBuilder() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1", 1).withSynapses(List(s1))
-    val n2 = NeuronData("id2",0.0, 2, Nil)
+    val n1 = NeuronData("id1", SilenceIterations(1)).withSynapses(List(s1))
+    val n2 = NeuronData("id2",0.0, SilenceIterations(2), Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()
@@ -45,8 +45,8 @@ class NetDataSuite extends JUnitSuite {
 
   @Test def shouldBuildNetWithData() = {
     val s1 = SynapseData("id2",1.0)
-    val n1 = NeuronData("id1", 0.0, 1, List(s1), NeuronTypeDummy())
-    val n2 = NeuronData("id2", 0.0, 2, Nil, NeuronTypeStandard())
+    val n1 = NeuronData("id1", 0.0, SilenceIterations(1), List(s1), NeuronTypeDummy())
+    val n2 = NeuronData("id2", 0.0, SilenceIterations(2), Nil, NeuronTypeStandard())
     val netData = NetData("net",List(n1,n2),List("id1"))
 
     val builder = NetBuilder()

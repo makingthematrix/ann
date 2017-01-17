@@ -2,7 +2,8 @@ package anna.async
 
 import akka.actor._
 import anna.Context
-import anna.async.Messages._
+import anna.async.Messages.{SpeakUpRequest, _}
+import anna.data.{SilenceForever, SilenceIterations, SilenceIterationsTrait}
 import anna.logger.LOG
 import anna.utils.Utils
 
@@ -12,7 +13,7 @@ import scala.concurrent.duration._
 class Neuron(val id: String,
              val netId: String,
              val threshold: Double,
-             val silenceIterations: Int,
+             val silenceIterations: SilenceIterationsTrait,
              protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   implicit val that = this
@@ -33,6 +34,9 @@ class Neuron(val id: String,
   private var sleepingTimestamp: Option[Long] = None
   private def isSleeping = sleepingTimestamp != None
 
+  private var silenceTimestamp: Option[Long] = None
+  private def isTemporarilySilenced = silenceTimestamp != None // if it's silenced forever, the timestamp is None
+
   private def makeSleep() = {
     LOG += s"going to sleep for ${Context().iterationTime} ms"
     sleepingTimestamp = Some(schedulerBuffer.schedule(Context().iterationTime millis){ wakeUp() })
@@ -42,6 +46,20 @@ class Neuron(val id: String,
     LOG += "waking up"
     sleepingTimestamp = None
     tick()
+  }
+
+  private lazy val setContextToSilence: () => Unit = silenceIterations match {
+    case SilenceIterations(iterations) => () => {
+      val t = Context().iterationTime * iterations
+      if(t > 0){
+        context.become(silence)
+        silenceTimestamp = Some(schedulerBuffer.schedule(t millis){
+          silenceTimestamp = None
+          speakUp()
+        })
+      }
+    }
+    case SilenceForever() => () => { context.become(silence) }
   }
 
   private def becomeSilent(){
@@ -55,18 +73,26 @@ class Neuron(val id: String,
       sleepingTimestamp = None
     }
 
-    val t = Context().iterationTime * silenceIterations
-    if(t > 0){
-      context.become(silence)
-      schedulerBuffer.schedule(t millis){ wakeFromSilence() }
-    }
+    setContextToSilence()
 
     triggerSilenceRequested()
   }
 
-  private def wakeFromSilence() = {
+  private def speakUp() = {
     LOG += s"waking up from a silence request"
+
+    if(isTemporarilySilenced){
+      schedulerBuffer.unschedule(silenceTimestamp.get)
+    }
+
+    // if the neuron was sleeping, it's cancelled
+    if(isSleeping){
+      schedulerBuffer.unschedule(sleepingTimestamp.get)
+      sleepingTimestamp = None
+    }
+
     context.become(receive)
+
   }
 
   protected def +=(signal: Double){
@@ -135,6 +161,8 @@ class Neuron(val id: String,
     case Signal(s, senderId) =>
       LOG += s"signal $s from $senderId ignored"
       triggerSignalIgnored()
+    case SpeakUpRequest =>
+      speakUp()
   }
 
   val commonBehaviour: Receive = {

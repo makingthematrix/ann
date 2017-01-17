@@ -4,23 +4,23 @@ import anna.Context
 import anna.async.Messages._
 import anna.data.SynapseData.fromDouble
 import anna.data._
+import anna.logger.LOG
 import anna.logger.LOG._
 import anna.utils.Utils.{assert, await}
-import akka.pattern.ask
-import scala.collection.mutable
 
-import anna.logger.LOG
+import scala.collection.mutable
 
 class NetBuilder {
   var netId:String = "net"
 
   var defThreshold = Context().threshold
-  var defSilenceIterations = Context().silenceIterations
+  var defSilenceIterations: SilenceIterationsTrait = SilenceIterations(Context().silenceIterations)
   var defWeight:SynapseTrait = Context().weight
 
   private val neurons = mutable.Map[String,NeuronData]()
   private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
   private val ins = mutable.Set[String]()
+  private val neuronsInitSilenced = mutable.Set[String]()
 
   private var currentNeuronId:Option[String] = None
 
@@ -41,6 +41,8 @@ class NetBuilder {
 
   def silence(id: String) = connect(id, Silence())
 
+  def speakUp(id: String) = connect(id, SpeakUp())
+
   def connect(id: String, weight: SynapseTrait) = {
     assert(contains(id),s"There is no neuron with id $id")
     addSynapse(current.id, id, weight)
@@ -54,15 +56,14 @@ class NetBuilder {
 
   def isCurrent = currentNeuronId != None
 
-  def chain(id: String, weight: SynapseTrait, threshold: Double,
-            silenceIterations: Int) = {
+  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: SilenceIterationsTrait) = {
     val n1 = current
     addStandard(id, threshold, silenceIterations)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainDummy(id: String, weight: Double, hushValue: Int =defSilenceIterations) = {
+  def chainDummy(id: String, weight: Double, silenceIterations: SilenceIterationsTrait =defSilenceIterations) = {
     val n1 = current
     addDummy(id)
     addSynapse(n1.id, id, weight)
@@ -84,7 +85,7 @@ class NetBuilder {
 
   def addMiddle(id: String,
                 threshold: Double =defThreshold,
-                silenceIterations: Int =defSilenceIterations):NetBuilder =
+                silenceIterations: SilenceIterationsTrait =defSilenceIterations):NetBuilder =
     addStandard(id, threshold, silenceIterations)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
@@ -105,12 +106,18 @@ class NetBuilder {
 
   def addStandard(id: String,
                   threshold: Double,
-                  silenceIterations: Int) = {
+                  silenceIterations: SilenceIterationsTrait) = {
     LOG.info("new neuron: " + id)
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
     this
   }
+
+  def initSilenced(id: String) = {
+    neuronsInitSilenced += id
+    this
+  }
+
 
   def build(netName: String =netId) = {
     debug(this,s"build $netName")
@@ -180,7 +187,13 @@ class NetBuilder {
     this
   }
 
-  private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))
+  private def createNeuronInNet(net: NetRef, data: NeuronData) = {
+    val neuronRef = await[NeuronRef](net, CreateNeuron(data))
+    if(neuronsInitSilenced.contains(data.id)){
+      neuronRef ! SilenceRequest
+    }
+    neuronRef
+  }
 
   private val nextIndex = {
     var nextFreeIndex = 0L
@@ -192,7 +205,7 @@ class NetBuilder {
   }
 
   private def newNeuron(neuronType: NeuronType, id: String,
-      threshold: Double =defThreshold, silenceIterations: Int =defSilenceIterations) =
+      threshold: Double =defThreshold, silenceIterations: SilenceIterationsTrait =defSilenceIterations) =
     NeuronData(id, threshold, silenceIterations, Nil, neuronType)
 
   private def add(n: NeuronData){

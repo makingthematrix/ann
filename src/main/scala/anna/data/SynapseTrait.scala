@@ -18,6 +18,10 @@ case class Silence() extends SynapseTrait {
   def toJson = writePretty(this)
 }
 
+case class SpeakUp() extends SynapseTrait {
+  def toJson = writePretty(this)
+}
+
 object SynapseTrait {
   def apply(str: String) = str match {
     case "Silence" => Silence()

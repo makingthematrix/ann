@@ -1,28 +1,30 @@
 package anna.async
 
-import anna.blocks.{DelayGate, SignalSum}
+import anna.blocks.{DelayGate, Sequencer, SignalSum}
 import anna.data._
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
                   weight: SynapseTrait =builder.defWeight,
                   threshold: Double =builder.defThreshold,
-                  silenceIterations: Int=builder.defSilenceIterations):NetBuilder =
+                  silenceIterations: SilenceIterationsTrait =builder.defSilenceIterations):NetBuilder =
     builder.chain(id, weight, threshold, silenceIterations)
 
   def chain(id: String,
             weight: Double,
             threshold: Double,
             silenceIterations: Int):NetBuilder =
-    chainMiddle(id, SynapseWeight(weight), threshold, silenceIterations)
+    chainMiddle(id, SynapseWeight(weight), threshold, SilenceIterations(silenceIterations))
   def chain(id: String,
             weight: Double,
             threshold: Double):NetBuilder =
     chainMiddle(id, SynapseWeight(weight), threshold, builder.defSilenceIterations)
   def chain(id: String):NetBuilder = chainMiddle(id)
   def chain(id: String, weight: Double):NetBuilder = chainMiddle(id, SynapseWeight(weight))
+  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: Int) =
+    builder.chain(id, weight, threshold, SilenceIterations(silenceIterations))
 
-  def chainHush(id: String, threshold: Double):NetBuilder = chainMiddle(id, Silence(), threshold)
+  def chainSilence(id: String, threshold: Double):NetBuilder = chainMiddle(id, Silence(), threshold)
 
   def loop(id: String, 
            w1: SynapseTrait =builder.defWeight,
@@ -60,6 +62,12 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     DelayGate(name, delay).chain(builder, inputWeight, inputTreshold)
 
   def signalSum(name: String, requiredSignals: Int) = SignalSum(name, requiredSignals).chain(builder)
+
+  def sequencer(name: String):NetBuilder = if(builder.contains(Sequencer.inputId2(name))){
+    connect(Sequencer.inputId2(name), 1.0)
+  } else {
+    Sequencer(name).chain(builder)
+  }
 }
 
 object NetBuilderOps {

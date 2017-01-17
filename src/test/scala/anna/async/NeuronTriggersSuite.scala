@@ -6,6 +6,7 @@ import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
+import anna.async.NetBuilderOps._
 
 import scala.concurrent.{Await, Promise}
 

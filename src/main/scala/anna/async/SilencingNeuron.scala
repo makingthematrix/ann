@@ -1,10 +1,11 @@
 package anna.async
 
 import anna.async.Messages._
+import anna.data.SilenceIterations
 import anna.logger.LOG
 
 class SilencingNeuron(override val id: String, override val netId: String)
-extends Neuron(id, netId, 0.0, 0) {
+extends Neuron(id, netId, 0.0, SilenceIterations(0)) {
   private def sendSilenceRequest() = {
     synapses.foreach( s => {
       LOG += s"sending SilenceRequest to ${s.dest.id}"

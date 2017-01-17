@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.async.NeuronTriggers.Trigger
-import anna.data.{NeuronData, SynapseTrait}
+import anna.data.{NeuronData, SilenceIterationsTrait, SynapseTrait}
 
 object Messages {
   // signals
@@ -10,6 +10,7 @@ object Messages {
 
   // commands
   case object SilenceRequest // become silent
+  case object SpeakUpRequest // wake up from silence
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
   case class CreateNeuron(data: NeuronData)
@@ -45,7 +46,7 @@ object Messages {
   case class NeuronInfo(id: String,
                         netId: String,
                         threshold: Double,
-                        silenceIterations: Int,
+                        silenceIterations: SilenceIterationsTrait,
                         synapses: List[SynapseInfo],
                         buffer: Double)
   case class SynapseInfo(neuronId: String, weight: SynapseTrait)
