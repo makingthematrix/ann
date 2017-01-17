@@ -19,7 +19,7 @@ class NetBuilder {
 
   private val neurons = mutable.Map[String,NeuronData]()
   private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
-  private val ins = mutable.Set[String]()
+  private val ins = mutable.SortedSet[String]()
   private val neuronsInitSilenced = mutable.Set[String]()
 
   private var currentNeuronId:Option[String] = None
@@ -118,13 +118,21 @@ class NetBuilder {
     this
   }
 
+  private def sortedNeurons = {
+    neurons.values.toList.sortWith((n1: NeuronData, n2: NeuronData) => {
+      if(ins.contains(n1.id)){
+        if(ins.contains(n2.id)) ins.compare(n1.id, n2.id) < 0 else true
+      }
+      else false
+    })
+  }
 
   def build(netName: String =netId) = {
     debug(this,s"build $netName")
     val net = NetRef(netName)
 
     debug(this, "building neurons")
-    val nRefs = neurons.values.map( nd => {
+    val nRefs = sortedNeurons.map( nd => {
       debug(this, s"creating ${nd.id}")
       nd.id -> createNeuronInNet(net, nd.withoutSynapses)
     }).toMap
@@ -145,13 +153,14 @@ class NetBuilder {
 
   def data = NetData(
     netId,
-    neurons.values.map( n =>
+    sortedNeurons.map( n =>
       n.withSynapses(synapses.getOrElse(n.id, Nil).toList)
-    ).toList.sortBy( _.id ),
+    ).sortBy( _.id ),
     ins.toList.sorted,
     defThreshold,
     defSilenceIterations,
-    defWeight
+    defWeight,
+    neuronsInitSilenced.toList.sorted
   )
 
   def set(data: NetData) = {
@@ -159,7 +168,7 @@ class NetBuilder {
 
     clear()
 
-    data.neurons.foreach( n => {
+    sortedNeurons.foreach( n => {
       neurons += (n.id -> n)
       val buffer = mutable.ListBuffer[SynapseData]()
       n.synapses.foreach( buffer += _ )

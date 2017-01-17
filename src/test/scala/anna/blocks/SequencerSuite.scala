@@ -5,7 +5,7 @@ import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
 import org.junit.Assert._
 import anna.async.NetBuilderOps._
-
+import anna.logger.LOG
 
 /**
   * Created by gorywoda on 1/17/17.

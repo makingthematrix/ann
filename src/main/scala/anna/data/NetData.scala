@@ -14,13 +14,16 @@ case class NetData(id: String,
                    inputs: List[String], // time wasted refactoring this to Set[String]: 3h; please update when needed
                    threshold: Double,
                    silenceIterations: SilenceIterationsTrait,
-                   weight: SynapseTrait){
+                   weight: SynapseTrait,
+                   neuronsInitSilenced: List[String]){
   def withId(id: String) = copy(id = id)
   def withNeurons(neurons: List[NeuronData]) = copy(neurons = neurons)
   def withInputs(inputs: List[String]) = copy(inputs = inputs)
   def withThreshold(threshold: Double) = copy(threshold = threshold)
   def withSilenceIterations(silenceIterations: SilenceIterationsTrait) = copy(silenceIterations = silenceIterations)
   def withWeight(weight: SynapseWeight) = copy(weight = weight)
+  def withNeuronsInitSilenced(neuronsInitSilenced: List[String]) = copy(neuronsInitSilenced = neuronsInitSilenced)
+
   def neuron(neuronId: String) = neurons.find(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
                                         .getOrElse(throw new IllegalArgumentException(s"No neuron found with id $neuronId"))
   def contains(neuronId: String) = neurons.exists(n => n.id == neuronId || NetData.removeNetId(n.id) == neuronId)
@@ -78,10 +81,10 @@ case class NetData(id: String,
 }
 
 object NetData {
-  def apply(id: String):NetData = NetData(id, Nil, Nil)
-  def apply(id: String, neurons: List[NeuronData], inputs: List[String]):NetData =
+  def apply(id: String):NetData = NetData(id, Nil, Nil, Nil)
+  def apply(id: String, neurons: List[NeuronData], inputs: List[String], neuronsInitSilenced: List[String]):NetData =
     NetData(id, neurons, inputs, Context().threshold,
-            SilenceIterations(Context().silenceIterations), Context().weight)
+            SilenceIterations(Context().silenceIterations), Context().weight, neuronsInitSilenced)
 
   def fromJson(jsonStr: String) = read[NetData](jsonStr)
 
