@@ -6,9 +6,9 @@ import anna.data.{SilenceForever, SynapseWeight}
 /**
   * Created by gorywoda on 1/17/17.
   */
-case class Sequencer(name: String) {
+case class Sequencer(name: String) extends NeuronBlock {
 
-  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+  override def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
     if(builder.isCurrent) builder.chain(inputId1, SynapseWeight(inputWeight), inputThreshold, SilenceForever())
     else builder.addMiddle(id=inputId1, threshold=0.0, silenceIterations = SilenceForever())
 
@@ -23,7 +23,11 @@ case class Sequencer(name: String) {
   val inputId1 = Sequencer.inputId1(name)
   val inputId2 = Sequencer.inputId2(name)
   val outputId = Sequencer.outputId(name)
-  val silencingId = Sequencer.silencingId(name)
+
+  override val silencingId = Sequencer.silencingId(name)
+
+  override val inputIds = Set(inputId1, inputId2)
+  override val outputIds = Set(outputId)
 }
 
 object Sequencer {

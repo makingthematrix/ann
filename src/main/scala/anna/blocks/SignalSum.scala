@@ -7,16 +7,10 @@ import anna.data.SilenceIterations
 /**
   * Created by gorywoda on 6/19/16.
   */
-case class SignalSum(name: String, requiredSignalsNumber: Int){
+case class SignalSum(name: String, requiredSignalsNumber: Int) extends NeuronBlock {
   import SignalSum.middleThreshold
 
-  lazy val data = {
-    val builder = NetBuilder()
-    chain(builder)
-    builder.data
-  }
-
-  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+  override def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
     val middleSynapseWeigth = middleThreshold/requiredSignalsNumber
 
     if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, 0)
@@ -29,7 +23,11 @@ case class SignalSum(name: String, requiredSignalsNumber: Int){
 
   val inputId = SignalSum.inputId(name)
   val outputId = SignalSum.outputId(name)
-  val silencingId = SignalSum.silencingId(name)
+
+  override val silencingId = SignalSum.silencingId(name)
+
+  override val inputIds = Set(inputId)
+  override val outputIds = Set(outputId)
 }
 
 object SignalSum {

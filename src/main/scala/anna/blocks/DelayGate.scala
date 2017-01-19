@@ -7,14 +7,9 @@ import anna.data.SilenceIterations
 /**
   * Created by gorywoda on 1/31/16.
   */
-case class DelayGate(name: String, delay: Int){
-  lazy val data = {
-    val builder = NetBuilder()
-    chain(builder)
-    builder.data
-  }
+case class DelayGate(name: String, delay: Int) extends NeuronBlock {
 
-  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+  override def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
     val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
     if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, delay)
     else builder.addMiddle(id=inputId, threshold=inputThreshold, silenceIterations=SilenceIterations(delay))
@@ -28,7 +23,11 @@ case class DelayGate(name: String, delay: Int){
   val inputId = DelayGate.inputId(name)
   val middleId = DelayGate.middleId(name)
   val outputId = DelayGate.outputId(name)
-  val silencingId = DelayGate.silencingId(name)
+
+  override val silencingId = DelayGate.silencingId(name)
+
+  override val inputIds = Set(inputId)
+  override val outputIds = Set(outputId)
 }
 
 object DelayGate {
