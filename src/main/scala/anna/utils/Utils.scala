@@ -136,9 +136,12 @@ object Utils {
       List(
         classOf[SynapseWeight],
         classOf[Silence],
+        classOf[SpeakUp],
         classOf[NeuronTypeStandard],
         classOf[NeuronTypeDummy],
-        classOf[NeuronTypeSilencing]
+        classOf[NeuronTypeSilencing],
+        classOf[SilenceIterations],
+        classOf[SilenceForever]
       )
     )
   )
