@@ -5,7 +5,6 @@ import org.junit.{After, Before, Test}
 import org.scalatest.junit.JUnitSuite
 import org.junit.Assert._
 import anna.async.NetBuilderOps._
-import anna.logger.LOG
 
 /**
   * Created by gorywoda on 1/17/17.
@@ -87,5 +86,22 @@ class SequencerSuite extends JUnitSuite  {
     netWrapper.iterateUntilCalm("01,01,01")
 
     assertFalse(fired)
+  }
+
+  @Test def shouldSignalTwice(): Unit ={
+    val outId = Sequencer.outputId(SEQ)
+    var fired = 0
+    netWrapper.addAfterFire(outId){ fired += 1 }
+
+    netWrapper.iterateUntilCalm("10,01,10,01")
+    assertEquals(2, fired)
+
+    fired = 0
+    netWrapper.iterateUntilCalm("01,01,10,01,10,01,10,10")
+    assertEquals(2, fired)
+
+    fired = 0
+    netWrapper.iterateUntilCalm("10,01,01,10,10,01")
+    assertEquals(2, fired)
   }
 }

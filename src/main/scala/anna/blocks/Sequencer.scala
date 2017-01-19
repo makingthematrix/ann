@@ -1,7 +1,6 @@
 package anna.blocks
 
 import anna.async.NetBuilder
-import anna.async.NetBuilderOps._
 import anna.data.{SilenceForever, SynapseWeight}
 
 /**
@@ -14,11 +13,10 @@ case class Sequencer(name: String) {
     else builder.addMiddle(id=inputId1, threshold=0.0, silenceIterations = SilenceForever())
 
     builder
-      .use(inputId1).chain(outputId, 0.0, 0.0, 0)
-      .addMiddle(id=inputId2, threshold=0.0, silenceIterations = SilenceForever()).initSilenced(inputId2)
+      .addMiddle(id=inputId2, threshold=inputThreshold, silenceIterations = SilenceForever()).initSilenced(inputId2)
       .use(inputId1).speakUp(inputId2).silence(inputId1)
-      .use(inputId2).silence(inputId1).connect(outputId, 1.0)
-      .addSilencingNeuron(silencingId).speakUp(inputId1).silence(inputId2).silence(outputId)
+      .use(inputId2).speakUp(inputId1).silence(inputId2)
+      .addSilencingNeuron(silencingId).speakUp(inputId1).silence(inputId2)
       .use(outputId)
   }
 
@@ -32,7 +30,7 @@ object Sequencer {
 
   val blockNamePrefix = "Sequencer"
   val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
-  val neuronsInBlock = 3
+  val neuronsInBlock = 2
 
   def nextName() = s"${blockNamePrefix}#${firstFreeId}#"
 
@@ -44,8 +42,8 @@ object Sequencer {
     Sequencer(newName)
   }
 
-  def inputId1(name: String) = s"${name}in1"
-  def inputId2(name: String) = s"${name}in2"
-  def outputId(name: String) = s"${name}out"
+  def inputId1(name: String) = s"${name}n1"
+  def inputId2(name: String) = s"${name}n2"
+  def outputId(name: String) = s"${name}n2"
   def silencingId(name: String) = s"${name}s"
 }
