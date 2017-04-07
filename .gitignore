@@ -27,4 +27,9 @@ src/main/resources/evolution/*
 contextMatrixTest*
 .cache-main
 .cache-tests
-doc/*.odt
+*.odp
+*.odt
+*.gif
+*.png
+*.jpg
+*.svg
