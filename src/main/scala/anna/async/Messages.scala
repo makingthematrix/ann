@@ -6,10 +6,11 @@ import anna.data.{NeuronData, SynapseTrait}
 object Messages {
   // signals
   case class Signal(s: Double, senderId: String)
-  case class SignalSeq(input: Seq[Double])
+  case class SignalList(inputs: List[Double])
 
   // commands
   case object SilenceRequest // become silent
+  case object WakeRequest // force wake up
   case class Connect(destinationRef: NeuronRef, weight: SynapseTrait)
   case class Disconnect(destinationId: String)
   case class CreateNeuron(data: NeuronData)

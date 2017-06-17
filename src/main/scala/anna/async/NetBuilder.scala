@@ -18,11 +18,12 @@ class NetBuilder {
   var defSilenceIterations = Context().silenceIterations
   var defWeight:SynapseTrait = Context().weight
 
-  private val neurons = mutable.Map[String,NeuronData]()
-  private val synapses = mutable.Map[String,mutable.ListBuffer[SynapseData]]()
+  private val neurons = mutable.Map[String, NeuronData]()
+  private val synapses = mutable.Map[String, mutable.ListBuffer[SynapseData]]()
   private val ins = mutable.Set[String]()
+  private val startSilent = mutable.Set[String]()
 
-  private var currentNeuronId:Option[String] = None
+  private var currentNeuronId: Option[String] = None
 
   def inputSet = ins.toSet
 
@@ -40,6 +41,7 @@ class NetBuilder {
   }
 
   def silence(id: String) = connect(id, Silence())
+  def wake(id: String) = connect(id, Wake())
 
   def connect(id: String, weight: SynapseTrait) = {
     assert(contains(id),s"There is no neuron with id $id")
@@ -54,8 +56,7 @@ class NetBuilder {
 
   def isCurrent = currentNeuronId != None
 
-  def chain(id: String, weight: SynapseTrait, threshold: Double,
-            silenceIterations: Int) = {
+  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: Int) = {
     val n1 = current
     addStandard(id, threshold, silenceIterations)
     addSynapse(n1.id, id, weight)
@@ -82,16 +83,23 @@ class NetBuilder {
     this
   }
 
+  def initSilent(id: String): NetBuilder = {
+    startSilent += id
+    this
+  }
+
+  def initSilent(): NetBuilder = initSilent(current.id)
+
   def addMiddle(id: String,
-                threshold: Double =defThreshold,
-                silenceIterations: Int =defSilenceIterations):NetBuilder =
+                threshold: Double = defThreshold,
+                silenceIterations: Int = defSilenceIterations):NetBuilder =
     addStandard(id, threshold, silenceIterations)
 
   def addMiddle():NetBuilder = addMiddle(generateId())
 
   def addSilencingNeuron(id: String) = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeSilencing(), id))
+    add(newNeuron(NeuronTypeSilencing(), id, 0.0))
     this
   }
 
@@ -106,7 +114,7 @@ class NetBuilder {
   def addStandard(id: String,
                   threshold: Double,
                   silenceIterations: Int) = {
-    LOG.info("new neuron: " + id)
+    debug(s"new neuron: $id")
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
     this
@@ -118,7 +126,7 @@ class NetBuilder {
 
     debug(this, "building neurons")
     val nRefs = neurons.values.map( nd => {
-      debug(this, s"creating ${nd.id}")
+      debug(this, s"creating $nd")
       nd.id -> createNeuronInNet(net, nd.withoutSynapses)
     }).toMap
 
@@ -129,9 +137,10 @@ class NetBuilder {
       nRef.setSynapses(nsyns)
     })
 
-    val insSeq = ins.toSeq
-    debug(this, s"setting inputs: $insSeq")
-    net.setInputs(insSeq)
+    startSilent.map(nRefs(_)).foreach( _.requestSilence() )
+
+    debug(this, s"setting inputs: $ins")
+    net.setInputs(ins.toList.sorted)
     debug(this, "done")
     NetWrapper(net)
   }
@@ -191,8 +200,10 @@ class NetBuilder {
     }
   }
 
-  private def newNeuron(neuronType: NeuronType, id: String,
-      threshold: Double =defThreshold, silenceIterations: Int =defSilenceIterations) =
+  private def newNeuron(neuronType: NeuronType,
+                        id: String,
+                        threshold: Double = defThreshold,
+                        silenceIterations: Int = defSilenceIterations) =
     NeuronData(id, threshold, silenceIterations, Nil, neuronType)
 
   private def add(n: NeuronData){

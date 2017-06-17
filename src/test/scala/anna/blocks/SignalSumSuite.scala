@@ -1,12 +1,10 @@
 package anna.blocks
 
-import anna.Context
 import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
-import anna.data.NetData
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{After, Before, Test}
+import org.junit.Test
 import org.scalatest.junit.JUnitSuite
 
 /**

@@ -12,7 +12,13 @@ class NeuronRef(val id: String, val ref: ActorRef) {
   def setSynapses(synapses: Seq[Synapse]) = if(synapses.nonEmpty) ref ! SetSynapses(synapses)
 
   def requestSilence() = {
+    debug(this, s"request silence for $id")
     ref ! SilenceRequest
+  }
+
+  def requestWakeUp() = {
+    debug(this, s"request wake up for $id")
+    ref ! WakeRequest
   }
   
   protected def calculateOutput = Double.NaN // we don't do that here 

@@ -34,14 +34,14 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def createSilencingNeuron(id: String) = await[NeuronRef](ref, CreateNeuron(NeuronData(id)))
 
-  def setInputs(seq: Seq[String]) = await[Answer](ref, SetInputs(seq))
+  def setInputs(seq: List[String]) = await[Answer](ref, SetInputs(seq))
 
-  def signal(seq: Seq[Double]) = {
-    ref ! SignalSeq(seq)
+  def signal(seq: List[Double]) = {
+    ref ! SignalList(seq)
     _iteration += 1
   }
 
-  def shutdown() = await[NetShutdownDone](ref,Shutdown)
+  def shutdown() = await[NetShutdownDone](ref, Shutdown)
 
   def info(id: String):NeuronInfo = find(id).neuronOpt match {
     case Some(neuronRef) => neuronRef.info

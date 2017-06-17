@@ -1,13 +1,13 @@
 package anna.async
 
-import anna.blocks.{DelayGate, SignalSum}
+import anna.blocks.{DelayGate, Sequencer, SignalSum}
 import anna.data._
 
 class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
-                  weight: SynapseTrait =builder.defWeight,
-                  threshold: Double =builder.defThreshold,
-                  silenceIterations: Int=builder.defSilenceIterations):NetBuilder =
+                          weight: SynapseTrait    = builder.defWeight,
+                          threshold: Double       = builder.defThreshold,
+                          silenceIterations: Int  = builder.defSilenceIterations):NetBuilder =
     builder.chain(id, weight, threshold, silenceIterations)
 
   def chain(id: String,
@@ -15,6 +15,7 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
             threshold: Double,
             silenceIterations: Int):NetBuilder =
     chainMiddle(id, SynapseWeight(weight), threshold, silenceIterations)
+
   def chain(id: String,
             weight: Double,
             threshold: Double):NetBuilder =
@@ -60,6 +61,8 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
     DelayGate(name, delay).chain(builder, inputWeight, inputTreshold)
 
   def signalSum(name: String, requiredSignals: Int) = SignalSum(name, requiredSignals).chain(builder)
+
+  def sequencer(name: String, in1Id: String, in2Id: String) = Sequencer(name).chain(builder, in1Id, in2Id)
 }
 
 object NetBuilderOps {
