@@ -6,6 +6,7 @@ import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
+import anna.async.NetBuilderOps._
 
 import scala.concurrent.{Await, Promise}
 
@@ -16,7 +17,7 @@ class NeuronTriggersSuite extends JUnitSuite {
   val timeout = Context().timeout
 
   @Test def shouldTriggerAfterFireWithNetWrapper(){
-    val wrapper = NetBuilder().addInput("in").chain("out", SynapseWeight(1.0), 0.9, 0).build()
+    val wrapper = NetBuilder().addInput("in").chain("out", 1.0, 0.9, 0).build()
 
     val p = Promise[Boolean]()
     wrapper.addAfterFire("out", "MyTrigger"){

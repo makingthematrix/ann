@@ -3,6 +3,7 @@ package anna.async
 import akka.actor._
 import anna.Context
 import anna.async.Messages._
+import anna.async.Neuron.SilenceIterations
 import anna.logger.LOG
 import anna.utils.Utils
 
@@ -12,9 +13,12 @@ import scala.concurrent.duration._
 class Neuron(val id: String,
              val netId: String,
              val threshold: Double,
-             val silenceIterations: Int,
+             val silenceIterations: SilenceIterations,
              protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
+  require(silenceIterations >= Neuron.SilenceForever)
+  require(threshold >= 0.0 && threshold <= 1.0)
+
   implicit val that = this
 
   protected var buffer = 0.0
@@ -55,14 +59,21 @@ class Neuron(val id: String,
       sleepingTimestamp = None
     }
 
-    val t = Context().iterationTime * silenceIterations
-    if(t > 0){
+    if(!silentForever){
+      val t = Context().iterationTime * silenceIterations
+      if(t > 0){
+        context.become(silence)
+        schedulerBuffer.schedule(t millis){ wakeFromSilence() }
+      }
+    } else {
+      LOG += "becoming silent forever"
       context.become(silence)
-      schedulerBuffer.schedule(t millis){ wakeFromSilence() }
     }
 
     triggerSilenceRequested()
   }
+
+  private lazy val silentForever = silenceIterations == Neuron.SilenceForever
 
   private def wakeFromSilence() = {
     LOG += s"waking up from a silence request"
@@ -118,9 +129,9 @@ class Neuron(val id: String,
     answer(Success(id))
   }
 
-  def receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
+  def receive: Receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
 
-  def silence = silentBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, silence")
+  def silence: Receive = silentBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, silence")
 
   val activeBehaviour: Receive = {
     case Signal(s, senderId) =>
@@ -135,6 +146,9 @@ class Neuron(val id: String,
     case Signal(s, senderId) =>
       LOG += s"signal $s from $senderId ignored"
       triggerSignalIgnored()
+    case WakeRequest =>
+      LOG += s"wake request received"
+      wakeFromSilence()
   }
 
   val commonBehaviour: Receive = {
@@ -170,4 +184,9 @@ class Neuron(val id: String,
   }
 
   def info = NeuronInfo(id, netId, threshold, silenceIterations, synapses.map(_.info), buffer)
+}
+
+object Neuron {
+  type SilenceIterations = Int
+  val SilenceForever: SilenceIterations = -1
 }

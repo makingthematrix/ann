@@ -8,7 +8,7 @@ import scala.collection.mutable
 
 class Net(val id: String) extends Actor {
   private val neurons = mutable.ListBuffer[NeuronRef]()
-  private var ins = List[NeuronRef]()
+  private var inputs = List[NeuronRef]()
 
   def receive: Receive = {
     case GetId => sender ! Msg(0.0, id)
@@ -16,9 +16,9 @@ class Net(val id: String) extends Actor {
     case CreateNeuron(data) => createNeuron(data)
     case Shutdown => shutdown()
     case GetInputs => sender ! MsgNeurons(inputs)
-    case SetInputs(ids) => setInputs(ids)
+    case SetInputs(ids) => setInputs(ids.toSet)
     case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
-    case SignalSeq(in) => signal(in)
+    case SignalList(in) => signal(in)
     case Reset => resetBuffer()
     case RemoveAllTriggers => removeTriggers()
     case RemoveAfterFireTrigger(id) => removeAfterFire(id)
@@ -53,18 +53,6 @@ class Net(val id: String) extends Actor {
         caller ! Success(id)
         context.become(receive)
       } else context.become(waiting(caller, newWaitingFor, title))
-  }
-
-  private def inputs = ins.toList
-
-  private def middles = {
-    val inputIds = ins.map( _.id ).toSet
-    neurons.filterNot( n => inputIds.contains(n.id) ).toList
-  }
-
-  private def remove(id: String) = findRef(id) match {
-    case Some(ref) => neurons -= ref
-    case None =>
   }
 
   private def resetBuffer() = {
@@ -110,17 +98,17 @@ class Net(val id: String) extends Actor {
     add(id, ref)
   }
 
-  private def signal(in: Seq[Double]){
-    assert(in.size == ins.size, s"Difference in size between the input layer (${ins.size}) and the input (${in.size})")
-    ins.zip(in).foreach {
+  private def signal(in: List[Double]){
+    assert(in.size == inputs.size, s"Difference in size between the input layer (${inputs.size}) and the input (${in.size})")
+    inputs.zip(in).foreach {
       case (inputNeuron: NeuronRef, signal: Double) => inputNeuron ! Signal(signal, "Input")
     }
   }
 
-  private def setInputs(ids: Seq[String]){
-    ins = neurons.filter( n => ids.contains(n.id) ).toList
-    if(ins.size != ids.size){
-      val inIds = ins.map( _.id )
+  private def setInputs(ids: Set[String]){
+    inputs = neurons.filter( n => ids.contains(n.id) ).toList.sortBy(_.id)
+    if(inputs.size != ids.size){
+      val inIds = inputs.map( _.id )
       val notFound = ids.filterNot( inIds.contains(_) )
       sender ! Failure(s"setInputs, unable to find neurons with ids: $notFound")
     } else {

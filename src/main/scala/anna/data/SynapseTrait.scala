@@ -18,9 +18,14 @@ case class Silence() extends SynapseTrait {
   def toJson = writePretty(this)
 }
 
+case class Wake() extends SynapseTrait {
+  def toJson = writePretty(this)
+}
+
 object SynapseTrait {
   def apply(str: String) = str match {
     case "Silence" => Silence()
+    case "Wake" => Wake()
     case str => SynapseWeight(str.toDouble)
   }
 

@@ -11,7 +11,7 @@ class NetWrapper(val net: NetRef) {
   lazy val size = net.inputSize
 
   private val signRegister = mutable.Map[Char,Double]()
-  private val inputQueue = mutable.Queue[Seq[Double]]()
+  private val inputQueue = mutable.Queue[List[Double]]()
   private var _iteration = 1
 
   def iteration = _iteration
@@ -27,29 +27,31 @@ class NetWrapper(val net: NetRef) {
 
   def info(id: String) = find(id).info
     
-  def add(input: Seq[Double]) = {
+  def add(input: List[Double]) = {
 	  assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
     inputQueue += input
   }
   
   def addEmptyInput = add(generateEmptyInput)
-  def +=(input: Seq[Double]) = add(input)
-  def +=(d: Double) = add(Seq(d))
-  def +=(t: (Double,Double)) = add(Seq(t._1,t._2))
-  def +=(t: (Double,Double,Double)) = add(Seq(t._1,t._2,t._3))
+  def +=(input: List[Double]) = add(input)
+  def +=(d: Double) = add(List(d))
+  def +=(t: (Double,Double)) = add(List(t._1,t._2))
+  def +=(t: (Double,Double,Double)) = add(List(t._1,t._2,t._3))
   
-  def generateEmptyInput:Seq[Double] = for(i <- 1 to size) yield 0.0
+  def generateEmptyInput = List.fill(size)(0.0)
 
   def regSign(sign: Char,input: Double) = signRegister += (sign -> input)
 
-  def +=(input: String) = input.split(",").toSeq.map(
-    _.toCharArray().toSeq.map( c =>
-      if(signRegister.contains(c)) signRegister(c)
+  def +=(input: String) = {
+    val in = input.split(",").toList
+    in.map( str => str.toCharArray.map(
+      c => if(signRegister.contains(c)) signRegister(c)
       else throw new IllegalArgumentException(s"No input registered with sign $c")
-  )).foreach( add )
+    ).toList).foreach( add )
+  }
 
   def +=(c: Char) = {
-    if(signRegister.contains(c)) add(Seq(signRegister(c)))
+    if(signRegister.contains(c)) add(List(signRegister(c)))
     else throw new IllegalArgumentException(s"No input registered with sign $c")
   }
 
@@ -67,6 +69,7 @@ class NetWrapper(val net: NetRef) {
   def tick(n: Int):Unit = {
     for(i <- 1 to n) {
       val input = popInput()
+      LOG.debug(s"input: $input")
       if(input.sum > 0.0) { // so if the input is empty we do nothing
         net.signal(input)
       }
@@ -108,7 +111,7 @@ class NetWrapper(val net: NetRef) {
 
   def shutdown() = {
     net.shutdown()
-    Thread.sleep(100L)
+    Thread.sleep(200L)
   }
 
   def reset() = net.reset()
