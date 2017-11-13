@@ -1,5 +1,6 @@
 package anna.data
 
+import anna.async.Neuron.StartActive
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{Before, Test}
@@ -72,7 +73,7 @@ class JsonSuite extends JUnitSuite {
   }
 
   @Test def shouldMakeJsonFromNeuronData() = {
-    val n1 = NeuronData("id1",0.0, 1, Nil)
+    val n1 = NeuronData("id1",0.0, 1, StartActive, Nil)
     val json = n1.toJson
     val n2 = NeuronData.fromJson(json)
     assertEquals(n1, n2)

@@ -7,8 +7,9 @@ import anna.data._
 import anna.logger.LOG._
 import anna.utils.Utils.{assert, await}
 import akka.pattern.ask
-import scala.collection.mutable
+import anna.async.Neuron.{StartActive, StartSilent}
 
+import scala.collection.mutable
 import anna.logger.LOG
 
 class NetBuilder {
@@ -21,7 +22,6 @@ class NetBuilder {
   private val neurons = mutable.Map[String, NeuronData]()
   private val synapses = mutable.Map[String, mutable.ListBuffer[SynapseData]]()
   private val ins = mutable.Set[String]()
-  private val startSilent = mutable.Set[String]()
 
   private var currentNeuronId: Option[String] = None
 
@@ -83,12 +83,12 @@ class NetBuilder {
     this
   }
 
-  def initSilent(id: String): NetBuilder = {
-    startSilent += id
+  def initSilent(): NetBuilder = {
+    require(neurons(current.id).silenceIterations == Neuron.SilenceForever,
+      s"initSilent for ${current.id}: you should set silenceIterations to SilenceForever first")
+    neurons += current.id -> neurons(current.id).withInitialState(StartSilent)
     this
   }
-
-  def initSilent(): NetBuilder = initSilent(current.id)
 
   def addMiddle(id: String,
                 threshold: Double = defThreshold,
@@ -136,8 +136,6 @@ class NetBuilder {
       debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
       nRef.setSynapses(nsyns)
     })
-
-    startSilent.map(nRefs(_)).foreach( _.requestSilence() )
 
     debug(this, s"setting inputs: $ins")
     net.setInputs(ins.toList.sorted)
@@ -204,7 +202,7 @@ class NetBuilder {
                         id: String,
                         threshold: Double = defThreshold,
                         silenceIterations: Int = defSilenceIterations) =
-    NeuronData(id, threshold, silenceIterations, Nil, neuronType)
+    NeuronData(id, threshold, silenceIterations, StartActive, Nil, neuronType)
 
   private def add(n: NeuronData){
     neurons.put(n.id, n)

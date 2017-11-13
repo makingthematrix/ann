@@ -3,17 +3,18 @@ package anna.async
 import akka.actor._
 import anna.Context
 import anna.async.Messages._
-import anna.async.Neuron.SilenceIterations
+import anna.async.Neuron.{InitialState, SilenceIterations, StartActive, StartSilent}
 import anna.logger.LOG
 import anna.utils.Utils
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class Neuron(val id: String,
              val netId: String,
              val threshold: Double,
              val silenceIterations: SilenceIterations,
+             val initialState: InitialState,
              protected var synapses: List[Synapse] = List[Synapse]()
 ) extends Actor with NeuronTriggers {
   require(silenceIterations >= Neuron.SilenceForever)
@@ -23,8 +24,10 @@ class Neuron(val id: String,
 
   protected var buffer = 0.0
   private val schedulerBuffer = new SchedulerBuffer(context)
+
   override def preStart():Unit = {
     NeuronCounter.reg(netId, id, self)
+    setInitialState()
   }
 
   override def postStop():Unit = {
@@ -119,7 +122,7 @@ class Neuron(val id: String,
     buffer = 0.0
     LOG += s"(reset) buffer is now $printBuffer"
 
-    context.become(receive)
+    setInitialState()
     schedulerBuffer.clear()
     answer(Success(id))
   }
@@ -127,6 +130,11 @@ class Neuron(val id: String,
   private def removeTriggers(): Unit ={
     removeAllTriggers()
     answer(Success(id))
+  }
+
+  private def setInitialState() = initialState match {
+    case StartSilent => context.become(silence)
+    case StartActive => context.become(receive)
   }
 
   def receive: Receive = activeBehaviour orElse commonBehaviour orElse otherBehaviour(s"$id, active")
@@ -183,10 +191,14 @@ class Neuron(val id: String,
     case other => LOG += s"$state, unrecognized message: $other"
   }
 
-  def info = NeuronInfo(id, netId, threshold, silenceIterations, synapses.map(_.info), buffer)
+  def info = NeuronInfo(id, netId, threshold, silenceIterations, initialState, synapses.map(_.info), buffer)
 }
 
 object Neuron {
   type SilenceIterations = Int
   val SilenceForever: SilenceIterations = -1
+
+  sealed trait InitialState
+  object StartActive extends InitialState
+  object StartSilent extends InitialState
 }

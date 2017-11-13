@@ -1,5 +1,7 @@
 package anna.async
 
-class DummyNeuron(override val id: String, override val netId: String)
-extends Neuron(id, netId, 0.0, 0) {
+import anna.async.Neuron.InitialState
+
+class DummyNeuron(override val id: String, override val netId: String, override val initialState: InitialState)
+extends Neuron(id, netId, 0.0, 0, initialState) {
 }

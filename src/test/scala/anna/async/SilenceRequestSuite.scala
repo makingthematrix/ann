@@ -2,7 +2,7 @@ package anna.async
 
 import anna.Context
 import anna.async.NetBuilderOps._
-import anna.data.Silence
+import anna.data.{Silence, SynapseWeight}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
@@ -101,5 +101,45 @@ class SilenceRequestSuite extends JUnitSuite {
     assertTrue(silenceRequestReceived)
 
     netWrapper.shutdown()
+  }
+
+  @Test def shouldInitSilent(): Unit = {
+    val net = NetBuilder().addInput("in").chain("SILENT", 1.0, 0.0, Neuron.SilenceForever).initSilent()
+        .addInput("wake").wake("SILENT")
+        .build()
+
+    LOG.allow("SILENT")
+
+    var signalIgnored = false
+    var outputFired = false
+
+    net.addSignalIgnored("SILENT"){ signalIgnored = true }
+    net.addAfterFire("SILENT"){ outputFired = true }
+
+    // sending 1 through 'in' should result in signal ignored
+    net.iterateUntilCalm("10")
+    assertTrue(signalIgnored)
+    assertFalse(outputFired)
+
+    signalIgnored = false
+
+    // sending 1 through 'wake' should wake the neuron but not let it fire
+    net.iterateUntilCalm("01")
+    assertFalse(signalIgnored)
+    assertFalse(outputFired)
+
+    // but now 1 should result in output fired, not ignored
+    net.iterateUntilCalm("10")
+    assertFalse(signalIgnored)
+    assertTrue(outputFired)
+
+    outputFired = false
+    // net reset should bring back the original setting
+    net.reset()
+    net.iterateUntilCalm("10")
+    assertTrue(signalIgnored)
+    assertFalse(outputFired)
+
+    net.shutdown()
   }
 }

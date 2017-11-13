@@ -1,11 +1,12 @@
 package anna.async
 
 import anna.async.Messages._
+import anna.async.Neuron.StartActive
 import anna.data.Wake
 import anna.logger.LOG
 
 class SilencingNeuron(override val id: String, override val netId: String)
-extends Neuron(id, netId, 0.0, 0) {
+extends Neuron(id, netId, 0.0, 0, StartActive) {
   private def sendRequest() = {
     synapses.foreach( s => s.weight match {
       case Wake() =>

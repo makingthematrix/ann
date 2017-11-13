@@ -2,6 +2,7 @@ package anna.async
 
 import akka.actor._
 import anna.async.Messages._
+import anna.async.Neuron.InitialState
 import anna.data.NeuronData
 
 import scala.collection.mutable
@@ -78,18 +79,18 @@ class Net(val id: String) extends Actor {
   }
 
   private def createNeuron(data:NeuronData) = data.neuronType match {
-    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.silenceIterations)
-    case NeuronTypeDummy() => createDummy(data.id, data.silenceIterations)
+    case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.silenceIterations, data.initialState)
+    case NeuronTypeDummy() => createDummy(data.id, data.silenceIterations, data.initialState)
     case NeuronTypeSilencing() => createSilencing(data.id)
   }
 
-  private def createStandard(id: String, threshold: Double, silenceIterations: Int) = {
-	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, silenceIterations)))
+  private def createStandard(id: String, threshold: Double, silenceIterations: Int, initialState: InitialState) = {
+	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, silenceIterations, initialState)))
     add(id, ref)
   }
 
-  private def createDummy(id: String, silenceIterations: Int) = {
-	  val ref = context.actorOf(Props(new DummyNeuron(id, this.id)))
+  private def createDummy(id: String, silenceIterations: Int, initialState: InitialState) = {
+	  val ref = context.actorOf(Props(new DummyNeuron(id, this.id, initialState)))
     add(id, ref)
   }
 

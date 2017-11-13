@@ -3,6 +3,7 @@ package anna.async
 import akka.actor.{ActorRef, Props}
 import anna.Context
 import anna.async.Messages._
+import anna.async.Neuron.{InitialState, StartActive}
 import anna.data.NeuronData
 import anna.logger.LOG._
 import anna.utils.Utils.await
@@ -26,8 +27,8 @@ class NetRef(val id: String, val ref: ActorRef) {
 
   def find(id: String) = await[MsgNeuron](ref, GetNeuron(id))
 
-  def createNeuron(id: String, threshold: Double, silenceIterations: Int) =
-    await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, silenceIterations, Nil)))
+  def createNeuron(id: String, threshold: Double, silenceIterations: Int, initialState: InitialState = StartActive) =
+    await[NeuronRef](ref, CreateNeuron(NeuronData(id, threshold, silenceIterations, initialState, Nil)))
 
   def createDummy(id: String, silenceIterations: Int) =
     await[NeuronRef](ref, CreateNeuron(NeuronData(id, silenceIterations)))

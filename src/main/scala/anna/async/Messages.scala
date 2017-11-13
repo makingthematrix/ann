@@ -1,5 +1,6 @@
 package anna.async
 
+import anna.async.Neuron.InitialState
 import anna.async.NeuronTriggers.Trigger
 import anna.data.{NeuronData, SynapseTrait}
 
@@ -47,6 +48,7 @@ object Messages {
                         netId: String,
                         threshold: Double,
                         silenceIterations: Int,
+                        initialState: InitialState,
                         synapses: List[SynapseInfo],
                         buffer: Double)
   case class SynapseInfo(neuronId: String, weight: SynapseTrait)
