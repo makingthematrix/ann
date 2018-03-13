@@ -8,6 +8,7 @@ Artificial Neural Networks in Akka
 ### Documentation
   * [Abstract]
   * [Full article]
+  * [A video from my gig on Scalar 2017](https://www.youtube.com/watch?v=5r4LSQT7Uc4&t=1s)
   * [Further ideas]
 
 If you want to look at only one class in this project then it's probably [this one](https://github.com/makingthematrix/ann/blob/SOSWithBlock_1.0/src/main/scala/anna/async/Neuron.scala).
