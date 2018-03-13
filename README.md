@@ -11,6 +11,7 @@ Artificial Neural Networks in Akka
   * [Further ideas]
 
 If you want to look at only one class in this project then it's probably [this one](https://github.com/makingthematrix/ann/blob/SOSWithBlock_1.0/src/main/scala/anna/async/Neuron.scala).
+
 You can also check my other project: [GAI Library](https://github.com/makingthematrix/gailibrary), a small library for Artificial Intelligence in computer games, based on cellular automata. I focus on it now and I use it to learn Rust. When I develop it to a point when it's possible to use it in practical cases I plan to come back to ANN, and then switch between the two from time to time. (Hopefully I won't start writing yet another one).
 
 ### How to Install
