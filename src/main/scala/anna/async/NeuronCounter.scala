@@ -5,8 +5,7 @@ import anna.Context
 import scala.collection.mutable
 import anna.logger.LOG._
 import anna.logger.LOG
-
-import akka.actor.{PoisonPill, ActorRef, TypedProps, TypedActor}
+import akka.actor.{ActorRef, PoisonPill, TypedActor, TypedActorExtension, TypedProps}
 
 /**
  * Created by gorywoda on 23.06.15.
@@ -61,7 +60,9 @@ object NeuronCounter {
   def apply() = instanceOpt match {
     case Some(instance) => instance
     case None =>
-      val instance = TypedActor(Context().system).typedActorOf(TypedProps(classOf[NeuronCounter], new NeuronCounterImpl("default")))
+      val typedProps: TypedProps[NeuronCounter] = TypedProps(classOf[NeuronCounter], new NeuronCounterImpl("default"))
+      val typedActor: TypedActorExtension = TypedActor(Context().system)
+      val instance: NeuronCounter = typedActor.typedActorOf(typedProps)
       instanceOpt = Some(instance)
       instance
   }

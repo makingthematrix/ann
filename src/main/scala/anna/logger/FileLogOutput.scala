@@ -5,7 +5,7 @@ import java.io.{BufferedWriter, File, FileWriter, IOException}
 class FileLogOutput(val fileName: String) extends LogOutput {
   private var writer:Option[BufferedWriter] = None
   
-  private def newWriter = {
+  private def newWriter: BufferedWriter = {
     val file = new File(fileName)
 	if (!file.exists()) {
 	  file.createNewFile()
@@ -15,7 +15,7 @@ class FileLogOutput(val fileName: String) extends LogOutput {
 	new BufferedWriter(new FileWriter(file, true))
   }
   
-  private def getWriter = writer match {
+  private def getWriter: BufferedWriter = writer match {
     case Some(w) => w
     case None => {
       val w = newWriter
@@ -24,7 +24,7 @@ class FileLogOutput(val fileName: String) extends LogOutput {
     }
   }
   
-  override def println(str: String) = try {
+  override def println(str: String): Unit = try {
     val w = getWriter
     w.write(str)
 	w.newLine()

@@ -4,18 +4,18 @@ import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NeuronTypeDummy, NeuronTypeStandard}
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{Before, Test}
-import org.scalatest.junit.JUnitSuite
+import org.junit.Before
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
  * Created by gorywoda on 03.01.15.
  */
-class NetDataSuite extends JUnitSuite {
-  @Before def before(): Unit = {
+class NetDataSuite extends AnyFunSuite {
+  @Before def before(): Unit =  {
     LOG.addLogToStdout()
   }
 
-  @Test def shouldMakeNetDataFromJson() = {
+  test("shouldMakeNetDataFromJson") {
     val s1 = SynapseData("id2",1.0)
     val n1 = NeuronData("id1",0.0, 1, List(s1), NeuronTypeDummy())
     val n2 = NeuronData("id2",0.0, 2, Nil)
@@ -25,7 +25,7 @@ class NetDataSuite extends JUnitSuite {
     assertEquals(netData, NetData.fromJson(json))
   }
 
-  @Test def shouldMakeNetDataWithBuilder() = {
+  test("shouldMakeNetDataWithBuilder") {
     val s1 = SynapseData("id2",1.0)
     val n1 = NeuronData("id1", 1).withSynapses(List(s1))
     val n2 = NeuronData("id2",0.0, 2, Nil)
@@ -43,7 +43,7 @@ class NetDataSuite extends JUnitSuite {
     assertEquals(netData.toJson, builder.data.toJson)
   }
 
-  @Test def shouldBuildNetWithData() = {
+  test("shouldBuildNetWithData") {
     val s1 = SynapseData("id2",1.0)
     val n1 = NeuronData("id1", 0.0, 1, List(s1), NeuronTypeDummy())
     val n2 = NeuronData("id2", 0.0, 2, Nil, NeuronTypeStandard())

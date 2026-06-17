@@ -3,17 +3,17 @@ package anna.data
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{Before, Test}
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
  * Created by gorywoda on 27.12.14.
  */
-class JsonSuite extends JUnitSuite {
-  @Before def before(): Unit = {
+class JsonSuite extends AnyFunSuite {
+  @Before def before(): Unit =  {
     LOG.addLogToStdout()
   }
 
-  @Test def shouldMakeJsonFromSynapseData() = {
+  test("shouldMakeJsonFromSynapseData") {
     val expectedJson1 =
       """
         |{
@@ -40,7 +40,7 @@ class JsonSuite extends JUnitSuite {
     assertEquals(expectedJson2, data2.toJson)
   }
 
-  @Test def shouldMakeSynapseDataFromJson() = {
+  test("shouldMakeSynapseDataFromJson") {
     val json1 =
       """
         |{
@@ -71,7 +71,7 @@ class JsonSuite extends JUnitSuite {
     assertEquals(d4, SynapseData.fromJson(json4))
   }
 
-  @Test def shouldMakeJsonFromNeuronData() = {
+  test("shouldMakeJsonFromNeuronData") {
     val n1 = NeuronData("id1",0.0, 1, Nil)
     val json = n1.toJson
     val n2 = NeuronData.fromJson(json)

@@ -6,17 +6,17 @@ import anna.data.Silence
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.{Await, Promise}
 
-class SilenceRequestSuite extends JUnitSuite {
+class SilenceRequestSuite extends AnyFunSuite {
 
   val threshold = Context().threshold
   val silenceIterations = Context().silenceIterations
   val timeout = Context().timeout
 
-  @Test def shouldSendSilenceRequest(){
+  test("shouldSendSilenceRequest") {
     val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
@@ -40,7 +40,7 @@ class SilenceRequestSuite extends JUnitSuite {
     net.shutdown()
   }
 
-  @Test def shouldSendSilenceRequestThroughBuilder(){
+  test("shouldSendSilenceRequestThroughBuilder") {
     val netWrapper = NetBuilder().addInput("id1").addMiddle("id2")
                                  .use("id1").silence("id2").build()
 
@@ -59,7 +59,7 @@ class SilenceRequestSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldUseSilencingNeuron(){
+  test("shouldUseSilencingNeuron") {
     val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
@@ -85,7 +85,7 @@ class SilenceRequestSuite extends JUnitSuite {
     net.shutdown()
   }
 
-  @Test def shouldUseSilencingNeuronWithBuilder(){
+  test("shouldUseSilencingNeuronWithBuilder") {
     val netWrapper = NetBuilder().addInput("id1").chainSilencingNeuron("silencingneuron").chain("id2").build()
 
     var silenceRequestReceived = false

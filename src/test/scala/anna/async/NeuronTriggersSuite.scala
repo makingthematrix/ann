@@ -5,18 +5,18 @@ import anna.data.SynapseWeight
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
 import anna.async.NetBuilderOps._
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.{Await, Promise}
 
 /**
   * Created by gorywoda on 10/31/16.
   */
-class NeuronTriggersSuite extends JUnitSuite {
+class NeuronTriggersSuite extends AnyFunSuite {
   val timeout = Context().timeout
 
-  @Test def shouldTriggerAfterFireWithNetWrapper(){
+  test("shouldTriggerAfterFireWithNetWrapper") {
     val wrapper = NetBuilder().addInput("in").chain("out", 1.0, 0.9, 0).build()
 
     val p = Promise[Boolean]()
@@ -34,7 +34,7 @@ class NeuronTriggersSuite extends JUnitSuite {
     wrapper.shutdown()
   }
 
-  @Test def shouldTriggerAfterFireWithNeuron(){
+  test("shouldTriggerAfterFireWithNeuron") {
     val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", 0.0, 0)
@@ -58,7 +58,7 @@ class NeuronTriggersSuite extends JUnitSuite {
     net.shutdown()
   }
 
-  @Test def shouldTriggerAfterFireWithNet(){
+  test("shouldTriggerAfterFireWithNet") {
     val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", 0.0, 0)

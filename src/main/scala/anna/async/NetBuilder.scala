@@ -132,7 +132,7 @@ class NetBuilder {
 
     debug(this, "building synapses")
     nRefs.values.foreach(nRef => {
-      val nsyns = synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight))
+      val nsyns: Seq[Synapse] = synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight)).toSeq
       debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
       nRef.setSynapses(nsyns)
     })

@@ -6,9 +6,9 @@ import anna.logger.LOG
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.junit.{After, Before, Test}
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class LineNetSuite extends JUnitSuite {
+class LineNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
   
@@ -28,7 +28,7 @@ class LineNetSuite extends JUnitSuite {
     (netWrapper, sb)
   }
   
-  @Test def shouldLineThenNothing1(){
+  test("shouldLineThenNothing1"){
     val (netWrapper, sb) = lineNet2
     
     netWrapper += "1,1,0,0,0,0"
@@ -39,7 +39,7 @@ class LineNetSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
   
-  @Test def shouldLine3Times(){
+  test("shouldLine3Times"){
     val (netWrapper, sb) = lineNet2
 
     netWrapper += "1,1,0,1,1,0,1,1,0"
@@ -57,7 +57,7 @@ class LineNetSuite extends JUnitSuite {
            .chain("line",1.0,0.0).silence("line")
            .build()
 
-  @Test def shouldHaveLineInterval3() = {
+  test("shouldHaveLineInterval3") {
     val netWrapper = lineNet3
     debug("------------")
     var lines = 0

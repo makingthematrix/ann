@@ -2,18 +2,18 @@ lazy val root = (project in file(".")).
   settings(
     name := "anna",
     version := "1.0",
-    scalaVersion := "2.11.8"
+    scalaVersion := "2.13.18"
   )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.14",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.14",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-  "com.typesafe" % "config" % "1.3.1",
-  "junit" % "junit" % "4.11" % "test",
+  "com.typesafe.akka" %% "akka-actor" % "2.8.8",
+  "com.typesafe.akka" %% "akka-testkit" % "2.8.8",
+  "org.scalatest" %% "scalatest" % "3.2.20" % "test",
+  "com.typesafe" % "config" % "1.4.9",
+  "junit" % "junit" % "4.13.2" % "test",
   "com.novocode" % "junit-interface" % "0.11" % "test",
   "org.apache.commons" % "commons-io" % "1.3.2",
-  "org.json4s" %% "json4s-native" % "3.3.0"
+  "org.json4s" %% "json4s-native" % "4.0.7"
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")

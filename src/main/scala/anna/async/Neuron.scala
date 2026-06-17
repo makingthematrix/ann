@@ -19,7 +19,7 @@ class Neuron(val id: String,
   require(silenceIterations >= Neuron.SilenceForever)
   require(threshold >= 0.0 && threshold <= 1.0)
 
-  implicit val that = this
+  implicit val that: Neuron = this
 
   protected var buffer = 0.0
   private val schedulerBuffer = new SchedulerBuffer(context)
@@ -39,7 +39,7 @@ class Neuron(val id: String,
 
   private def makeSleep() = {
     LOG += s"going to sleep for ${Context().iterationTime} ms"
-    sleepingTimestamp = Some(schedulerBuffer.schedule(Context().iterationTime millis){ wakeUp() })
+    sleepingTimestamp = Some(schedulerBuffer.schedule(Context().iterationTime.millis){ wakeUp() })
   }
 
   private def wakeUp(){
@@ -63,7 +63,7 @@ class Neuron(val id: String,
       val t = Context().iterationTime * silenceIterations
       if(t > 0){
         context.become(silence)
-        schedulerBuffer.schedule(t millis){ wakeFromSilence() }
+        schedulerBuffer.schedule(t.millis){ wakeFromSilence() }
       }
     } else {
       LOG += "becoming silent forever"

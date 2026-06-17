@@ -35,8 +35,8 @@ case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: N
       actorSystem
   }
 
-  def shutdownSystem() = if(systemOpt != None) {
-    systemOpt.get.shutdown()
+  def shutdownSystem() = if(systemOpt.isDefined) {
+    systemOpt.get.terminate()
     systemOpt = None
   }
 
@@ -45,10 +45,10 @@ case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: N
 }
 
 object Context {
-  private var instance:Option[Context] = None
+  private var instance: Option[Context] = None
 
   def apply(): Context = {
-    if(instance == None) init()
+    if(instance.isEmpty) init()
     instance.get
   }
 

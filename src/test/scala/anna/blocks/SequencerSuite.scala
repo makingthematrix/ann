@@ -5,12 +5,9 @@ import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.{After, Test}
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-/**
-  * Created by samuel on 17.06.17.
-  */
-class SequencerSuite extends JUnitSuite {
+class SequencerSuite extends AnyFunSuite {
   private var _wrapper: Option[NetWrapper] = None
 
   @After def tearDown(): Unit = _wrapper match {
@@ -31,7 +28,7 @@ class SequencerSuite extends JUnitSuite {
       .build()
   )
 
-  @Test def shouldAccept1001(): Unit = {
+  test("shouldAccept1001(") {
     sequencer("sequencer")
 
     var fired = false
@@ -41,7 +38,7 @@ class SequencerSuite extends JUnitSuite {
     assertTrue(fired)
   }
 
-  @Test def shouldIgnore10(): Unit = {
+  test("shouldIgnore10(") {
     sequencer("sequencer")
     var fired = false
 
@@ -51,7 +48,7 @@ class SequencerSuite extends JUnitSuite {
     assertFalse(fired)
   }
 
-  @Test def shouldIgnore01(): Unit = {
+  test("shouldIgnore01(") {
     sequencer("sequencer")
     var fired = false
 
@@ -61,7 +58,7 @@ class SequencerSuite extends JUnitSuite {
     assertFalse(fired)
   }
 
-  @Test def shouldIgnore1010(): Unit = {
+  test("shouldIgnore1010(") {
     sequencer("sequencer")
     var fired = false
 
@@ -72,7 +69,7 @@ class SequencerSuite extends JUnitSuite {
   }
 
 
-  @Test def shouldIgnore0101(): Unit = {
+  test("shouldIgnore0101(") {
     sequencer("sequencer")
     var fired = false
 
@@ -83,7 +80,7 @@ class SequencerSuite extends JUnitSuite {
   }
 
 
-  @Test def shouldAcceptTwoConsecutive(): Unit = {
+  test("shouldAcceptTwoConsecutive(") {
     sequencer("sequencer")
     var fired = 0
 
@@ -93,7 +90,7 @@ class SequencerSuite extends JUnitSuite {
     assertEquals(2, fired)
   }
 
-  @Test def shouldAcceptOnlyFirst1(): Unit = {
+  test("shouldAcceptOnlyFirst1(") {
     sequencer("sequencer")
     var fired = 0
 
@@ -103,7 +100,7 @@ class SequencerSuite extends JUnitSuite {
     assertEquals(1, fired)
   }
 
-  @Test def shouldAcceptOnlyFirst2(): Unit = {
+  test("shouldAcceptOnlyFirst2(") {
     sequencer("sequencer")
     var fired = 0
 
@@ -113,7 +110,7 @@ class SequencerSuite extends JUnitSuite {
     assertEquals(1, fired)
   }
 
-  @Test def shouldAcceptOnlySecond1(): Unit = {
+  test("shouldAcceptOnlySecond1(") {
     sequencer("sequencer")
     var fired = 0
 
@@ -123,7 +120,7 @@ class SequencerSuite extends JUnitSuite {
     assertEquals(1, fired)
   }
 
-  @Test def shouldAcceptOnlySecond2(): Unit = {
+  test("shouldAcceptOnlySecond2(") {
     sequencer("sequencer")
     var fired = 0
 
@@ -133,7 +130,7 @@ class SequencerSuite extends JUnitSuite {
     assertEquals(1, fired)
   }
 
-  @Test def shouldReset(): Unit = {
+  test("shouldReset(") {
     sequencerSilencer("sequencer")
     var fired = 0
 

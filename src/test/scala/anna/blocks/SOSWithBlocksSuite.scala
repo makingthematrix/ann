@@ -5,12 +5,12 @@ import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by gorywoda on 7/2/16.
   */
-class SOSWithBlocksSuite extends JUnitSuite {
+class SOSWithBlocksSuite extends AnyFunSuite {
 
   private def buildDot = {
     val dotBlockName = "DOT"
@@ -23,7 +23,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, outputId)
   }
 
-  @Test def shouldFireOnDot(): Unit = {
+  test("shouldFireOnDot") {
     var fired = false
     var iteration = 0
     val (netWrapper, outputId) = buildDot
@@ -52,7 +52,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, outputId)
   }
 
-  @Test def shouldFireOnLine(): Unit = {
+  test("shouldFireOnLine(") {
     var fired = false
 
     val (netWrapper, outputId) = buildLine
@@ -121,7 +121,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, results)
   }
 
-  @Test def shouldDotWithDotLine(): Unit = {
+  test("shouldDotWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1")
@@ -132,7 +132,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldLineWithDotLine(): Unit = {
+  test("shouldLineWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1")
@@ -143,7 +143,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldTwoDotsWithDotLine(): Unit = {
+  test("shouldTwoDotsWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1")
@@ -154,7 +154,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldLineAndDotWithDotLine(): Unit = {
+  test("shouldLineAndDotWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1,0,0,1")
@@ -165,7 +165,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldDotAndLineWithDotLine(): Unit = {
+  test("shouldDotAndLineWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,1")
@@ -176,7 +176,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldThreeDotsWithDotLine(): Unit = {
+  test("shouldThreeDotsWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
@@ -187,7 +187,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldThreeLinesWithDotLine(): Unit = {
+  test("shouldThreeLinesWithDotLine(") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
@@ -276,7 +276,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, results)
   }
 
-  @Test def shouldSWithSO(): Unit = {
+  test("shouldSWithSO(") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
@@ -289,7 +289,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldOWithSO(): Unit = {
+  test("shouldOWithSO(") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
@@ -302,7 +302,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldSOWithSO(): Unit = {
+  test("shouldSOWithSO(") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1")
@@ -317,7 +317,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
 
   /* This is the test which proves it all works :) */
 
-  @Test def shouldSOSWithSO(): Unit = {
+  test("shouldSOSWithSO(") {
     val buffer = StringBuilder.newBuilder
     val (netWrapper, results) = buildSO(Some(buffer))
 

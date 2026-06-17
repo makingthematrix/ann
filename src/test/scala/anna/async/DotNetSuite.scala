@@ -5,9 +5,9 @@ import anna.logger.LOG
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class DotNetSuite extends JUnitSuite {
+class DotNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 
@@ -20,7 +20,7 @@ class DotNetSuite extends JUnitSuite {
       .build()
   }
 
-  @Test def shouldHaveDotInterval3() = {
+  test("shouldHaveDotInterval3") {
     val netWrapper = dotNet3
     debug("------------")
 

@@ -2,7 +2,6 @@ package anna.logger
 
 import java.io.{PrintWriter, StringWriter}
 import anna.utils.Utils
-
 import anna.async.Neuron
 
 import scala.collection.mutable
@@ -13,42 +12,41 @@ object LogLevel extends Enumeration {
 }
 
 object LOG {
-  var logLevel = LogLevel.DEBUG 
+  private var logLevel: LogLevel.Value = LogLevel.DEBUG
   val outs = new mutable.ListBuffer[LogOutput]()
-  var logTime = true
-  var showLogLevel = false
-  var trackAll = true
+  private var logTime: Boolean = true
+  private var showLogLevel: Boolean = false
+  private var trackAll: Boolean = true
 
   private var fetchIterationFunction:Option[() => Int] = None
-  def logIteration = fetchIterationFunction != None
-  def startLoggingIterations(f:() => Int) = {
+  private def logIteration: Boolean = fetchIterationFunction.isDefined
+  def startLoggingIterations(f:() => Int): Unit = {
     fetchIterationFunction = Some(f)
   }
-  def stopLogingIterations() = {
+  def stopLogingIterations(): Unit = {
     fetchIterationFunction = None
   }
 
-
   private val trackedClasses = mutable.Set[String]()
 
-  def track(c: Class[_]) = {
-    val className = c.getName()
+  def track(c: Class[_]): Unit = {
+    val className = c.getName
     trackedClasses += (if(className.endsWith("$")) className.substring(0,className.size-1) else className)
     trackAll = false
   }
 
-  def stopTracking(c: Class[_]) = trackedClasses -= c.getName
+  def stopTracking(c: Class[_]): Unit = trackedClasses -= c.getName
 
   def isTracking(className: String):Boolean = trackedClasses.contains(className)
-  def isTracking(c: Class[_]):Boolean = trackedClasses.contains(c.getName)
+  private def isTracking(c: Class[_]):Boolean = trackedClasses.contains(c.getName)
 
-  def resetTracked() = {
+  def resetTracked(): Unit = {
     trackedClasses.clear
     trackAll = true
   }
 
-  def resetOuts() = this.synchronized {
-    outs.foreach( _.close )
+  def resetOuts(): Unit = this.synchronized {
+    outs.foreach( _.close() )
     outs.clear
     outs += new SystemLogOutput()
   }

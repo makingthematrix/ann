@@ -5,15 +5,15 @@ import anna.async.Messages._
 import anna.utils.Utils.await
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class NetSuite extends JUnitSuite {
+class NetSuite extends AnyFunSuite {
   val threshold = Context().threshold
   val weight = Context().weight
   val silenceIterations = Context().silenceIterations
   val timeout = Context().timeout
 
-  @Test def shouldCreateNet(){
+  test("shouldCreateNet") {
     val net = NetRef("net1")
 
     val msg = await[Msg](net.ref, GetId)
@@ -22,7 +22,7 @@ class NetSuite extends JUnitSuite {
     net.shutdown()
   }
 
-  @Test def shouldCreateNeurons(){
+  test("shouldCreateNeurons") {
     val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
@@ -39,7 +39,7 @@ class NetSuite extends JUnitSuite {
     net.shutdown()
   }
 
-  @Test def shouldCreateNeuronsWithBuilder(){
+  test("shouldCreateNeuronsWithBuilder") {
     val builder = NetBuilder()
     builder.addMiddle("id1", threshold, silenceIterations)
            .addMiddle("id2", threshold, silenceIterations)
@@ -54,7 +54,7 @@ class NetSuite extends JUnitSuite {
     net.shutdown()
   }
 
-  @Test def shouldConnectNeuronsWithBuilder(){
+  test("shouldConnectNeuronsWithBuilder") {
     val builder = NetBuilder()
     builder.addMiddle("id1", threshold, silenceIterations)
            .chain("id2", weight, threshold, silenceIterations)

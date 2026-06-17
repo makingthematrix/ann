@@ -1,6 +1,7 @@
 package anna.async
 
 import akka.actor.{ActorRef, Props}
+import akka.util.Timeout
 import anna.Context
 import anna.async.Messages._
 import anna.data.NeuronData
@@ -8,7 +9,7 @@ import anna.logger.LOG._
 import anna.utils.Utils.await
 
 class NetRef(val id: String, val ref: ActorRef) {
-  implicit val timeout = Context().timeout
+  implicit val timeout: Timeout = Context().timeout
 
   private var _iteration = 0L
   

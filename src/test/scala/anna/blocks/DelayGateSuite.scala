@@ -5,13 +5,12 @@ import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by gorywoda on 1/31/16.
   */
-class DelayGateSuite extends JUnitSuite {
+class DelayGateSuite extends AnyFunSuite {
 
   private def delayGateWithOps(blockName: String, delay: Int) =
     NetBuilder().addInput("in").delayGate(blockName, delay).build()
@@ -28,7 +27,7 @@ class DelayGateSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldDelayGateWithOps(): Unit = {
+  test("shouldDelayGateWithOps") {
     assertDelayGateWithOps(3)
     assertDelayGateWithOps(2)
     assertDelayGateWithOps(1)
@@ -62,7 +61,7 @@ class DelayGateSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldFireWithBlock(): Unit = {
+  test("shouldFireWithBlock(") {
    for(i <- 0 to 5){
       shouldFireWithBlock(i)
    }

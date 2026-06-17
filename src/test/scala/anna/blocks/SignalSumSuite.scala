@@ -5,12 +5,12 @@ import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by gorywoda on 6/19/16.
   */
-class SignalSumSuite extends JUnitSuite {
+class SignalSumSuite extends AnyFunSuite {
 
   private def signalSumWithOps(blockName: String, requiredSignals: Int) =
     NetBuilder().addInput("in").signalSum(blockName, requiredSignals).build()
@@ -34,7 +34,7 @@ class SignalSumSuite extends JUnitSuite {
     }
   }
 
-  @Test def shouldSignalSumWithOps(): Unit ={
+  test("shouldSignalSumWithOps") {
     val netWrapper = signalSumWithOps("SignalSum", 3)
     assertFiredAfterRequiredSignals(netWrapper, "SignalSum2", 3)
     netWrapper.shutdown()
@@ -55,7 +55,7 @@ class SignalSumSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldFireWithBlock(): Unit = {
+  test("shouldFireWithBlock(") {
     shouldFireAfterRequiredSignalsBlock(3)
     shouldFireAfterRequiredSignalsBlock(2)
     shouldFireAfterRequiredSignalsBlock(1)
