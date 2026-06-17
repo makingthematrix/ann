@@ -3,21 +3,21 @@ package anna.async
 import anna.async.Messages._
 import anna.data.{Silence, SynapseTrait, SynapseWeight, Wake}
 
-class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
+final class Synapse(val dest: NeuronRef, val weight: SynapseTrait){
 
-  private def msg(signal: Double, senderId: String) = weight match {
+  private def msg(signal: Double, senderId: String): Message = weight match {
     case Silence() => SilenceRequest
     case Wake() => WakeRequest
     case w: SynapseWeight => Signal(signal * w.weight, senderId)
   }
   
-  def send(signal: Double, senderId: String) = {
+  def send(signal: Double, senderId: String): Unit = {
     dest ! msg(signal, senderId)
   }
   
-  override def toString() = s"Synapse(${dest.id}, $weight)"
+  override def toString: String = s"Synapse(${dest.id}, $weight)"
 
-  def info = SynapseInfo(dest.id, weight)
+  def info: SynapseInfo = SynapseInfo(dest.id, weight)
 }
 
 object Synapse{

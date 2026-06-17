@@ -9,10 +9,10 @@ import scala.concurrent.duration._
 /**
  * Created by gorywoda on 25.06.15.
  */
-class SchedulerBuffer(context : ActorContext){
+final class SchedulerBuffer(context : ActorContext){
   private val map = mutable.Map[Long,Cancellable]()
 
-  def schedule(delay : FiniteDuration)(f : => scala.Unit) = {
+  def schedule(delay : FiniteDuration)(f : => scala.Unit): Long = {
     refresh()
     val c = context.system.scheduler.scheduleOnce(delay){
       f
@@ -23,7 +23,7 @@ class SchedulerBuffer(context : ActorContext){
     timestamp
   }
 
-  def unschedule(timestamp: Long) = synchronized {
+  def unschedule(timestamp: Long): Unit = synchronized {
     if(map.contains(timestamp)){
       val c = map(timestamp)
       if(!c.isCancelled) c.cancel()
@@ -31,12 +31,12 @@ class SchedulerBuffer(context : ActorContext){
     }
   }
 
-  def refresh() = synchronized {
+  def refresh(): Unit = synchronized {
     val t = System.currentTimeMillis()
     map.keys.filter(_ < t).foreach( unschedule )
   }
 
-  def clear() = {
+  def clear(): Unit = {
     map.values.foreach( c => if(!c.isCancelled) c.cancel())
     map.clear()
   }

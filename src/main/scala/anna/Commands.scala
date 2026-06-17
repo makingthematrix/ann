@@ -15,16 +15,16 @@ object Commands {
 
   private var netWrapperOpt: Option[NetWrapper] = None
 
-  val DELAY_GATE = "Delay Gate"
-  val SIGNAL_SUM = "Signal Sum"
-  val DOT_AND_LINE = "Dot & Line"
-  val SOS = "SOS"
+  private val DELAY_GATE: String = "Delay Gate"
+  private val SIGNAL_SUM: String = "Signal Sum"
+  private val DOT_AND_LINE: String = "Dot & Line"
+  private val SOS: String = "SOS"
 
-  def delayGate(delay: Int) = NetBuilder().netId(DELAY_GATE).addInput("IN").delayGate("DG", delay).data
+  def delayGate(delay: Int): NetData = NetBuilder().netId(DELAY_GATE).addInput("IN").delayGate("DG", delay).data
 
-  def signalSum(requiredSignals: Int) = NetBuilder().netId(SIGNAL_SUM).addInput("IN").signalSum("SS", requiredSignals).data
+  def signalSum(requiredSignals: Int): NetData = NetBuilder().netId(SIGNAL_SUM).addInput("IN").signalSum("SS", requiredSignals).data
 
-  lazy val dotAndLine =
+  lazy val dotAndLine: NetData =
     NetBuilder().netId(DOT_AND_LINE)
       .addInput("IN").delayGate("DOT", 2)
       .use("IN").signalSum("LINE", 2)
@@ -32,7 +32,7 @@ object Commands {
       .use(SignalSum.outputId("LINE")).silence(DelayGate.silencingId("DOT"))
       .data
 
-  lazy val sos = {
+  lazy val sos: NetData = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
@@ -70,24 +70,24 @@ object Commands {
       .data
   }
 
-  private def wrapper = netWrapperOpt.getOrElse(throw new IllegalArgumentException("NetWrapper not set"))
+  private def wrapper: NetWrapper = netWrapperOpt.getOrElse(throw new IllegalArgumentException("NetWrapper not set"))
 
-  private def addAfterFireTrigger(neuronId: String)(f: => Any) = wrapper.addAfterFire(neuronId)(f)
-  private def addSilenceRequestedTrigger(neuronId: String)(f: => Any) = wrapper.addSilenceRequested(neuronId)(f)
-  private def addSignalIgnoredTrigger(neuronId: String)(f: => Any) = wrapper.addSignalIgnored(neuronId)(f)
+  private def addAfterFireTrigger(neuronId: String)(f: => Any): Unit = wrapper.addAfterFire(neuronId)(f)
+  private def addSilenceRequestedTrigger(neuronId: String)(f: => Any): Unit = wrapper.addSilenceRequested(neuronId)(f)
+  private def addSignalIgnoredTrigger(neuronId: String)(f: => Any): Unit = wrapper.addSignalIgnored(neuronId)(f)
 
-  val outputBuffer = StringBuilder.newBuilder
-  def output = outputBuffer.toString
-  def clearOutput() = outputBuffer.clear()
+  val outputBuffer: StringBuilder = new StringBuilder()
+  def output: String = outputBuffer.toString
+  def clearOutput(): Unit = outputBuffer.clear()
 
-  def initializeNetwork(netData: NetData) = {
+  def initializeNetwork(netData: NetData): Unit = {
     LOG.timer()
     clearOutput()
     netWrapperOpt = Some(NetBuilder().set(netData).build())
     LOG.clearAllowedIds()
   }
 
-  private def setupDelayGate(netData: NetData) = {
+  def setupDelayGate(netData: NetData): Unit = {
     initializeNetwork(netData)
 
     addAfterFireTrigger(DelayGate.outputId("DG")){
@@ -104,7 +104,7 @@ object Commands {
     )
   }
 
-  private def setupSignalSum(netData: NetData) = {
+  def setupSignalSum(netData: NetData): Unit = {
     initializeNetwork(netData)
 
     addAfterFireTrigger(SignalSum.outputId("SS")){
@@ -120,7 +120,7 @@ object Commands {
     )
   }
 
-  private def setupDotAndLine(netData: NetData) = {
+  def setupDotAndLine(netData: NetData): Unit = {
     initializeNetwork(netData)
 
     val dotInputId = DelayGate.inputId("DOT")
@@ -149,7 +149,7 @@ object Commands {
     )
   }
 
-  private def setupSOS(netData: NetData) = {
+  def setupSOS(netData: NetData): Unit = {
     initializeNetwork(netData)
 
     val dotInputId = DelayGate.inputId("DOT")
@@ -188,7 +188,7 @@ object Commands {
     )
   }
 
-  def setup(netData: NetData) = {
+  def setup(netData: NetData): Unit = {
     shutdown()
     netData.id match {
       case DELAY_GATE => setupDelayGate(netData)
@@ -199,7 +199,7 @@ object Commands {
     }
   }
 
-  private def resetBeforeWork(sequence: String) = {
+  def resetBeforeWork(sequence: String) = {
     wrapper.reset()
     wrapper.resetIterations()
     clearOutput()
@@ -222,7 +222,7 @@ object Commands {
     Thread.sleep(Context().iterationTime)
   }
 
-  def shutdown() = netWrapperOpt match {
+  def shutdown(): Unit = netWrapperOpt match {
     case Some(netWrapper) => netWrapper.shutdown()
     case _ =>
   }
@@ -235,7 +235,7 @@ object Commands {
 
   def print(netData: NetData):Unit = LOG.debug(netData.toJson)
 
-  def help = println(
+  def help(): Unit = println(
     s"""
       | You can use pre-constructed networks:
       | 1. sos

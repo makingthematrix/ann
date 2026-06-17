@@ -6,7 +6,7 @@ import anna.async.NetBuilderOps._
 /**
   * Created by gorywoda on 1/31/16.
   */
-case class DelayGate(name: String, delay: Int){
+final case class DelayGate(name: String, delay: Int){
   lazy val data = {
     val builder = NetBuilder()
     chain(builder)

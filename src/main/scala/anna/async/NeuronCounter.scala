@@ -42,7 +42,7 @@ class NeuronCounterImpl(val name: String) extends NeuronCounter {
   def size:Int = _neurons.size
 
   def clean():Unit = if(_neurons.nonEmpty){
-    val str = _neurons.map(_._1).mkString(",")
+    val str = _neurons.keys.mkString(",")
     error(this,s"${_neurons.size} needs cleaning, which means something went wrong... $str")
     _neurons.foreach(t => t._2 ! PoisonPill)
     _neurons.clear()
@@ -52,12 +52,12 @@ class NeuronCounterImpl(val name: String) extends NeuronCounter {
 object NeuronCounter {
   private var instanceOpt: Option[NeuronCounter] = None
 
-  def set(nc: NeuronCounter) = {
+  def set(nc: NeuronCounter): Unit = {
     stop()
     instanceOpt = Some(nc)
   }
 
-  def apply() = instanceOpt match {
+  def apply(): NeuronCounter = instanceOpt match {
     case Some(instance) => instance
     case None =>
       val typedProps: TypedProps[NeuronCounter] = TypedProps(classOf[NeuronCounter], new NeuronCounterImpl("default"))
@@ -67,17 +67,17 @@ object NeuronCounter {
       instance
   }
 
-  def reg(netId: String, neuronId: String, ref: ActorRef) = if(_enabled) apply().reg(netId, neuronId, ref)
+  def reg(netId: String, neuronId: String, ref: ActorRef): Unit = if(_enabled) apply().reg(netId, neuronId, ref)
 
-  def unreg(netId: String, neuronId: String) = if(_enabled) apply().unreg(netId, neuronId)
+  def unreg(netId: String, neuronId: String): Unit = if(_enabled) apply().unreg(netId, neuronId)
 
-  def neurons = if(_enabled) apply().neurons else Map[String, ActorRef]()
+  def neurons: Map[String, ActorRef] = if(_enabled) apply().neurons else Map[String, ActorRef]()
 
-  def size = if(_enabled) apply().size else -1
+  def size: Int = if(_enabled) apply().size else -1
 
-  def clean() = if(_enabled) apply().clean()
+  def clean(): Unit = if(_enabled) apply().clean()
 
-  def stop() = if(_enabled && instanceOpt != None){
+  private def stop(): Unit = if(_enabled && instanceOpt.isDefined){
     instanceOpt.get.clean()
     TypedActor(Context().system).poisonPill(instanceOpt.get)
     instanceOpt = None
@@ -85,9 +85,9 @@ object NeuronCounter {
 
   private var _enabled = true
 
-  def enabled = _enabled
-  def disable = { _enabled = false }
-  def enable = { _enabled = true }
+  def enabled: Boolean = _enabled
+  def disable(): Unit = { _enabled = false }
+  def enable(): Unit = { _enabled = true }
 
   def id(netId: String, neuronId: String) = s"${netId}###${neuronId}"
 }

@@ -5,7 +5,7 @@ import anna.async._
 import anna.utils.Utils.formats
 import org.json4s.native.Serialization.{read, writePretty}
 
-case class NeuronData(id: String,
+final case class NeuronData(id: String,
                       threshold: Double,
                       silenceIterations: Int,
                       synapses: List[SynapseData],

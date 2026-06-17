@@ -6,7 +6,7 @@ import anna.async.NetBuilderOps._
 /**
   * Created by gorywoda on 6/19/16.
   */
-case class SignalSum(name: String, requiredSignalsNumber: Int){
+final case class SignalSum(name: String, requiredSignalsNumber: Int){
   import SignalSum.middleThreshold
 
   lazy val data = {

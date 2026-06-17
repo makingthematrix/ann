@@ -3,7 +3,7 @@ package anna.blocks
 import anna.async.{NetBuilder, Neuron}
 import anna.async.NetBuilderOps._
 
-case class Sequencer(name: String) {
+final case class Sequencer(name: String) {
   def chain(builder: NetBuilder,
             input1Id: String, input2Id: String,
             input1Weight: Double = 1.0, input1Threshold: Double = 0.0,

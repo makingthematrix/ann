@@ -34,10 +34,10 @@ class Net(val id: String) extends Actor {
   }
 
   override def postStop():Unit = {
-    if(shutdownCallerOpt != None) shutdownCallerOpt.get ! NetShutdownDone(id)
+    if(shutdownCallerOpt.isDefined) shutdownCallerOpt.get ! NetShutdownDone(id)
   }
 
-  private def shutdown() = {
+  private def shutdown(): Unit = {
     shutdownCallerOpt = Some(sender)
     if(neurons.nonEmpty) {
       neurons.foreach(_ ! PoisonPill)
@@ -46,7 +46,7 @@ class Net(val id: String) extends Actor {
     }
   }
 
-  def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
+  private def waiting(caller: ActorRef, waitingFor: Set[String], title: String = ""): Receive = {
     case Success(id) =>
       val newWaitingFor = waitingFor - id
       if(newWaitingFor.isEmpty){
@@ -55,57 +55,57 @@ class Net(val id: String) extends Actor {
       } else context.become(waiting(caller, newWaitingFor, title))
   }
 
-  private def resetBuffer() = {
+  private def resetBuffer(): Unit = {
     context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
   }
 
-  private def removeAfterFire(id:String) = {
+  private def removeAfterFire(id:String): Unit = {
     context.become( waiting(sender, neurons.map(_.id).toSet, s"removing an after fire trigger $id") )
     neurons.foreach(_.removeAfterFire(id))
   }
 
-  private def removeTriggers() = {
+  private def removeTriggers(): Unit = {
     context.become( waiting(sender, neurons.map(_.id).toSet, "removing triggers") )
     neurons.foreach(_ ! RemoveAllTriggers)
   }
 
-  private def add(id: String, ref: ActorRef) = {
+  private def add(id: String, ref: ActorRef): Unit = {
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
     context.watch(ref)
     sender ! neuronRef
   }
 
-  private def createNeuron(data:NeuronData) = data.neuronType match {
+  private def createNeuron(data:NeuronData): Unit = data.neuronType match {
     case NeuronTypeStandard() => createStandard(data.id, data.threshold, data.silenceIterations)
-    case NeuronTypeDummy() => createDummy(data.id, data.silenceIterations)
+    case NeuronTypeDummy() => createDummy(data.id)
     case NeuronTypeSilencing() => createSilencing(data.id)
   }
 
-  private def createStandard(id: String, threshold: Double, silenceIterations: Int) = {
+  private def createStandard(id: String, threshold: Double, silenceIterations: Int): Unit = {
 	  val ref = context.actorOf(Props(new Neuron(id, this.id, threshold, silenceIterations)))
     add(id, ref)
   }
 
-  private def createDummy(id: String, silenceIterations: Int) = {
+  private def createDummy(id: String): Unit = {
 	  val ref = context.actorOf(Props(new DummyNeuron(id, this.id)))
     add(id, ref)
   }
 
-  private def createSilencing(id: String) = {
+  private def createSilencing(id: String): Unit = {
     val ref = context.actorOf(Props(new SilencingNeuron(id, this.id)))
     add(id, ref)
   }
 
-  private def signal(in: List[Double]){
+  private def signal(in: List[Double]): Unit = {
     assert(in.size == inputs.size, s"Difference in size between the input layer (${inputs.size}) and the input (${in.size})")
     inputs.zip(in).foreach {
       case (inputNeuron: NeuronRef, signal: Double) => inputNeuron ! Signal(signal, "Input")
     }
   }
 
-  private def setInputs(ids: Set[String]){
+  private def setInputs(ids: Set[String]): Unit = {
     inputs = neurons.filter( n => ids.contains(n.id) ).toList.sortBy(_.id)
     if(inputs.size != ids.size){
       val inIds = inputs.map( _.id )

@@ -6,43 +6,43 @@ import anna.utils.Utils._
 
 import scala.collection.mutable
 
-class NetWrapper(val net: NetRef) {
-  lazy val ids = net.inputIds
-  lazy val size = net.inputSize
+final class NetWrapper(val net: NetRef) {
+  lazy val ids: Seq[String] = net.inputIds
+  lazy val size: Int = net.inputSize
 
   private val signRegister = mutable.Map[Char,Double]()
   private val inputQueue = mutable.Queue[List[Double]]()
   private var _iteration = 1
 
-  def iteration = _iteration
+  def iteration: Int = _iteration
 
-  def resetIterations() = {
+  def resetIterations(): Unit = {
     _iteration = 1
   }
 
-  def find(id: String) = net.find(id).neuronOpt match {
+  def find(id: String): NeuronRef = net.find(id).neuronOpt match {
     case Some(nref) => nref
     case None => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
 
-  def info(id: String) = find(id).info
+  def info(id: String): Messages.NeuronInfo = find(id).info
     
-  def add(input: List[Double]) = {
+  def add(input: List[Double]): Unit = {
 	  assert(input.length == size, s"The input vector has to be exactly ${size} numbers long and is ${input.length}.")
     inputQueue += input
   }
   
-  def addEmptyInput = add(generateEmptyInput)
-  def +=(input: List[Double]) = add(input)
-  def +=(d: Double) = add(List(d))
-  def +=(t: (Double,Double)) = add(List(t._1,t._2))
-  def +=(t: (Double,Double,Double)) = add(List(t._1,t._2,t._3))
+  def addEmptyInput(): Unit = add(generateEmptyInput)
+  def +=(input: List[Double]): Unit = add(input)
+  def +=(d: Double): Unit = add(List(d))
+  def +=(t: (Double,Double)): Unit = add(List(t._1,t._2))
+  def +=(t: (Double,Double,Double)): Unit = add(List(t._1,t._2,t._3))
   
-  def generateEmptyInput = List.fill(size)(0.0)
+  private def generateEmptyInput: List[Double] = List.fill(size)(0.0)
 
-  def regSign(sign: Char,input: Double) = signRegister += (sign -> input)
+  def regSign(sign: Char,input: Double): Unit = signRegister += (sign -> input)
 
-  def +=(input: String) = {
+  def +=(input: String): Unit = {
     val in = input.split(",").toList
     in.map( str => str.toCharArray.map(
       c => if(signRegister.contains(c)) signRegister(c)
@@ -50,12 +50,12 @@ class NetWrapper(val net: NetRef) {
     ).toList).foreach( add )
   }
 
-  def +=(c: Char) = {
+  def +=(c: Char): Unit = {
     if(signRegister.contains(c)) add(List(signRegister(c)))
     else throw new IllegalArgumentException(s"No input registered with sign $c")
   }
 
-  def deregSign(sign: Char) = signRegister -= sign
+  def deregSign(sign: Char): Unit = signRegister -= sign
 
   def tick(c: Char):Unit = {
     this += c
@@ -109,15 +109,15 @@ class NetWrapper(val net: NetRef) {
   def addSignalIgnored(id: String, name: String)(f: => Any): Unit = net.addSignalIgnored(id, name)(f)
   def addSignalIgnored(id: String)(f: => Any):Unit  = addSignalIgnored(id, id)(f)
 
-  def shutdown() = {
+  def shutdown(): Unit = {
     net.shutdown()
     Thread.sleep(200L)
   }
 
-  def reset() = net.reset()
-  def removeAllTriggers() = net.removeAllTriggers()
+  def reset(): Messages.Success = net.reset()
+  def removeAllTriggers(): Messages.Success = net.removeAllTriggers()
 
-  def empty = inputQueue.isEmpty
+  def empty: Boolean = inputQueue.isEmpty
 
   def neuronIds = net.neuronsIds
 }

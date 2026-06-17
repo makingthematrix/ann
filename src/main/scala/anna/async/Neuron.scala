@@ -35,21 +35,21 @@ class Neuron(val id: String,
   private def printBuffer = Utils.round(buffer)
 
   private var sleepingTimestamp: Option[Long] = None
-  private def isSleeping = sleepingTimestamp != None
+  private def isSleeping = sleepingTimestamp.isDefined
 
-  private def makeSleep() = {
+  private def makeSleep(): Unit = {
     LOG += s"going to sleep for ${Context().iterationTime} ms"
     sleepingTimestamp = Some(schedulerBuffer.schedule(Context().iterationTime.millis){ wakeUp() })
   }
 
-  private def wakeUp(){
+  private def wakeUp(): Unit = {
     LOG += "waking up"
     sleepingTimestamp = None
     tick()
   }
 
-  private def becomeSilent(){
-    LOG += s"becomeSilent, silenceIterations is ${silenceIterations}"
+  private def becomeSilent(): Unit = {
+    LOG += s"becomeSilent, silenceIterations is $silenceIterations"
     buffer = 0.0
     LOG += s"(becomeSilent) buffer is now $printBuffer"
 
@@ -75,12 +75,12 @@ class Neuron(val id: String,
 
   private lazy val silentForever = silenceIterations == Neuron.SilenceForever
 
-  private def wakeFromSilence() = {
+  private def wakeFromSilence(): Unit = {
     LOG += s"waking up from a silence request"
     context.become(receive)
   }
 
-  protected def +=(signal: Double){
+  protected def +=(signal: Double): Unit = {
     LOG += s"adding signal $signal to buffer $printBuffer, threshold is $threshold"
     buffer += signal
     LOG += s"(after adding) buffer is now $printBuffer"
@@ -105,12 +105,12 @@ class Neuron(val id: String,
     LOG += s"(tick) buffer is now $printBuffer"
   }
 
-  protected def findSynapse(destinationId: String):Option[Synapse] =
+  private def findSynapse(destinationId: String):Option[Synapse] =
     if(synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
 
   protected def findSynapse(destination: Neuron):Option[Synapse] = findSynapse(destination.id)
 
-  protected def answer(msg: Answer) = NetRef.get match {
+  private def answer(msg: Answer): Unit = NetRef.get match {
     case Some(netref) => netref ! msg
     case None =>
   }
@@ -183,7 +183,7 @@ class Neuron(val id: String,
     case other => LOG += s"$state, unrecognized message: $other"
   }
 
-  def info = NeuronInfo(id, netId, threshold, silenceIterations, synapses.map(_.info), buffer)
+  def info: NeuronInfo = NeuronInfo(id, netId, threshold, silenceIterations, synapses.map(_.info), buffer)
 }
 
 object Neuron {

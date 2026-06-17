@@ -9,16 +9,16 @@ import org.json4s.native.Serialization.{read, writePretty}
  */
 sealed trait SynapseTrait extends Any
 
-case class SynapseWeight(weight: Double) extends SynapseTrait {
+final case class SynapseWeight(weight: Double) extends SynapseTrait {
   def check = assert((-1.0<=>1.0).contains(weight))
   def toJson = writePretty(this)
 }
 
-case class Silence() extends SynapseTrait {
+final case class Silence() extends SynapseTrait {
   def toJson = writePretty(this)
 }
 
-case class Wake() extends SynapseTrait {
+final case class Wake() extends SynapseTrait {
   def toJson = writePretty(this)
 }
 

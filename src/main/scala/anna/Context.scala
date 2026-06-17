@@ -13,11 +13,11 @@ import anna.logger.LOG._
 
 import scala.concurrent.duration._
 
-case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterations: Int, iterationTime: Long){
+final case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterations: Int, iterationTime: Long){
   def toJson = writePretty(this)
 }
 
-case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: NeuronDefaults){
+final case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: NeuronDefaults){
   def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
   def threshold = neuronDefaults.threshold
   def weight = neuronDefaults.weight

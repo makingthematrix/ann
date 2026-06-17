@@ -14,8 +14,8 @@ import anna.logger.LOG
 class NetBuilder {
   var netId:String = "net"
 
-  var defThreshold = Context().threshold
-  var defSilenceIterations = Context().silenceIterations
+  var defThreshold: Double = Context().threshold
+  var defSilenceIterations: Int = Context().silenceIterations
   var defWeight:SynapseTrait = Context().weight
 
   private val neurons = mutable.Map[String, NeuronData]()
@@ -25,52 +25,52 @@ class NetBuilder {
 
   private var currentNeuronId: Option[String] = None
 
-  def inputSet = ins.toSet
+  def inputSet: Set[String] = ins.toSet
 
-  def generateId() = netId + "_" + nextIndex()
+  def generateId(): String = netId + "_" + nextIndex()
 
   private def addSynapse(fromId: String, toId: String, weight: SynapseTrait) =
     synapses.getOrElseUpdate(fromId, mutable.ListBuffer[SynapseData]()) += SynapseData(toId, weight)
 
-  def contains(id: String) = neurons.contains(id)
+  def contains(id: String): Boolean = neurons.contains(id)
 
-  def use(id: String) = {
+  def use(id: String): NetBuilder = {
     assert(contains(id),s"There is no neuron with id $id")
     currentNeuronId = Some(id)
     this
   }
 
-  def silence(id: String) = connect(id, Silence())
-  def wake(id: String) = connect(id, Wake())
+  def silence(id: String): NetBuilder = connect(id, Silence())
+  def wake(id: String): NetBuilder = connect(id, Wake())
 
-  def connect(id: String, weight: SynapseTrait) = {
+  def connect(id: String, weight: SynapseTrait): NetBuilder = {
     assert(contains(id),s"There is no neuron with id $id")
     addSynapse(current.id, id, weight)
     this
   }
 
-  def current = currentNeuronId match {
+  def current: NeuronData = currentNeuronId match {
     case Some(id) => neurons(id)
     case None => throw new IllegalArgumentException("There is no current neuron id set")
   }
 
-  def isCurrent = currentNeuronId != None
+  def isCurrent: Boolean = currentNeuronId.isDefined
 
-  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: Int) = {
+  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: Int): NetBuilder = {
     val n1 = current
     addStandard(id, threshold, silenceIterations)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainDummy(id: String, weight: Double, hushValue: Int =defSilenceIterations) = {
+  def chainDummy(id: String, weight: Double, hushValue: Int =defSilenceIterations): NetBuilder = {
     val n1 = current
     addDummy(id)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainSilencingNeuron(id: String) = {
+  def chainSilencingNeuron(id: String): NetBuilder = {
     val n1 = current
     addSilencingNeuron(id)
     addSynapse(n1.id, id, Silence())
@@ -97,13 +97,13 @@ class NetBuilder {
 
   def addMiddle():NetBuilder = addMiddle(generateId())
 
-  def addSilencingNeuron(id: String) = {
+  def addSilencingNeuron(id: String): NetBuilder = {
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeSilencing(), id, 0.0))
     this
   }
 
-  def addDummy(id: String) = {
+  def addDummy(id: String): NetBuilder = {
     throwIfAlreadyExists(id)
     add(newNeuron(neuronType=NeuronTypeDummy(),
                   id=id, threshold=0.0
@@ -113,14 +113,14 @@ class NetBuilder {
 
   def addStandard(id: String,
                   threshold: Double,
-                  silenceIterations: Int) = {
+                  silenceIterations: Int): NetBuilder = {
     debug(s"new neuron: $id")
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
     this
   }
 
-  def build(netName: String =netId) = {
+  def build(netName: String =netId): NetWrapper = {
     debug(this,s"build $netName")
     val net = NetRef(netName)
 
@@ -145,7 +145,7 @@ class NetBuilder {
     NetWrapper(net)
   }
 
-  def data = NetData(
+  def data: NetData = NetData(
     netId,
     neurons.values.map( n =>
       n.withSynapses(synapses.getOrElse(n.id, Nil).toList)
@@ -156,7 +156,7 @@ class NetBuilder {
     defWeight
   )
 
-  def set(data: NetData) = {
+  def set(data: NetData): NetBuilder = {
     netId = data.id
 
     clear()
@@ -182,16 +182,16 @@ class NetBuilder {
     this
   }
 
-  def clear() = {
+  def clear(): NetBuilder = {
     neurons.clear()
     synapses.clear()
     ins.clear()
     this
   }
 
-  private def createNeuronInNet(net: NetRef, data: NeuronData) = await[NeuronRef](net, CreateNeuron(data))
+  private def createNeuronInNet(net: NetRef, data: NeuronData): NeuronRef = await[NeuronRef](net, CreateNeuron(data))
 
-  private val nextIndex = {
+  private val nextIndex: () => Long = {
     var nextFreeIndex = 0L
     () => {
       val t = nextFreeIndex
@@ -203,15 +203,15 @@ class NetBuilder {
   private def newNeuron(neuronType: NeuronType,
                         id: String,
                         threshold: Double = defThreshold,
-                        silenceIterations: Int = defSilenceIterations) =
+                        silenceIterations: Int = defSilenceIterations): NeuronData =
     NeuronData(id, threshold, silenceIterations, Nil, neuronType)
 
-  private def add(n: NeuronData){
+  private def add(n: NeuronData): Unit = {
     neurons.put(n.id, n)
     currentNeuronId = Some(n.id)
   }
 
-  private def throwIfAlreadyExists(id: String) = assert(!contains(id), s"There is already a neuron with id $id")
+  private def throwIfAlreadyExists(id: String): Unit = assert(!contains(id), s"There is already a neuron with id $id")
 }
 
 object NetBuilder {
