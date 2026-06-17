@@ -6,18 +6,18 @@ import scala.collection.mutable
 import anna.logger.LOG
 
 trait NeuronTriggers {
-  private val afterFire = mutable.Map[String, Trigger]()
-  private val signalIgnored = mutable.Map[String, Trigger]()
-  private val silenceRequested = mutable.Map[String, Trigger]()
+  private val afterFire = mutable.ListMap[String, Trigger]()
+  private val signalIgnored = mutable.ListMap[String, Trigger]()
+  private val silenceRequested = mutable.ListMap[String, Trigger]()
   
-  private def add(id: String, f: Trigger, triggers: mutable.Map[String, Trigger]) =
+  private def add(id: String, f: Trigger, triggers: mutable.ListMap[String, Trigger]) =
     if(triggers.contains(id)) throw new IllegalArgumentException(s"There was already registered a trigger $id")
     else { triggers.put(id, f) }
 
-  private def is(id: String, triggers: mutable.Map[String, Trigger]) = triggers.contains(id) 
-  private def remove(id: String, triggers: mutable.Map[String, Trigger]) = triggers.remove(id)
-  private def clear(triggers: mutable.Map[String, Trigger]): Unit = triggers.clear()
-  private def trigger(triggers: mutable.Map[String, Trigger]): Unit = {
+  private def is(id: String, triggers: mutable.ListMap[String, Trigger]) = triggers.contains(id) 
+  private def remove(id: String, triggers: mutable.ListMap[String, Trigger]) = triggers.remove(id)
+  private def clear(triggers: mutable.ListMap[String, Trigger]): Unit = triggers.clear()
+  private def trigger(triggers: mutable.ListMap[String, Trigger]): Unit = {
     triggers.values.foreach( f => f() )
   }
   
