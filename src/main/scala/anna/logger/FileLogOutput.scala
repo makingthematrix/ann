@@ -2,20 +2,20 @@ package anna.logger
 
 import java.io.{BufferedWriter, File, FileWriter, IOException}
  
-class FileLogOutput(val fileName: String) extends LogOutput {
+final class FileLogOutput(val fileName: String) extends LogOutput {
   private var writer:Option[BufferedWriter] = None
   
-  private def newWriter = {
+  private def newWriter: BufferedWriter = {
     val file = new File(fileName)
-	if (!file.exists()) {
-	  file.createNewFile()
-	  file.setReadable(true)
-	  file.setWritable(true)
-	}
-	new BufferedWriter(new FileWriter(file, true))
+    if (!file.exists()) {
+      file.createNewFile()
+      file.setReadable(true)
+      file.setWritable(true)
+    }
+    new BufferedWriter(new FileWriter(file, true))
   }
   
-  private def getWriter = writer match {
+  private def getWriter: BufferedWriter = writer match {
     case Some(w) => w
     case None => {
       val w = newWriter
@@ -24,14 +24,14 @@ class FileLogOutput(val fileName: String) extends LogOutput {
     }
   }
   
-  override def println(str: String) = try {
+  override def println(str: String): Unit = try {
     val w = getWriter
     w.write(str)
-	w.newLine()
-	w.flush()
+    w.newLine()
+    w.flush()
   } catch {
-	case ex: IOException => ex.printStackTrace()
-  }	
+    case ex: IOException => ex.printStackTrace()
+  }
   
   override def log: String = ""
 
@@ -46,5 +46,4 @@ class FileLogOutput(val fileName: String) extends LogOutput {
   }
 	
   override def id: String = fileName
-
 }

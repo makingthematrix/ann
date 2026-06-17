@@ -5,17 +5,17 @@ import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by gorywoda on 6/19/16.
   */
-class SignalSumSuite extends JUnitSuite {
+class SignalSumSuite extends AnyFunSuite {
 
-  private def signalSumWithOps(blockName: String, requiredSignals: Int) =
+  private def signalSumWithOps(blockName: String, requiredSignals: Int): NetWrapper =
     NetBuilder().addInput("in").signalSum(blockName, requiredSignals).build()
 
-  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int) = {
+  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int): Unit = {
     var fired = false
     netWrapper.addAfterFire(outNeuronId){ fired = true }
 
@@ -34,13 +34,13 @@ class SignalSumSuite extends JUnitSuite {
     }
   }
 
-  @Test def shouldSignalSumWithOps(): Unit ={
+  test("shouldSignalSumWithOps") {
     val netWrapper = signalSumWithOps("SignalSum", 3)
     assertFiredAfterRequiredSignals(netWrapper, "SignalSum2", 3)
     netWrapper.shutdown()
   }
 
-  private def signalSumWithBlock(requiredSignals: Int) = {
+  private def signalSumWithBlock(requiredSignals: Int): (NetWrapper, SignalSum) = {
     val builder = NetBuilder()
     builder.addInput("in")
 
@@ -49,13 +49,13 @@ class SignalSumSuite extends JUnitSuite {
     (builder.build(), block)
   }
 
-  private def shouldFireAfterRequiredSignalsBlock(requiredSignals: Int) = {
+  private def shouldFireAfterRequiredSignalsBlock(requiredSignals: Int): Unit = {
     val (netWrapper, block) = signalSumWithBlock(requiredSignals)
     assertFiredAfterRequiredSignals(netWrapper, block.outputId, requiredSignals)
     netWrapper.shutdown()
   }
 
-  @Test def shouldFireWithBlock(): Unit = {
+  test("shouldFireWithBlock") {
     shouldFireAfterRequiredSignalsBlock(3)
     shouldFireAfterRequiredSignalsBlock(2)
     shouldFireAfterRequiredSignalsBlock(1)

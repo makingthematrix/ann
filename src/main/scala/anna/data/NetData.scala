@@ -9,7 +9,7 @@ import org.json4s.native.Serialization.{read, writePretty}
  * Created by gorywoda on 03.01.15.
  */
 
-case class NetData(id: String,
+final case class NetData(id: String,
                    neurons: List[NeuronData],
                    inputs: List[String], // time wasted refactoring this to Set[String]: 3h; please update when needed
                    threshold: Double,

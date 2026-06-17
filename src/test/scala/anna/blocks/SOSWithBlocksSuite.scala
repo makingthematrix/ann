@@ -1,18 +1,17 @@
 package anna.blocks
 
-import anna.async.NetBuilder
+import anna.async.{NetBuilder, NetWrapper}
 import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
-import org.scalatest.junit.JUnitSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * Created by gorywoda on 7/2/16.
   */
-class SOSWithBlocksSuite extends JUnitSuite {
+class SOSWithBlocksSuite extends AnyFunSuite {
 
-  private def buildDot = {
+  private def buildDot: (NetWrapper, String) = {
     val dotBlockName = "DOT"
     val expectedDelay = 2
     val outputId = DelayGate.outputId(dotBlockName)
@@ -23,7 +22,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, outputId)
   }
 
-  @Test def shouldFireOnDot(): Unit = {
+  test("shouldFireOnDot") {
     var fired = false
     var iteration = 0
     val (netWrapper, outputId) = buildDot
@@ -41,9 +40,8 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  private def buildLine = {
+  private def buildLine: (NetWrapper, String) = {
     val lineBlockName = "LINE"
-    val requiredSignals = 2
     val outputId = SignalSum.outputId(lineBlockName)
 
     val netWrapper = NetBuilder().addInput("in").signalSum(lineBlockName, 2).build()
@@ -52,7 +50,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, outputId)
   }
 
-  @Test def shouldFireOnLine(): Unit = {
+  test("shouldFireOnLine") {
     var fired = false
 
     val (netWrapper, outputId) = buildLine
@@ -90,7 +88,6 @@ class SOSWithBlocksSuite extends JUnitSuite {
     val requiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
     val lineSilencingId = SignalSum.silencingId(lineBlockName)
-    val lineInputId = SignalSum.inputId(lineBlockName)
 
     val netWrapper =
       NetBuilder().addInput("in")
@@ -121,7 +118,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, results)
   }
 
-  @Test def shouldDotWithDotLine(): Unit = {
+  test("shouldDotWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1")
@@ -132,7 +129,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldLineWithDotLine(): Unit = {
+  test("shouldLineWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1")
@@ -143,7 +140,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldTwoDotsWithDotLine(): Unit = {
+  test("shouldTwoDotsWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1")
@@ -154,7 +151,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldLineAndDotWithDotLine(): Unit = {
+  test("shouldLineAndDotWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1,0,0,1")
@@ -165,7 +162,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldDotAndLineWithDotLine(): Unit = {
+  test("shouldDotAndLineWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,1")
@@ -176,7 +173,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldThreeDotsWithDotLine(): Unit = {
+  test("shouldThreeDotsWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
@@ -187,7 +184,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldThreeLinesWithDotLine(): Unit = {
+  test("shouldThreeLinesWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
@@ -198,7 +195,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  private def buildSO(outputBuffer:Option[StringBuilder] = None) = {
+  private def buildSO(outputBuffer:Option[StringBuilder] = None): (NetWrapper, TestResults) = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
@@ -216,13 +213,11 @@ class SOSWithBlocksSuite extends JUnitSuite {
     val sRequiredSignals = 3
     val sOutputId = SignalSum.outputId(sBlockName)
     val sHushId = SignalSum.silencingId(sBlockName)
-    val sInputId = SignalSum.inputId(sBlockName)
 
     val oBlockName = "O"
     val oRequiredSignals = 3
     val oOutputId = SignalSum.outputId(oBlockName)
     val oHushId = SignalSum.silencingId(oBlockName)
-    val oInputId = SignalSum.inputId(oBlockName)
 
     val netWrapper =
       NetBuilder().addInput("in")
@@ -276,7 +271,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     (netWrapper, results)
   }
 
-  @Test def shouldSWithSO(): Unit = {
+  test("shouldSWithSO") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
@@ -289,7 +284,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldOWithSO(): Unit = {
+  test("shouldOWithSO") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
@@ -302,7 +297,7 @@ class SOSWithBlocksSuite extends JUnitSuite {
     netWrapper.shutdown()
   }
 
-  @Test def shouldSOWithSO(): Unit = {
+  test("shouldSOWithSO") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1")
@@ -317,8 +312,8 @@ class SOSWithBlocksSuite extends JUnitSuite {
 
   /* This is the test which proves it all works :) */
 
-  @Test def shouldSOSWithSO(): Unit = {
-    val buffer = StringBuilder.newBuilder
+  test("shouldSOSWithSO") {
+    val buffer = new StringBuilder()
     val (netWrapper, results) = buildSO(Some(buffer))
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,1")

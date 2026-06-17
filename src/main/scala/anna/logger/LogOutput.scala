@@ -3,7 +3,7 @@ package anna.logger
 import java.util.Calendar
 
 trait LogOutput {
-	protected def timeTag = Calendar.getInstance().toString()
+	protected def timeTag: String = Calendar.getInstance.toString
 
 	def log: String
 

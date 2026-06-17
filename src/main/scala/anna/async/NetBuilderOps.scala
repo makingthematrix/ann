@@ -3,7 +3,9 @@ package anna.async
 import anna.blocks.{DelayGate, Sequencer, SignalSum}
 import anna.data._
 
-class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
+import scala.language.implicitConversions
+
+final class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   private def chainMiddle(id: String,
                           weight: SynapseTrait    = builder.defWeight,
                           threshold: Double       = builder.defThreshold,
@@ -43,26 +45,26 @@ class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def loop(w1: Double, w2: Double):NetBuilder = loop(builder.generateId(), w1, builder.defThreshold, w2)
   def loop():NetBuilder = loop(builder.generateId())
   
-  def oscillator(name: String) = loop(name, 1.0, 0.5, -1.0)
-  def oscillator() = loop(1.0, 0.5, -1.0)
+  def oscillator(name: String): NetBuilder = loop(name, 1.0, 0.5, -1.0)
+  def oscillator(): NetBuilder = loop(1.0, 0.5, -1.0)
   
-  def chainOscillator(id: String, weight: Double, threshold: Double) = 
+  def chainOscillator(id: String, weight: Double, threshold: Double): NetBuilder =
     chainMiddle(id, SynapseWeight(weight), threshold).oscillator(id+"_osc")
-  def chainOscillator(id: String, weight: Double) = chainMiddle(id, SynapseWeight(weight)).oscillator(id+"_osc")
-  def chainOscillator(weight: Double) = chainMiddle(builder.generateId(), SynapseWeight(weight)).oscillator()
+  def chainOscillator(id: String, weight: Double): NetBuilder = chainMiddle(id, SynapseWeight(weight)).oscillator(id+"_osc")
+  def chainOscillator(weight: Double): NetBuilder = chainMiddle(builder.generateId(), SynapseWeight(weight)).oscillator()
   
   def self(weight: SynapseTrait =builder.defWeight):NetBuilder = builder.connect(builder.current.id, weight)
 
-  def connect(id: String, weight: Double) = builder.connect(id, SynapseWeight(weight))
+  def connect(id: String, weight: Double): NetBuilder = builder.connect(id, SynapseWeight(weight))
   
   implicit private def fromNetBuilder(builder: NetBuilder):NetBuilderOps = NetBuilderOps.fromNetBuilder(builder)
 
-  def delayGate(name: String, delay: Int, inputWeight: Double = 1.0, inputTreshold: Double = 0.0) =
+  def delayGate(name: String, delay: Int, inputWeight: Double = 1.0, inputTreshold: Double = 0.0): NetBuilder =
     DelayGate(name, delay).chain(builder, inputWeight, inputTreshold)
 
-  def signalSum(name: String, requiredSignals: Int) = SignalSum(name, requiredSignals).chain(builder)
+  def signalSum(name: String, requiredSignals: Int): NetBuilder = SignalSum(name, requiredSignals).chain(builder)
 
-  def sequencer(name: String, in1Id: String, in2Id: String) = Sequencer(name).chain(builder, in1Id, in2Id)
+  def sequencer(name: String, in1Id: String, in2Id: String): NetBuilder = Sequencer(name).chain(builder, in1Id, in2Id)
 }
 
 object NetBuilderOps {
