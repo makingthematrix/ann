@@ -14,16 +14,19 @@ object LogLevel extends Enumeration {
 
 object LOG {
   private var logLevel: LogLevel.Value = LogLevel.DEBUG
-  val outs: ListBuffer[LogOutput] = new mutable.ListBuffer[LogOutput]()
+  private val outs: ListBuffer[LogOutput] = new mutable.ListBuffer[LogOutput]()
   private var logTime: Boolean = true
   private var showLogLevel: Boolean = false
   private var trackAll: Boolean = true
 
   private var fetchIterationFunction:Option[() => Int] = None
+
   private def logIteration: Boolean = fetchIterationFunction.isDefined
+
   def startLoggingIterations(f:() => Int): Unit = {
     fetchIterationFunction = Some(f)
   }
+
   def stopLogingIterations(): Unit = {
     fetchIterationFunction = None
   }
@@ -39,6 +42,7 @@ object LOG {
   def stopTracking(c: Class[_]): Unit = trackedClasses -= c.getName
 
   def isTracking(className: String):Boolean = trackedClasses.contains(className)
+
   private def isTracking(c: Class[_]):Boolean = trackedClasses.contains(c.getName)
 
   def resetTracked(): Unit = {
@@ -127,30 +131,30 @@ object LOG {
 	  log(source.getClass.getName + "->" + str, logLevel)
 	
 
-  def stackToString(t: Throwable) = {
-	val result = new StringWriter()
-	t.printStackTrace(new PrintWriter(result))
-	result.toString
+  def stackToString(t: Throwable): String = {
+	  val result = new StringWriter()
+	  t.printStackTrace(new PrintWriter(result))
+	  result.toString
   }
 
   def exception(t: Throwable): Unit = {
-	log("Throwable object caught of type " + t.getClass().getName(), LogLevel.ERROR)
-	log("message: " + t.getMessage, LogLevel.ERROR)
-	log("cause: " + t.getCause, LogLevel.ERROR)
-	log(stackToString(t), LogLevel.ERROR)
-	throw new IllegalArgumentException(t.getMessage)
+	  log("Throwable object caught of type " + t.getClass.getName, LogLevel.ERROR)
+	  log("message: " + t.getMessage, LogLevel.ERROR)
+	  log("cause: " + t.getCause, LogLevel.ERROR)
+	  log(stackToString(t), LogLevel.ERROR)
+	  throw new IllegalArgumentException(t.getMessage)
   }
 	
   def error(t: Throwable): Unit = {
-	error("Throwable object caught of type " + t.getClass().getName())
-	error("message: " + t.getMessage())
-	error("cause: " + t.getCause())
-	error(stackToString(t))
+	  error("Throwable object caught of type " + t.getClass.getName)
+	  error("message: " + t.getMessage)
+	  error("cause: " + t.getCause)
+	  error(stackToString(t))
   }
 
   def exception(str: String): Unit = {
-	log(str, LogLevel.ERROR)
-	throw new IllegalArgumentException(str)
+	  log(str, LogLevel.ERROR)
+	  throw new IllegalArgumentException(str)
   }
 	
   def error(str: String): Unit = if (LogLevel.ERROR <= logLevel) log(str, LogLevel.ERROR)
@@ -159,8 +163,8 @@ object LOG {
   def comment(str: String): Unit = if (LogLevel.ERROR <= logLevel) log(str, LogLevel.COMMENT)
 
   def exception(expr: => Boolean, str: String): Unit = {
-	log(expr, str, LogLevel.ERROR)
-	if(expr) throw new IllegalArgumentException(str)
+	  log(expr, str, LogLevel.ERROR)
+	  if(expr) throw new IllegalArgumentException(str)
   }
 	
   def error(expr: => Boolean, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(expr, str, LogLevel.ERROR)
@@ -169,8 +173,8 @@ object LOG {
   def comment(expr: => Boolean, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(expr, str, LogLevel.COMMENT)
 
   def exception(source: Any, str: String): Unit = {
-	log(source, str, LogLevel.ERROR)
-	throw new IllegalArgumentException(str)
+	  log(source, str, LogLevel.ERROR)
+	  throw new IllegalArgumentException(str)
   }
 
   def error[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR, allowed(source))
@@ -187,20 +191,19 @@ object LOG {
   def log(expr: => Boolean, str: String): Unit = log(expr, str, logLevel)
   def log(source: Any, str: String): Unit = log(source, str, logLevel)
 	
-  private var lastMeasure = System.currentTimeMillis
+  private var lastMeasure: Long = System.currentTimeMillis
 
   def timer(tag: String): Long = {
-	val t = System.currentTimeMillis()
-	val result = t - lastMeasure
-	log(tag + " took " + result + "ms.")
-	lastMeasure = t
-	result
+	  val t = System.currentTimeMillis
+	  val result = t - lastMeasure
+	  log(tag + " took " + result + "ms.")
+	  lastMeasure = t
+	  result
   }
 
   def timer(source: Any, tag: String): Long = timer(source.getClass.getName + "->" + tag)
 
   def resetTimer(): Unit = {
-	lastMeasure = System.currentTimeMillis()
+	  lastMeasure = System.currentTimeMillis()
   }
-	
 }

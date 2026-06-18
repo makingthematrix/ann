@@ -6,7 +6,7 @@ package anna.logger
 
 import scala.collection.mutable
 
-class ListLogOutput(val id: String) extends LogOutput {
+final class ListLogOutput(val id: String) extends LogOutput {
   private val _list = mutable.ListBuffer[String]()
   override def println(x: String): Unit = _list += x
   override def log: String = _list.mkString("\n")

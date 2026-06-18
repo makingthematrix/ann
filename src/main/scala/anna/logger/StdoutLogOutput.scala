@@ -1,6 +1,6 @@
 package anna.logger
 
-class StdoutLogOutput extends LogOutput {
+final class StdoutLogOutput extends LogOutput {
   override def id: String = "stdout"
   override def println(x: String): Unit = Console.println(x)
   override def log: String = ""
