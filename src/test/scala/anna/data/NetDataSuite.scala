@@ -4,14 +4,14 @@ import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NeuronTypeDummy, NeuronTypeStandard}
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Before
+import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
  * Created by gorywoda on 03.01.15.
  */
-class NetDataSuite extends AnyFunSuite {
-  @Before def before(): Unit =  {
+class NetDataSuite extends AnyFunSuite with BeforeAndAfter {
+  before {
     LOG.addLogToStdout()
   }
 

@@ -12,7 +12,7 @@ class LineNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
   
-  private def lineNet2 = {
+  private def lineNet2: (NetWrapper, StringBuilder) = {
     val netWrapper = NetBuilder()
            .addInput("in1")
            .chain("mi21",0.4,0.6).silence("mi21")

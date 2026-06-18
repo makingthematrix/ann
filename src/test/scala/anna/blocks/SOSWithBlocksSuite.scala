@@ -1,10 +1,9 @@
 package anna.blocks
 
-import anna.async.NetBuilder
+import anna.async.{NetBuilder, NetWrapper}
 import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
@@ -12,7 +11,7 @@ import org.scalatest.funsuite.AnyFunSuite
   */
 class SOSWithBlocksSuite extends AnyFunSuite {
 
-  private def buildDot = {
+  private def buildDot: (NetWrapper, String) = {
     val dotBlockName = "DOT"
     val expectedDelay = 2
     val outputId = DelayGate.outputId(dotBlockName)
@@ -41,9 +40,8 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def buildLine = {
+  private def buildLine: (NetWrapper, String) = {
     val lineBlockName = "LINE"
-    val requiredSignals = 2
     val outputId = SignalSum.outputId(lineBlockName)
 
     val netWrapper = NetBuilder().addInput("in").signalSum(lineBlockName, 2).build()
@@ -52,7 +50,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     (netWrapper, outputId)
   }
 
-  test("shouldFireOnLine(") {
+  test("shouldFireOnLine") {
     var fired = false
 
     val (netWrapper, outputId) = buildLine
@@ -90,7 +88,6 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     val requiredSignals = 2
     val lineOutputId = SignalSum.outputId(lineBlockName)
     val lineSilencingId = SignalSum.silencingId(lineBlockName)
-    val lineInputId = SignalSum.inputId(lineBlockName)
 
     val netWrapper =
       NetBuilder().addInput("in")
@@ -121,7 +118,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     (netWrapper, results)
   }
 
-  test("shouldDotWithDotLine(") {
+  test("shouldDotWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1")
@@ -132,7 +129,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldLineWithDotLine(") {
+  test("shouldLineWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1")
@@ -143,7 +140,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldTwoDotsWithDotLine(") {
+  test("shouldTwoDotsWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1")
@@ -154,7 +151,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldLineAndDotWithDotLine(") {
+  test("shouldLineAndDotWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1,0,0,1")
@@ -165,7 +162,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldDotAndLineWithDotLine(") {
+  test("shouldDotAndLineWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,1")
@@ -176,7 +173,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldThreeDotsWithDotLine(") {
+  test("shouldThreeDotsWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
@@ -187,7 +184,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldThreeLinesWithDotLine(") {
+  test("shouldThreeLinesWithDotLine") {
     val (netWrapper, results) = buildDotLine
 
     netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
@@ -198,7 +195,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def buildSO(outputBuffer:Option[StringBuilder] = None) = {
+  private def buildSO(outputBuffer:Option[StringBuilder] = None): (NetWrapper, TestResults) = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
@@ -216,13 +213,11 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     val sRequiredSignals = 3
     val sOutputId = SignalSum.outputId(sBlockName)
     val sHushId = SignalSum.silencingId(sBlockName)
-    val sInputId = SignalSum.inputId(sBlockName)
 
     val oBlockName = "O"
     val oRequiredSignals = 3
     val oOutputId = SignalSum.outputId(oBlockName)
     val oHushId = SignalSum.silencingId(oBlockName)
-    val oInputId = SignalSum.inputId(oBlockName)
 
     val netWrapper =
       NetBuilder().addInput("in")
@@ -276,7 +271,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     (netWrapper, results)
   }
 
-  test("shouldSWithSO(") {
+  test("shouldSWithSO") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1")
@@ -289,7 +284,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldOWithSO(") {
+  test("shouldOWithSO") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,1,0,0,1,1,0,0,1,1")
@@ -302,7 +297,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldSOWithSO(") {
+  test("shouldSOWithSO") {
     val (netWrapper, results) = buildSO()
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1")
@@ -317,7 +312,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
 
   /* This is the test which proves it all works :) */
 
-  test("shouldSOSWithSO(") {
+  test("shouldSOSWithSO") {
     val buffer = StringBuilder.newBuilder
     val (netWrapper, results) = buildSO(Some(buffer))
 

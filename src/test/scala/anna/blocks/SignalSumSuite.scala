@@ -12,10 +12,10 @@ import org.scalatest.funsuite.AnyFunSuite
   */
 class SignalSumSuite extends AnyFunSuite {
 
-  private def signalSumWithOps(blockName: String, requiredSignals: Int) =
+  private def signalSumWithOps(blockName: String, requiredSignals: Int): NetWrapper =
     NetBuilder().addInput("in").signalSum(blockName, requiredSignals).build()
 
-  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int) = {
+  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int): Unit = {
     var fired = false
     netWrapper.addAfterFire(outNeuronId){ fired = true }
 
@@ -40,7 +40,7 @@ class SignalSumSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def signalSumWithBlock(requiredSignals: Int) = {
+  private def signalSumWithBlock(requiredSignals: Int): (NetWrapper, SignalSum) = {
     val builder = NetBuilder()
     builder.addInput("in")
 
@@ -49,13 +49,13 @@ class SignalSumSuite extends AnyFunSuite {
     (builder.build(), block)
   }
 
-  private def shouldFireAfterRequiredSignalsBlock(requiredSignals: Int) = {
+  private def shouldFireAfterRequiredSignalsBlock(requiredSignals: Int): Unit = {
     val (netWrapper, block) = signalSumWithBlock(requiredSignals)
     assertFiredAfterRequiredSignals(netWrapper, block.outputId, requiredSignals)
     netWrapper.shutdown()
   }
 
-  test("shouldFireWithBlock(") {
+  test("shouldFireWithBlock") {
     shouldFireAfterRequiredSignalsBlock(3)
     shouldFireAfterRequiredSignalsBlock(2)
     shouldFireAfterRequiredSignalsBlock(1)

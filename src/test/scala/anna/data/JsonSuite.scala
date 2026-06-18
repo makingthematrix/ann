@@ -2,14 +2,14 @@ package anna.data
 
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{Before, Test}
+import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
  * Created by gorywoda on 27.12.14.
  */
-class JsonSuite extends AnyFunSuite {
-  @Before def before(): Unit =  {
+class JsonSuite extends AnyFunSuite with BeforeAndAfter {
+  before {
     LOG.addLogToStdout()
   }
 

@@ -1,6 +1,6 @@
 package anna.blocks
 
-import anna.async.NetBuilder
+import anna.async.{NetBuilder, NetWrapper}
 import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
@@ -12,10 +12,10 @@ import org.scalatest.funsuite.AnyFunSuite
   */
 class DelayGateSuite extends AnyFunSuite {
 
-  private def delayGateWithOps(blockName: String, delay: Int) =
+  private def delayGateWithOps(blockName: String, delay: Int): NetWrapper =
     NetBuilder().addInput("in").delayGate(blockName, delay).build()
 
-  private def assertDelayGateWithOps(delay: Int) = {
+  private def assertDelayGateWithOps(delay: Int): Unit = {
     val netWrapper = delayGateWithOps("delayGate",delay)
     var iteration = 0
     LOG.allow("delayGate3")
@@ -34,7 +34,7 @@ class DelayGateSuite extends AnyFunSuite {
     assertDelayGateWithOps(0)
   }
 
-  private def delayGateWithBlock(delay: Int) = {
+  private def delayGateWithBlock(delay: Int): (NetWrapper, DelayGate) = {
     val builder = NetBuilder()
     builder.addInput("in")
 
@@ -43,7 +43,7 @@ class DelayGateSuite extends AnyFunSuite {
     (builder.build(), block)
   }
 
-  private def shouldFireWithBlock(expectedDelay: Int) = {
+  private def shouldFireWithBlock(expectedDelay: Int): Unit = {
     val (netWrapper, block) = delayGateWithBlock(expectedDelay)
 
     var fired = false
@@ -61,7 +61,7 @@ class DelayGateSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  test("shouldFireWithBlock(") {
+  test("shouldFireWithBlock") {
    for(i <- 0 to 5){
       shouldFireWithBlock(i)
    }

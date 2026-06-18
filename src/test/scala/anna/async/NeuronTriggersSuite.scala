@@ -1,5 +1,6 @@
 package anna.async
 
+import akka.util.Timeout
 import anna.Context
 import anna.data.SynapseWeight
 import anna.logger.LOG
@@ -14,7 +15,7 @@ import scala.concurrent.{Await, Promise}
   * Created by gorywoda on 10/31/16.
   */
 class NeuronTriggersSuite extends AnyFunSuite {
-  val timeout = Context().timeout
+  val timeout: Timeout = Context().timeout
 
   test("shouldTriggerAfterFireWithNetWrapper") {
     val wrapper = NetBuilder().addInput("in").chain("out", 1.0, 0.9, 0).build()

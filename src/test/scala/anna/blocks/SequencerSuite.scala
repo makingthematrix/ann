@@ -4,31 +4,33 @@ import anna.async.{NetBuilder, NetWrapper}
 import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.{After, Test}
+import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
 
-class SequencerSuite extends AnyFunSuite {
+class SequencerSuite extends AnyFunSuite with BeforeAndAfter {
   private var _wrapper: Option[NetWrapper] = None
 
-  @After def tearDown(): Unit = _wrapper match {
-    case Some(wrapper) => wrapper.shutdown(); _wrapper = None
-    case None =>
+  after {
+    _wrapper match {
+      case Some(wrapper) => wrapper.shutdown(); _wrapper = None
+      case None =>
+    }
   }
 
-  private def set(wrapper: NetWrapper) = _wrapper = Some(wrapper)
+  private def set(wrapper: NetWrapper): Unit = _wrapper = Some(wrapper)
 
-  private def netWrapper = _wrapper.get
+  private def netWrapper: NetWrapper = _wrapper.get
 
-  private def sequencer(blockName: String) =
+  private def sequencer(blockName: String): Unit =
     set(NetBuilder().addInput("in1").addInput("in2").sequencer(blockName, "in1", "in2").build())
 
-  private def sequencerSilencer(blockName: String) = set(
+  private def sequencerSilencer(blockName: String): Unit = set(
     NetBuilder().addInput("in1").addInput("in2").sequencer(blockName, "in1", "in2")
       .addInput("in3").silence("sequencers")
       .build()
   )
 
-  test("shouldAccept1001(") {
+  test("shouldAccept1001") {
     sequencer("sequencer")
 
     var fired = false
@@ -38,7 +40,7 @@ class SequencerSuite extends AnyFunSuite {
     assertTrue(fired)
   }
 
-  test("shouldIgnore10(") {
+  test("shouldIgnore10") {
     sequencer("sequencer")
     var fired = false
 
@@ -48,7 +50,7 @@ class SequencerSuite extends AnyFunSuite {
     assertFalse(fired)
   }
 
-  test("shouldIgnore01(") {
+  test("shouldIgnore01") {
     sequencer("sequencer")
     var fired = false
 
@@ -58,7 +60,7 @@ class SequencerSuite extends AnyFunSuite {
     assertFalse(fired)
   }
 
-  test("shouldIgnore1010(") {
+  test("shouldIgnore1010") {
     sequencer("sequencer")
     var fired = false
 
@@ -69,7 +71,7 @@ class SequencerSuite extends AnyFunSuite {
   }
 
 
-  test("shouldIgnore0101(") {
+  test("shouldIgnore0101") {
     sequencer("sequencer")
     var fired = false
 
@@ -80,7 +82,7 @@ class SequencerSuite extends AnyFunSuite {
   }
 
 
-  test("shouldAcceptTwoConsecutive(") {
+  test("shouldAcceptTwoConsecutive") {
     sequencer("sequencer")
     var fired = 0
 
@@ -90,7 +92,7 @@ class SequencerSuite extends AnyFunSuite {
     assertEquals(2, fired)
   }
 
-  test("shouldAcceptOnlyFirst1(") {
+  test("shouldAcceptOnlyFirst1") {
     sequencer("sequencer")
     var fired = 0
 
@@ -100,7 +102,7 @@ class SequencerSuite extends AnyFunSuite {
     assertEquals(1, fired)
   }
 
-  test("shouldAcceptOnlyFirst2(") {
+  test("shouldAcceptOnlyFirst2") {
     sequencer("sequencer")
     var fired = 0
 
@@ -110,7 +112,7 @@ class SequencerSuite extends AnyFunSuite {
     assertEquals(1, fired)
   }
 
-  test("shouldAcceptOnlySecond1(") {
+  test("shouldAcceptOnlySecond1") {
     sequencer("sequencer")
     var fired = 0
 
@@ -120,7 +122,7 @@ class SequencerSuite extends AnyFunSuite {
     assertEquals(1, fired)
   }
 
-  test("shouldAcceptOnlySecond2(") {
+  test("shouldAcceptOnlySecond2") {
     sequencer("sequencer")
     var fired = 0
 
@@ -130,7 +132,7 @@ class SequencerSuite extends AnyFunSuite {
     assertEquals(1, fired)
   }
 
-  test("shouldReset(") {
+  test("shouldReset") {
     sequencerSilencer("sequencer")
     var fired = 0
 

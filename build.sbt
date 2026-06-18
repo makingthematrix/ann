@@ -2,7 +2,8 @@ lazy val root = (project in file(".")).
   settings(
     name := "anna",
     version := "1.0",
-    scalaVersion := "2.13.18"
+    scalaVersion := "2.13.18",
+    scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
   )
 
 libraryDependencies ++= Seq(
@@ -18,7 +19,7 @@ libraryDependencies ++= Seq(
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
 
-initialCommands in console :=
+initialCommands / console :=
   """
     |import anna.Commands._
     |import anna.logger.LOG

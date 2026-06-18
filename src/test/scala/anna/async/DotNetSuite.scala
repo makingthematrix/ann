@@ -11,7 +11,7 @@ class DotNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 
-  private def dotNet3 = {
+  private def dotNet3: NetWrapper = {
     NetBuilder().addInput("in")
     // dots
       .use("in").chain("mi11", 1.0, 0.0, 2).silence("mi11")

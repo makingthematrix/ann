@@ -1,5 +1,6 @@
 package anna.async
 
+import akka.util.Timeout
 import anna.Context
 import anna.async.NetBuilderOps._
 import anna.data.Silence
@@ -12,9 +13,9 @@ import scala.concurrent.{Await, Promise}
 
 class SilenceRequestSuite extends AnyFunSuite {
 
-  val threshold = Context().threshold
-  val silenceIterations = Context().silenceIterations
-  val timeout = Context().timeout
+  val threshold: Double = Context().threshold
+  val silenceIterations: Int = Context().silenceIterations
+  val timeout: Timeout = Context().timeout
 
   test("shouldSendSilenceRequest") {
     val net = NetRef("net1")

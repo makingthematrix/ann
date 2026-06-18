@@ -1,17 +1,19 @@
 package anna.async
 
+import akka.util.Timeout
 import anna.Context
 import anna.async.Messages._
+import anna.data.SynapseTrait
 import anna.utils.Utils.await
 import org.junit.Assert._
 import org.junit.Test
 import org.scalatest.funsuite.AnyFunSuite
 
 class NetSuite extends AnyFunSuite {
-  val threshold = Context().threshold
-  val weight = Context().weight
-  val silenceIterations = Context().silenceIterations
-  val timeout = Context().timeout
+  val threshold: Double = Context().threshold
+  val weight: SynapseTrait = Context().weight
+  val silenceIterations: Int = Context().silenceIterations
+  val timeout: Timeout = Context().timeout
 
   test("shouldCreateNet") {
     val net = NetRef("net1")
@@ -64,13 +66,13 @@ class NetSuite extends AnyFunSuite {
     assertEquals(2, neurons.size)
     
     val n1Opt = neurons.find(_.id == "id1")
-    assertTrue(n1Opt != None)
+    assertTrue(n1Opt.isDefined)
     val n1 = n1Opt.get
     
     val synapses = n1.getSynapses
     assertEquals(1, synapses.size)
     
-    val nRef = synapses(0).dest
+    val nRef = synapses.head.dest
     assertEquals("id2", nRef.id)
     
     net.shutdown()
