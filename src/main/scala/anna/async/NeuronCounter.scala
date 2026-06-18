@@ -5,7 +5,7 @@ import anna.Context
 import scala.collection.mutable
 import anna.logger.LOG._
 import anna.logger.LOG
-import akka.actor.{ActorRef, PoisonPill, TypedActor, TypedActorExtension, TypedProps}
+import akka.actor.{ActorRef, ActorSystem, PoisonPill, TypedActor, TypedActorExtension, TypedProps}
 
 /**
  * Created by gorywoda on 23.06.15.

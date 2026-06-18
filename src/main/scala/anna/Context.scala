@@ -14,34 +14,33 @@ import anna.logger.LOG._
 import scala.concurrent.duration._
 
 final case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silenceIterations: Int, iterationTime: Long){
-  def toJson = writePretty(this)
+  def toJson: String = writePretty(this)
 }
 
 final case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: NeuronDefaults){
-  def timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
-  def threshold = neuronDefaults.threshold
-  def weight = neuronDefaults.weight
-  def silenceIterations = neuronDefaults.silenceIterations
-  def iterationTime = neuronDefaults.iterationTime
+  def timeout: Timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
+  def threshold: Double = neuronDefaults.threshold
+  def weight: SynapseTrait = neuronDefaults.weight
+  def silenceIterations: Int = neuronDefaults.silenceIterations
+  def iterationTime: Long = neuronDefaults.iterationTime
 
   private var systemOpt: Option[ActorSystem] = None
 
-  def system:ActorSystem = systemOpt match {
+  def system: ActorSystem = systemOpt match {
     case Some(actorSystem) => actorSystem
     case None =>
-      implicit val t = timeout
+      implicit val t: Timeout = timeout
       val actorSystem = ActorSystem("system")
       systemOpt = Some(actorSystem)
       actorSystem
   }
 
-  def shutdownSystem() = if(systemOpt.isDefined) {
+  def shutdownSystem(): Unit = if(systemOpt.isDefined) {
     systemOpt.get.terminate()
     systemOpt = None
   }
 
-  def toJson = writePretty(this)
-
+  def toJson: String = writePretty(this)
 }
 
 object Context {
@@ -52,36 +51,35 @@ object Context {
     instance.get
   }
 
-  def set(newInstance: Context): Unit ={
+  def set(newInstance: Context): Unit = {
     instance = Some(newInstance)
   }
 
-  def reset(): Unit ={
+  def reset(): Unit = {
     instance = None
   }
 
-  private final def that = instance.get
+  private final def that: Context = instance.get
 
-  def withAwaitTimeout(timeout: Long) =
-    set(apply().copy(awaitTimeout = timeout))
-  def withMaxRunIterations(iterations: Long) =
-    set(apply().copy(maxRunIterations = iterations))
-  def withThreshold(threshold: Double) =
-    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
-  def withWeight(weight: SynapseTrait) =
-    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(weight = weight)))
-  def withSilenceIterations(silenceIterations: Int) =
+  def withAwaitTimeout(timeout: Long): Unit = set(apply().copy(awaitTimeout = timeout))
+
+  def withMaxRunIterations(iterations: Long): Unit = set(apply().copy(maxRunIterations = iterations))
+
+  def withThreshold(threshold: Double): Unit = set(apply().copy(neuronDefaults = that.neuronDefaults.copy(threshold = threshold)))
+
+  def withWeight(weight: SynapseTrait): Unit = set(apply().copy(neuronDefaults = that.neuronDefaults.copy(weight = weight)))
+  def withSilenceIterations(silenceIterations: Int): Unit =
     set(apply().copy(neuronDefaults = that.neuronDefaults.copy(silenceIterations = silenceIterations)))
-  def withIterationTime(iterationTime: Long) =
-    set(apply().copy(neuronDefaults = that.neuronDefaults.copy(iterationTime = iterationTime)))
 
-  val _awaittimeout = "awaitTimeout"
-  val _maxruniterations = "maxRunIterations"
-  val _neurondefaults = "neuronDefaults"
-  val _defaultthreshold = "defaultThreshold"
-  val _defaultweight = "defaultWeight"
-  val _defaultsilenceiterations = "defaultSilenceIterations"
-  val _defaultiterationtime = "defaultIterationTime"
+  def withIterationTime(iterationTime: Long): Unit = set(apply().copy(neuronDefaults = that.neuronDefaults.copy(iterationTime = iterationTime)))
+
+  private val _awaittimeout: String = "awaitTimeout"
+  private val _maxruniterations: String = "maxRunIterations"
+  private val _neurondefaults: String = "neuronDefaults"
+  private val _defaultthreshold: String = "defaultThreshold"
+  private val _defaultweight: String = "defaultWeight"
+  private val _defaultsilenceiterations: String = "defaultSilenceIterations"
+  private val _defaultiterationtime: String = "defaultIterationTime"
 
   private def init(): Unit ={
     val config = ConfigFactory.load()
@@ -102,8 +100,8 @@ object Context {
     set(Context(awaitTimeout, maxRunIterations, neuronDefaults))
   }
 
-  def fromJson(jsonStr: String) = read[Context](jsonStr)
-  def withJson(jsonStr: String) = set(fromJson(jsonStr))
+  def fromJson(jsonStr: String): Context = read[Context](jsonStr)
+  def withJson(jsonStr: String): Unit = set(fromJson(jsonStr))
 
   def set(name: String, n: Int):Unit = name match {
     case `_awaittimeout` => withAwaitTimeout(n)
@@ -117,8 +115,10 @@ object Context {
   }
 
   def set(map: Map[String,Any]):Unit = map.foreach(tuple =>
-    if(tuple._2.isInstanceOf[Double]) set(tuple._1, tuple._2.asInstanceOf[Double])
-    else if(tuple._2.isInstanceOf[Int]) set(tuple._1, tuple._2.asInstanceOf[Int])
-    else exception(this,s"Unsuppored type of ${tuple._1}: ${tuple._2.getClass}")
+    tuple._2 match {
+      case d: Double => set(tuple._1, d)
+      case i: Int => set(tuple._1, i)
+      case _ => exception(this, s"Unsuppored type of ${tuple._1}: ${tuple._2.getClass}")
+    }
   )
 }
