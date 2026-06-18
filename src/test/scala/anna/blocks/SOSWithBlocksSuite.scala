@@ -313,7 +313,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
   /* This is the test which proves it all works :) */
 
   test("shouldSOSWithSO") {
-    val buffer = StringBuilder.newBuilder
+    val buffer = new StringBuilder()
     val (netWrapper, results) = buildSO(Some(buffer))
 
     netWrapper.iterateUntilCalm("1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,0,0,1")

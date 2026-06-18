@@ -5,6 +5,7 @@ import anna.utils.Utils
 import anna.async.Neuron
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 object LogLevel extends Enumeration {
   type LogLevel = Value
@@ -13,7 +14,7 @@ object LogLevel extends Enumeration {
 
 object LOG {
   private var logLevel: LogLevel.Value = LogLevel.DEBUG
-  val outs = new mutable.ListBuffer[LogOutput]()
+  val outs: ListBuffer[LogOutput] = new mutable.ListBuffer[LogOutput]()
   private var logTime: Boolean = true
   private var showLogLevel: Boolean = false
   private var trackAll: Boolean = true
@@ -41,21 +42,21 @@ object LOG {
   private def isTracking(c: Class[_]):Boolean = trackedClasses.contains(c.getName)
 
   def resetTracked(): Unit = {
-    trackedClasses.clear
+    trackedClasses.clear()
     trackAll = true
   }
 
   def resetOuts(): Unit = this.synchronized {
     outs.foreach( _.close() )
-    outs.clear
+    outs.clear()
     outs += new SystemLogOutput()
   }
 
-  def findOut(id: String) = this.synchronized {
+  def findOut(id: String): Option[LogOutput] = this.synchronized {
     outs.find( _.id == id )
   }
 
-  def addOut(out: LogOutput) = findOut(out.id) match {
+  def addOut(out: LogOutput): LogOutput = findOut(out.id) match {
     case Some(o) => o
     case None => outs += out; out
   }
@@ -63,32 +64,32 @@ object LOG {
   private val _allowedIds = mutable.Set[String]()
 
   def allow(id: String):Unit = _allowedIds += id
-  def allow(ids: String*):Unit = ids.foreach( allow(_) )
+  def allow(ids: String*):Unit = ids.foreach( allow )
   def allow[N <: Neuron](implicit n: N):Unit = allow(n.id)
 
-  def allowedIds = _allowedIds.toSet
-  def clearAllowedIds() = _allowedIds.clear()
-  def removeAllowedId(id: String) = _allowedIds -= id
+  def allowedIds: Set[String] = _allowedIds.toSet
+  def clearAllowedIds(): Unit = _allowedIds.clear()
+  def removeAllowedId(id: String): Unit = _allowedIds -= id
   def allowed(id: String):Boolean = _allowedIds.contains(id)
   def allowed[N <: Neuron](n: N):Boolean = allowed(n.id)
 
-  def +=(str: String)(implicit n: Neuron) = log(str, n)
+  def +=(str: String)(implicit n: Neuron): Unit = log(str, n)
   def log(str: String, n: Neuron):Unit = if(allowed(n)) log(n.id + ": " + str, logLevel)
 
-  def removeOut(out: LogOutput) = findOut(out.id) match{
+  def removeOut(out: LogOutput): Boolean = findOut(out.id) match{
     case None => false;
     case Some(o) => o.close(); outs -= o; true
   }
 
-  def addLogToHTML(id: String) = addOut(new HTMLLogOutput(id))
+  def addLogToHTML(id: String): LogOutput = addOut(new HTMLLogOutput(id))
 
-  def addLogToFile(fileName: String) = addOut(new FileLogOutput(fileName))
+  def addLogToFile(fileName: String): LogOutput = addOut(new FileLogOutput(fileName))
 
-  def addLogToStdout() = addOut(new StdoutLogOutput())
+  def addLogToStdout(): LogOutput = addOut(new StdoutLogOutput())
 
   def log(str: String, logLevel: LogLevel.Value):Unit = this.synchronized {
     if(logLevel > this.logLevel) return
-    val sb = StringBuilder.newBuilder
+    val sb = new StringBuilder()
     if(showLogLevel) sb ++= "level " + logLevel.toString() + ':'
     if(logTime) sb ++= "time " + dateTag + ':'
     if(logIteration) sb++= "iter " + fetchIterationFunction.get().toString + ':'
@@ -99,20 +100,20 @@ object LOG {
   
   private var offset:Option[Long] = None
 
-  def timer(){
+  def timer(): Unit = {
     offset = Some(System.currentTimeMillis())
   }
 
-  def date(){
+  def date(): Unit = {
     offset = None
   }
 
-  def time = offset match {
+  def time: Long = offset match {
     case Some(t) => (System.currentTimeMillis() - t)
     case None => throw new IllegalArgumentException("Logger.time called with no timer set")
   }
   
-  def timerSet = offset != None
+  def timerSet: Boolean = offset.isDefined
 
   private def dateTag = offset match {
     case None => Utils.dateTag
@@ -198,7 +199,7 @@ object LOG {
 
   def timer(source: Any, tag: String): Long = timer(source.getClass.getName + "->" + tag)
 
-  def resetTimer(){
+  def resetTimer(): Unit = {
 	lastMeasure = System.currentTimeMillis()
   }
 	

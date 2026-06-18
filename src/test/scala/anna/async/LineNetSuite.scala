@@ -19,7 +19,7 @@ class LineNetSuite extends AnyFunSuite {
            .chain("out2",1.0)
            .build()
     debug("----------")
-    val sb = StringBuilder.newBuilder
+    val sb = new StringBuilder()
     netWrapper.addAfterFire("out2"){
       debug("Line!")
       sb.append('-')

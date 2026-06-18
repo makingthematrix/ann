@@ -7,7 +7,6 @@ import anna.async.Neuron.SilenceIterations
 import anna.logger.LOG
 import anna.utils.Utils
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class Neuron(val id: String,
@@ -152,29 +151,29 @@ class Neuron(val id: String,
   }
 
   val commonBehaviour: Receive = {
-      case GetId => sender ! Msg(0.0, id)
-      case GetData => sender ! info
-      case FindSynapse(destinationId) => sender ! MsgSynapse(findSynapse(destinationId))
-      case GetSynapses => sender ! MsgSynapses(synapses)
+      case GetId => sender() ! Msg(0.0, id)
+      case GetData => sender() ! info
+      case FindSynapse(destinationId) => sender() ! MsgSynapse(findSynapse(destinationId))
+      case GetSynapses => sender() ! MsgSynapses(synapses)
       case SetSynapses(synapses) => this.synapses = synapses.toList
       case AddAfterFireTrigger(triggerId, trigger) =>
         addAfterFire(triggerId, trigger)
-        sender ! Success(triggerId)
+        sender() ! Success(triggerId)
       case RemoveAfterFireTrigger(triggerId) =>
         removeAfterFire(triggerId)
-        sender ! Success(triggerId)
+        sender() ! Success(triggerId)
       case AddSilenceRequestedTrigger(triggerId, trigger) =>
         addSilenceRequested(triggerId, trigger)
-        sender ! Success(triggerId)
+        sender() ! Success(triggerId)
       case RemoveSilenceRequestedTrigger(triggerId) =>
         removeSilenceRequested(triggerId)
-        sender ! Success(triggerId)
+        sender() ! Success(triggerId)
       case AddSignalIgnoredTrigger(triggerId, trigger) =>
         addSignalIgnored(triggerId, trigger)
-        sender ! Success(triggerId)
+        sender() ! Success(triggerId)
       case RemoveSignalIgnoredTrigger(triggerId) =>
         removeSignalIgnored(triggerId)
-        sender ! Success(triggerId)
+        sender() ! Success(triggerId)
       case RemoveAllTriggers => removeTriggers()
       case Reset => reset()
   }

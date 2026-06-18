@@ -57,7 +57,7 @@ class NetDataSuite extends AnyFunSuite with BeforeAndAfter {
     assertEquals(2, neurons.size)
     assertEquals(List("id1","id2"), neurons.map(_.id).sorted)
 
-    val sb = StringBuilder.newBuilder
+    val sb = new StringBuilder()
     netWrapper.addAfterFire("id2"){ sb.append(".") }
 
     netWrapper.iterateUntilCalm("1,1,1")

@@ -62,7 +62,7 @@ final class NetWrapper(val net: NetRef) {
     tick(1)
   }
 
-  private def popInput() = if(inputQueue.nonEmpty) inputQueue.dequeue else generateEmptyInput
+  private def popInput() = if(inputQueue.nonEmpty) inputQueue.dequeue() else generateEmptyInput
 
   def tick():Unit = tick(1)
 

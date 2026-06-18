@@ -11,13 +11,13 @@ class Net(val id: String) extends Actor {
   private var inputs = List[NeuronRef]()
 
   def receive: Receive = {
-    case GetId => sender ! Msg(0.0, id)
-    case GetNeurons => sender ! MsgNeurons(neurons.toList)
+    case GetId => sender() ! Msg(0.0, id)
+    case GetNeurons => sender() ! MsgNeurons(neurons.toList)
     case CreateNeuron(data) => createNeuron(data)
     case Shutdown => shutdown()
-    case GetInputs => sender ! MsgNeurons(inputs)
+    case GetInputs => sender() ! MsgNeurons(inputs)
     case SetInputs(ids) => setInputs(ids.toSet)
-    case GetNeuron(id) => sender ! MsgNeuron(findRef(id))
+    case GetNeuron(id) => sender() ! MsgNeuron(findRef(id))
     case SignalList(in) => signal(in)
     case Reset => resetBuffer()
     case RemoveAllTriggers => removeTriggers()
@@ -38,7 +38,7 @@ class Net(val id: String) extends Actor {
   }
 
   private def shutdown(): Unit = {
-    shutdownCallerOpt = Some(sender)
+    shutdownCallerOpt = Some(sender())
     if(neurons.nonEmpty) {
       neurons.foreach(_ ! PoisonPill)
     } else {
@@ -56,17 +56,17 @@ class Net(val id: String) extends Actor {
   }
 
   private def resetBuffer(): Unit = {
-    context.become( waiting(sender, neurons.map(_.id).toSet, "resetting") )
+    context.become( waiting(sender(), neurons.map(_.id).toSet, "resetting") )
     neurons.foreach(_ ! Reset)
   }
 
   private def removeAfterFire(id:String): Unit = {
-    context.become( waiting(sender, neurons.map(_.id).toSet, s"removing an after fire trigger $id") )
+    context.become( waiting(sender(), neurons.map(_.id).toSet, s"removing an after fire trigger $id") )
     neurons.foreach(_.removeAfterFire(id))
   }
 
   private def removeTriggers(): Unit = {
-    context.become( waiting(sender, neurons.map(_.id).toSet, "removing triggers") )
+    context.become( waiting(sender(), neurons.map(_.id).toSet, "removing triggers") )
     neurons.foreach(_ ! RemoveAllTriggers)
   }
 
@@ -74,7 +74,7 @@ class Net(val id: String) extends Actor {
     val neuronRef = new NeuronRef(id, ref)
     neurons += neuronRef
     context.watch(ref)
-    sender ! neuronRef
+    sender() ! neuronRef
   }
 
   private def createNeuron(data:NeuronData): Unit = data.neuronType match {
@@ -110,9 +110,9 @@ class Net(val id: String) extends Actor {
     if(inputs.size != ids.size){
       val inIds = inputs.map( _.id )
       val notFound = ids.filterNot( inIds.contains(_) )
-      sender ! Failure(s"setInputs, unable to find neurons with ids: $notFound")
+      sender() ! Failure(s"setInputs, unable to find neurons with ids: $notFound")
     } else {
-      sender ! Success("setInputLayer_" + id)
+      sender() ! Success("setInputLayer_" + id)
     }
   }
 

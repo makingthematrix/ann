@@ -135,7 +135,7 @@ object Utils {
 
   def dateTag: String = {
     val cal = Calendar.getInstance
-    StringBuilder.newBuilder
+    new StringBuilder()
       .append(cal.get(Calendar.YEAR)).append('-')
       .append(twociphers(cal.get(Calendar.MONTH)+1)).append('-')
       .append(twociphers(cal.get(Calendar.DAY_OF_MONTH))).append('_')
