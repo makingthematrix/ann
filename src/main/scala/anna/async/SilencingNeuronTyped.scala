@@ -23,7 +23,7 @@ final class SilencingNeuronTyped(context: ActorContext[Command],
                                  timers: TimerScheduler[Command],
                                  override val id: String,
                                  override val netId: String,
-                                 initialSynapses: List[Synapse])
+                                 initialSynapses: List[SynapseTyped])
   extends NeuronTyped(context, timers, id, netId, 0.0, 0, initialSynapses) {
 
   private def sendRequest(): Unit = {
@@ -50,7 +50,7 @@ final class SilencingNeuronTyped(context: ActorContext[Command],
 object SilencingNeuronTyped {
   def apply(id: String,
             netId: String,
-            synapses: List[Synapse] = List.empty): Behavior[Command] =
+            synapses: List[SynapseTyped] = List.empty): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.withTimers { timers =>
         NeuronCounter.reg(netId, id, context.self.toClassic)

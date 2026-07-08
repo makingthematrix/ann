@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors, TimerScheduler}
 import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal => AkkaSignal}
 import anna.Context
-import anna.async.Messages.{Answer, Msg, MsgSynapse, MsgSynapses, NeuronInfo, Success}
+import anna.async.Messages.{Answer, Msg, NeuronInfo, Success}
 import anna.async.NeuronTriggers.Trigger
 import anna.async.NeuronTyped._
 import anna.logger.LOG
@@ -39,7 +39,7 @@ class NeuronTyped(context: ActorContext[Command],
                   val netId: String,
                   val threshold: Double,
                   val silenceIterations: SilenceIterations,
-                  protected var synapses: List[Synapse])
+                  protected var synapses: List[SynapseTyped])
   extends AbstractBehavior[Command](context) with NeuronTriggers {
 
   require(silenceIterations >= SilenceForever)
@@ -104,8 +104,8 @@ class NeuronTyped(context: ActorContext[Command],
   protected def handleCommon(msg: Command): Unit = msg match {
     case GetId(replyTo)               => replyTo ! Msg(0.0, id)
     case GetData(replyTo)             => replyTo ! info
-    case FindSynapse(destId, replyTo) => replyTo ! MsgSynapse(findSynapse(destId))
-    case GetSynapses(replyTo)         => replyTo ! MsgSynapses(synapses)
+    case FindSynapse(destId, replyTo) => replyTo ! SynapseOpt(findSynapse(destId))
+    case GetSynapses(replyTo)         => replyTo ! Synapses(synapses)
     case SetSynapses(s)               => this.synapses = s.toList
     case AddAfterFireTrigger(tid, f, replyTo) =>
       addAfterFire(tid, f); replyTo ! Success(tid)
@@ -194,10 +194,8 @@ class NeuronTyped(context: ActorContext[Command],
     replyTo ! Success(id)
   }
 
-  private def findSynapse(destinationId: String): Option[Synapse] =
+  private def findSynapse(destinationId: String): Option[SynapseTyped] =
     if (synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
-
-  protected def findSynapse(destination: Neuron): Option[Synapse] = findSynapse(destination.id)
 
   def info: NeuronInfo =
     NeuronInfo(id, netId, threshold, silenceIterations, synapses.map(_.info), buffer)
@@ -230,11 +228,15 @@ object NeuronTyped {
   // queries (carry an explicit replyTo instead of relying on sender())
   final case class GetId(replyTo: ActorRef[Msg]) extends Command
   final case class GetData(replyTo: ActorRef[NeuronInfo]) extends Command
-  final case class FindSynapse(destinationId: String, replyTo: ActorRef[MsgSynapse]) extends Command
-  final case class GetSynapses(replyTo: ActorRef[MsgSynapses]) extends Command
+  final case class FindSynapse(destinationId: String, replyTo: ActorRef[SynapseOpt]) extends Command
+  final case class GetSynapses(replyTo: ActorRef[Synapses]) extends Command
+
+  // synapse replies (typed equivalents of Messages.MsgSynapses / MsgSynapse)
+  final case class Synapses(synapses: Seq[SynapseTyped])
+  final case class SynapseOpt(synapse: Option[SynapseTyped])
 
   // commands
-  final case class SetSynapses(synapses: Seq[Synapse]) extends Command
+  final case class SetSynapses(synapses: Seq[SynapseTyped]) extends Command
   final case class RemoveAllTriggers(replyTo: ActorRef[Answer]) extends Command
   final case class Reset(replyTo: ActorRef[Answer]) extends Command
 
@@ -251,7 +253,7 @@ object NeuronTyped {
             netId: String,
             threshold: Double,
             silenceIterations: SilenceIterations,
-            synapses: List[Synapse] = List.empty): Behavior[Command] =
+            synapses: List[SynapseTyped] = List.empty): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.withTimers { timers =>
         NeuronCounter.reg(netId, id, context.self.toClassic)

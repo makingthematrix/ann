@@ -2,6 +2,7 @@ package anna.async
 
 import akka.util.Timeout
 import anna.Context
+import anna.data.SynapseWeight
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
@@ -52,6 +53,29 @@ class NetTypedSuite extends AnyFunSuite {
 
     assertTrue(Await.result(p.future, timeout.duration))
     assertEquals(1L, net.iteration)
+
+    net.shutdown()
+  }
+
+  test("typed: signal propagates through a SynapseTyped chain and fires downstream") {
+    val net = NetRefTyped("typed-chain")
+
+    val n1 = net.createNeuron("id1", 0.0, 0) // fires on any signal
+    val n2 = net.createNeuron("id2", 0.9, 0)
+
+    n1.setSynapses(List(SynapseTyped(n2, SynapseWeight(1.0))))
+    net.setInputs(List("id1"))
+
+    val p = Promise[Boolean]()
+    n2.addAfterFire("MyTrigger") {
+      LOG.debug("downstream typed neuron fired")
+      p.success(true)
+    }
+
+    net.signal(List(1.0))
+
+    assertTrue(Await.result(p.future, timeout.duration))
+    assertEquals(1, n1.getSynapses.size)
 
     net.shutdown()
   }

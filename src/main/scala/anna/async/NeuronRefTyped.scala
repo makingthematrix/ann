@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ActorRef, Scheduler}
 import akka.util.Timeout
 import anna.Context
-import anna.async.Messages.{Answer, Failure, MsgSynapses, NeuronInfo, Success}
+import anna.async.Messages.{Answer, Failure, NeuronInfo, Success}
 import anna.logger.LOG._
 
 import scala.concurrent.Await
@@ -35,8 +35,8 @@ final class NeuronRefTyped(val id: String, val ref: ActorRef[NeuronTyped.Command
   }
 
   def info: NeuronInfo = ask[NeuronInfo](NeuronTyped.GetData(_))
-  def getSynapses: Seq[Synapse] = ask[MsgSynapses](NeuronTyped.GetSynapses(_)).synapses
-  def setSynapses(synapses: Seq[Synapse]): Unit =
+  def getSynapses: Seq[SynapseTyped] = ask[NeuronTyped.Synapses](NeuronTyped.GetSynapses(_)).synapses
+  def setSynapses(synapses: Seq[SynapseTyped]): Unit =
     if (synapses.nonEmpty) ref ! NeuronTyped.SetSynapses(synapses)
 
   def requestSilence(): Unit = {
