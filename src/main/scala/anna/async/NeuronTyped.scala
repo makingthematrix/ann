@@ -52,7 +52,7 @@ class NeuronTyped(context: ActorContext[Command],
 
   // `LOG += str` in the classic Neuron relied on an implicit `Neuron` (`this`).
   // NeuronTyped isn't a `Neuron`, so we log through the id-prefixed helper instead.
-  private def log(str: String): Unit = LOG.debug(s"$id: $str")
+  protected def log(str: String): Unit = LOG.debug(s"$id: $str")
 
   private lazy val silentForever = silenceIterations == SilenceForever
 
@@ -101,7 +101,7 @@ class NeuronTyped(context: ActorContext[Command],
 
   // --- common messages (queries & triggers) -------------------------------
 
-  private def handleCommon(msg: Command): Unit = msg match {
+  protected def handleCommon(msg: Command): Unit = msg match {
     case GetId(replyTo)               => replyTo ! Msg(0.0, id)
     case GetData(replyTo)             => replyTo ! info
     case FindSynapse(destId, replyTo) => replyTo ! MsgSynapse(findSynapse(destId))
@@ -186,7 +186,7 @@ class NeuronTyped(context: ActorContext[Command],
     log(s"(tick) buffer is now $printBuffer")
   }
 
-  private def reset(replyTo: ActorRef[Answer]): Unit = {
+  protected def reset(replyTo: ActorRef[Answer]): Unit = {
     buffer = 0.0
     log(s"(reset) buffer is now $printBuffer")
     timers.cancelAll()
