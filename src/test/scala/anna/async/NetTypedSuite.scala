@@ -80,6 +80,27 @@ class NetTypedSuite extends AnyFunSuite {
     net.shutdown()
   }
 
+  test("typed: NetBuilderTyped builds a net driven by NetWrapperTyped") {
+    val wrapper = NetBuilderTyped("typed-builder")
+      .addInput("in")
+      .chain("out", SynapseWeight(1.0), 0.9, 0)
+      .build()
+
+    assertEquals(Seq("in"), wrapper.ids)
+
+    val p = Promise[Boolean]()
+    wrapper.addAfterFire("out", "MyTrigger") {
+      LOG.debug("built typed net fired")
+      p.success(true)
+    }
+
+    wrapper.iterateUntilCalm("1")
+
+    assertTrue(Await.result(p.future, timeout.duration))
+
+    wrapper.shutdown()
+  }
+
   test("typed: shutdown replies with NetShutdownDone") {
     val net = NetRefTyped("typed-shutdown")
     net.createNeuron("x", 0.5, 0)
