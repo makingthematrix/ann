@@ -1,7 +1,7 @@
 package anna.async
 
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.{ActorRef, Scheduler}
+import akka.actor.typed.{ActorRef, Props, Scheduler, SpawnProtocol}
 import akka.util.Timeout
 import anna.Context
 import anna.async.Messages.{Answer, NetShutdownDone, NeuronInfo}
@@ -96,12 +96,12 @@ final class NetRef(val id: String, val ref: ActorRef[Net.Command]) {
 
 object NetRef {
   def apply(id: String): NetRef = {
-    // Spawn a top-level typed actor by asking the user guardian.
+    // Spawn a top-level actor by asking the SpawnProtocol user guardian.
     val system = Context().system
     implicit val timeout: Timeout = Context().timeout
     implicit val scheduler: Scheduler = system.scheduler
     val ref = Await.result(
-      system.ask[ActorRef[Net.Command]](Guardian.Spawn(Net(id), _)),
+      system.ask[ActorRef[Net.Command]](SpawnProtocol.Spawn(Net(id), "", Props.empty, _)),
       timeout.duration
     )
     new NetRef(id, ref)

@@ -2,9 +2,8 @@ package anna
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.typed.ActorSystem
+import akka.actor.typed.{ActorSystem, SpawnProtocol}
 import akka.util.Timeout
-import anna.async.Guardian
 import anna.data._
 import anna.utils.Utils.formats
 import com.typesafe.config.ConfigFactory
@@ -25,16 +24,15 @@ final case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefau
   def silenceIterations: Int = neuronDefaults.silenceIterations
   def iterationTime: Long = neuronDefaults.iterationTime
 
-  private var systemOpt: Option[ActorSystem[Guardian.Command]] = None
+  private var systemOpt: Option[ActorSystem[SpawnProtocol.Command]] = None
 
   // A typed ActorSystem always has a user guardian and offers no actorOf for
-  // top-level actors "from the outside". The Guardian behaviour restores that
-  // for both worlds: it spawns typed Net actors and, via the classic
-  // adapter, classic Net actors, on demand.
-  def system: ActorSystem[Guardian.Command] = systemOpt match {
+  // top-level actors "from the outside". SpawnProtocol is Akka's built-in
+  // guardian for spawning top-level actors on demand (see NetRef).
+  def system: ActorSystem[SpawnProtocol.Command] = systemOpt match {
     case Some(actorSystem) => actorSystem
     case None =>
-      val actorSystem = ActorSystem(Guardian(), "system")
+      val actorSystem = ActorSystem(SpawnProtocol(), "system")
       systemOpt = Some(actorSystem)
       actorSystem
   }
