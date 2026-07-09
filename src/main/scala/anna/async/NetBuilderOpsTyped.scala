@@ -1,5 +1,6 @@
 package anna.async
 
+import anna.blocks.DelayGateTyped
 import anna.data._
 
 import scala.language.implicitConversions
@@ -67,6 +68,9 @@ final class NetBuilderOpsTyped(val builder: NetBuilderTyped) extends AnyVal {
   def self(weight: SynapseTrait = builder.defWeight): NetBuilderTyped = builder.connect(builder.current.id, weight)
 
   def connect(id: String, weight: Double): NetBuilderTyped = builder.connect(id, SynapseWeight(weight))
+
+  def delayGate(name: String, delay: Int, inputWeight: Double = 1.0, inputThreshold: Double = 0.0): NetBuilderTyped =
+    DelayGateTyped(name, delay).chain(builder, inputWeight, inputThreshold)
 
   implicit private def fromNetBuilder(builder: NetBuilderTyped): NetBuilderOpsTyped =
     NetBuilderOpsTyped.fromNetBuilder(builder)

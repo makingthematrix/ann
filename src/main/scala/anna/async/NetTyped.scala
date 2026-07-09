@@ -115,7 +115,10 @@ class NetTyped(context: ActorContext[Command], val id: String)
       case NeuronTypeDummy()     => NeuronTyped(data.id, id, 0.0, 0)
       case NeuronTypeSilencing() => SilencingNeuronTyped(data.id, id)
     }
-    val ref = context.spawn(behavior, data.id)
+    // Spawn anonymously: neuron ids are bookkeeping only and may contain
+    // characters that are illegal in Akka actor names (e.g. '#' from block
+    // naming). The classic Net likewise created anonymous actors.
+    val ref = context.spawnAnonymous(behavior)
     neurons += (data.id -> ref)
     context.watchWith(ref, ChildTerminated(data.id))
     replyTo ! NeuronHandle(data.id, ref)
