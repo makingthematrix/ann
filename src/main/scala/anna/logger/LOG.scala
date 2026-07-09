@@ -2,7 +2,6 @@ package anna.logger
 
 import java.io.{PrintWriter, StringWriter}
 import anna.utils.Utils
-import anna.async.Neuron
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -69,16 +68,11 @@ object LOG {
 
   def allow(id: String):Unit = _allowedIds += id
   def allow(ids: String*):Unit = ids.foreach( allow )
-  def allow[N <: Neuron](implicit n: N):Unit = allow(n.id)
 
   def allowedIds: Set[String] = _allowedIds.toSet
   def clearAllowedIds(): Unit = _allowedIds.clear()
   def removeAllowedId(id: String): Unit = _allowedIds -= id
   def allowed(id: String):Boolean = _allowedIds.contains(id)
-  def allowed[N <: Neuron](n: N):Boolean = allowed(n.id)
-
-  def +=(str: String)(implicit n: Neuron): Unit = log(str, n)
-  def log(str: String, n: Neuron):Unit = if(allowed(n)) log(n.id + ": " + str, logLevel)
 
   def removeOut(out: LogOutput): Boolean = findOut(out.id) match{
     case None => false;
@@ -176,11 +170,6 @@ object LOG {
 	  log(source, str, LogLevel.ERROR)
 	  throw new IllegalArgumentException(str)
   }
-
-  def error[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR, allowed(source))
-  def debug[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG, allowed(source))
-  def info[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.INFO, allowed(source))
-  def comment[N <: Neuron](source: N, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.COMMENT, allowed(source))
 
   def error(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.ERROR)
   def debug(source: Any, str: String): Unit = if(LogLevel.ERROR <= logLevel) log(source, str, LogLevel.DEBUG)

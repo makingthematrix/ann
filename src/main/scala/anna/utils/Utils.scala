@@ -3,10 +3,6 @@ package anna.utils
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.text.{NumberFormat, ParsePosition}
 import java.util.{Calendar, Locale}
-import akka.actor.ActorRef
-import akka.pattern.ask
-import akka.util.Timeout
-import anna.Context
 import anna.async._
 import anna.data._
 import anna.logger.LOG
@@ -16,7 +12,6 @@ import org.json4s._
 import org.json4s.native.Serialization
 
 import scala.annotation.tailrec
-import scala.concurrent.Await
 import scala.util.Random
 
 object Utils {
@@ -30,12 +25,6 @@ object Utils {
 
   def minmax(min: Double, v: Double, max: Double): Double = Math.max(min,Math.min(max,v))
   def minmax(min: Int, v: Int, max: Int): Int = Math.max(min,Math.min(max,v))
-
-  implicit val timeout: Timeout = Context().timeout
-
-  def await[T](ref: ActorRef, msg: Any): T = Await.result(ref ? msg, timeout.duration).asInstanceOf[T]
-  def await[T](net: NetRef, msg: Any): T = await[T](net.ref, msg)
-  def await[T](neuron: NeuronRef, msg: Any): T = await[T](neuron.ref, msg)
 
   def parseDouble(s: String): Option[Double] = {
     val pp = new ParsePosition(0)
