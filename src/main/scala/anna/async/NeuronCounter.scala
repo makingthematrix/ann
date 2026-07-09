@@ -1,17 +1,24 @@
 package anna.async
 
-import anna.Context
+import java.util.concurrent.ConcurrentHashMap
 
-import scala.collection.mutable
-import anna.logger.LOG._
+import akka.actor.{ActorRef, PoisonPill}
 import anna.logger.LOG
-import akka.actor.{ActorRef, ActorSystem, PoisonPill, TypedActor, TypedActorExtension, TypedProps}
+import anna.logger.LOG._
+
+import scala.jdk.CollectionConverters._
 
 /**
- * Created by gorywoda on 23.06.15.
+ * A process-local, thread-safe registry mapping a neuron's `netId###neuronId`
+ * to its (classic) `ActorRef`.
+ *
+ * Historically this was backed by a classic `akka.actor.TypedActor` purely to
+ * serialize access to a mutable map. `TypedActor` (the "Active Object" pattern)
+ * was deprecated in Akka 2.6 and dropped in 2.9, and it is the wrong tool here:
+ * this is not message-driven behaviour, just shared state with synchronous
+ * accessors. It is therefore backed by a [[ConcurrentHashMap]] instead — no
+ * actor, no blocking asks, same API, and thread-safe by construction.
  */
-
-
 trait NeuronCounter {
   def reg(netId: String, neuronId: String, ref: ActorRef): Unit
   def unreg(netId: String, neuronId: String): Unit
@@ -25,26 +32,29 @@ class NeuronCounterImpl(val name: String) extends NeuronCounter {
 
   LOG.addLogToFile("neuroncounter.log")
 
-  private val _neurons = mutable.Map[String, ActorRef]()
+  private val _neurons = new ConcurrentHashMap[String, ActorRef]()
 
-  def reg(netId: String, neuronId: String, ref: ActorRef):Unit = {
+  def reg(netId: String, neuronId: String, ref: ActorRef): Unit = {
     val _id = NeuronCounter.id(netId, neuronId)
-    if (_neurons.contains(_id)) exception(s"The neuron ${_id} is already registered")
-    _neurons += _id -> ref
+    // putIfAbsent makes the "check-then-insert" atomic. On a duplicate we log an
+    // error rather than throwing: the old TypedActor dispatched reg as a one-way
+    // message, so a duplicate never propagated an exception back to the caller.
+    if (_neurons.putIfAbsent(_id, ref) != null)
+      error(this, s"The neuron ${_id} is already registered")
   }
 
-  def unreg(netId: String, neuronId: String):Unit = {
-    _neurons -= NeuronCounter.id(netId, neuronId)
+  def unreg(netId: String, neuronId: String): Unit = {
+    _neurons.remove(NeuronCounter.id(netId, neuronId))
   }
 
-  def neurons:Map[String, ActorRef] = _neurons.toMap
+  def neurons: Map[String, ActorRef] = _neurons.asScala.toMap
 
-  def size:Int = _neurons.size
+  def size: Int = _neurons.size
 
-  def clean():Unit = if(_neurons.nonEmpty){
-    val str = _neurons.keys.mkString(",")
-    error(this,s"${_neurons.size} needs cleaning, which means something went wrong... $str")
-    _neurons.foreach(t => t._2 ! PoisonPill)
+  def clean(): Unit = if (!_neurons.isEmpty) {
+    val str = _neurons.keySet.asScala.mkString(",")
+    error(this, s"${_neurons.size} needs cleaning, which means something went wrong... $str")
+    _neurons.values.asScala.foreach(_ ! PoisonPill)
     _neurons.clear()
   }
 }
@@ -52,19 +62,19 @@ class NeuronCounterImpl(val name: String) extends NeuronCounter {
 object NeuronCounter {
   private var instanceOpt: Option[NeuronCounter] = None
 
-  def set(nc: NeuronCounter): Unit = {
+  def set(nc: NeuronCounter): Unit = synchronized {
     stop()
     instanceOpt = Some(nc)
   }
 
-  def apply(): NeuronCounter = instanceOpt match {
-    case Some(instance) => instance
-    case None =>
-      val typedProps: TypedProps[NeuronCounter] = TypedProps(classOf[NeuronCounter], new NeuronCounterImpl("default"))
-      val typedActor: TypedActorExtension = TypedActor(Context().system)
-      val instance: NeuronCounter = typedActor.typedActorOf(typedProps)
-      instanceOpt = Some(instance)
-      instance
+  def apply(): NeuronCounter = synchronized {
+    instanceOpt match {
+      case Some(instance) => instance
+      case None =>
+        val instance = new NeuronCounterImpl("default")
+        instanceOpt = Some(instance)
+        instance
+    }
   }
 
   def reg(netId: String, neuronId: String, ref: ActorRef): Unit = if(_enabled) apply().reg(netId, neuronId, ref)
@@ -77,10 +87,11 @@ object NeuronCounter {
 
   def clean(): Unit = if(_enabled) apply().clean()
 
-  private def stop(): Unit = if(_enabled && instanceOpt.isDefined){
-    instanceOpt.get.clean()
-    TypedActor(Context().system).poisonPill(instanceOpt.get)
-    instanceOpt = None
+  private def stop(): Unit = synchronized {
+    if(_enabled) instanceOpt.foreach { instance =>
+      instance.clean()
+      instanceOpt = None
+    }
   }
 
   private var _enabled = true
