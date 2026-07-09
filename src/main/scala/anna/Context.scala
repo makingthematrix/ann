@@ -2,8 +2,9 @@ package anna
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
+import akka.actor.typed.ActorSystem
 import akka.util.Timeout
+import anna.async.Guardian
 import anna.data._
 import anna.utils.Utils.formats
 import com.typesafe.config.ConfigFactory
@@ -24,13 +25,16 @@ final case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefau
   def silenceIterations: Int = neuronDefaults.silenceIterations
   def iterationTime: Long = neuronDefaults.iterationTime
 
-  private var systemOpt: Option[ActorSystem] = None
+  private var systemOpt: Option[ActorSystem[Guardian.Command]] = None
 
-  def system: ActorSystem = systemOpt match {
+  // A typed ActorSystem always has a user guardian and offers no actorOf for
+  // top-level actors "from the outside". The Guardian behaviour restores that
+  // for both worlds: it spawns typed NetTyped actors and, via the classic
+  // adapter, classic Net actors, on demand.
+  def system: ActorSystem[Guardian.Command] = systemOpt match {
     case Some(actorSystem) => actorSystem
     case None =>
-      implicit val t: Timeout = timeout
-      val actorSystem = ActorSystem("system")
+      val actorSystem = ActorSystem(Guardian(), "system")
       systemOpt = Some(actorSystem)
       actorSystem
   }

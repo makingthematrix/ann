@@ -24,7 +24,7 @@ final class NeuronRefTyped(val id: String, val ref: ActorRef[NeuronTyped.Command
 
   private def ask[Res](f: ActorRef[Res] => NeuronTyped.Command): Res = {
     implicit val timeout: Timeout = Context().timeout
-    implicit val scheduler: Scheduler = Context().system.toTyped.scheduler
+    implicit val scheduler: Scheduler = Context().system.scheduler
     Await.result(ref.ask(f), timeout.duration)
   }
 

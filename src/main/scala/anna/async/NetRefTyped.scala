@@ -1,7 +1,6 @@
 package anna.async
 
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ActorRef, Scheduler}
 import akka.util.Timeout
 import anna.Context
@@ -27,7 +26,7 @@ final class NetRefTyped(val id: String, val ref: ActorRef[NetTyped.Command]) {
 
   private def ask[Res](f: ActorRef[Res] => NetTyped.Command): Res = {
     implicit val timeout: Timeout = Context().timeout
-    implicit val scheduler: Scheduler = Context().system.toTyped.scheduler
+    implicit val scheduler: Scheduler = Context().system.scheduler
     Await.result(ref.ask(f), timeout.duration)
   }
 
@@ -98,9 +97,14 @@ final class NetRefTyped(val id: String, val ref: ActorRef[NetTyped.Command]) {
 
 object NetRefTyped {
   def apply(id: String): NetRefTyped = {
-    // Uses the classic-system adapter to spawn a top-level typed actor without a
-    // dedicated guardian; a real typed ActorSystem/guardian is a later step.
-    val ref = Context().system.spawnAnonymous(NetTyped(id))
+    // Spawn a top-level typed actor by asking the user guardian.
+    val system = Context().system
+    implicit val timeout: Timeout = Context().timeout
+    implicit val scheduler: Scheduler = system.scheduler
+    val ref = Await.result(
+      system.ask[ActorRef[NetTyped.Command]](Guardian.SpawnTyped(NetTyped(id), _)),
+      timeout.duration
+    )
     new NetRefTyped(id, ref)
   }
 

@@ -1,7 +1,11 @@
 package anna.async
 
 import akka.actor.{ActorRef, Props}
+import akka.actor.typed.Scheduler
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
+
+import scala.concurrent.Await
 import anna.Context
 import anna.async.Messages._
 import anna.data.NeuronData
@@ -83,7 +87,15 @@ object NetRef {
   private var netRefOpt: Option[NetRef] = None
   
   def apply(id: String):NetRef = {
-    val ref = Context().system.actorOf(Props(new Net(id)))
+    // Context().system is a typed ActorSystem with a custom guardian, so we ask
+    // the guardian to create the classic Net actor as its child.
+    val system = Context().system
+    implicit val timeout: Timeout = Context().timeout
+    implicit val scheduler: Scheduler = system.scheduler
+    val ref = Await.result(
+      system.ask[ActorRef](Guardian.SpawnClassic(Props(new Net(id)), _)),
+      timeout.duration
+    )
     val netRef = new NetRef(id, ref)
     netRefOpt = Some(netRef)
     netRef

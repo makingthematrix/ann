@@ -25,7 +25,7 @@ class NetTypedSuite extends AnyFunSuite {
   private val silenceIterations: Int = Context().silenceIterations
 
   private implicit val timeout: Timeout = Context().timeout
-  private implicit val scheduler: Scheduler = Context().system.toTyped.scheduler
+  private implicit val scheduler: Scheduler = Context().system.scheduler
 
   test("shouldCreateNet") {
     val net = NetRefTyped("net1")
