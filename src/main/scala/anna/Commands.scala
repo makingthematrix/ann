@@ -1,10 +1,10 @@
 package anna
 
-import anna.async.{NetBuilder, NetWrapper}
+import anna.async.{NetBuilderTyped, NetWrapperTyped}
 import anna.data.NetData
 import anna.logger.LOG._
-import anna.async.NetBuilderOps._
-import anna.blocks.{DelayGate, SignalSum}
+import anna.async.NetBuilderOpsTyped._
+import anna.blocks.{DelayGateTyped, SignalSumTyped}
 import anna.logger.LOG
 /**
  * Created by gorywoda on 06.06.15.
@@ -13,52 +13,52 @@ import anna.logger.LOG
 
 object Commands {
 
-  private var netWrapperOpt: Option[NetWrapper] = None
+  private var netWrapperOpt: Option[NetWrapperTyped] = None
 
   private val DELAY_GATE: String = "Delay Gate"
   private val SIGNAL_SUM: String = "Signal Sum"
   private val DOT_AND_LINE: String = "Dot & Line"
   private val SOS: String = "SOS"
 
-  def delayGate(delay: Int): NetData = NetBuilder().netId(DELAY_GATE).addInput("IN").delayGate("DG", delay).data
+  def delayGate(delay: Int): NetData = NetBuilderTyped().netId(DELAY_GATE).addInput("IN").delayGate("DG", delay).data
 
-  def signalSum(requiredSignals: Int): NetData = NetBuilder().netId(SIGNAL_SUM).addInput("IN").signalSum("SS", requiredSignals).data
+  def signalSum(requiredSignals: Int): NetData = NetBuilderTyped().netId(SIGNAL_SUM).addInput("IN").signalSum("SS", requiredSignals).data
 
   lazy val dotAndLine: NetData =
-    NetBuilder().netId(DOT_AND_LINE)
+    NetBuilderTyped().netId(DOT_AND_LINE)
       .addInput("IN").delayGate("DOT", 2)
       .use("IN").signalSum("LINE", 2)
-      .use(DelayGate.outputId("DOT")).silence(SignalSum.silencingId("LINE"))
-      .use(SignalSum.outputId("LINE")).silence(DelayGate.silencingId("DOT"))
+      .use(DelayGateTyped.outputId("DOT")).silence(SignalSumTyped.silencingId("LINE"))
+      .use(SignalSumTyped.outputId("LINE")).silence(DelayGateTyped.silencingId("DOT"))
       .data
 
   lazy val sos: NetData = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
-    val dotOutputId = DelayGate.outputId(dotBlockName)
-    val dotSilencingId = DelayGate.silencingId(dotBlockName)
-    val dotInputId = DelayGate.inputId(dotBlockName)
-    val dotMiddleId = DelayGate.middleId(dotBlockName)
+    val dotOutputId = DelayGateTyped.outputId(dotBlockName)
+    val dotSilencingId = DelayGateTyped.silencingId(dotBlockName)
+    val dotInputId = DelayGateTyped.inputId(dotBlockName)
+    val dotMiddleId = DelayGateTyped.middleId(dotBlockName)
 
     val lineBlockName = "LINE"
     val lineRequiredSignals = 2
-    val lineOutputId = SignalSum.outputId(lineBlockName)
-    val lineSilencingId = SignalSum.silencingId(lineBlockName)
-    val lineInputId = SignalSum.inputId(lineBlockName)
+    val lineOutputId = SignalSumTyped.outputId(lineBlockName)
+    val lineSilencingId = SignalSumTyped.silencingId(lineBlockName)
+    val lineInputId = SignalSumTyped.inputId(lineBlockName)
 
     val sBlockName = "S"
     val sRequiredSignals = 3
-    val sOutputId = SignalSum.outputId(sBlockName)
-    val sSilencingId = SignalSum.silencingId(sBlockName)
-    val sInputId = SignalSum.inputId(sBlockName)
+    val sOutputId = SignalSumTyped.outputId(sBlockName)
+    val sSilencingId = SignalSumTyped.silencingId(sBlockName)
+    val sInputId = SignalSumTyped.inputId(sBlockName)
 
     val oBlockName = "O"
     val oRequiredSignals = 3
-    val oOutputId = SignalSum.outputId(oBlockName)
-    val oSilencingId = SignalSum.silencingId(oBlockName)
-    val oInputId = SignalSum.inputId(oBlockName)
+    val oOutputId = SignalSumTyped.outputId(oBlockName)
+    val oSilencingId = SignalSumTyped.silencingId(oBlockName)
+    val oInputId = SignalSumTyped.inputId(oBlockName)
 
-    NetBuilder().netId(SOS)
+    NetBuilderTyped().netId(SOS)
       .addInput("IN").delayGate(dotBlockName, dotExpectedDelay)
       .use("IN").signalSum(lineBlockName, lineRequiredSignals)
       .use(dotOutputId).silence(lineSilencingId)
@@ -70,7 +70,7 @@ object Commands {
       .data
   }
 
-  private def wrapper: NetWrapper = netWrapperOpt.getOrElse(throw new IllegalArgumentException("NetWrapper not set"))
+  private def wrapper: NetWrapperTyped = netWrapperOpt.getOrElse(throw new IllegalArgumentException("NetWrapper not set"))
 
   private def addAfterFireTrigger(neuronId: String)(f: => Any): Unit = wrapper.addAfterFire(neuronId)(f)
   private def addSilenceRequestedTrigger(neuronId: String)(f: => Any): Unit = wrapper.addSilenceRequested(neuronId)(f)
@@ -83,59 +83,59 @@ object Commands {
   def initializeNetwork(netData: NetData): Unit = {
     LOG.timer()
     clearOutput()
-    netWrapperOpt = Some(NetBuilder().set(netData).build())
+    netWrapperOpt = Some(NetBuilderTyped().set(netData).build())
     LOG.clearAllowedIds()
   }
 
   def setupDelayGate(netData: NetData): Unit = {
     initializeNetwork(netData)
 
-    addAfterFireTrigger(DelayGate.outputId("DG")){
+    addAfterFireTrigger(DelayGateTyped.outputId("DG")){
       LOG.debug("Pushing '1' into the output")
       outputBuffer.append('1')
     }
 
     LOG.allow(
       "IN",
-      DelayGate.inputId("DG"),
-      DelayGate.silencingId("DG"),
-      DelayGate.middleId("DG"),
-      DelayGate.outputId("DG")
+      DelayGateTyped.inputId("DG"),
+      DelayGateTyped.silencingId("DG"),
+      DelayGateTyped.middleId("DG"),
+      DelayGateTyped.outputId("DG")
     )
   }
 
   def setupSignalSum(netData: NetData): Unit = {
     initializeNetwork(netData)
 
-    addAfterFireTrigger(SignalSum.outputId("SS")){
+    addAfterFireTrigger(SignalSumTyped.outputId("SS")){
       LOG.debug("Pushing '1' into the output")
       outputBuffer.append('1')
     }
 
     LOG.allow(
       "IN",
-      SignalSum.inputId("SS"),
-      SignalSum.silencingId("SS"),
-      SignalSum.outputId("SS")
+      SignalSumTyped.inputId("SS"),
+      SignalSumTyped.silencingId("SS"),
+      SignalSumTyped.outputId("SS")
     )
   }
 
   def setupDotAndLine(netData: NetData): Unit = {
     initializeNetwork(netData)
 
-    val dotInputId = DelayGate.inputId("DOT")
-    val dotMiddleId = DelayGate.middleId("DOT")
-    val dotSilencingId = DelayGate.silencingId("DOT")
-    val dotOutputId = DelayGate.outputId("DOT")
+    val dotInputId = DelayGateTyped.inputId("DOT")
+    val dotMiddleId = DelayGateTyped.middleId("DOT")
+    val dotSilencingId = DelayGateTyped.silencingId("DOT")
+    val dotOutputId = DelayGateTyped.outputId("DOT")
 
     addAfterFireTrigger(dotOutputId){
       LOG.debug("Pushing '.' into the output")
       outputBuffer.append('.')
     }
 
-    val lineInputId = SignalSum.inputId("LINE")
-    val lineSilencingId = SignalSum.silencingId("LINE")
-    val lineOutputId = SignalSum.outputId("LINE")
+    val lineInputId = SignalSumTyped.inputId("LINE")
+    val lineSilencingId = SignalSumTyped.silencingId("LINE")
+    val lineOutputId = SignalSumTyped.outputId("LINE")
 
     addAfterFireTrigger(lineOutputId){
       LOG.debug("Pushing '-' into the output")
@@ -152,27 +152,27 @@ object Commands {
   def setupSOS(netData: NetData): Unit = {
     initializeNetwork(netData)
 
-    val dotInputId = DelayGate.inputId("DOT")
-    val dotMiddleId = DelayGate.middleId("DOT")
-    val dotSilencingId = DelayGate.silencingId("DOT")
-    val dotOutputId = DelayGate.outputId("DOT")
+    val dotInputId = DelayGateTyped.inputId("DOT")
+    val dotMiddleId = DelayGateTyped.middleId("DOT")
+    val dotSilencingId = DelayGateTyped.silencingId("DOT")
+    val dotOutputId = DelayGateTyped.outputId("DOT")
 
-    val lineInputId = SignalSum.inputId("LINE")
-    val lineSilencingId = SignalSum.silencingId("LINE")
-    val lineOutputId = SignalSum.outputId("LINE")
+    val lineInputId = SignalSumTyped.inputId("LINE")
+    val lineSilencingId = SignalSumTyped.silencingId("LINE")
+    val lineOutputId = SignalSumTyped.outputId("LINE")
 
-    val sInputId = SignalSum.inputId("S")
-    val sSilencingId = SignalSum.silencingId("S")
-    val sOutputId = SignalSum.outputId("S")
+    val sInputId = SignalSumTyped.inputId("S")
+    val sSilencingId = SignalSumTyped.silencingId("S")
+    val sOutputId = SignalSumTyped.outputId("S")
 
     addAfterFireTrigger(sOutputId){
       LOG.debug("Pushing 'S' into the output")
       outputBuffer.append('S')
     }
 
-    val oInputId = SignalSum.inputId("O")
-    val oSilencingId = SignalSum.silencingId("O")
-    val oOutputId = SignalSum.outputId("O")
+    val oInputId = SignalSumTyped.inputId("O")
+    val oSilencingId = SignalSumTyped.silencingId("O")
+    val oOutputId = SignalSumTyped.outputId("O")
 
     addAfterFireTrigger(oOutputId){
       LOG.debug("Pushing 'O' into the output")
@@ -251,7 +251,7 @@ object Commands {
       | This will build the network and display the list of neuron ids.
       |
       | The setup method works only for these four networks. If you want to build one of your own, please look into
-      | the code to learn how to use NetBuilder and then call initializeNetwork(netData: NetData). Please note that
+      | the code to learn how to use NetBuilderTyped and then call initializeNetwork(netData: NetData). Please note that
       | the setup method adds triggers to output neurons (different for each network). If you build a network by hand,
       | you have to do this by hand as well.
       |
