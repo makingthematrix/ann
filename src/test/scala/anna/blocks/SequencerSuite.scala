@@ -1,16 +1,16 @@
 package anna.blocks
 
-import anna.async.NetBuilderOpsTyped._
-import anna.async.{NetBuilderTyped, NetWrapperTyped}
+import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NetWrapper}
 import org.junit.Assert._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
- * Typed-Actor counterpart of [[SequencerSuite]], validating [[SequencerTyped]].
+ * Tests validating the [[Sequencer]] block.
  */
-class SequencerTypedSuite extends AnyFunSuite with BeforeAndAfter {
-  private var _wrapper: Option[NetWrapperTyped] = None
+class SequencerSuite extends AnyFunSuite with BeforeAndAfter {
+  private var _wrapper: Option[NetWrapper] = None
 
   after {
     _wrapper match {
@@ -19,15 +19,15 @@ class SequencerTypedSuite extends AnyFunSuite with BeforeAndAfter {
     }
   }
 
-  private def set(wrapper: NetWrapperTyped): Unit = _wrapper = Some(wrapper)
+  private def set(wrapper: NetWrapper): Unit = _wrapper = Some(wrapper)
 
-  private def netWrapper: NetWrapperTyped = _wrapper.get
+  private def netWrapper: NetWrapper = _wrapper.get
 
   private def sequencer(blockName: String): Unit =
-    set(NetBuilderTyped().addInput("in1").addInput("in2").sequencer(blockName, "in1", "in2").build())
+    set(NetBuilder().addInput("in1").addInput("in2").sequencer(blockName, "in1", "in2").build())
 
   private def sequencerSilencer(blockName: String): Unit = set(
-    NetBuilderTyped().addInput("in1").addInput("in2").sequencer(blockName, "in1", "in2")
+    NetBuilder().addInput("in1").addInput("in2").sequencer(blockName, "in1", "in2")
       .addInput("in3").silence("sequencers")
       .build()
   )

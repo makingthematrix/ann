@@ -6,40 +6,32 @@ import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal => AkkaSignal}
 import anna.Context
 import anna.async.Messages.{Answer, Msg, NeuronInfo, Success}
 import anna.async.NeuronTriggers.Trigger
-import anna.async.NeuronTyped._
+import anna.async.Neuron._
 import anna.logger.LOG
 import anna.utils.Utils
 
 import scala.concurrent.duration._
 
 /**
- * Typed-Actor version of [[Neuron]].
- *
- * This is a straight port of the classic (untyped) `Neuron` to the new
- * `akka.actor.typed` API, following the object-oriented `AbstractBehavior`
- * style (the one closest to a classic `Actor` class):
+ * A neuron actor, implemented in the object-oriented `AbstractBehavior` style:
  *
  *  - The message protocol is an explicit sealed `Command` hierarchy (see the
- *    companion object). Every request that used to rely on `sender()` now
- *    carries an explicit `replyTo: ActorRef[_]`.
- *  - `context.become(silence)` / `become(receive)` is expressed by returning a
- *    different `Behavior` (`silentBehavior` for the silent state, `this` for the
- *    active state).
- *  - Scheduling (previously `SchedulerBuffer` + the classic scheduler) is done
- *    with `Behaviors.withTimers`, sending the internal `WakeUp` /
+ *    companion object); every request carries an explicit `replyTo: ActorRef[_]`.
+ *  - The active/silent state switch is expressed by returning a different
+ *    `Behavior` (`silentBehavior` for the silent state, `this` for the active
+ *    state).
+ *  - Scheduling uses `Behaviors.withTimers`, sending the internal `WakeUp` /
  *    `WakeFromSilence` messages to self instead of running closures.
- *  - `preStart` / `postStop` become `Behaviors.setup` (the constructor) and the
- *    `PostStop` signal.
- *
- * The original [[Neuron]] is intentionally left untouched so both can coexist.
+ *  - Lifecycle hooks are `Behaviors.setup` (the constructor) and the `PostStop`
+ *    signal.
  */
-class NeuronTyped(context: ActorContext[Command],
+class Neuron(context: ActorContext[Command],
                   timers: TimerScheduler[Command],
                   val id: String,
                   val netId: String,
                   val threshold: Double,
                   val silenceIterations: SilenceIterations,
-                  protected var synapses: List[SynapseTyped])
+                  protected var synapses: List[Synapse])
   extends AbstractBehavior[Command](context) with NeuronTriggers {
 
   require(silenceIterations >= SilenceForever)
@@ -51,7 +43,7 @@ class NeuronTyped(context: ActorContext[Command],
   private def printBuffer = Utils.round(buffer)
 
   // `LOG += str` in the classic Neuron relied on an implicit `Neuron` (`this`).
-  // NeuronTyped isn't a `Neuron`, so we log through the id-prefixed helper instead.
+  // Neuron isn't a `Neuron`, so we log through the id-prefixed helper instead.
   protected def log(str: String): Unit = LOG.debug(s"$id: $str")
 
   private lazy val silentForever = silenceIterations == SilenceForever
@@ -194,7 +186,7 @@ class NeuronTyped(context: ActorContext[Command],
     replyTo ! Success(id)
   }
 
-  private def findSynapse(destinationId: String): Option[SynapseTyped] =
+  private def findSynapse(destinationId: String): Option[Synapse] =
     if (synapses.nonEmpty) synapses.find(_.dest.id == destinationId) else None
 
   def info: NeuronInfo =
@@ -209,11 +201,11 @@ class NeuronTyped(context: ActorContext[Command],
   }
 }
 
-object NeuronTyped {
+object Neuron {
   type SilenceIterations = Int
   val SilenceForever: SilenceIterations = -1
 
-  /** The message protocol understood by a [[NeuronTyped]] actor. */
+  /** The message protocol understood by a [[Neuron]] actor. */
   sealed trait Command
 
   // signals
@@ -232,11 +224,11 @@ object NeuronTyped {
   final case class GetSynapses(replyTo: ActorRef[Synapses]) extends Command
 
   // synapse replies (typed equivalents of Messages.MsgSynapses / MsgSynapse)
-  final case class Synapses(synapses: Seq[SynapseTyped])
-  final case class SynapseOpt(synapse: Option[SynapseTyped])
+  final case class Synapses(synapses: Seq[Synapse])
+  final case class SynapseOpt(synapse: Option[Synapse])
 
   // commands
-  final case class SetSynapses(synapses: Seq[SynapseTyped]) extends Command
+  final case class SetSynapses(synapses: Seq[Synapse]) extends Command
   final case class RemoveAllTriggers(replyTo: ActorRef[Answer]) extends Command
   final case class Reset(replyTo: ActorRef[Answer]) extends Command
 
@@ -253,11 +245,11 @@ object NeuronTyped {
             netId: String,
             threshold: Double,
             silenceIterations: SilenceIterations,
-            synapses: List[SynapseTyped] = List.empty): Behavior[Command] =
+            synapses: List[Synapse] = List.empty): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.withTimers { timers =>
         NeuronCounter.reg(netId, id, context.self.toClassic)
-        new NeuronTyped(context, timers, id, netId, threshold, silenceIterations, synapses)
+        new Neuron(context, timers, id, netId, threshold, silenceIterations, synapses)
       }
     }
 }

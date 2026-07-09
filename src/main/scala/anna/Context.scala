@@ -29,7 +29,7 @@ final case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefau
 
   // A typed ActorSystem always has a user guardian and offers no actorOf for
   // top-level actors "from the outside". The Guardian behaviour restores that
-  // for both worlds: it spawns typed NetTyped actors and, via the classic
+  // for both worlds: it spawns typed Net actors and, via the classic
   // adapter, classic Net actors, on demand.
   def system: ActorSystem[Guardian.Command] = systemOpt match {
     case Some(actorSystem) => actorSystem

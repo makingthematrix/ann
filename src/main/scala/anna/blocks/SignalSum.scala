@@ -1,28 +1,25 @@
 package anna.blocks
 
-import anna.async.NetBuilderTyped
-import anna.async.NetBuilderOpsTyped._
+import anna.async.NetBuilder
+import anna.async.NetBuilderOps._
 
 /**
- * Typed-Actor version of [[SignalSum]].
- *
- * Same block topology and behaviour, but built through [[NetBuilderTyped]] /
- * `NetBuilderOpsTyped` (so the block is made of typed neurons/synapses).
+ * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
  *
  * A signal-sum block fires its output once it has received `requiredSignalsNumber`
  * input signals within a single (uninterrupted) run: each input adds a fraction
  * of the output threshold, and the block silences itself after firing.
  */
-final case class SignalSumTyped(name: String, requiredSignalsNumber: Int) {
-  import SignalSumTyped.middleThreshold
+final case class SignalSum(name: String, requiredSignalsNumber: Int) {
+  import SignalSum.middleThreshold
 
   lazy val data = {
-    val builder = NetBuilderTyped()
+    val builder = NetBuilder()
     chain(builder)
     builder.data
   }
 
-  def chain(builder: NetBuilderTyped, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
     val middleSynapseWeigth = middleThreshold / requiredSignalsNumber
 
     if (builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, 0)
@@ -33,12 +30,12 @@ final case class SignalSumTyped(name: String, requiredSignalsNumber: Int) {
       .use(outputId)
   }
 
-  val inputId = SignalSumTyped.inputId(name)
-  val outputId = SignalSumTyped.outputId(name)
-  val silencingId = SignalSumTyped.silencingId(name)
+  val inputId = SignalSum.inputId(name)
+  val outputId = SignalSum.outputId(name)
+  val silencingId = SignalSum.silencingId(name)
 }
 
-object SignalSumTyped {
+object SignalSum {
   val middleThreshold = 0.9
 
   val blockNamePrefix = "SignalSum"
@@ -49,10 +46,10 @@ object SignalSumTyped {
 
   private var firstFreeId = 1
 
-  def apply(requiredSignalsNumber: Int): SignalSumTyped = {
+  def apply(requiredSignalsNumber: Int): SignalSum = {
     val newName = nextName()
     firstFreeId += 1
-    SignalSumTyped(newName, requiredSignalsNumber)
+    SignalSum(newName, requiredSignalsNumber)
   }
 
   def inputId(name: String) = s"${name}1"

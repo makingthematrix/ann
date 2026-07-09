@@ -3,28 +3,24 @@ package anna.async
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, TimerScheduler}
-import anna.async.NeuronTyped._
+import anna.async.Neuron._
 import anna.data.Wake
 
 /**
- * Typed-Actor version of [[SilencingNeuron]].
- *
- * Like the classic one it is a [[NeuronTyped]] with threshold `0.0` and no
- * silencing of its own. It overrides the active-state handling so that any
- * incoming signal or silence/wake request is turned into Silence/Wake requests
- * forwarded to its synapse destinations (see [[SilencingNeuron]]).
+ * A [[Neuron]] with threshold `0.0` and no silencing of its own that, instead
+ * of accumulating and firing, turns any incoming signal or silence/wake request
+ * into Silence/Wake requests forwarded to its synapse destinations.
  *
  * The queries and triggers of the base neuron (`GetData`, `GetSynapses`, the
  * trigger messages, `Reset`, ...) keep working through the inherited
- * `handleCommon` / `reset`, mirroring the classic
- * `activeBehaviour orElse commonBehaviour` composition.
+ * `handleCommon` / `reset`.
  */
-final class SilencingNeuronTyped(context: ActorContext[Command],
+final class SilencingNeuron(context: ActorContext[Command],
                                  timers: TimerScheduler[Command],
                                  override val id: String,
                                  override val netId: String,
-                                 initialSynapses: List[SynapseTyped])
-  extends NeuronTyped(context, timers, id, netId, 0.0, 0, initialSynapses) {
+                                 initialSynapses: List[Synapse])
+  extends Neuron(context, timers, id, netId, 0.0, 0, initialSynapses) {
 
   private def sendRequest(): Unit = {
     synapses.foreach(s => s.weight match {
@@ -47,14 +43,14 @@ final class SilencingNeuronTyped(context: ActorContext[Command],
   }
 }
 
-object SilencingNeuronTyped {
+object SilencingNeuron {
   def apply(id: String,
             netId: String,
-            synapses: List[SynapseTyped] = List.empty): Behavior[Command] =
+            synapses: List[Synapse] = List.empty): Behavior[Command] =
     Behaviors.setup { context =>
       Behaviors.withTimers { timers =>
         NeuronCounter.reg(netId, id, context.self.toClassic)
-        new SilencingNeuronTyped(context, timers, id, netId, synapses)
+        new SilencingNeuron(context, timers, id, netId, synapses)
       }
     }
 }

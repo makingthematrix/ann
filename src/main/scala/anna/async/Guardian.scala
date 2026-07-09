@@ -15,17 +15,17 @@ import akka.actor.{ActorRef => ClassicActorRef, Props => ClassicProps}
  * creates classic actors as its children via the classic adapter.
  *
  * Callers ask the guardian (the `ActorSystem` itself is its `ActorRef`) using
- * `AskPattern`; see [[NetRefTyped]] (typed) and [[NetRef]] (classic).
+ * `AskPattern`; see [[NetRef]] (typed) and [[NetRef]] (classic).
  */
 object Guardian {
   sealed trait Command
 
-  final case class SpawnTyped[T](behavior: Behavior[T], replyTo: ActorRef[ActorRef[T]]) extends Command
+  final case class Spawn[T](behavior: Behavior[T], replyTo: ActorRef[ActorRef[T]]) extends Command
   final case class SpawnClassic(props: ClassicProps, replyTo: ActorRef[ClassicActorRef]) extends Command
 
   def apply(): Behavior[Command] = Behaviors.receive { (context, msg) =>
     msg match {
-      case spawn: SpawnTyped[t] =>
+      case spawn: Spawn[t] =>
         spawn.replyTo ! context.spawnAnonymous(spawn.behavior)
         Behaviors.same
       case SpawnClassic(props, replyTo) =>

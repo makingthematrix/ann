@@ -1,24 +1,23 @@
 package anna.blocks
 
-import anna.async.NetBuilderOpsTyped._
-import anna.async.{NetBuilderTyped, NetWrapperTyped}
+import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
- * Typed-Actor counterpart of [[SOSWithBlocksSuite]] — the full SOS-recognizer
- * integration test, wiring [[DelayGateTyped]] / [[SignalSumTyped]] blocks
- * together through [[NetBuilderTyped]] + [[NetBuilderOpsTyped]].
+ * The full SOS-recognizer integration test, wiring [[DelayGate]] / [[SignalSum]]
+ * blocks together through [[NetBuilder]] + [[NetBuilderOps]].
  */
-class SOSWithBlocksTypedSuite extends AnyFunSuite {
+class SOSWithBlocksSuite extends AnyFunSuite {
 
-  private def buildDot: (NetWrapperTyped, String) = {
+  private def buildDot: (NetWrapper, String) = {
     val dotBlockName = "DOT"
     val expectedDelay = 2
-    val outputId = DelayGateTyped.outputId(dotBlockName)
+    val outputId = DelayGate.outputId(dotBlockName)
 
-    val netWrapper = NetBuilderTyped().addInput("in").delayGate(dotBlockName, expectedDelay).build()
+    val netWrapper = NetBuilder().addInput("in").delayGate(dotBlockName, expectedDelay).build()
     assertTrue(netWrapper.net.find(outputId).isDefined)
 
     (netWrapper, outputId)
@@ -42,11 +41,11 @@ class SOSWithBlocksTypedSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def buildLine: (NetWrapperTyped, String) = {
+  private def buildLine: (NetWrapper, String) = {
     val lineBlockName = "LINE"
-    val outputId = SignalSumTyped.outputId(lineBlockName)
+    val outputId = SignalSum.outputId(lineBlockName)
 
-    val netWrapper = NetBuilderTyped().addInput("in").signalSum(lineBlockName, 2).build()
+    val netWrapper = NetBuilder().addInput("in").signalSum(lineBlockName, 2).build()
     assertTrue(netWrapper.net.find(outputId).isDefined)
 
     (netWrapper, outputId)
@@ -81,18 +80,18 @@ class SOSWithBlocksTypedSuite extends AnyFunSuite {
   private def buildDotLine = {
     val dotBlockName = "DOT"
     val expectedDelay = 2
-    val dotOutputId = DelayGateTyped.outputId(dotBlockName)
-    val dotSilencingId = DelayGateTyped.silencingId(dotBlockName)
-    val dotInputId = DelayGateTyped.inputId(dotBlockName)
-    val dotMiddleId = DelayGateTyped.middleId(dotBlockName)
+    val dotOutputId = DelayGate.outputId(dotBlockName)
+    val dotSilencingId = DelayGate.silencingId(dotBlockName)
+    val dotInputId = DelayGate.inputId(dotBlockName)
+    val dotMiddleId = DelayGate.middleId(dotBlockName)
 
     val lineBlockName = "LINE"
     val requiredSignals = 2
-    val lineOutputId = SignalSumTyped.outputId(lineBlockName)
-    val lineSilencingId = SignalSumTyped.silencingId(lineBlockName)
+    val lineOutputId = SignalSum.outputId(lineBlockName)
+    val lineSilencingId = SignalSum.silencingId(lineBlockName)
 
     val netWrapper =
-      NetBuilderTyped().addInput("in")
+      NetBuilder().addInput("in")
         .delayGate(dotBlockName, expectedDelay)
         .use("in").signalSum(lineBlockName, requiredSignals)
         .use(dotOutputId).silence(lineSilencingId)
@@ -197,32 +196,32 @@ class SOSWithBlocksTypedSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def buildSO(outputBuffer: Option[StringBuilder] = None): (NetWrapperTyped, TestResults) = {
+  private def buildSO(outputBuffer: Option[StringBuilder] = None): (NetWrapper, TestResults) = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
-    val dotOutputId = DelayGateTyped.outputId(dotBlockName)
-    val dotHushId = DelayGateTyped.silencingId(dotBlockName)
-    val dotInputId = DelayGateTyped.inputId(dotBlockName)
-    val dotMiddleId = DelayGateTyped.middleId(dotBlockName)
+    val dotOutputId = DelayGate.outputId(dotBlockName)
+    val dotHushId = DelayGate.silencingId(dotBlockName)
+    val dotInputId = DelayGate.inputId(dotBlockName)
+    val dotMiddleId = DelayGate.middleId(dotBlockName)
 
     val lineBlockName = "LINE"
     val lineRequiredSignals = 2
-    val lineOutputId = SignalSumTyped.outputId(lineBlockName)
-    val lineHushId = SignalSumTyped.silencingId(lineBlockName)
-    val lineInputId = SignalSumTyped.inputId(lineBlockName)
+    val lineOutputId = SignalSum.outputId(lineBlockName)
+    val lineHushId = SignalSum.silencingId(lineBlockName)
+    val lineInputId = SignalSum.inputId(lineBlockName)
 
     val sBlockName = "S"
     val sRequiredSignals = 3
-    val sOutputId = SignalSumTyped.outputId(sBlockName)
-    val sHushId = SignalSumTyped.silencingId(sBlockName)
+    val sOutputId = SignalSum.outputId(sBlockName)
+    val sHushId = SignalSum.silencingId(sBlockName)
 
     val oBlockName = "O"
     val oRequiredSignals = 3
-    val oOutputId = SignalSumTyped.outputId(oBlockName)
-    val oHushId = SignalSumTyped.silencingId(oBlockName)
+    val oOutputId = SignalSum.outputId(oBlockName)
+    val oHushId = SignalSum.silencingId(oBlockName)
 
     val netWrapper =
-      NetBuilderTyped().addInput("in")
+      NetBuilder().addInput("in")
         .delayGate(dotBlockName, dotExpectedDelay)
         .use("in").signalSum(lineBlockName, lineRequiredSignals)
         .use(dotOutputId).silence(lineHushId)

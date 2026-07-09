@@ -10,19 +10,15 @@ import anna.utils.Utils.assert
 import scala.collection.mutable
 
 /**
- * Typed-Actor version of [[NetBuilder]].
+ * Accumulates a network description (neurons, synapses, inputs, defaults) as
+ * plain data, then [[build]] spawns a [[NetRef]] and wires it up with
+ * [[NeuronRef]] / [[Synapse]], returning a [[NetWrapper]].
  *
- * The accumulation DSL (neurons, synapses, inputs, defaults) is identical to
- * the classic builder — it is plain data, no actors involved. Only [[build]]
- * differs: it spawns a [[NetRefTyped]] and wires it up with [[NeuronRefTyped]] /
- * [[SynapseTyped]] instead of the classic [[NetRef]] / [[Synapse]], and returns
- * a [[NetWrapperTyped]].
- *
- * The `Double`-based convenience overloads and the `anna.blocks` DSL live in
- * `NetBuilderOps` and are not ported here; use the `SynapseTrait`-based methods
- * (`chain`, `connect`, `addStandard`, ...) directly.
+ * The `Double`-weight convenience overloads and the `anna.blocks` DSL live in
+ * `NetBuilderOps`; the `SynapseTrait`-based methods (`chain`, `connect`,
+ * `addStandard`, ...) are defined here directly.
  */
-class NetBuilderTyped {
+class NetBuilder {
   var netId: String = "net"
 
   var defThreshold: Double = Context().threshold
@@ -45,16 +41,16 @@ class NetBuilderTyped {
 
   def contains(id: String): Boolean = neurons.contains(id)
 
-  def use(id: String): NetBuilderTyped = {
+  def use(id: String): NetBuilder = {
     assert(contains(id), s"There is no neuron with id $id")
     currentNeuronId = Some(id)
     this
   }
 
-  def silence(id: String): NetBuilderTyped = connect(id, Silence())
-  def wake(id: String): NetBuilderTyped = connect(id, Wake())
+  def silence(id: String): NetBuilder = connect(id, Silence())
+  def wake(id: String): NetBuilder = connect(id, Wake())
 
-  def connect(id: String, weight: SynapseTrait): NetBuilderTyped = {
+  def connect(id: String, weight: SynapseTrait): NetBuilder = {
     assert(contains(id), s"There is no neuron with id $id")
     addSynapse(current.id, id, weight)
     this
@@ -67,54 +63,54 @@ class NetBuilderTyped {
 
   def isCurrent: Boolean = currentNeuronId.isDefined
 
-  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: Int): NetBuilderTyped = {
+  def chain(id: String, weight: SynapseTrait, threshold: Double, silenceIterations: Int): NetBuilder = {
     val n1 = current
     addStandard(id, threshold, silenceIterations)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainDummy(id: String, weight: Double, hushValue: Int = defSilenceIterations): NetBuilderTyped = {
+  def chainDummy(id: String, weight: Double, hushValue: Int = defSilenceIterations): NetBuilder = {
     val n1 = current
     addDummy(id)
     addSynapse(n1.id, id, weight)
     this
   }
 
-  def chainSilencingNeuron(id: String): NetBuilderTyped = {
+  def chainSilencingNeuron(id: String): NetBuilder = {
     val n1 = current
     addSilencingNeuron(id)
     addSynapse(n1.id, id, Silence())
     this
   }
 
-  def addInput(id: String): NetBuilderTyped = {
+  def addInput(id: String): NetBuilder = {
     addDummy(id)
     ins += id
     this
   }
 
-  def initSilent(id: String): NetBuilderTyped = {
+  def initSilent(id: String): NetBuilder = {
     startSilent += id
     this
   }
 
-  def initSilent(): NetBuilderTyped = initSilent(current.id)
+  def initSilent(): NetBuilder = initSilent(current.id)
 
   def addMiddle(id: String,
                 threshold: Double = defThreshold,
-                silenceIterations: Int = defSilenceIterations): NetBuilderTyped =
+                silenceIterations: Int = defSilenceIterations): NetBuilder =
     addStandard(id, threshold, silenceIterations)
 
-  def addMiddle(): NetBuilderTyped = addMiddle(generateId())
+  def addMiddle(): NetBuilder = addMiddle(generateId())
 
-  def addSilencingNeuron(id: String): NetBuilderTyped = {
+  def addSilencingNeuron(id: String): NetBuilder = {
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeSilencing(), id, 0.0))
     this
   }
 
-  def addDummy(id: String): NetBuilderTyped = {
+  def addDummy(id: String): NetBuilder = {
     throwIfAlreadyExists(id)
     add(newNeuron(neuronType = NeuronTypeDummy(), id = id, threshold = 0.0))
     this
@@ -122,16 +118,16 @@ class NetBuilderTyped {
 
   def addStandard(id: String,
                   threshold: Double,
-                  silenceIterations: Int): NetBuilderTyped = {
+                  silenceIterations: Int): NetBuilder = {
     debug(s"new neuron: $id")
     throwIfAlreadyExists(id)
     add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
     this
   }
 
-  def build(netName: String = netId): NetWrapperTyped = {
+  def build(netName: String = netId): NetWrapper = {
     debug(this, s"build $netName")
-    val net = NetRefTyped(netName)
+    val net = NetRef(netName)
 
     debug(this, "building neurons")
     val nRefs = neurons.values.map(nd => {
@@ -141,8 +137,8 @@ class NetBuilderTyped {
 
     debug(this, "building synapses")
     nRefs.values.foreach(nRef => {
-      val nsyns: Seq[SynapseTyped] =
-        synapses.getOrElse(nRef.id, Nil).map(sd => SynapseTyped(nRefs(sd.neuronId), sd.weight)).toSeq
+      val nsyns: Seq[Synapse] =
+        synapses.getOrElse(nRef.id, Nil).map(sd => Synapse(nRefs(sd.neuronId), sd.weight)).toSeq
       debug(this, s"building synapses for ${nRef.id}: ${nsyns.size}")
       nRef.setSynapses(nsyns)
     })
@@ -152,7 +148,7 @@ class NetBuilderTyped {
     debug(this, s"setting inputs: $ins")
     net.setInputs(ins.toList.sorted)
     debug(this, "done")
-    NetWrapperTyped(net)
+    NetWrapper(net)
   }
 
   def data: NetData = NetData(
@@ -166,7 +162,7 @@ class NetBuilderTyped {
     defWeight
   )
 
-  def set(data: NetData): NetBuilderTyped = {
+  def set(data: NetData): NetBuilder = {
     netId = data.id
 
     clear()
@@ -187,19 +183,19 @@ class NetBuilderTyped {
     this
   }
 
-  def netId(id: String): NetBuilderTyped = {
+  def netId(id: String): NetBuilder = {
     netId = id
     this
   }
 
-  def clear(): NetBuilderTyped = {
+  def clear(): NetBuilder = {
     neurons.clear()
     synapses.clear()
     ins.clear()
     this
   }
 
-  private def createNeuronInNet(net: NetRefTyped, data: NeuronData): NeuronRefTyped = data.neuronType match {
+  private def createNeuronInNet(net: NetRef, data: NeuronData): NeuronRef = data.neuronType match {
     case NeuronTypeStandard()  => net.createNeuron(data.id, data.threshold, data.silenceIterations)
     case NeuronTypeDummy()     => net.createDummy(data.id, data.silenceIterations)
     case NeuronTypeSilencing() => net.createSilencingNeuron(data.id)
@@ -228,17 +224,17 @@ class NetBuilderTyped {
   private def throwIfAlreadyExists(id: String): Unit = assert(!contains(id), s"There is already a neuron with id $id")
 }
 
-object NetBuilderTyped {
-  def apply(): NetBuilderTyped = new NetBuilderTyped()
+object NetBuilder {
+  def apply(): NetBuilder = new NetBuilder()
 
-  def apply(name: String): NetBuilderTyped = {
-    val nb = new NetBuilderTyped()
+  def apply(name: String): NetBuilder = {
+    val nb = new NetBuilder()
     nb.netId(name)
     nb
   }
 
-  def apply(data: NetData): NetBuilderTyped = {
-    val builder = new NetBuilderTyped()
+  def apply(data: NetData): NetBuilder = {
+    val builder = new NetBuilder()
     builder.set(data)
   }
 }

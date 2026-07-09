@@ -2,7 +2,7 @@ package anna.async
 
 import akka.util.Timeout
 import anna.Context
-import anna.async.NetBuilderOpsTyped._
+import anna.async.NetBuilderOps._
 import anna.data.Silence
 import anna.logger.LOG
 import org.junit.Assert._
@@ -11,26 +11,23 @@ import org.scalatest.funsuite.AnyFunSuite
 import scala.concurrent.{Await, Promise}
 
 /**
- * Typed-Actor counterpart of [[SilenceRequestSuite]].
- *
- * Each test mirrors the same-named test in `SilenceRequestSuite`, driving the
- * typed stack ([[NetRefTyped]] / [[NeuronRefTyped]] / [[SynapseTyped]] /
- * [[SilencingNeuronTyped]], [[NetBuilderTyped]] + [[NetBuilderOpsTyped]] /
- * [[NetWrapperTyped]]).
+ * Tests for silence requests and the [[SilencingNeuron]], exercised through
+ * [[NetRef]] / [[NeuronRef]] / [[Synapse]] and [[NetBuilder]] + [[NetBuilderOps]]
+ * / [[NetWrapper]].
  */
-class SilenceRequestTypedSuite extends AnyFunSuite {
+class SilenceRequestSuite extends AnyFunSuite {
 
   private val threshold: Double = Context().threshold
   private val silenceIterations: Int = Context().silenceIterations
   private val timeout: Timeout = Context().timeout
 
   test("shouldSendSilenceRequest") {
-    val net = NetRefTyped("net1")
+    val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
     val n2 = net.createNeuron("id2", threshold, silenceIterations)
 
-    n1.setSynapses(List(SynapseTyped(n2, Silence())))
+    n1.setSynapses(List(Synapse(n2, Silence())))
     net.setInputs(List(n1.id))
 
     val p = Promise[Boolean]()
@@ -49,7 +46,7 @@ class SilenceRequestTypedSuite extends AnyFunSuite {
   }
 
   test("shouldSendSilenceRequestThroughBuilder") {
-    val netWrapper = NetBuilderTyped().addInput("id1").addMiddle("id2")
+    val netWrapper = NetBuilder().addInput("id1").addMiddle("id2")
                                       .use("id1").silence("id2").build()
 
     var silenceRequestReceived = false
@@ -68,14 +65,14 @@ class SilenceRequestTypedSuite extends AnyFunSuite {
   }
 
   test("shouldUseSilencingNeuron") {
-    val net = NetRefTyped("net1")
+    val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
     val silencingNeuron = net.createSilencingNeuron("silencingneuron")
     val n2 = net.createNeuron("id2", threshold, silenceIterations)
 
-    n1.setSynapses(List(SynapseTyped(silencingNeuron)))
-    silencingNeuron.setSynapses(List(SynapseTyped(n2)))
+    n1.setSynapses(List(Synapse(silencingNeuron)))
+    silencingNeuron.setSynapses(List(Synapse(n2)))
     net.setInputs(List(n1.id))
 
     val p = Promise[Boolean]()
@@ -94,7 +91,7 @@ class SilenceRequestTypedSuite extends AnyFunSuite {
   }
 
   test("shouldUseSilencingNeuronWithBuilder") {
-    val netWrapper = NetBuilderTyped().addInput("id1").chainSilencingNeuron("silencingneuron").chain("id2").build()
+    val netWrapper = NetBuilder().addInput("id1").chainSilencingNeuron("silencingneuron").chain("id2").build()
 
     var silenceRequestReceived = false
 

@@ -10,21 +10,14 @@ import org.scalatest.funsuite.AnyFunSuite
 import scala.concurrent.{Await, Promise}
 
 /**
- * Typed-Actor counterpart of [[NeuronTriggersSuite]].
- *
- * Each test mirrors the same-named test in `NeuronTriggersSuite`, driving the
- * typed stack ([[NetBuilderTyped]] / [[NetWrapperTyped]] / [[NetRefTyped]] /
- * [[NeuronRefTyped]], [[SynapseTyped]]).
- *
- * Note: the classic suite uses the `Double`-weight `chain` overload from
- * `NetBuilderOps` (not ported). Here we call `NetBuilderTyped.chain` with an
- * explicit `SynapseWeight`, which is equivalent.
+ * Tests for the neuron fire/silence triggers, exercised through [[NetBuilder]]
+ * / [[NetWrapper]] and directly through [[NetRef]] / [[NeuronRef]] / [[Synapse]].
  */
-class NeuronTriggersTypedSuite extends AnyFunSuite {
+class NeuronTriggersSuite extends AnyFunSuite {
   private val timeout: Timeout = Context().timeout
 
   test("shouldTriggerAfterFireWithNetWrapper") {
-    val wrapper = NetBuilderTyped().addInput("in").chain("out", SynapseWeight(1.0), 0.9, 0).build()
+    val wrapper = NetBuilder().addInput("in").chain("out", SynapseWeight(1.0), 0.9, 0).build()
 
     val p = Promise[Boolean]()
     wrapper.addAfterFire("out", "MyTrigger") {
@@ -42,12 +35,12 @@ class NeuronTriggersTypedSuite extends AnyFunSuite {
   }
 
   test("shouldTriggerAfterFireWithNeuron") {
-    val net = NetRefTyped("net1")
+    val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", 0.0, 0)
     val n2 = net.createNeuron("id2", 0.9, 0)
 
-    n1.setSynapses(List(SynapseTyped(n2, SynapseWeight(1.0))))
+    n1.setSynapses(List(Synapse(n2, SynapseWeight(1.0))))
     net.setInputs(List(n1.id))
 
     val p = Promise[Boolean]()
@@ -66,12 +59,12 @@ class NeuronTriggersTypedSuite extends AnyFunSuite {
   }
 
   test("shouldTriggerAfterFireWithNet") {
-    val net = NetRefTyped("net1")
+    val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", 0.0, 0)
     val n2 = net.createNeuron("id2", 0.9, 0)
 
-    n1.setSynapses(List(SynapseTyped(n2, SynapseWeight(1.0))))
+    n1.setSynapses(List(Synapse(n2, SynapseWeight(1.0))))
     net.setInputs(List(n1.id))
 
     val p = Promise[Boolean]()

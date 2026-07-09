@@ -1,20 +1,20 @@
 package anna.async
 
-import anna.async.NetBuilderOpsTyped._
+import anna.async.NetBuilderOps._
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
- * Typed-Actor counterpart of [[LineNetSuite]], driving the typed stack via
- * [[NetBuilderTyped]] + [[NetBuilderOpsTyped]] and [[NetWrapperTyped]].
+ * Line-recognizer network tests, built with [[NetBuilder]] + [[NetBuilderOps]]
+ * and driven through [[NetWrapper]].
  */
-class LineNetTypedSuite extends AnyFunSuite {
+class LineNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 
-  private def lineNet2: (NetWrapperTyped, StringBuilder) = {
-    val netWrapper = NetBuilderTyped()
+  private def lineNet2: (NetWrapper, StringBuilder) = {
+    val netWrapper = NetBuilder()
            .addInput("in1")
            .chain("mi21", 0.4, 0.6).silence("mi21")
            .chain("out2", 1.0)
@@ -52,7 +52,7 @@ class LineNetTypedSuite extends AnyFunSuite {
   }
 
   private def lineNet3 =
-    NetBuilderTyped().addInput("in")
+    NetBuilder().addInput("in")
            .chain("mi21", 0.5, 0.55)
            .silence("mi21")
            .chain("line", 1.0, 0.0).silence("line")

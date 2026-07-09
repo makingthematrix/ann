@@ -1,21 +1,21 @@
 package anna.async
 
-import anna.async.NetBuilderOpsTyped._
+import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
- * Typed-Actor counterpart of [[DotNetSuite]], driving the typed stack via
- * [[NetBuilderTyped]] + [[NetBuilderOpsTyped]] and [[NetWrapperTyped]].
+ * Dot-recognizer network tests, built with [[NetBuilder]] + [[NetBuilderOps]]
+ * and driven through [[NetWrapper]].
  */
-class DotNetTypedSuite extends AnyFunSuite {
+class DotNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 
-  private def dotNet3: NetWrapperTyped = {
-    NetBuilderTyped().addInput("in")
+  private def dotNet3: NetWrapper = {
+    NetBuilder().addInput("in")
     // dots
       .use("in").chain("mi11", 1.0, 0.0, 2).silence("mi11")
       .chain("mi12", 1.0, 0.0).loop("loop1", 1.0, 0.0, 1.0)

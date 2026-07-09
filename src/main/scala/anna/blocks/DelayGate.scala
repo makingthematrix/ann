@@ -1,44 +1,41 @@
 package anna.blocks
 
-import anna.async.NetBuilderTyped
-import anna.async.NetBuilderOpsTyped._
+import anna.async.NetBuilder
+import anna.async.NetBuilderOps._
 
 /**
- * Typed-Actor version of [[DelayGate]].
- *
- * Same block topology and behaviour, but built through [[NetBuilderTyped]] /
- * `NetBuilderOpsTyped` (so the block is made of typed neurons/synapses).
+ * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
  *
  * A delay gate fires its output exactly `delay` iterations after receiving an
  * input signal: the input neuron silences itself for `delay` iterations, a
  * self-looping middle neuron keeps re-firing while it is awake, and the output
  * neuron accumulates the middle's feedback until it crosses the threshold.
  */
-final case class DelayGateTyped(name: String, delay: Int) {
+final case class DelayGate(name: String, delay: Int) {
   lazy val data = {
-    val builder = NetBuilderTyped()
+    val builder = NetBuilder()
     chain(builder)
     builder.data
   }
 
-  def chain(builder: NetBuilderTyped, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    val feedbackWeight = DelayGateTyped.middleThreshold / (delay + 1)
+  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+    val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
     if (builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, delay)
     else builder.addMiddle(id = inputId, threshold = inputThreshold, silenceIterations = delay)
 
     builder.use(inputId).silence(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
-           .chain(outputId, feedbackWeight, DelayGateTyped.middleThreshold).silence(middleId)
+           .chain(outputId, feedbackWeight, DelayGate.middleThreshold).silence(middleId)
            .addSilencingNeuron(silencingId).silence(inputId).silence(middleId).silence(outputId)
            .use(outputId) // always end chaining with setting the current neuron at the main output of the block
   }
 
-  val inputId = DelayGateTyped.inputId(name)
-  val middleId = DelayGateTyped.middleId(name)
-  val outputId = DelayGateTyped.outputId(name)
-  val silencingId = DelayGateTyped.silencingId(name)
+  val inputId = DelayGate.inputId(name)
+  val middleId = DelayGate.middleId(name)
+  val outputId = DelayGate.outputId(name)
+  val silencingId = DelayGate.silencingId(name)
 }
 
-object DelayGateTyped {
+object DelayGate {
   val blockNamePrefix = "DelayGate"
   val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
   val neuronsInBlock = 4
@@ -49,10 +46,10 @@ object DelayGateTyped {
 
   private var firstFreeId = 1
 
-  def apply(delay: Int): DelayGateTyped = {
+  def apply(delay: Int): DelayGate = {
     val newName = nextName()
     firstFreeId += 1
-    DelayGateTyped(newName, delay)
+    DelayGate(newName, delay)
   }
 
   def inputId(name: String) = s"${name}1"

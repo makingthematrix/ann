@@ -1,20 +1,20 @@
 package anna.blocks
 
-import anna.async.NetBuilderOpsTyped._
-import anna.async.{NetBuilderTyped, NetWrapperTyped}
+import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
- * Typed-Actor counterpart of [[SignalSumSuite]], validating [[SignalSumTyped]].
+ * Tests validating the [[SignalSum]] block.
  */
-class SignalSumTypedSuite extends AnyFunSuite {
+class SignalSumSuite extends AnyFunSuite {
 
-  private def signalSumWithOps(blockName: String, requiredSignals: Int): NetWrapperTyped =
-    NetBuilderTyped().addInput("in").signalSum(blockName, requiredSignals).build()
+  private def signalSumWithOps(blockName: String, requiredSignals: Int): NetWrapper =
+    NetBuilder().addInput("in").signalSum(blockName, requiredSignals).build()
 
-  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapperTyped, outNeuronId: String, requiredSignals: Int): Unit = {
+  private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int): Unit = {
     var fired = false
     netWrapper.addAfterFire(outNeuronId) { fired = true }
 
@@ -39,11 +39,11 @@ class SignalSumTypedSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def signalSumWithBlock(requiredSignals: Int): (NetWrapperTyped, SignalSumTyped) = {
-    val builder = NetBuilderTyped()
+  private def signalSumWithBlock(requiredSignals: Int): (NetWrapper, SignalSum) = {
+    val builder = NetBuilder()
     builder.addInput("in")
 
-    val block = SignalSumTyped(requiredSignals)
+    val block = SignalSum(requiredSignals)
     block.chain(builder)
     (builder.build(), block)
   }

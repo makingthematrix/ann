@@ -1,18 +1,18 @@
 package anna.blocks
 
-import anna.async.NetBuilderOpsTyped._
-import anna.async.{NetBuilderTyped, NetWrapperTyped}
+import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
- * Typed-Actor counterpart of [[DelayGateSuite]], validating [[DelayGateTyped]].
+ * Tests validating the [[DelayGate]] block.
  */
-class DelayGateTypedSuite extends AnyFunSuite {
+class DelayGateSuite extends AnyFunSuite {
 
-  private def delayGateWithOps(blockName: String, delay: Int): NetWrapperTyped =
-    NetBuilderTyped().addInput("in").delayGate(blockName, delay).build()
+  private def delayGateWithOps(blockName: String, delay: Int): NetWrapper =
+    NetBuilder().addInput("in").delayGate(blockName, delay).build()
 
   private def assertDelayGateWithOps(delay: Int): Unit = {
     val netWrapper = delayGateWithOps("delayGate", delay)
@@ -33,11 +33,11 @@ class DelayGateTypedSuite extends AnyFunSuite {
     assertDelayGateWithOps(0)
   }
 
-  private def delayGateWithBlock(delay: Int): (NetWrapperTyped, DelayGateTyped) = {
-    val builder = NetBuilderTyped()
+  private def delayGateWithBlock(delay: Int): (NetWrapper, DelayGate) = {
+    val builder = NetBuilder()
     builder.addInput("in")
 
-    val block = DelayGateTyped(delay)
+    val block = DelayGate(delay)
     block.chain(builder)
     (builder.build(), block)
   }

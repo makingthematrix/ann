@@ -1,7 +1,7 @@
 package anna.async
 
 import anna.Context
-import anna.async.NetBuilderOpsTyped._
+import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
@@ -9,15 +9,12 @@ import org.scalatest.funsuite.AnyFunSuite
 import scala.collection.mutable
 
 /**
- * Typed-Actor counterpart of [[DelaySuite]].
- *
- * Each test mirrors the same-named test in `DelaySuite`, driving the typed
- * stack via [[NetBuilderTyped]] + [[NetBuilderOpsTyped]] and
- * [[NetWrapperTyped]].
+ * Timing/oscillator tests built with [[NetBuilder]] + [[NetBuilderOps]] and
+ * driven through [[NetWrapper]].
  */
-class DelayTypedSuite extends AnyFunSuite {
+class DelaySuite extends AnyFunSuite {
   test("foo") {
-    val netWrapper = NetBuilderTyped().addInput("in1").build("net")
+    val netWrapper = NetBuilder().addInput("in1").build("net")
 
     netWrapper += "1"
 
@@ -31,7 +28,7 @@ class DelayTypedSuite extends AnyFunSuite {
   }
 
   test("shouldGiveConstantOutput") {
-    val netWrapper = NetBuilderTyped().addInput("in1").chain("mi1", 1.0).chain("out1", 1.0, 0.75).build("net")
+    val netWrapper = NetBuilder().addInput("in1").chain("mi1", 1.0).chain("out1", 1.0, 0.75).build("net")
 
     netWrapper += "1,1,1,1,1,1"
 
@@ -48,7 +45,7 @@ class DelayTypedSuite extends AnyFunSuite {
   }
 
   test("shouldCreateOscillatorWithMethod2") {
-    val netWrapper = NetBuilderTyped().addInput("in").chain("mi1", 1.0).oscillator().chain("out1", 1.0, 0.75).build()
+    val netWrapper = NetBuilder().addInput("in").chain("mi1", 1.0).oscillator().chain("out1", 1.0, 0.75).build()
 
     netWrapper += "1,1,1,1,1,1"
 
@@ -65,7 +62,7 @@ class DelayTypedSuite extends AnyFunSuite {
   }
 
   test("shouldCreateOscillator2") {
-    val netWrapper = NetBuilderTyped().addInput("in1").chain("mi1", 1.0).loop("osc", 1.0, 0.5, -1.0).chain("out1", 1.0, 0.75)
+    val netWrapper = NetBuilder().addInput("in1").chain("mi1", 1.0).loop("osc", 1.0, 0.5, -1.0).chain("out1", 1.0, 0.75)
                                       .use("osc").chain("mi2", 1.0).chain("out2", 1.0, 0.75)
                                       .build()
 

@@ -5,52 +5,51 @@ import akka.actor.typed.{ActorRef, Scheduler}
 import akka.util.Timeout
 import anna.Context
 import anna.async.Messages.{Answer, NetShutdownDone, NeuronInfo}
-import anna.async.NetTyped._
+import anna.async.Net._
 import anna.data.NeuronData
 import anna.logger.LOG._
 
 import scala.concurrent.Await
 
 /**
- * Typed-Actor version of [[NetRef]] — an "outside the actor" handle to a
- * [[NetTyped]] instance.
+ * An "outside the actor" handle to a [[Net]] instance.
  *
- * Like [[NeuronRefTyped]] it uses `akka.actor.typed.scaladsl.AskPattern` and
- * blocks on the returned `Future` to preserve the classic synchronous API.
- * Neuron handles returned by the net are wrapped as [[NeuronRefTyped]].
+ * Like [[NeuronRef]] it uses `akka.actor.typed.scaladsl.AskPattern` and blocks
+ * on the returned `Future` to expose a synchronous API. Neuron handles returned
+ * by the net are wrapped as [[NeuronRef]].
  */
-final class NetRefTyped(val id: String, val ref: ActorRef[NetTyped.Command]) {
+final class NetRef(val id: String, val ref: ActorRef[Net.Command]) {
 
   private var _iteration = 0L
   def iteration: Long = _iteration
 
-  private def ask[Res](f: ActorRef[Res] => NetTyped.Command): Res = {
+  private def ask[Res](f: ActorRef[Res] => Net.Command): Res = {
     implicit val timeout: Timeout = Context().timeout
     implicit val scheduler: Scheduler = Context().system.scheduler
     Await.result(ref.ask(f), timeout.duration)
   }
 
-  private def toRef(h: NeuronHandle): NeuronRefTyped = NeuronRefTyped(h.id, h.ref)
+  private def toRef(h: NeuronHandle): NeuronRef = NeuronRef(h.id, h.ref)
 
-  def !(msg: NetTyped.Command): Unit = ref ! msg
+  def !(msg: Net.Command): Unit = ref ! msg
 
-  def inputs: Seq[NeuronRefTyped] = ask[Neurons](GetInputs(_)).neurons.map(toRef)
+  def inputs: Seq[NeuronRef] = ask[Neurons](GetInputs(_)).neurons.map(toRef)
   def inputIds: Seq[String] = inputs.map(_.id)
   def inputSize: Int = inputs.size
 
-  def neurons: Seq[NeuronRefTyped] = ask[Neurons](GetNeurons(_)).neurons.map(toRef)
+  def neurons: Seq[NeuronRef] = ask[Neurons](GetNeurons(_)).neurons.map(toRef)
   def neuronsSize: Int = neurons.size
   def neuronsIds: Seq[String] = neurons.map(_.id)
 
-  def find(id: String): Option[NeuronRefTyped] = ask[NeuronOpt](GetNeuron(id, _)).neuron.map(toRef)
+  def find(id: String): Option[NeuronRef] = ask[NeuronOpt](GetNeuron(id, _)).neuron.map(toRef)
 
-  def createNeuron(id: String, threshold: Double, silenceIterations: Int): NeuronRefTyped =
+  def createNeuron(id: String, threshold: Double, silenceIterations: Int): NeuronRef =
     toRef(ask[NeuronHandle](CreateNeuron(NeuronData(id, threshold, silenceIterations, Nil), _)))
 
-  def createDummy(id: String, silenceIterations: Int): NeuronRefTyped =
+  def createDummy(id: String, silenceIterations: Int): NeuronRef =
     toRef(ask[NeuronHandle](CreateNeuron(NeuronData(id, silenceIterations), _)))
 
-  def createSilencingNeuron(id: String): NeuronRefTyped =
+  def createSilencingNeuron(id: String): NeuronRef =
     toRef(ask[NeuronHandle](CreateNeuron(NeuronData(id), _)))
 
   def setInputs(seq: List[String]): Answer = ask[Answer](SetInputs(seq, _))
@@ -95,18 +94,18 @@ final class NetRefTyped(val id: String, val ref: ActorRef[NetTyped.Command]) {
   def removeSignalIgnoredFromAll(name: String): Unit = neurons.foreach(_.removeSignalIgnored(name))
 }
 
-object NetRefTyped {
-  def apply(id: String): NetRefTyped = {
+object NetRef {
+  def apply(id: String): NetRef = {
     // Spawn a top-level typed actor by asking the user guardian.
     val system = Context().system
     implicit val timeout: Timeout = Context().timeout
     implicit val scheduler: Scheduler = system.scheduler
     val ref = Await.result(
-      system.ask[ActorRef[NetTyped.Command]](Guardian.SpawnTyped(NetTyped(id), _)),
+      system.ask[ActorRef[Net.Command]](Guardian.Spawn(Net(id), _)),
       timeout.duration
     )
-    new NetRefTyped(id, ref)
+    new NetRef(id, ref)
   }
 
-  def apply(id: String, ref: ActorRef[NetTyped.Command]): NetRefTyped = new NetRefTyped(id, ref)
+  def apply(id: String, ref: ActorRef[Net.Command]): NetRef = new NetRef(id, ref)
 }

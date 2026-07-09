@@ -13,13 +13,10 @@ import org.scalatest.funsuite.AnyFunSuite
 import scala.concurrent.Await
 
 /**
- * Typed-Actor counterpart of [[NetSuite]].
- *
- * Each test mirrors the same-named test in `NetSuite`, but drives the typed
- * stack ([[NetRefTyped]] / [[NetTyped]] / [[NeuronRefTyped]] / [[NeuronTyped]],
- * [[SynapseTyped]], [[NetBuilderTyped]]) instead of the classic one.
+ * Basic network tests: creating a [[Net]], creating neurons through [[NetRef]],
+ * and building/connecting them with [[NetBuilder]].
  */
-class NetTypedSuite extends AnyFunSuite {
+class NetSuite extends AnyFunSuite {
   private val threshold: Double = Context().threshold
   private val weight: SynapseTrait = Context().weight
   private val silenceIterations: Int = Context().silenceIterations
@@ -28,16 +25,16 @@ class NetTypedSuite extends AnyFunSuite {
   private implicit val scheduler: Scheduler = Context().system.scheduler
 
   test("shouldCreateNet") {
-    val net = NetRefTyped("net1")
+    val net = NetRef("net1")
 
-    val msg = Await.result(net.ref.ask(NetTyped.GetId(_: akka.actor.typed.ActorRef[Msg])), timeout.duration)
+    val msg = Await.result(net.ref.ask(Net.GetId(_: akka.actor.typed.ActorRef[Msg])), timeout.duration)
     assertEquals("net1", msg.str)
 
     net.shutdown()
   }
 
   test("shouldCreateNeurons") {
-    val net = NetRefTyped("net1")
+    val net = NetRef("net1")
 
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
     val n2 = net.createNeuron("id2", threshold, silenceIterations)
@@ -53,7 +50,7 @@ class NetTypedSuite extends AnyFunSuite {
   }
 
   test("shouldCreateNeuronsWithBuilder") {
-    val builder = NetBuilderTyped()
+    val builder = NetBuilder()
     builder.addMiddle("id1", threshold, silenceIterations)
            .addMiddle("id2", threshold, silenceIterations)
     val net = builder.build("net").net
@@ -68,7 +65,7 @@ class NetTypedSuite extends AnyFunSuite {
   }
 
   test("shouldConnectNeuronsWithBuilder") {
-    val builder = NetBuilderTyped()
+    val builder = NetBuilder()
     builder.addMiddle("id1", threshold, silenceIterations)
            .chain("id2", weight, threshold, silenceIterations)
     val net = builder.build("net").net

@@ -3,42 +3,33 @@ package anna.async
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal => AkkaSignal}
 import anna.async.Messages.{Answer, Failure, Msg, NetShutdownDone, Success}
-import anna.async.NetTyped._
+import anna.async.Net._
 import anna.data.NeuronData
 
 import scala.collection.mutable
 
 /**
- * Typed-Actor version of [[Net]].
+ * The network actor: owns the neurons and routes signals, implemented in the
+ * object-oriented `AbstractBehavior` style like [[Neuron]].
  *
- * A straight port of the classic (untyped) `Net` to `akka.actor.typed`,
- * following the same object-oriented `AbstractBehavior` style used for
- * [[NeuronTyped]]:
- *
- *  - Explicit sealed `Command` protocol; every request that relied on
- *    `sender()` now carries an explicit `replyTo`.
- *  - Child neurons are spawned as [[NeuronTyped]] (standard/dummy) and
- *    [[SilencingNeuronTyped]] (silencing) via `context.spawn`, and are held in
- *    an ordered map instead of being looked up through the `ActorContext`
- *    (as recommended by the migration guide).
- *  - `context.watch` + the classic `Terminated` message become
- *    `context.watchWith(ref, ChildTerminated(id))`.
+ *  - Explicit sealed `Command` protocol; every request carries an explicit
+ *    `replyTo`.
+ *  - Child neurons are spawned as [[Neuron]] (standard/dummy) and
+ *    [[SilencingNeuron]] (silencing), and held in an ordered map rather than
+ *    looked up through the `ActorContext`.
+ *  - Child death is observed via `context.watchWith(ref, ChildTerminated(id))`.
  *  - The `waiting` hot-swap state (broadcast a command to every neuron, then
  *    reply to the caller once all acked) is a returned `Behavior`. Since child
  *    replies are of type `Answer` (not `Command`), a message adapter wraps them
- *    in `WrappedAnswer`. The wait is counted rather than id-matched, which also
- *    fixes the latent bug in the classic `removeAfterFire` (whose per-neuron
- *    `Success` carried the trigger id, not the neuron id).
- *  - `PoisonPill` shutdown becomes `context.stop` of the children and
+ *    in `WrappedAnswer`; the wait is counted rather than id-matched.
+ *  - Shutdown stops the children with `context.stop` and returns
  *    `Behaviors.stopped` once the last child terminates; the caller is notified
  *    from the `PostStop` signal.
- *
- * The original [[Net]] is left untouched so both can coexist.
  */
-class NetTyped(context: ActorContext[Command], val id: String)
+class Net(context: ActorContext[Command], val id: String)
   extends AbstractBehavior[Command](context) {
 
-  private val neurons = mutable.LinkedHashMap[String, ActorRef[NeuronTyped.Command]]()
+  private val neurons = mutable.LinkedHashMap[String, ActorRef[Neuron.Command]]()
   private var inputs: List[NeuronHandle] = List.empty
   private var shutdownCallerOpt: Option[ActorRef[NetShutdownDone]] = None
 
@@ -58,11 +49,11 @@ class NetTyped(context: ActorContext[Command], val id: String)
     case SignalList(in)          => signal(in); this
 
     case Reset(replyTo) =>
-      broadcastAndWait(replyTo)(_ ! NeuronTyped.Reset(answerAdapter))
+      broadcastAndWait(replyTo)(_ ! Neuron.Reset(answerAdapter))
     case RemoveAllTriggers(replyTo) =>
-      broadcastAndWait(replyTo)(_ ! NeuronTyped.RemoveAllTriggers(answerAdapter))
+      broadcastAndWait(replyTo)(_ ! Neuron.RemoveAllTriggers(answerAdapter))
     case RemoveAfterFireTrigger(tid, replyTo) =>
-      broadcastAndWait(replyTo)(_ ! NeuronTyped.RemoveAfterFireTrigger(tid, answerAdapter))
+      broadcastAndWait(replyTo)(_ ! Neuron.RemoveAfterFireTrigger(tid, answerAdapter))
 
     case Shutdown(replyTo) => shutdown(replyTo)
 
@@ -76,7 +67,7 @@ class NetTyped(context: ActorContext[Command], val id: String)
   // --- waiting (hot-swap) state -------------------------------------------
 
   private def broadcastAndWait(caller: ActorRef[Answer])
-                              (send: ActorRef[NeuronTyped.Command] => Unit): Behavior[Command] = {
+                              (send: ActorRef[Neuron.Command] => Unit): Behavior[Command] = {
     neurons.values.foreach(send)
     if (neurons.isEmpty) { caller ! Success(id); this }
     else waiting(caller, neurons.size)
@@ -110,10 +101,10 @@ class NetTyped(context: ActorContext[Command], val id: String)
   // --- neuron creation ----------------------------------------------------
 
   private def createNeuron(data: NeuronData, replyTo: ActorRef[NeuronHandle]): Unit = {
-    val behavior: Behavior[NeuronTyped.Command] = data.neuronType match {
-      case NeuronTypeStandard()  => NeuronTyped(data.id, id, data.threshold, data.silenceIterations)
-      case NeuronTypeDummy()     => NeuronTyped(data.id, id, 0.0, 0)
-      case NeuronTypeSilencing() => SilencingNeuronTyped(data.id, id)
+    val behavior: Behavior[Neuron.Command] = data.neuronType match {
+      case NeuronTypeStandard()  => Neuron(data.id, id, data.threshold, data.silenceIterations)
+      case NeuronTypeDummy()     => DummyNeuron(data.id, id)
+      case NeuronTypeSilencing() => SilencingNeuron(data.id, id)
     }
     // Spawn anonymously: neuron ids are bookkeeping only and may contain
     // characters that are illegal in Akka actor names (e.g. '#' from block
@@ -140,7 +131,7 @@ class NetTyped(context: ActorContext[Command], val id: String)
   private def signal(in: List[Double]): Unit = {
     assert(in.size == inputs.size,
       s"Difference in size between the input layer (${inputs.size}) and the input (${in.size})")
-    inputs.zip(in).foreach { case (handle, s) => handle.ref ! NeuronTyped.Signal(s, "Input") }
+    inputs.zip(in).foreach { case (handle, s) => handle.ref ! Neuron.Signal(s, "Input") }
   }
 
   // --- helpers ------------------------------------------------------------
@@ -160,11 +151,11 @@ class NetTyped(context: ActorContext[Command], val id: String)
   }
 }
 
-object NetTyped {
+object Net {
   /** A typed reference to a spawned neuron, together with its id. */
-  final case class NeuronHandle(id: String, ref: ActorRef[NeuronTyped.Command])
+  final case class NeuronHandle(id: String, ref: ActorRef[Neuron.Command])
 
-  /** The message protocol understood by a [[NetTyped]] actor. */
+  /** The message protocol understood by a [[Net]] actor. */
   sealed trait Command
 
   // queries (carry an explicit replyTo instead of relying on sender())
@@ -191,5 +182,5 @@ object NetTyped {
   final case class NeuronOpt(neuron: Option[NeuronHandle])
 
   def apply(id: String): Behavior[Command] =
-    Behaviors.setup(context => new NetTyped(context, id))
+    Behaviors.setup(context => new Net(context, id))
 }

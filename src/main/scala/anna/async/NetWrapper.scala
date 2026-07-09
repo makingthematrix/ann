@@ -8,14 +8,11 @@ import anna.utils.Utils._
 import scala.collection.mutable
 
 /**
- * Typed-Actor version of [[NetWrapper]].
- *
- * Identical driving logic (input queue, sign register, `tick`,
- * `iterateUntilCalm`) but over the typed [[NetRefTyped]] / [[NeuronRefTyped]]
- * stack. `reset` / `removeAllTriggers` return `Answer` (the typed ask reply
- * type) rather than the classic `Success`.
+ * Drives a [[NetRef]]: an input queue, a sign register, and the `tick` /
+ * `iterateUntilCalm` loop that feeds input vectors into the network and lets it
+ * settle. `reset` / `removeAllTriggers` return the `Answer` ask reply.
  */
-final class NetWrapperTyped(val net: NetRefTyped) {
+final class NetWrapper(val net: NetRef) {
   lazy val ids: Seq[String] = net.inputIds
   lazy val size: Int = net.inputSize
 
@@ -29,7 +26,7 @@ final class NetWrapperTyped(val net: NetRefTyped) {
     _iteration = 1
   }
 
-  def find(id: String): NeuronRefTyped = net.find(id) match {
+  def find(id: String): NeuronRef = net.find(id) match {
     case Some(nref) => nref
     case None => throw new IllegalArgumentException(s"There is no output neuron with id $id")
   }
@@ -131,9 +128,9 @@ final class NetWrapperTyped(val net: NetRefTyped) {
   def neuronIds: Seq[String] = net.neuronsIds
 }
 
-object NetWrapperTyped {
-  def apply(net: NetRefTyped): NetWrapperTyped = {
-    val ani = new NetWrapperTyped(net)
+object NetWrapper {
+  def apply(net: NetRef): NetWrapper = {
+    val ani = new NetWrapper(net)
     ani.regSign('0', 0.0)
     ani.regSign('1', 1.0)
     ani

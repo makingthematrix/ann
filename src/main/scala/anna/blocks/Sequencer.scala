@@ -1,14 +1,11 @@
 package anna.blocks
 
-import anna.async.NetBuilderTyped
-import anna.async.NetBuilderOpsTyped._
-import anna.async.NeuronTyped
+import anna.async.NetBuilder
+import anna.async.NetBuilderOps._
+import anna.async.Neuron
 
 /**
- * Typed-Actor version of [[Sequencer]].
- *
- * Same block topology and behaviour, but built through [[NetBuilderTyped]] /
- * `NetBuilderOpsTyped` (so the block is made of typed neurons/synapses).
+ * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
  *
  * A sequencer fires its output only when its two inputs arrive in order
  * (input1 then input2): each of the two block neurons silences itself forever
@@ -16,31 +13,29 @@ import anna.async.NeuronTyped
  * lets the second neuron (the output) fire. The silencing neuron resets the
  * block to its initial state.
  *
- * Note: unlike the classic companion, there is no `apply(Int)` factory — that
- * method in `Sequencer` was a copy-paste bug returning a `SignalSum` and is
- * never used. Construct with the block name via the case class / DSL instead.
+ * Construct with the block name via the case class or the `sequencer` DSL.
  */
-final case class SequencerTyped(name: String) {
-  def chain(builder: NetBuilderTyped,
+final case class Sequencer(name: String) {
+  def chain(builder: NetBuilder,
             input1Id: String, input2Id: String,
             input1Weight: Double = 1.0, input1Threshold: Double = 0.0,
             input2Weight: Double = 1.0, input2Threshold: Double = 0.0
            ) =
     // oh, screw it. Let's assume input neurons are already there.
-    builder.use(input1Id).chain(this.input1Id, input1Weight, input1Threshold, NeuronTyped.SilenceForever).silence(this.input1Id)
-           .use(input2Id).chain(this.input2Id, input2Weight, input2Threshold, NeuronTyped.SilenceForever).initSilent().silence(this.input2Id)
+    builder.use(input1Id).chain(this.input1Id, input1Weight, input1Threshold, Neuron.SilenceForever).silence(this.input1Id)
+           .use(input2Id).chain(this.input2Id, input2Weight, input2Threshold, Neuron.SilenceForever).initSilent().silence(this.input2Id)
            .use(this.input1Id).wake(this.input2Id)
            .use(this.input2Id).wake(this.input1Id)
            .addSilencingNeuron(silencingId).wake(this.input1Id).silence(this.input2Id)
            .use(this.input2Id)
 
-  val input1Id = SequencerTyped.input1Id(name)
-  val input2Id = SequencerTyped.input2Id(name)
+  val input1Id = Sequencer.input1Id(name)
+  val input2Id = Sequencer.input2Id(name)
   val outputId = input2Id
-  val silencingId = SequencerTyped.silencingId(name)
+  val silencingId = Sequencer.silencingId(name)
 }
 
-object SequencerTyped {
+object Sequencer {
   val blockNamePrefix = "Sequencer"
   val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
   val neuronsInBlock = 3

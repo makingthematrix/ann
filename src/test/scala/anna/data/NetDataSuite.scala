@@ -1,7 +1,7 @@
 package anna.data
 
-import anna.async.NetBuilderOpsTyped._
-import anna.async.{NetBuilderTyped, NeuronTypeDummy, NeuronTypeStandard}
+import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NeuronTypeDummy, NeuronTypeStandard}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.BeforeAndAfter
@@ -31,7 +31,7 @@ class NetDataSuite extends AnyFunSuite with BeforeAndAfter {
     val n2 = NeuronData("id2",0.0, 2, Nil)
     val netData = NetData("net",List(n1,n2),List("id1"))
 
-    val builder = NetBuilderTyped()
+    val builder = NetBuilder()
 
     builder.addInput("id1").chain("id2", 1.0, 0.0, 2)
 
@@ -49,7 +49,7 @@ class NetDataSuite extends AnyFunSuite with BeforeAndAfter {
     val n2 = NeuronData("id2", 0.0, 2, Nil, NeuronTypeStandard())
     val netData = NetData("net",List(n1,n2),List("id1"))
 
-    val builder = NetBuilderTyped()
+    val builder = NetBuilder()
     builder.set(netData)
 
     val netWrapper = builder.build("in")
