@@ -15,7 +15,6 @@ object Messages {
   sealed trait Command extends Message
   case object SilenceRequest extends Command// become silent
   case object WakeRequest extends Command// force wake up
-  final case class Connect(destinationRef: NeuronRef, weight: SynapseTrait) extends Command
   final case class Disconnect(destinationId: String) extends Command
   final case class CreateNeuron(data: NeuronData) extends Command
   final case class SetInputs(ids: Seq[String]) extends Command
@@ -23,7 +22,7 @@ object Messages {
   case object Shutdown extends Command // net shutdown
   case object Reset extends Command
   case object RemoveAllTriggers extends Command
-  final case class SetSynapses(synapses: Seq[Synapse]) extends Command
+
 
   // questions
   sealed trait Question extends Message
@@ -44,10 +43,6 @@ object Messages {
   final case class NeuronShutdownDone(id: String) extends Answer // a special case - successful shutdown of a neuron
   final case class NetShutdownDone(id: String) extends Answer // a special case - successful shutdown if the whole net
   final case class Msg(d: Double, str: String) extends Answer // general answer to a question about a number or an id
-  final case class MsgSynapse(synapseOpt: Option[Synapse]) extends Answer // sends back a synapse
-  final case class MsgSynapses(synapses: Seq[Synapse]) extends Answer // sends back all synapses of the neuron
-  final case class MsgNeuron(neuronOpt: Option[NeuronRef]) extends Answer
-  final case class MsgNeurons(neurons: Seq[NeuronRef]) extends Answer
   final case class NeuronInfo(id: String,
                         netId: String,
                         threshold: Double,

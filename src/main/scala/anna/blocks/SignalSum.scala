@@ -4,9 +4,13 @@ import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
 
 /**
-  * Created by gorywoda on 6/19/16.
-  */
-final case class SignalSum(name: String, requiredSignalsNumber: Int){
+ * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
+ *
+ * A signal-sum block fires its output once it has received `requiredSignalsNumber`
+ * input signals within a single (uninterrupted) run: each input adds a fraction
+ * of the output threshold, and the block silences itself after firing.
+ */
+final case class SignalSum(name: String, requiredSignalsNumber: Int) {
   import SignalSum.middleThreshold
 
   lazy val data = {
@@ -16,10 +20,10 @@ final case class SignalSum(name: String, requiredSignalsNumber: Int){
   }
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
-    val middleSynapseWeigth = middleThreshold/requiredSignalsNumber
+    val middleSynapseWeigth = middleThreshold / requiredSignalsNumber
 
-    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, 0)
-    else builder.addMiddle(id=inputId, threshold=0.0, silenceIterations = 0)
+    if (builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, 0)
+    else builder.addMiddle(id = inputId, threshold = 0.0, silenceIterations = 0)
 
     builder.use(inputId).chain(outputId, middleSynapseWeigth, middleThreshold, 0)
       .addSilencingNeuron(silencingId).silence(inputId).silence(outputId)
@@ -42,7 +46,7 @@ object SignalSum {
 
   private var firstFreeId = 1
 
-  def apply(requiredSignalsNumber: Int):SignalSum = {
+  def apply(requiredSignalsNumber: Int): SignalSum = {
     val newName = nextName()
     firstFreeId += 1
     SignalSum(newName, requiredSignalsNumber)
@@ -51,5 +55,4 @@ object SignalSum {
   def inputId(name: String) = s"${name}1"
   def outputId(name: String) = s"${name}2"
   def silencingId(name: String) = s"${name}s"
-
 }

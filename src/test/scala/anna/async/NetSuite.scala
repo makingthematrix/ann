@@ -1,25 +1,34 @@
 package anna.async
 
+import akka.actor.typed.Scheduler
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.actor.typed.scaladsl.adapter._
 import akka.util.Timeout
 import anna.Context
-import anna.async.Messages._
+import anna.async.Messages.Msg
 import anna.data.SynapseTrait
-import anna.utils.Utils.await
 import org.junit.Assert._
-import org.junit.Test
 import org.scalatest.funsuite.AnyFunSuite
 
+import scala.concurrent.Await
+
+/**
+ * Basic network tests: creating a [[Net]], creating neurons through [[NetRef]],
+ * and building/connecting them with [[NetBuilder]].
+ */
 class NetSuite extends AnyFunSuite {
-  val threshold: Double = Context().threshold
-  val weight: SynapseTrait = Context().weight
-  val silenceIterations: Int = Context().silenceIterations
-  val timeout: Timeout = Context().timeout
+  private val threshold: Double = Context().threshold
+  private val weight: SynapseTrait = Context().weight
+  private val silenceIterations: Int = Context().silenceIterations
+
+  private implicit val timeout: Timeout = Context().timeout
+  private implicit val scheduler: Scheduler = Context().system.scheduler
 
   test("shouldCreateNet") {
     val net = NetRef("net1")
 
-    val msg = await[Msg](net.ref, GetId)
-    assertEquals("net1",msg.str)
+    val msg = Await.result(net.ref.ask(Net.GetId(_: akka.actor.typed.ActorRef[Msg])), timeout.duration)
+    assertEquals("net1", msg.str)
 
     net.shutdown()
   }
@@ -30,11 +39,10 @@ class NetSuite extends AnyFunSuite {
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
     val n2 = net.createNeuron("id2", threshold, silenceIterations)
 
-    val msg = await[MsgNeurons](net, GetNeurons)
-    val neurons = msg.neurons
+    val neurons = net.neurons
     assertEquals(2, neurons.size)
 
-    val ids = neurons.map{ _.id }
+    val ids = neurons.map(_.id)
     assertTrue(ids.contains(n1.id))
     assertTrue(ids.contains(n2.id))
 
@@ -49,7 +57,7 @@ class NetSuite extends AnyFunSuite {
 
     val neurons = net.neurons
     assertEquals(2, neurons.size)
-    val ids = neurons.map{ _.id }
+    val ids = neurons.map(_.id)
     assertTrue(ids.contains("id1"))
     assertTrue(ids.contains("id2"))
 
@@ -61,21 +69,20 @@ class NetSuite extends AnyFunSuite {
     builder.addMiddle("id1", threshold, silenceIterations)
            .chain("id2", weight, threshold, silenceIterations)
     val net = builder.build("net").net
-    
+
     val neurons = net.neurons
     assertEquals(2, neurons.size)
-    
+
     val n1Opt = neurons.find(_.id == "id1")
     assertTrue(n1Opt.isDefined)
     val n1 = n1Opt.get
-    
+
     val synapses = n1.getSynapses
     assertEquals(1, synapses.size)
-    
+
     val nRef = synapses.head.dest
     assertEquals("id2", nRef.id)
-    
+
     net.shutdown()
   }
-
 }

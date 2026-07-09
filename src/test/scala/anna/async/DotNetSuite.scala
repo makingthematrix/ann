@@ -4,9 +4,12 @@ import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import anna.logger.LOG.debug
 import org.junit.Assert._
-import org.junit.Test
 import org.scalatest.funsuite.AnyFunSuite
 
+/**
+ * Dot-recognizer network tests, built with [[NetBuilder]] + [[NetBuilderOps]]
+ * and driven through [[NetWrapper]].
+ */
 class DotNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
@@ -15,8 +18,8 @@ class DotNetSuite extends AnyFunSuite {
     NetBuilder().addInput("in")
     // dots
       .use("in").chain("mi11", 1.0, 0.0, 2).silence("mi11")
-      .chain("mi12",1.0,0.0).loop("loop1",1.0,0.0,1.0)
-      .chain("dot",0.6/2.0,0.6).silence("mi12").silence("loop1").silence("dot")
+      .chain("mi12", 1.0, 0.0).loop("loop1", 1.0, 0.0, 1.0)
+      .chain("dot", 0.6 / 2.0, 0.6).silence("mi12").silence("loop1").silence("dot")
       .build()
   }
 
@@ -28,8 +31,8 @@ class DotNetSuite extends AnyFunSuite {
     netWrapper += s
 
     LOG.timer()
-    netWrapper.addAfterFire("in"){ debug("received input") }
-    netWrapper.addAfterFire("dot"){ debug("Dot!"); dots += 1 }
+    netWrapper.addAfterFire("in") { debug("received input") }
+    netWrapper.addAfterFire("dot") { debug("Dot!"); dots += 1 }
 
     val interval = netWrapper.iterateUntilCalm()
     debug(s"interval: $interval, dots: $dots")

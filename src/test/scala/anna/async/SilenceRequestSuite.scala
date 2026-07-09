@@ -6,16 +6,20 @@ import anna.async.NetBuilderOps._
 import anna.data.Silence
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.{Await, Promise}
 
+/**
+ * Tests for silence requests and the [[SilencingNeuron]], exercised through
+ * [[NetRef]] / [[NeuronRef]] / [[Synapse]] and [[NetBuilder]] + [[NetBuilderOps]]
+ * / [[NetWrapper]].
+ */
 class SilenceRequestSuite extends AnyFunSuite {
 
-  val threshold: Double = Context().threshold
-  val silenceIterations: Int = Context().silenceIterations
-  val timeout: Timeout = Context().timeout
+  private val threshold: Double = Context().threshold
+  private val silenceIterations: Int = Context().silenceIterations
+  private val timeout: Timeout = Context().timeout
 
   test("shouldSendSilenceRequest") {
     val net = NetRef("net1")
@@ -23,12 +27,12 @@ class SilenceRequestSuite extends AnyFunSuite {
     val n1 = net.createNeuron("id1", threshold, silenceIterations)
     val n2 = net.createNeuron("id2", threshold, silenceIterations)
 
-    n1.setSynapses(List(Synapse(n2,Silence())))
+    n1.setSynapses(List(Synapse(n2, Silence())))
     net.setInputs(List(n1.id))
 
     val p = Promise[Boolean]()
 
-    n2.addSilenceRequested("id2_silence"){
+    n2.addSilenceRequested("id2_silence") {
       LOG.debug("received silence request in id2")
       p.success(true)
     }
@@ -43,11 +47,11 @@ class SilenceRequestSuite extends AnyFunSuite {
 
   test("shouldSendSilenceRequestThroughBuilder") {
     val netWrapper = NetBuilder().addInput("id1").addMiddle("id2")
-                                 .use("id1").silence("id2").build()
+                                      .use("id1").silence("id2").build()
 
     var silenceRequestReceived = false
 
-    netWrapper.addSilenceRequested("id2"){
+    netWrapper.addSilenceRequested("id2") {
       LOG.debug("received silence request in id2")
       silenceRequestReceived = true
     }
@@ -73,7 +77,7 @@ class SilenceRequestSuite extends AnyFunSuite {
 
     val p = Promise[Boolean]()
 
-    n2.addSilenceRequested("id2_silence"){
+    n2.addSilenceRequested("id2_silence") {
       LOG.debug("received silence request in id2")
       p.success(true)
     }
@@ -91,7 +95,7 @@ class SilenceRequestSuite extends AnyFunSuite {
 
     var silenceRequestReceived = false
 
-    netWrapper.addSilenceRequested("id2"){
+    netWrapper.addSilenceRequested("id2") {
       LOG.debug("received silence request in id2")
       silenceRequestReceived = true
     }

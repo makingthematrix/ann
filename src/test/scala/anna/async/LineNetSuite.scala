@@ -1,68 +1,69 @@
 package anna.async
 
-import anna.Context
 import anna.async.NetBuilderOps._
-import anna.logger.LOG
 import anna.logger.LOG.debug
 import org.junit.Assert._
-import org.junit.{After, Before, Test}
 import org.scalatest.funsuite.AnyFunSuite
 
+/**
+ * Line-recognizer network tests, built with [[NetBuilder]] + [[NetBuilderOps]]
+ * and driven through [[NetWrapper]].
+ */
 class LineNetSuite extends AnyFunSuite {
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
-  
+
   private def lineNet2: (NetWrapper, StringBuilder) = {
     val netWrapper = NetBuilder()
            .addInput("in1")
-           .chain("mi21",0.4,0.6).silence("mi21")
-           .chain("out2",1.0)
+           .chain("mi21", 0.4, 0.6).silence("mi21")
+           .chain("out2", 1.0)
            .build()
     debug("----------")
     val sb = new StringBuilder()
-    netWrapper.addAfterFire("out2"){
+    netWrapper.addAfterFire("out2") {
       debug("Line!")
       sb.append('-')
     }
-    
+
     (netWrapper, sb)
   }
-  
-  test("shouldLineThenNothing1"){
+
+  test("shouldLineThenNothing1") {
     val (netWrapper, sb) = lineNet2
-    
+
     netWrapper += "1,1,0,0,0,0"
 
     netWrapper.iterateUntilCalm()
-    assertEquals("-",sb.toString)
+    assertEquals("-", sb.toString)
 
     netWrapper.shutdown()
   }
-  
-  test("shouldLine3Times"){
+
+  test("shouldLine3Times") {
     val (netWrapper, sb) = lineNet2
 
     netWrapper += "1,1,0,1,1,0,1,1,0"
 
     netWrapper.iterateUntilCalm()
-    assertEquals("---",sb.toString)
+    assertEquals("---", sb.toString)
 
     netWrapper.shutdown()
   }
 
   private def lineNet3 =
     NetBuilder().addInput("in")
-           .chain("mi21",0.5,0.55)
+           .chain("mi21", 0.5, 0.55)
            .silence("mi21")
-           .chain("line",1.0,0.0).silence("line")
+           .chain("line", 1.0, 0.0).silence("line")
            .build()
 
   test("shouldHaveLineInterval3") {
     val netWrapper = lineNet3
     debug("------------")
     var lines = 0
-    netWrapper.addAfterFire("in"){ debug("Incoming!") } 
-    netWrapper.addAfterFire("line"){ debug("Line!"); lines += 1; } 
+    netWrapper.addAfterFire("in") { debug("Incoming!") }
+    netWrapper.addAfterFire("line") { debug("Line!"); lines += 1; }
 
     netWrapper += o
 
@@ -80,6 +81,4 @@ class LineNetSuite extends AnyFunSuite {
 
     netWrapper.shutdown()
   }
-
-
 }

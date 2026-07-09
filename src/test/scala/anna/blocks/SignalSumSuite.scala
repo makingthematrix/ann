@@ -4,12 +4,11 @@ import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
-import org.junit.Test
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
-  * Created by gorywoda on 6/19/16.
-  */
+ * Tests validating the [[SignalSum]] block.
+ */
 class SignalSumSuite extends AnyFunSuite {
 
   private def signalSumWithOps(blockName: String, requiredSignals: Int): NetWrapper =
@@ -17,14 +16,14 @@ class SignalSumSuite extends AnyFunSuite {
 
   private def assertFiredAfterRequiredSignals(netWrapper: NetWrapper, outNeuronId: String, requiredSignals: Int): Unit = {
     var fired = false
-    netWrapper.addAfterFire(outNeuronId){ fired = true }
+    netWrapper.addAfterFire(outNeuronId) { fired = true }
 
     val inputVector = List.fill(requiredSignals)("1").mkString(",")
     LOG.debug("inputVector: " + inputVector)
     netWrapper.iterateUntilCalm(inputVector)
     assertTrue(fired)
 
-    if(requiredSignals > 1) {
+    if (requiredSignals > 1) {
       fired = false
 
       val inputVectorMinus1 = List.fill(requiredSignals - 1)("1").mkString(",")
@@ -60,6 +59,4 @@ class SignalSumSuite extends AnyFunSuite {
     shouldFireAfterRequiredSignalsBlock(2)
     shouldFireAfterRequiredSignalsBlock(1)
   }
-
-
 }

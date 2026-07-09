@@ -1,14 +1,15 @@
 package anna.blocks
 
-import anna.async.{NetBuilder, NetWrapper}
 import anna.async.NetBuilderOps._
+import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
 
 /**
-  * Created by gorywoda on 7/2/16.
-  */
+ * The full SOS-recognizer integration test, wiring [[DelayGate]] / [[SignalSum]]
+ * blocks together through [[NetBuilder]] + [[NetBuilderOps]].
+ */
 class SOSWithBlocksSuite extends AnyFunSuite {
 
   private def buildDot: (NetWrapper, String) = {
@@ -17,7 +18,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     val outputId = DelayGate.outputId(dotBlockName)
 
     val netWrapper = NetBuilder().addInput("in").delayGate(dotBlockName, expectedDelay).build()
-    assertNotNull(netWrapper.find(outputId))
+    assertTrue(netWrapper.net.find(outputId).isDefined)
 
     (netWrapper, outputId)
   }
@@ -27,7 +28,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     var iteration = 0
     val (netWrapper, outputId) = buildDot
 
-    netWrapper.addAfterFire(outputId){
+    netWrapper.addAfterFire(outputId) {
       iteration = netWrapper.iteration
       fired = true
     }
@@ -35,7 +36,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.iterateUntilCalm("1")
 
     assertTrue(fired)
-    assertEquals(2, iteration-1)
+    assertEquals(2, iteration - 1)
 
     netWrapper.shutdown()
   }
@@ -45,7 +46,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     val outputId = SignalSum.outputId(lineBlockName)
 
     val netWrapper = NetBuilder().addInput("in").signalSum(lineBlockName, 2).build()
-    assertNotNull(netWrapper.find(outputId))
+    assertTrue(netWrapper.net.find(outputId).isDefined)
 
     (netWrapper, outputId)
   }
@@ -55,7 +56,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
 
     val (netWrapper, outputId) = buildLine
 
-    netWrapper.addAfterFire(outputId){ fired = true }
+    netWrapper.addAfterFire(outputId) { fired = true }
 
     LOG.allow(outputId)
 
@@ -99,18 +100,18 @@ class SOSWithBlocksSuite extends AnyFunSuite {
 
     LOG.allow(dotOutputId, lineOutputId, dotSilencingId, dotInputId, dotMiddleId)
 
-    val results = new TestResults;
+    val results = new TestResults
 
-    netWrapper.addAfterFire("in"){
+    netWrapper.addAfterFire("in") {
       LOG.debug(s"${netWrapper.iteration}: Incoming!")
     }
 
-    netWrapper.addAfterFire(dotOutputId){
+    netWrapper.addAfterFire(dotOutputId) {
       LOG.debug(s"${netWrapper.iteration}: Dot!")
       results.dotFired += 1
     }
 
-    netWrapper.addAfterFire(lineOutputId){
+    netWrapper.addAfterFire(lineOutputId) {
       LOG.debug(s"${netWrapper.iteration}: Line!")
       results.lineFired += 1
     }
@@ -195,7 +196,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
     netWrapper.shutdown()
   }
 
-  private def buildSO(outputBuffer:Option[StringBuilder] = None): (NetWrapper, TestResults) = {
+  private def buildSO(outputBuffer: Option[StringBuilder] = None): (NetWrapper, TestResults) = {
     val dotBlockName = "DOT"
     val dotExpectedDelay = 2
     val dotOutputId = DelayGate.outputId(dotBlockName)
@@ -231,26 +232,25 @@ class SOSWithBlocksSuite extends AnyFunSuite {
         .use(oOutputId).silence(sHushId)
         .build()
 
-
     LOG.allow(dotOutputId, lineOutputId, dotHushId, lineHushId, dotInputId, lineInputId, dotMiddleId)
 
     val results = new TestResults
 
-    netWrapper.addAfterFire("in"){
+    netWrapper.addAfterFire("in") {
       LOG.debug(s"${netWrapper.iteration}: Incoming!")
     }
 
-    netWrapper.addAfterFire(dotOutputId){
+    netWrapper.addAfterFire(dotOutputId) {
       LOG.debug(s"${netWrapper.iteration}: Dot!")
       results.dotFired += 1
     }
 
-    netWrapper.addAfterFire(lineOutputId){
+    netWrapper.addAfterFire(lineOutputId) {
       LOG.debug(s"${netWrapper.iteration}: Line!")
       results.lineFired += 1
     }
 
-    netWrapper.addAfterFire(sOutputId){
+    netWrapper.addAfterFire(sOutputId) {
       LOG.debug(s"${netWrapper.iteration}: S!")
       results.sFired += 1
       outputBuffer match {
@@ -259,7 +259,7 @@ class SOSWithBlocksSuite extends AnyFunSuite {
       }
     }
 
-    netWrapper.addAfterFire(oOutputId){
+    netWrapper.addAfterFire(oOutputId) {
       LOG.debug(s"${netWrapper.iteration}: O!")
       results.oFired += 1
       outputBuffer match {
@@ -327,5 +327,4 @@ class SOSWithBlocksSuite extends AnyFunSuite {
 
     netWrapper.shutdown()
   }
-
 }

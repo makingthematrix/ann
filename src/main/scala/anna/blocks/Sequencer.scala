@@ -1,8 +1,20 @@
 package anna.blocks
 
-import anna.async.{NetBuilder, Neuron}
+import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
+import anna.async.Neuron
 
+/**
+ * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
+ *
+ * A sequencer fires its output only when its two inputs arrive in order
+ * (input1 then input2): each of the two block neurons silences itself forever
+ * after firing and wakes the other, so only the correct alternating sequence
+ * lets the second neuron (the output) fire. The silencing neuron resets the
+ * block to its initial state.
+ *
+ * Construct with the block name via the case class or the `sequencer` DSL.
+ */
 final case class Sequencer(name: String) {
   def chain(builder: NetBuilder,
             input1Id: String, input2Id: String,
@@ -31,12 +43,6 @@ object Sequencer {
   def nextName() = s"${blockNamePrefix}#${firstFreeId}#"
 
   private var firstFreeId = 1
-
-  def apply(requiredSignalsNumber: Int):SignalSum = {
-    val newName = nextName()
-    firstFreeId += 1
-    SignalSum(newName, requiredSignalsNumber)
-  }
 
   def input1Id(name: String) = s"${name}1"
   def input2Id(name: String) = s"${name}2"

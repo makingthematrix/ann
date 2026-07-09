@@ -8,6 +8,7 @@ lazy val root = (project in file(".")).
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.8.8",
+  "com.typesafe.akka" %% "akka-actor-typed" % "2.8.8",
   "com.typesafe.akka" %% "akka-testkit" % "2.8.8",
   "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   "com.typesafe" % "config" % "1.4.9",

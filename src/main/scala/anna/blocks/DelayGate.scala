@@ -4,9 +4,14 @@ import anna.async.NetBuilder
 import anna.async.NetBuilderOps._
 
 /**
-  * Created by gorywoda on 1/31/16.
-  */
-final case class DelayGate(name: String, delay: Int){
+ * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
+ *
+ * A delay gate fires its output exactly `delay` iterations after receiving an
+ * input signal: the input neuron silences itself for `delay` iterations, a
+ * self-looping middle neuron keeps re-firing while it is awake, and the output
+ * neuron accumulates the middle's feedback until it crosses the threshold.
+ */
+final case class DelayGate(name: String, delay: Int) {
   lazy val data = {
     val builder = NetBuilder()
     chain(builder)
@@ -15,8 +20,8 @@ final case class DelayGate(name: String, delay: Int){
 
   def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
     val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
-    if(builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, delay)
-    else builder.addMiddle(id=inputId, threshold=inputThreshold, silenceIterations=delay)
+    if (builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, delay)
+    else builder.addMiddle(id = inputId, threshold = inputThreshold, silenceIterations = delay)
 
     builder.use(inputId).silence(inputId).chain(middleId, 1.0, 0.01).connect(middleId, 1.0)
            .chain(outputId, feedbackWeight, DelayGate.middleThreshold).silence(middleId)
@@ -41,7 +46,7 @@ object DelayGate {
 
   private var firstFreeId = 1
 
-  def apply(delay: Int):DelayGate = {
+  def apply(delay: Int): DelayGate = {
     val newName = nextName()
     firstFreeId += 1
     DelayGate(newName, delay)
@@ -51,5 +56,4 @@ object DelayGate {
   def middleId(name: String) = s"${name}2"
   def outputId(name: String) = s"${name}3"
   def silencingId(name: String) = s"${name}s"
-
 }
