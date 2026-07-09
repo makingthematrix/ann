@@ -1,6 +1,6 @@
 package anna.async
 
-import anna.blocks.{DelayGateTyped, SignalSumTyped}
+import anna.blocks.{DelayGateTyped, SequencerTyped, SignalSumTyped}
 import anna.data._
 
 import scala.language.implicitConversions
@@ -74,6 +74,9 @@ final class NetBuilderOpsTyped(val builder: NetBuilderTyped) extends AnyVal {
 
   def signalSum(name: String, requiredSignals: Int): NetBuilderTyped =
     SignalSumTyped(name, requiredSignals).chain(builder)
+
+  def sequencer(name: String, in1Id: String, in2Id: String): NetBuilderTyped =
+    SequencerTyped(name).chain(builder, in1Id, in2Id)
 
   implicit private def fromNetBuilder(builder: NetBuilderTyped): NetBuilderOpsTyped =
     NetBuilderOpsTyped.fromNetBuilder(builder)
