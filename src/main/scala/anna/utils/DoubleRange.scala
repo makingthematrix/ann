@@ -1,12 +1,13 @@
 package anna.utils
 
-import anna.utils.Utils.formats
+import anna.utils.Utils.{formats, classTagToManifest}
 import org.json4s.native.Serialization.{read, writePretty}
+import scala.reflect.ClassTag
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
-final case class RichD(val d: Double) extends AnyVal {
+final case class RichD(d: Double) extends AnyVal {
   def <=>(other: Double): DoubleRange = DoubleRange(d, other)
 }
 
@@ -30,6 +31,6 @@ final case class DoubleRange(from: Double, to: Double) {
 }
 
 object DoubleRange {  
-  implicit def fromDouble(d: Double): RichD = RichD(d)
-  def fromJson(jsonStr: String): DoubleRange = read[DoubleRange](jsonStr)
+  given Conversion[Double, RichD] = d => RichD(d)
+  def fromJson(jsonStr: String)(using ct: ClassTag[DoubleRange]): DoubleRange = read[DoubleRange](jsonStr)
 }

@@ -1,6 +1,5 @@
 package anna.blocks
 
-import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
 import org.junit.Assert._
 import org.scalatest.BeforeAndAfter
@@ -10,6 +9,9 @@ import org.scalatest.funsuite.AnyFunSuite
  * Tests validating the [[Sequencer]] block.
  */
 class SequencerSuite extends AnyFunSuite with BeforeAndAfter {
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
+
   private var _wrapper: Option[NetWrapper] = None
 
   after {

@@ -2,7 +2,6 @@ package anna.async
 
 import akka.util.Timeout
 import anna.Context
-import anna.async.NetBuilderOps._
 import anna.data.Silence
 import anna.logger.LOG
 import org.junit.Assert._
@@ -16,6 +15,8 @@ import scala.concurrent.{Await, Promise}
  * / [[NetWrapper]].
  */
 class SilenceRequestSuite extends AnyFunSuite {
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
 
   private val threshold: Double = Context().threshold
   private val silenceIterations: Int = Context().silenceIterations

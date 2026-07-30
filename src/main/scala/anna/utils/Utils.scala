@@ -3,18 +3,33 @@ package anna.utils
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.text.{NumberFormat, ParsePosition}
 import java.util.{Calendar, Locale}
-import anna.async._
-import anna.data._
+import anna.async.*
+import anna.data.*
 import anna.logger.LOG
-import anna.logger.LOG._
+import anna.logger.LOG.*
 import org.apache.commons.io.FileUtils
-import org.json4s._
+import org.json4s.*
 import org.json4s.native.Serialization
 
+import scala.reflect.{ClassTag, Manifest}
 import scala.annotation.tailrec
+import scala.language.implicitConversions
 import scala.util.Random
 
 object Utils {
+  // Helper to convert ClassTag to Manifest for json4s compatibility in Scala 3
+  // This is needed because json4s still uses Manifest internally, but Scala 3
+  // deprecates Manifest synthesis and prefers ClassTag
+  def manifestFromClassTag[T](using ct: ClassTag[T]): Manifest[T] = {
+    new Manifest[T] {
+      def runtimeClass: Class[?] = ct.runtimeClass
+      override def toString: String = ct.toString
+    }
+  }
+
+  // Implicit conversion from ClassTag to Manifest for json4s
+  implicit def classTagToManifest[T](using ct: ClassTag[T]): Manifest[T] = manifestFromClassTag(using ct)
+
   private def fail(str: String):IllegalArgumentException = throw new IllegalArgumentException(str)
   def assert(condition: => Boolean, str: String): Unit = if(!condition) fail(str)
 
@@ -38,7 +53,7 @@ object Utils {
     case n if oldSet.isEmpty => (Set(), newSet)
     case n =>
       val id = RandomNumber.apply(oldSet)
-      splitIdsRandomly(oldSet.toSet - id, idsToDraw - 1, newSet + id)
+      splitIdsRandomly(oldSet - id, idsToDraw - 1, newSet + id)
   }
 
   private def vary(d: Double) = d + (Random.nextDouble() * 0.1 - 0.05)
@@ -86,17 +101,23 @@ object Utils {
     dir
   }
 
-  def listDirs(dirPath: String) = list(dirPath, 1)
-  def listFiles(dirPath: String) = list(dirPath, 2)
+  private enum ListFileMode {
+    case ALL, DIRS, FILES
+  }
+  import ListFileMode.*
 
-  private def list(dirPath: String, flag: Int) = {
+  def listDirs(dirPath: String): List[String] = list(dirPath, DIRS)
+  def listFiles(dirPath: String): List[String] = list(dirPath, FILES)
+
+  private def list(dirPath: String, mode: ListFileMode): List[String] = {
+    import ListFileMode.*
     val dir = new File(dirPath)
     if(!dir.exists() || !dir.isDirectory) exception(this, s"No directory with the name $dir")
 
-    (flag match {
-      case 0 => dir.listFiles()
-      case 1 => dir.listFiles().filter(_.isDirectory)
-      case 2 => dir.listFiles().filterNot(_.isDirectory)
+    (mode match {
+      case ALL   => dir.listFiles()
+      case DIRS  => dir.listFiles().filter(_.isDirectory)
+      case FILES => dir.listFiles().filterNot(_.isDirectory)
     }).map(_.getName).toList
   }
 
@@ -107,15 +128,14 @@ object Utils {
     FileUtils.deleteDirectory(dir)
     !dir.exists()
   }
+  
 
-  implicit val formats: Formats = Serialization.formats(
+  given formats: Formats = Serialization.formats(
     ShortTypeHints(
       List(
         classOf[SynapseWeight],
         classOf[Silence],
-        classOf[NeuronTypeStandard],
-        classOf[NeuronTypeDummy],
-        classOf[NeuronTypeSilencing]
+        classOf[NeuronType]
       )
     )
   )

@@ -1,7 +1,6 @@
 package anna.async
 
 import anna.Context
-import anna.async.NetBuilderOps._
 import anna.logger.LOG
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
@@ -13,6 +12,9 @@ import scala.collection.mutable
  * driven through [[NetWrapper]].
  */
 class DelaySuite extends AnyFunSuite {
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
+  
   test("foo") {
     val netWrapper = NetBuilder().addInput("in1").build("net")
 

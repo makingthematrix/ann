@@ -2,8 +2,9 @@ package anna.data
 
 import anna.Context
 import anna.utils.Utils
-import anna.utils.Utils.{formats, synapseId}
+import anna.utils.Utils.{formats, synapseId, classTagToManifest}
 import org.json4s.native.Serialization.{read, writePretty}
+import scala.reflect.ClassTag
 
 /**
  * Created by gorywoda on 03.01.15.
@@ -83,7 +84,7 @@ object NetData {
     NetData(id, neurons, inputs, Context().threshold,
             Context().silenceIterations, Context().weight)
 
-  def fromJson(jsonStr: String) = read[NetData](jsonStr)
+  def fromJson(jsonStr: String)(using ct: ClassTag[NetData]): NetData = read[NetData](jsonStr)
 
   def neuronId(netId: String, id: String): String = s"${netId}_$id"
   def neuronId(netId: String, index: Int): String = s"${netId}_$index"

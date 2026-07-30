@@ -1,7 +1,6 @@
 package anna.async
 
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.{ActorRef, Scheduler}
 import akka.util.Timeout
 import anna.Context
@@ -18,10 +17,9 @@ import scala.concurrent.Await
  * synchronous API.
  */
 final class NeuronRef(val id: String, val ref: ActorRef[Neuron.Command]) {
-
   private def ask[Res](f: ActorRef[Res] => Neuron.Command): Res = {
-    implicit val timeout: Timeout = Context().timeout
-    implicit val scheduler: Scheduler = Context().system.scheduler
+    given timeout: Timeout = Context().timeout
+    given Scheduler = Context().system.scheduler
     Await.result(ref.ask(f), timeout.duration)
   }
 

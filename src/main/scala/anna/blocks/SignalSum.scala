@@ -1,7 +1,9 @@
 package anna.blocks
 
 import anna.async.NetBuilder
-import anna.async.NetBuilderOps._
+import anna.data.NetData
+
+import scala.util.matching.Regex
 
 /**
  * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
@@ -11,15 +13,18 @@ import anna.async.NetBuilderOps._
  * of the output threshold, and the block silences itself after firing.
  */
 final case class SignalSum(name: String, requiredSignalsNumber: Int) {
+  import anna.data.SynapseData.given
+  import scala.language.implicitConversions
+  
   import SignalSum.middleThreshold
 
-  lazy val data = {
+  lazy val data: NetData = {
     val builder = NetBuilder()
     chain(builder)
     builder.data
   }
 
-  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0): NetBuilder = {
     val middleSynapseWeigth = middleThreshold / requiredSignalsNumber
 
     if (builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, 0)
@@ -30,21 +35,21 @@ final case class SignalSum(name: String, requiredSignalsNumber: Int) {
       .use(outputId)
   }
 
-  val inputId = SignalSum.inputId(name)
-  val outputId = SignalSum.outputId(name)
-  val silencingId = SignalSum.silencingId(name)
+  val inputId: String = SignalSum.inputId(name)
+  val outputId: String = SignalSum.outputId(name)
+  val silencingId: String = SignalSum.silencingId(name)
 }
 
 object SignalSum {
-  val middleThreshold = 0.9
+  val middleThreshold: Double = 0.9
 
-  val blockNamePrefix = "SignalSum"
-  val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
-  val neuronsInBlock = 3
+  val blockNamePrefix: String = "SignalSum"
+  val nameRegex: Regex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
+  val neuronsInBlock: Int = 3
 
-  def nextName() = s"${blockNamePrefix}#${firstFreeId}#"
+  def nextName(): String = s"${blockNamePrefix}#${firstFreeId}#"
 
-  private var firstFreeId = 1
+  private var firstFreeId: Int = 1
 
   def apply(requiredSignalsNumber: Int): SignalSum = {
     val newName = nextName()
@@ -52,7 +57,7 @@ object SignalSum {
     SignalSum(newName, requiredSignalsNumber)
   }
 
-  def inputId(name: String) = s"${name}1"
-  def outputId(name: String) = s"${name}2"
-  def silencingId(name: String) = s"${name}s"
+  def inputId(name: String): String = s"${name}1"
+  def outputId(name: String): String = s"${name}2"
+  def silencingId(name: String): String = s"${name}s"
 }

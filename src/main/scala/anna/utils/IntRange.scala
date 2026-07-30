@@ -1,7 +1,8 @@
 package anna.utils
 
-import anna.utils.Utils.formats
+import anna.utils.Utils.{formats, classTagToManifest}
 import org.json4s.native.Serialization.{read, writePretty}
+import scala.reflect.ClassTag
 
 import scala.language.implicitConversions
 
@@ -17,6 +18,6 @@ final case class IntRange(start: Int, end: Int)  {
 }
 
 object IntRange {
-  implicit def fromRange(r: Range): IntRange = IntRange(r.start, r.end)
-  def fromJson(str: String): IntRange = read[IntRange](str)
+  given Conversion[Range, IntRange] = r => IntRange(r.start, r.end)
+  def fromJson(str: String)(using ct: ClassTag[IntRange]): IntRange = read[IntRange](str)
 }

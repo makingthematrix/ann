@@ -1,7 +1,8 @@
 package anna.data
 
-import anna.utils.Utils.formats
+import anna.utils.Utils.{formats, classTagToManifest}
 import org.json4s.native.Serialization.{read, writePretty}
+import scala.reflect.ClassTag
 
 import scala.language.implicitConversions
 
@@ -15,7 +16,7 @@ final case class SynapseData(neuronId: String, weight: SynapseTrait){
 object SynapseData {
   def apply(neuronId: String, weight: Double):SynapseData = SynapseData(neuronId, SynapseWeight(weight))
 
-  def fromJson(jsonStr: String): SynapseData = read[SynapseData](jsonStr)
+  def fromJson(jsonStr: String)(using ct: ClassTag[SynapseData]): SynapseData = read[SynapseData](jsonStr)
 
-  implicit def fromDouble(weight: Double):SynapseWeight = SynapseWeight(weight)
+  given Conversion[Double, SynapseWeight] = d => SynapseWeight(d)
 }

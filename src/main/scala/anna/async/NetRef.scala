@@ -19,13 +19,12 @@ import scala.concurrent.Await
  * by the net are wrapped as [[NeuronRef]].
  */
 final class NetRef(val id: String, val ref: ActorRef[Net.Command]) {
-
   private var _iteration = 0L
   def iteration: Long = _iteration
 
   private def ask[Res](f: ActorRef[Res] => Net.Command): Res = {
-    implicit val timeout: Timeout = Context().timeout
-    implicit val scheduler: Scheduler = Context().system.scheduler
+    given timeout: Timeout = Context().timeout
+    given Scheduler = Context().system.scheduler
     Await.result(ref.ask(f), timeout.duration)
   }
 
@@ -98,8 +97,8 @@ object NetRef {
   def apply(id: String): NetRef = {
     // Spawn a top-level actor by asking the SpawnProtocol user guardian.
     val system = Context().system
-    implicit val timeout: Timeout = Context().timeout
-    implicit val scheduler: Scheduler = system.scheduler
+    given timeout: Timeout = Context().timeout
+    given Scheduler = system.scheduler
     val ref = Await.result(
       system.ask[ActorRef[Net.Command]](SpawnProtocol.Spawn(Net(id), "", Props.empty, _)),
       timeout.duration

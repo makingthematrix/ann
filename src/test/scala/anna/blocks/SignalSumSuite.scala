@@ -1,6 +1,5 @@
 package anna.blocks
 
-import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
@@ -10,6 +9,8 @@ import org.scalatest.funsuite.AnyFunSuite
  * Tests validating the [[SignalSum]] block.
  */
 class SignalSumSuite extends AnyFunSuite {
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
 
   private def signalSumWithOps(blockName: String, requiredSignals: Int): NetWrapper =
     NetBuilder().addInput("in").signalSum(blockName, requiredSignals).build()

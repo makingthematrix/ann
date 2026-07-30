@@ -3,7 +3,6 @@ package anna
 import anna.async.{NetBuilder, NetWrapper}
 import anna.data.NetData
 import anna.logger.LOG._
-import anna.async.NetBuilderOps._
 import anna.blocks.{DelayGate, SignalSum}
 import anna.logger.LOG
 /**
@@ -12,7 +11,9 @@ import anna.logger.LOG
 
 
 object Commands {
-
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
+  
   private var netWrapperOpt: Option[NetWrapper] = None
 
   private val DELAY_GATE: String = "Delay Gate"

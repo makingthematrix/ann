@@ -2,7 +2,6 @@ package anna.async
 
 import akka.actor.typed.Scheduler
 import akka.actor.typed.scaladsl.AskPattern._
-import akka.actor.typed.scaladsl.adapter._
 import akka.util.Timeout
 import anna.Context
 import anna.async.Messages.Msg
@@ -21,8 +20,8 @@ class NetSuite extends AnyFunSuite {
   private val weight: SynapseTrait = Context().weight
   private val silenceIterations: Int = Context().silenceIterations
 
-  private implicit val timeout: Timeout = Context().timeout
-  private implicit val scheduler: Scheduler = Context().system.scheduler
+  private given timeout: Timeout = Context().timeout
+  private given Scheduler = Context().system.scheduler
 
   test("shouldCreateNet") {
     val net = NetRef("net1")

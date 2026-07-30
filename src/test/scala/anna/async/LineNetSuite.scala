@@ -1,6 +1,5 @@
 package anna.async
 
-import anna.async.NetBuilderOps._
 import anna.logger.LOG.debug
 import org.junit.Assert._
 import org.scalatest.funsuite.AnyFunSuite
@@ -10,6 +9,9 @@ import org.scalatest.funsuite.AnyFunSuite
  * and driven through [[NetWrapper]].
  */
 class LineNetSuite extends AnyFunSuite {
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
+
   val s = "1,0,0,0,1,0,0,0,1,0,0,0"
   val o = "1,1,0,0,1,1,0,0,1,1,0,0"
 

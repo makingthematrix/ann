@@ -1,6 +1,5 @@
 package anna.blocks
 
-import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
@@ -11,6 +10,9 @@ import org.scalatest.funsuite.AnyFunSuite
  * blocks together through [[NetBuilder]] + [[NetBuilderOps]].
  */
 class SOSWithBlocksSuite extends AnyFunSuite {
+
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
 
   private def buildDot: (NetWrapper, String) = {
     val dotBlockName = "DOT"

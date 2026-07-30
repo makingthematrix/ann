@@ -1,6 +1,5 @@
 package anna.blocks
 
-import anna.async.NetBuilderOps._
 import anna.async.{NetBuilder, NetWrapper}
 import anna.logger.LOG
 import org.junit.Assert._
@@ -10,7 +9,9 @@ import org.scalatest.funsuite.AnyFunSuite
  * Tests validating the [[DelayGate]] block.
  */
 class DelayGateSuite extends AnyFunSuite {
-
+  import anna.async.NetBuilderOps.given
+  import scala.language.implicitConversions
+  
   private def delayGateWithOps(blockName: String, delay: Int): NetWrapper =
     NetBuilder().addInput("in").delayGate(blockName, delay).build()
 

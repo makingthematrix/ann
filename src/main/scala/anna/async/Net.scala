@@ -28,6 +28,7 @@ import scala.collection.mutable
  */
 class Net(context: ActorContext[Command], val id: String)
   extends AbstractBehavior[Command](context) {
+  import NeuronType.*
 
   private val neurons = mutable.LinkedHashMap[String, ActorRef[Neuron.Command]]()
   private var inputs: List[NeuronHandle] = List.empty
@@ -102,9 +103,9 @@ class Net(context: ActorContext[Command], val id: String)
 
   private def createNeuron(data: NeuronData, replyTo: ActorRef[NeuronHandle]): Unit = {
     val behavior: Behavior[Neuron.Command] = data.neuronType match {
-      case NeuronTypeStandard()  => Neuron(data.id, id, data.threshold, data.silenceIterations)
-      case NeuronTypeDummy()     => DummyNeuron(data.id, id)
-      case NeuronTypeSilencing() => SilencingNeuron(data.id, id)
+      case NeuronTypeStandard  => Neuron(data.id, id, data.threshold, data.silenceIterations)
+      case NeuronTypeDummy     => DummyNeuron(data.id, id)
+      case NeuronTypeSilencing => SilencingNeuron(data.id, id)
     }
     // Spawn anonymously: neuron ids are bookkeeping only and may contain
     // characters that are illegal in Akka actor names (e.g. '#' from block

@@ -5,11 +5,10 @@ import java.util.concurrent.TimeUnit
 import akka.actor.typed.{ActorSystem, SpawnProtocol}
 import akka.util.Timeout
 import anna.data._
-import anna.utils.Utils.formats
+import anna.utils.Utils.{formats, classTagToManifest}
 import com.typesafe.config.ConfigFactory
 import org.json4s.native.Serialization.{read, writePretty}
-
-import anna.logger.LOG._
+import scala.reflect.ClassTag
 
 import scala.concurrent.duration._
 
@@ -17,7 +16,7 @@ final case class NeuronDefaults(threshold: Double, weight: SynapseTrait, silence
   def toJson: String = writePretty(this)
 }
 
-final case class Context(awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: NeuronDefaults){
+final case class Context (awaitTimeout: Long, maxRunIterations: Long, neuronDefaults: NeuronDefaults){
   def timeout: Timeout = Timeout(FiniteDuration.apply(awaitTimeout, TimeUnit.SECONDS))
   def threshold: Double = neuronDefaults.threshold
   def weight: SynapseTrait = neuronDefaults.weight
@@ -82,45 +81,57 @@ object Context {
   private val _defaultweight: String = "defaultWeight"
   private val _defaultsilenceiterations: String = "defaultSilenceIterations"
   private val _defaultiterationtime: String = "defaultIterationTime"
+  
+  enum Defaults (val name: String) {
+    case AWAIT_TIMEOUT extends Defaults("awaitTimeout")
+    case MAX_RUN_ITERATIONS extends Defaults("maxRunIterations")
+    case NEURON_DEFAULTS extends Defaults("neuronDefaults")
+    case DEFAULT_THRESHOLD extends Defaults("defaultThreshold")
+    case DEFAULT_WEIGHT extends Defaults("defaultWeight")
+    case DEFAULT_SILENCE_ITERATIONS extends Defaults("defaultSilenceIterations")
+    case DEFAULT_ITERATION_TIME extends Defaults("defaultIterationTime")
+  }
+  import Defaults.*
 
-  private def init(): Unit ={
+  private def init(): Unit = {
     val config = ConfigFactory.load()
     val root = config.getConfig("context")
 
-    val awaitTimeout = root.getInt(_awaittimeout)
-    val maxRunIterations = root.getInt(_maxruniterations)
+    val awaitTimeout = root.getInt(AWAIT_TIMEOUT.name)
+    val maxRunIterations = root.getInt(MAX_RUN_ITERATIONS.name)
 
     // neuron defaults
-    val neuronRoot = root.getConfig(_neurondefaults)
-    val threshold = neuronRoot.getDouble(_defaultthreshold)
-    val weight = SynapseTrait(neuronRoot.getString(_defaultweight))
-    val silenceIterations = neuronRoot.getInt(_defaultsilenceiterations)
-    val iterationTime = neuronRoot.getLong(_defaultiterationtime)
+    val neuronRoot = root.getConfig(NEURON_DEFAULTS.name)
+    val threshold = neuronRoot.getDouble(DEFAULT_THRESHOLD.name)
+    val weight = SynapseTrait(neuronRoot.getString(DEFAULT_WEIGHT.name))
+    val silenceIterations = neuronRoot.getInt(DEFAULT_SILENCE_ITERATIONS.name)
+    val iterationTime = neuronRoot.getLong(DEFAULT_ITERATION_TIME.name)
 
     val neuronDefaults = NeuronDefaults(threshold, weight, silenceIterations, iterationTime)
 
     set(Context(awaitTimeout, maxRunIterations, neuronDefaults))
   }
 
-  def fromJson(jsonStr: String): Context = read[Context](jsonStr)
+  def fromJson(jsonStr: String)(using ct: ClassTag[Context]): Context = read[Context](jsonStr)
   def withJson(jsonStr: String): Unit = set(fromJson(jsonStr))
 
-  def set(name: String, n: Int):Unit = name match {
-    case `_awaittimeout` => withAwaitTimeout(n)
-    case `_maxruniterations` => withMaxRunIterations(n)
-    case `_defaultsilenceiterations` => withSilenceIterations(n)
+  def set(action: Defaults, n: Int): Unit = action match {
+    case AWAIT_TIMEOUT => withAwaitTimeout(n)
+    case MAX_RUN_ITERATIONS => withMaxRunIterations(n)
+    case DEFAULT_SILENCE_ITERATIONS => withSilenceIterations(n)
+    case _ =>
   }
   
-  def set(name: String, d: Double):Unit = name match {
-    case `_defaultthreshold` => withThreshold(d)
-    case `_defaultweight` => withWeight(SynapseWeight(d))
+  def set(action: Defaults, d: Double): Unit = action match {
+    case DEFAULT_THRESHOLD => withThreshold(d)
+    case DEFAULT_WEIGHT => withWeight(SynapseWeight(d))
+    case _ =>
   }
 
-  def set(map: Map[String,Any]):Unit = map.foreach(tuple =>
+  def set(map: Map[Defaults, Double | Int]):Unit = map.foreach(tuple =>
     tuple._2 match {
       case d: Double => set(tuple._1, d)
       case i: Int => set(tuple._1, i)
-      case _ => exception(this, s"Unsuppored type of ${tuple._1}: ${tuple._2.getClass}")
     }
   )
 }

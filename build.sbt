@@ -1,9 +1,50 @@
+val _scalaVersion = "3.8.4"
+
+name := "anna"
+ThisBuild / licenses := Seq("GPL 3.0" -> url("https://www.gnu.org/licenses/gpl-3.0.en.html"))
+ThisBuild / scalaVersion := _scalaVersion
+ThisBuild / versionScheme := Some("semver-spec")
+Test / scalaVersion := _scalaVersion
+ThisBuild / description := "An artificial neural network as a data flow transformer"
+
+val standardOptions = Seq(
+  "-deprecation",
+  "-feature",
+  "-unchecked",
+  "-encoding",
+  "utf8"
+)
+
+val scala3Options = Seq(
+  "-explain",
+  "-Wsafe-init",
+  "-Ycheck-all-patmat",
+  "-Wunused:imports",
+  "-no-indent", "-rewrite"
+)
+
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/makingthematrix/signals3"),
+    "scm:git:git@github.com:makingthematrix/signals3.git"
+  )
+)
+
+developers := List(
+  Developer(
+    "makingthematrix",
+    "Maciej Gorywoda",
+    "makingthematrix@protonmail.com",
+    url("https://github.com/makingthematrix"))
+)
+
+
 lazy val root = (project in file(".")).
   settings(
     name := "anna",
-    version := "1.0",
-    scalaVersion := "2.13.18",
-    scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
+    version := "1.1",
+    scalaVersion := _scalaVersion,
+    scalacOptions ++= standardOptions ++ scala3Options
   )
 
 libraryDependencies ++= Seq(

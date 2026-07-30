@@ -1,9 +1,7 @@
 package anna.async
 
 import anna.Context
-import anna.data.SynapseData.fromDouble
 import anna.data._
-import anna.logger.LOG
 import anna.logger.LOG._
 import anna.utils.Utils.assert
 
@@ -19,6 +17,10 @@ import scala.collection.mutable
  * `addStandard`, ...) are defined here directly.
  */
 class NetBuilder {
+  import anna.data.SynapseData.given 
+  import scala.language.implicitConversions
+  import NeuronType.*
+  
   var netId: String = "net"
 
   var defThreshold: Double = Context().threshold
@@ -106,13 +108,13 @@ class NetBuilder {
 
   def addSilencingNeuron(id: String): NetBuilder = {
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeSilencing(), id, 0.0))
+    add(newNeuron(NeuronTypeSilencing, id, 0.0))
     this
   }
 
   def addDummy(id: String): NetBuilder = {
     throwIfAlreadyExists(id)
-    add(newNeuron(neuronType = NeuronTypeDummy(), id = id, threshold = 0.0))
+    add(newNeuron(neuronType = NeuronTypeDummy, id = id, threshold = 0.0))
     this
   }
 
@@ -121,7 +123,7 @@ class NetBuilder {
                   silenceIterations: Int): NetBuilder = {
     debug(s"new neuron: $id")
     throwIfAlreadyExists(id)
-    add(newNeuron(NeuronTypeStandard(), id, threshold, silenceIterations))
+    add(newNeuron(NeuronTypeStandard, id, threshold, silenceIterations))
     this
   }
 
@@ -196,9 +198,9 @@ class NetBuilder {
   }
 
   private def createNeuronInNet(net: NetRef, data: NeuronData): NeuronRef = data.neuronType match {
-    case NeuronTypeStandard()  => net.createNeuron(data.id, data.threshold, data.silenceIterations)
-    case NeuronTypeDummy()     => net.createDummy(data.id, data.silenceIterations)
-    case NeuronTypeSilencing() => net.createSilencingNeuron(data.id)
+    case NeuronTypeStandard  => net.createNeuron(data.id, data.threshold, data.silenceIterations)
+    case NeuronTypeDummy     => net.createDummy(data.id, data.silenceIterations)
+    case NeuronTypeSilencing => net.createSilencingNeuron(data.id)
   }
 
   private val nextIndex: () => Long = {

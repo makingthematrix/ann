@@ -1,7 +1,9 @@
 package anna.blocks
 
 import anna.async.NetBuilder
-import anna.async.NetBuilderOps._
+import anna.data.NetData
+
+import scala.util.matching.Regex
 
 /**
  * A reusable network block, assembled through [[NetBuilder]] / `NetBuilderOps`.
@@ -12,13 +14,17 @@ import anna.async.NetBuilderOps._
  * neuron accumulates the middle's feedback until it crosses the threshold.
  */
 final case class DelayGate(name: String, delay: Int) {
-  lazy val data = {
+  import anna.async.NetBuilderOps.given
+  import anna.data.SynapseData.given
+  import scala.language.implicitConversions
+  
+  lazy val data: NetData = {
     val builder = NetBuilder()
     chain(builder)
     builder.data
   }
 
-  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0) = {
+  def chain(builder: NetBuilder, inputWeight: Double = 1.0, inputThreshold: Double = 0.0): NetBuilder = {
     val feedbackWeight = DelayGate.middleThreshold / (delay + 1)
     if (builder.isCurrent) builder.chain(inputId, inputWeight, inputThreshold, delay)
     else builder.addMiddle(id = inputId, threshold = inputThreshold, silenceIterations = delay)
@@ -29,22 +35,22 @@ final case class DelayGate(name: String, delay: Int) {
            .use(outputId) // always end chaining with setting the current neuron at the main output of the block
   }
 
-  val inputId = DelayGate.inputId(name)
-  val middleId = DelayGate.middleId(name)
-  val outputId = DelayGate.outputId(name)
-  val silencingId = DelayGate.silencingId(name)
+  val inputId: String = DelayGate.inputId(name)
+  val middleId: String = DelayGate.middleId(name)
+  val outputId: String = DelayGate.outputId(name)
+  val silencingId: String = DelayGate.silencingId(name)
 }
 
 object DelayGate {
-  val blockNamePrefix = "DelayGate"
-  val nameRegex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
-  val neuronsInBlock = 4
+  val blockNamePrefix: String = "DelayGate"
+  val nameRegex: Regex = s""".*${blockNamePrefix}#([0-9]+)#.*""".r
+  val neuronsInBlock: Int = 4
 
-  val middleThreshold = 0.9
+  val middleThreshold: Double = 0.9
 
-  def nextName() = s"${blockNamePrefix}#${firstFreeId}#"
+  def nextName(): String = s"${blockNamePrefix}#${firstFreeId}#"
 
-  private var firstFreeId = 1
+  private var firstFreeId: Int = 1
 
   def apply(delay: Int): DelayGate = {
     val newName = nextName()
@@ -52,8 +58,8 @@ object DelayGate {
     DelayGate(newName, delay)
   }
 
-  def inputId(name: String) = s"${name}1"
-  def middleId(name: String) = s"${name}2"
-  def outputId(name: String) = s"${name}3"
-  def silencingId(name: String) = s"${name}s"
+  def inputId(name: String): String = s"${name}1"
+  def middleId(name: String): String = s"${name}2"
+  def outputId(name: String): String = s"${name}3"
+  def silencingId(name: String): String = s"${name}s"
 }

@@ -3,8 +3,6 @@ package anna.async
 import anna.async.NeuronTriggers.Trigger
 import scala.collection.mutable
 
-import anna.logger.LOG
-
 trait NeuronTriggers {
   private val afterFire = mutable.ListBuffer[(String, Trigger)]()
   private val signalIgnored = mutable.ListBuffer[(String, Trigger)]()

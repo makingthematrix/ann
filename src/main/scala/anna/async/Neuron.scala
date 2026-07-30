@@ -73,7 +73,7 @@ class Neuron(context: ActorContext[Command],
 
   // --- silent state -------------------------------------------------------
 
-  private val silentBehavior: Behavior[Command] = Behaviors.receiveMessage {
+  private lazy val silentBehavior: Behavior[Command] = Behaviors.receiveMessage {
     case Signal(s, senderId) =>
       log(s"signal $s from $senderId ignored")
       triggerSignalIgnored()
@@ -202,7 +202,7 @@ class Neuron(context: ActorContext[Command],
 }
 
 object Neuron {
-  type SilenceIterations = Int
+  private type SilenceIterations = Int
   val SilenceForever: SilenceIterations = -1
 
   /** The message protocol understood by a [[Neuron]] actor. */

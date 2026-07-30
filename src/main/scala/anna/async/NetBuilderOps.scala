@@ -54,6 +54,8 @@ final class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
   def oscillator(name: String): NetBuilder = loop(name, 1.0, 0.5, -1.0)
   def oscillator(): NetBuilder = loop(1.0, 0.5, -1.0)
 
+  import NetBuilderOps.given 
+  
   def chainOscillator(id: String, weight: Double, threshold: Double): NetBuilder =
     chainMiddle(id, SynapseWeight(weight), threshold).oscillator(id + "_osc")
   def chainOscillator(id: String, weight: Double): NetBuilder =
@@ -73,11 +75,8 @@ final class NetBuilderOps(val builder: NetBuilder) extends AnyVal {
 
   def sequencer(name: String, in1Id: String, in2Id: String): NetBuilder =
     Sequencer(name).chain(builder, in1Id, in2Id)
-
-  implicit private def fromNetBuilder(builder: NetBuilder): NetBuilderOps =
-    NetBuilderOps.fromNetBuilder(builder)
 }
 
 object NetBuilderOps {
-  implicit def fromNetBuilder(builder: NetBuilder): NetBuilderOps = new NetBuilderOps(builder)
+  given Conversion[NetBuilder, NetBuilderOps] = b => NetBuilderOps(b)
 }
