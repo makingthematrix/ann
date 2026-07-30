@@ -10,7 +10,6 @@ import org.scalatest.funsuite.AnyFunSuite
  * blocks together through [[NetBuilder]] + [[NetBuilderOps]].
  */
 class SOSWithBlocksSuite extends AnyFunSuite {
-
   import anna.async.NetBuilderOps.given
   import scala.language.implicitConversions
 
